@@ -1,0 +1,18 @@
+=== ANÁLISE DE PROBLEMAS ===
+
+PROBLEMAS ENCONTRADOS (9):
+
+1. Linha 31: Valor indefinido: var titleText = headerGroup.add("statictext", undefined, "GNEWS D9 TOOLS");
+2. Linha 35: Valor indefinido: var subtitleText = headerGroup.add("statictext", undefined, "Instalador de Script para After Effects");
+3. Linha 50: Valor indefinido: var versionText = infoGroup.add("statictext", undefined, "Versão: 1.68 | Build: D9TOOLS");
+4. Linha 53: Valor indefinido: var descText = infoGroup.add("statictext", undefined, "Painel de automação para motion graphics e edição de vídeo.");
+5. Linha 62: Valor indefinido: var statusText = statusGroup.add("statictext", undefined, "Clique em 'Instalar' para adicionar o script ao After Effects");
+6. Linha 65: Valor indefinido: var progressBar = statusGroup.add("progressbar", undefined, 0, 100);
+7. Linha 81: Valor indefinido: var cancelBtn = buttonGroup.add("button", undefined, "Cancelar");
+8. Linha 99: Valor indefinido: var installBtn = buttonGroup.add("button", undefined, "Instalar");
+9. LINHA 201: statusText.graphics.foregroundColor = statusText.graphics.newPen(statusText.graphics.PenType.SOLID_COLOR, [0.8, 0.2, 0.2, 1],
+
+=== LINHA 201 ESPECÍFICA ===
+Linha 200:                 statusText.text = "Erro na instalação: " + err.message;
+Linha 201:                 statusText.graphics.foregroundColor = statusText.graphics.newPen(statusText.graphics.PenType.SOLID_COLOR, [0.8, 0.2, 0.2, 1],
+Linha 202: N/A

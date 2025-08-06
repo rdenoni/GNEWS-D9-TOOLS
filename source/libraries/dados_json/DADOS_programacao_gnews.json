@@ -1,0 +1,186 @@
+{
+  "programacao_globonews": [
+    {
+      "programa": "Faixa da Madrugada (Reprises)",
+      "tipo": "Programa",
+      "horario": "00:00 - 05:00",
+      "dias_exibicao": "Diariamente",
+      "tagName": "FAIXA MADRUGADA"
+    },
+    {
+      "programa": "Jornal GloboNews (Edição da Manhã)",
+      "tipo": "Jornal",
+      "horario": "05:00 - 06:00",
+      "dias_exibicao": "Segunda a Sexta",
+      "tagName": "JORNAL_ED5H"
+    },
+    {
+      "programa": "Jornal GloboNews (Edição das 6h)",
+      "tipo": "Jornal",
+      "horario": "06:00 - 07:00",
+      "dias_exibicao": "Segunda a Sexta",
+      "tagName": "JORNAL_ED6H"
+    },
+    {
+      "programa": "Jornais de Fim de Semana",
+      "tipo": "Jornal",
+      "horario": "06:00 - 09:30",
+      "dias_exibicao": "Sábados e Domingos",
+      "tagName": "JORNAL_FDS_MANHA"
+    },
+    {
+      "programa": "GloboNews Em Ponto",
+      "tipo": "Jornal",
+      "horario": "07:00 - 09:30",
+      "dias_exibicao": "Segunda a Sexta",
+      "tagName": "EM_PONTO"
+    },
+    {
+      "programa": "Conexão GloboNews",
+      "tipo": "Jornal",
+      "horario": "09:30 - 13:00",
+      "dias_exibicao": "Segunda a Sexta",
+      "tagName": "CONEXAO"
+    },
+    {
+      "programa": "Programação de Fim de Semana (Manhã)",
+      "tipo": "Programa",
+      "horario": "09:00 - 13:00",
+      "dias_exibicao": "Sábados e Domingos",
+      "tagName": "PROG_FDS_MANHA"
+    },
+    {
+      "programa": "Estúdio i",
+      "tipo": "Programa",
+      "horario": "13:00 - 16:00",
+      "dias_exibicao": "Segunda a Sexta",
+      "tagName": "ESTUDIO_I"
+    },
+    {
+      "programa": "Jornais de Fim de Semana (Tarde)",
+      "tipo": "Jornal",
+      "horario": "12:00 - 15:00",
+      "dias_exibicao": "Sábados e Domingos",
+      "tagName": "JORNAL_FDS_TARDE"
+    },
+    {
+      "programa": "Jornal GloboNews (Edição das 15h)",
+      "tipo": "Jornal",
+      "horario": "15:00 - 18:00",
+      "dias_exibicao": "Sábados e Domingos",
+      "tagName": "JORNAL_ED15H"
+    },
+    {
+      "programa": "GloboNews Mais",
+      "tipo": "Jornal",
+      "horario": "16:00 - 18:00",
+      "dias_exibicao": "Segunda a Sexta",
+      "tagName": "GNEWS_MAIS"
+    },
+    {
+      "programa": "Jornal GloboNews - Edição das 18h",
+      "tipo": "Jornal",
+      "horario": "18:00 - 20:00",
+      "dias_exibicao": "Segunda a Domingo",
+      "tagName": "JORNAL_ED18H"
+    },
+    {
+      "programa": "GloboNews Internacional",
+      "tipo": "Programa",
+      "horario": "19:30 - 20:00",
+      "dias_exibicao": "Domingos",
+      "tagName": "INTER"
+    },
+    {
+      "programa": "Balaio GloboNews",
+      "tipo": "Programa",
+      "horario": "19:30 - 20:00",
+      "dias_exibicao": "Sábados",
+      "tagName": "BALAIO"
+    },
+    {
+      "programa": "GloboNews Em Pauta",
+      "tipo": "Programa",
+      "horario": "20:00 - 21:30",
+      "dias_exibicao": "Segunda a Quinta",
+      "tagName": "EM_PAUTA"
+    },
+    {
+      "programa": "Jornal GloboNews - Edição das 20h",
+      "tipo": "Jornal",
+      "horario": "20:00 - 21:30",
+      "dias_exibicao": "Sextas e Sábados",
+      "tagName": "JORNAL_ED20H"
+    },
+    {
+      "programa": "Cobertura Especial de Domingo",
+      "tipo": "Jornal",
+      "horario": "20:00 - 22:00",
+      "dias_exibicao": "Domingos",
+      "tagName": "ESPECIAL_DOM"
+    },
+    {
+      "programa": "Cidades e Soluções",
+      "tipo": "Programa",
+      "horario": "21:30 - 22:00",
+      "dias_exibicao": "Sextas-feiras",
+      "tagName": "CIDADES_SOLUCOES"
+    },
+    {
+      "programa": "Jornal das Dez (J10)",
+      "tipo": "Jornal",
+      "horario": "22:00 - 23:00",
+      "dias_exibicao": "Segunda a Domingo",
+      "tagName": "J10"
+    },
+    {
+      "programa": "Central GloboNews",
+      "tipo": "Programa",
+      "horario": "23:00 - 00:00",
+      "dias_exibicao": "Quintas-feiras",
+      "tagName": "CENTRAL"
+    },
+    {
+      "programa": "GloboNews Documentário",
+      "tipo": "Programa",
+      "horario": "23:00 - 00:30",
+      "dias_exibicao": "Sábados",
+      "tagName": "DOC"
+    },
+    {
+      "programa": "Programação de Domingo (Noite)",
+      "tipo": "Programa",
+      "horario": "23:00 - 02:35",
+      "dias_exibicao": "Domingos",
+      "tagName": "PROG_DOM_NOITE"
+    },
+    {
+      "programa": "GloboNews Especial",
+      "tipo": "Programa",
+      "horario": "23:30 - 00:00",
+      "dias_exibicao": "Segundas-feiras",
+      "tagName": "ESPECIAL"
+    },
+    {
+      "programa": "Roberto D'Avila",
+      "tipo": "Programa",
+      "horario": "23:30 - 00:00",
+      "dias_exibicao": "Terças-feiras",
+      "tagName": "ROBERTO_DAVILA"
+    },
+    {
+      "programa": "GloboNews Miriam Leitão",
+      "tipo": "Programa",
+      "horario": "23:30 - 00:00",
+      "dias_exibicao": "Quartas-feiras",
+      "tagName": "MIRIAM_LEITAO"
+    },
+    {
+      "programa": "Diálogos com Mario Sergio Conti",
+      "tipo": "Programa",
+      "horario": "23:30 - 00:00",
+      "dias_exibicao": "Sextas-feiras",
+      "tagName": "DIALOGOS"
+    }
+  ]
+}

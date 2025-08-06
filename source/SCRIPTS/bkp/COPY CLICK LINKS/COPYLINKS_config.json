@@ -1,0 +1,73 @@
+{
+  "configuracao": {
+    "layout_geral": {
+      "btn_width": 35,
+      "name_btn_height": 15,
+      "bottom_row_height": 25,
+      "text_width_normal": 80,
+      "text_width_catalogos": 60
+    },
+    "layout_grupos": {
+      "Grupo Acessos": {
+        "altura": 1020
+      },
+      "Grupo Praças": {
+        "altura": 815
+      },
+      "Grupo Produção": {
+        "altura": 712
+      },
+      "Grupo Catalogos": {
+        "altura": 305
+      }
+    }
+  },
+  "dados": {
+    "grupos": [
+      {
+        "titulo": "Grupo Acessos",
+        "links": [
+          { "tipo": "folder", "nome": "PAM HARDNEWS", "caminho": "\\\\pamjb.servicos.corp.tvglobo.com.br\\Arte_Ilha\\UPLOAD_PAM_HARDNEWS\\01_ENTRADA" },
+          { "tipo": "folder", "nome": "PAM MAGAZINE", "caminho": "\\\\pamjb.servicos.corp.tvglobo.com.br\\Arte_Ilha\\UPLOAD_PAM_MAGAZINE\\01_ENTRADA" },
+          { "tipo": "folder", "nome": "ILHA HARDNEWS", "caminho": "\\\\pamjb.servicos.corp.tvglobo.com.br\\Arte_Ilha\\PARA_ILHA\\Hardnews\\GNEWS" },
+          { "tipo": "folder", "nome": "ILHA MAGAZINE", "caminho": "\\\\pamjb.servicos.corp.tvglobo.com.br\\Arte_Ilha\\PARA_ILHA\\Magazine\\GNEWS" },
+          { "tipo": "folder", "nome": "MXF ARTE", "caminho": "\\\\pamjb.servicos.corp.tvglobo.com.br\\Arte_Ilha\\PARA_ARTE\\PROMO GNEWS\\MXF ARTE Novo" },
+          { "tipo": "folder", "nome": "PARA ARTE", "caminho": "\\\\pamjb.servicos.corp.tvglobo.com.br\\Arte_Ilha\\PARA_ARTE" },
+          { "tipo": "folder", "nome": "COMPARTILHAMENTO", "caminho": "\\\\vfx-ml-sp.servicos.corp.tvglobo.com.br\\VFX\\compartilhamento" },
+          { "tipo": "folder", "nome": "FTP ESPORTE", "caminho": "\\\\10.3.44.130\\edit5\\GLOBO\\ARTES" },
+          { "tipo": "folder", "nome": "ARTE SERVER", "caminho": "\\\\arteserver\\_PRODUCAO_DIA_A_DIA\\" }
+        ]
+      },
+      {
+        "titulo": "Grupo Praças",
+        "links": [
+          { "tipo": "folder", "nome": "GNEWS", "caminho": "T:/JORNALISMO/GLOBONEWS/" },
+          { "tipo": "folder", "nome": "FANTASTICO", "caminho": "T:/JORNALISMO/TVGLOBO/SEMANAIS_REDE/FANTASTICO" },
+          { "tipo": "folder", "nome": "BDBR", "caminho": "T:/JORNALISMO/TVGLOBO/DIARIOS_REDE/BDBR" },
+          { "tipo": "folder", "nome": "JN", "caminho": "T:/JORNALISMO/TVGLOBO/DIARIOS_REDE/JN" },
+          { "tipo": "folder", "nome": "RJ1", "caminho": "T:/JORNALISMO/TVGLOBO/DIARIOS_REDE/JN" },
+          { "tipo": "folder", "nome": "ESPORTE", "caminho": "T:/ESPORTE/TVGLOBO/FUTEBOL" },
+          { "tipo": "folder", "nome": "BOM DIA SÁBADO", "caminho": "T:/JORNALISMO/TVGLOBO/SEMANAIS_REDE/BOM_DIA_SABADO" }
+        ]
+      },
+      {
+        "titulo": "Grupo Produção",
+        "links": [
+          { "tipo": "folder", "nome": "DIA DIA", "caminho": "T:/JORNALISMO/GLOBONEWS/DIARIOS/RJ/2025" },
+          { "tipo": "folder", "nome": "PROGRAMAS", "caminho": "T:/JORNALISMO/GLOBONEWS/PROGRAMAS" },
+          { "tipo": "folder", "nome": "PROMO", "caminho": "T:/JORNALISMO/GLOBONEWS/PROMO" },
+          { "tipo": "folder", "nome": "EVENTOS", "caminho": "T:/JORNALISMO/GLOBONEWS/EVENTOS" },
+          { "tipo": "folder", "nome": "PEÇAS GRÁFICAS", "caminho": "T:/JORNALISMO/GLOBONEWS/PECAS_GRAFICAS" },
+          { "tipo": "folder", "nome": "DIA DIA SP", "caminho": "T:/JORNALISMO/GLOBONEWS/DIARIOS/SP/2025" }
+        ]
+      },
+      {
+        "titulo": "Grupo Catalogos",
+        "links": [
+          { "tipo": "web", "nome": "CATÁLOGO INTERATIVO", "caminho": "https://www.catalogognews.app" },
+          { "tipo": "folder", "nome": "CATÁLOGO ESTÁTICO", "caminho": "https://www.catalogognews.app" }
+        ]
+      }
+    ]
+  }
+}
