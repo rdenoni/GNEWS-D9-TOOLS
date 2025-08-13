@@ -41,7 +41,7 @@ function GNEWS_RenCompSave_UI() {
                 throw new Error("Variável global 'scriptMainPath' não encontrada. Execute a partir do painel 'GND9 TOOLS'.");
             }
 
-            var configFilePath = new File(scriptMainPath + "source/config/MORNING_config.json");
+            var configFilePath = new File(scriptMainPath + "source\\config\\MORNING_config.json");
             var configData = readJsonFile(configFilePath.fsName);
             if (!configData) throw new Error("Não foi possível carregar ou ler o MORNING_config.json.");
             if (!configData.data_paths) throw new Error("A chave 'data_paths' não foi encontrada no MORNING_config.json.");

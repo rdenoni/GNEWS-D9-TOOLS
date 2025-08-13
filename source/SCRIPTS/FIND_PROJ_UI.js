@@ -1,444 +1,985 @@
-/* eslint-disable no-undef */
+/* eslint-disable no-redeclare */
+/* eslint-disable no-useless-escape */
+/* eslint-disable no-empty */
+/* eslint-disable no-prototype-builtins */
 /* eslint-disable no-unused-vars */
+/* eslint-disable no-undef */
 
-function D9TFindProjectDialog() {
-    var scriptName = 'BUSCAR PROJETOS';
-    var SETTINGS_SECTION = "D9TSearch"; // Seção para salvar as preferências
+// NOTA DE DEBUG: Este script depende de variáveis e funções externas para funcionar corretamente.
+// Certifique-se de que os seguintes elementos estão definidos no escopo global ou foram importados:
+// - Funções de UI: themeButton, themeIconButton, buildTree, openFolder, findItem
+// - Funções de dados: readFileContent, replaceSpecialCharacters, saveLogData, sendToWebhookWithCurl
+// - Variáveis de caminho: scriptMainPath, templatesFolder, templatesPath
+// - Variáveis de configuração e UI: scriptVersion, no_preview, defaultTemplateConfigObj, lClick, lol
+// - Constantes de cor: monoColor0, monoColor2, normalColor2
+// - Constantes de ícone: D9T_INFO_ICON, D9T_ATUALIZAR_ICON, D9T_PASTA_ICON
+// - Objeto global: system (para system.userName)
 
-    // --- PRESETS DE CAMINHOS ---
-    var searchPresets = {
-        'DIA DIA': 'T:\\JORNALISMO\\GLOBONEWS\\DIARIOS\\RJ\\2025\\',
-        'TEMPLATES': 'T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS',
-        'PROGRAMAS': 'T:\\JORNALISMO\\GLOBONEWS\\PROGRAMAS',
-        'JORNAIS': 'T:\\JORNALISMO\\GLOBONEWS\\JORNAIS',
-        'EVENTOS': 'T:\\JORNALISMO\\GLOBONEWS\\EVENTOS',
-        'MARKETING': 'T:\\JORNALISMO\\GLOBONEWS\\MARKETING'
-    };
+/*
 
-    // --- Cores e Funções de Estilo ---
-    var bgColor1 = '#0B0D0E';
-    var normalColor1 = '#C7C8CA';
-    var highlightColor1 = '#E0003A';
+---------------------------------------------------------------
+> 🪟 UI dialogs - GNEWS MODIFICADO
+---------------------------------------------------------------
 
-    // FUNÇÃO HELPER PARA COMPATIBILIDADE (SUBSTITUI Object.keys)
-    function getObjectKeys(obj) {
-        var keys = [];
-        for (var key in obj) {
-            if (obj.hasOwnProperty(key)) {
-                keys.push(key);
-            }
+*/
+
+// Interface de templates GNEWS
+function d9TemplateDialog() {
+  // Título da janela
+  var scriptName = "GNEWS TEMPLATES";
+
+  var compactWidth; // Largura da janela sem a pré-visualização
+  var extendedWidth; // Largura da janela com a pré-visualização
+  var fileFilter = [".aep", ".aet"]; // Extensões de template permitidas
+  var hasInputData = false; // Indica se há dados de input
+  var hasInputLayers = false; // Template possui layers editáveis
+
+  // Arquivos do template
+  var projectFile;
+  var previewFile;
+  var configFile;
+  var scriptFile;
+
+  // Dados da configuração template
+  var templateData;
+
+  // Arrays acessíveis a um script externo
+  var inputTextArray = []; // Array com os textos de input
+  var newCompsArray = []; // Array de templates criados
+  var newOutputsArray = []; // Array de módulos individuais de saída
+
+  // ✅ VARIÁVEIS PARA INPUT REMOVIDAS
+  var hasInputData = false; // Removido mas mantido para compatibilidade
+  var hasInputLayers = false; // Removido mas mantido para compatibilidade
+
+  // Carrega dados das artes GNEWS
+  var artesData = null;
+  try {
+    var artesDataFile = new File(
+      scriptMainPath + "source/libraries/dados_json/DADOS_artes_gnews.json"
+    );
+    if (artesDataFile.exists) {
+      artesDataFile.open("r");
+      var artesDataContent = artesDataFile.read();
+      artesDataFile.close();
+      artesData = JSON.parse(artesDataContent);
+    }
+  } catch (err) {
+    // Falha silenciosa se não conseguir carregar dados das artes
+  }
+
+  // Função para buscar dados da arte pelo código
+  function getArteData(codigo) {
+    if (!artesData || !artesData.artes_codificadas) return null;
+
+    for (var i = 0; i < artesData.artes_codificadas.length; i++) {
+      if (artesData.artes_codificadas[i].codigo === codigo) {
+        return artesData.artes_codificadas[i];
+      }
+    }
+    return null;
+  } // Definindo cores para consistência, se não vierem de um arquivo global
+
+  var bgColor1 = "#0B0D0E"; // Cor de fundo principal
+  var normalColor1 = "#C7C8CA"; // Cor de texto normal
+  var monoColor0 = "#686F75"; // Cor cinza para o placeholder
+  var highlightColor1 = "#E0003A"; // Cor de destaque para títulos de tópico // Funções de cor necessárias para o tema
+  function hexToRgb(hex) {
+    if (hex == undefined) return [Math.random(), Math.random(), Math.random()];
+    hex = hex.replace("#", "");
+    var r = parseInt(hex.substring(0, 2), 16);
+    var g = parseInt(hex.substring(2, 4), 16);
+    var b = parseInt(hex.substring(4, 6), 16);
+    return [r / 255, g / 255, b / 255];
+  }
+  function setBgColor(element, hexColor) {
+    try {
+      var color = hexToRgb(hexColor);
+      var bType = element.graphics.BrushType.SOLID_COLOR;
+      element.graphics.backgroundColor = element.graphics.newBrush(
+        bType,
+        color
+      );
+    } catch (e) {}
+  }
+  function setFgColor(element, hexColor) {
+    try {
+      var color = hexToRgb(hexColor);
+      var pType = element.graphics.PenType.SOLID_COLOR;
+      element.graphics.foregroundColor = element.graphics.newPen(
+        pType,
+        color,
+        1
+      );
+    } catch (e) {}
+  }
+
+  // Janela principal - ✅ PALETTE para não bloquear cliques
+  var D9T_TEMPLATES_w = new Window("palette", scriptName + " " + scriptVersion);
+
+  // Grupo principal
+  var mainGrp = D9T_TEMPLATES_w.add("group");
+  mainGrp.orientation = "stack";
+
+  // Grupo de opções e progresso
+  var optionsMainGrp = mainGrp.add("group");
+  optionsMainGrp.orientation = "column";
+  optionsMainGrp.spacing = 12;
+  optionsMainGrp.alignment = ["left", "top"];
+  optionsMainGrp.visible = false;
+
+  // Rótulo de informações
+  var infoHeaderLab = optionsMainGrp.add("statictext", [0, 0, 320, 18]);
+  setFgColor(infoHeaderLab, normalColor1); // Define a cor do texto
+  // Barra de progresso
+  var progressBar = optionsMainGrp.add("progressbar", [0, 0, 320, 1]);
+
+  var optBtnMainGrp = optionsMainGrp.add("group");
+  optBtnMainGrp.orientation = "stack";
+  optBtnMainGrp.alignment = "fill";
+  optBtnMainGrp.margins = [0, 32, 0, 0];
+  optBtnMainGrp.visible = false;
+
+  var optBtnMainGrpL = optBtnMainGrp.add("group");
+  optBtnMainGrpL.alignment = "left";
+  optBtnMainGrpL.spacing = 16;
+
+  // Botão de cancelar
+  var cancelBtn = new themeButton(optBtnMainGrpL, {
+    width: 80,
+    height: 32,
+    labelTxt: "cancelar",
+    tips: [lClick + "cancelar operação"],
+  });
+
+  var optBtnMainGrpR = optBtnMainGrp.add("group");
+  optBtnMainGrpR.alignment = "right";
+  optBtnMainGrpR.spacing = 16;
+
+  // Botão de continuar
+  var nextBtn = new themeButton(optBtnMainGrpR, {
+    width: 100,
+    height: 32,
+    textColor: bgColor1,
+    buttonColor: normalColor1,
+    labelTxt: "continuar",
+    tips: [lClick + "continuar processo"],
+  });
+
+  // ----------------------------------------------------------------------------
+
+  // Grupo da interface de templates
+  var templatesMainGrp = mainGrp.add("group");
+  templatesMainGrp.spacing = 12;
+
+  // Grupo vertical esquerdo
+  var vGrp1 = templatesMainGrp.add("group");
+  vGrp1.orientation = "column";
+  vGrp1.alignment = ["center", "top"];
+  vGrp1.alignChildren = "left";
+  vGrp1.spacing = 12;
+
+  // Grupo vertical direito
+  var vGrp2 = templatesMainGrp.add("group");
+  vGrp2.orientation = "column";
+  vGrp2.alignment = ["center", "top"];
+  vGrp2.alignChildren = "left";
+  vGrp2.spacing = 12;
+  vGrp2.visible = false;
+
+  // ----------------------------------------------------------------------------
+
+  // Grupo para o cabeçalho
+  var templatesHeaderGrp = vGrp1.add("group");
+  templatesHeaderGrp.alignment = "fill";
+  templatesHeaderGrp.orientation = "stack";
+
+  // Grupo do rótulo da seção BUSCA
+  var templateLabGrp = templatesHeaderGrp.add("group");
+  templateLabGrp.alignment = "left";
+
+  // Cria o rótulo 'BUSCA:'
+  var templateLab = templateLabGrp.add("statictext", undefined, "BUSCA:");
+  setFgColor(templateLab, normalColor1); // Define a cor do rótulo
+
+  // Cria um grupo para o botão de informações
+  var infoGrp = templatesHeaderGrp.add("group");
+  infoGrp.alignment = ["right", "center"];
+
+  // Botão de ajuda
+  var infoBtn = new themeIconButton(infoGrp, {
+    icon: D9T_INFO_ICON,
+    tips: [lClick + "ajuda | DOCS"],
+  });
+
+  // Grupo da árvore de templates
+  var treeGrp = vGrp1.add("group");
+  treeGrp.orientation = "column";
+  treeGrp.spacing = 4;
+
+  // --- INÍCIO DAS MODIFICAÇÕES ---
+
+  var placeholderText = "⌕  Digite para buscar...";
+
+  // Cria a caixa de pesquisa
+  var searchBox = treeGrp.add("edittext", [0, 0, 320, 24], "");
+  searchBox.text = placeholderText;
+  setFgColor(searchBox, monoColor0); // Cor cinza para o placeholder
+
+  // Cria a árvore de templates
+  var templateTree = treeGrp.add("treeview", [0, 0, 320, 464]);
+  setFgColor(templateTree, monoColor2);
+  buildTree(templatesFolder, templateTree, fileFilter); // Cria a árvore de templates
+
+  // Grupo principal de botões
+  var mainBtnGrp1 = vGrp1.add("group");
+  mainBtnGrp1.orientation = "stack";
+  mainBtnGrp1.alignment = "fill";
+  mainBtnGrp1.margins = [0, 8, 0, 0];
+
+  // --- FIM DAS MODIFICAÇÕES ---
+
+  // Grupo de botões esquerdo
+  var lBtnGrp1 = mainBtnGrp1.add("group");
+  lBtnGrp1.alignment = "left";
+  lBtnGrp1.spacing = 16;
+  // Botão de atualizar
+  var refreshBtn = new themeIconButton(lBtnGrp1, {
+    icon: D9T_ATUALIZAR_ICON,
+    tips: [lClick + "atualizar lista de templates"],
+  });
+  // Botão de abrir pasta
+  var openFldBtn = new themeIconButton(lBtnGrp1, {
+    icon: D9T_PASTA_ICON,
+    tips: [lClick + "abrir pasta de templates"],
+  });
+
+  //---------------------------------------------------------
+
+  // Grupo para o cabeçalho
+  var previewHeaderGrp = vGrp2.add("group");
+  previewHeaderGrp.alignment = "fill";
+  previewHeaderGrp.orientation = "stack";
+
+  // Grupo do rótulo da seção PREVIEW
+  var previewLabGrp = previewHeaderGrp.add("group");
+  previewLabGrp.alignment = "left";
+
+  // Rótulo PREVIEW
+  var previewLab = previewLabGrp.add("statictext", undefined, "PREVIEW:");
+  setFgColor(previewLab, normalColor1); // Define a cor do texto
+
+  // Grupo da imagem preview
+  var previewGrp = vGrp2.add("group");
+  previewGrp.orientation = "column";
+  previewGrp.alignChildren = "left";
+
+  // ✅ PREVIEW AUMENTADO - de [440, 250] para [600, 338]
+  var previewImg = previewGrp.add("image", [0, 0, 600, 338], no_preview);
+
+  // ----------------------------------------------------------------------------
+
+  // Divisor horizontal
+  var newDiv = themeDivider(vGrp2);
+  newDiv.alignment = ["fill", "center"];
+
+  // ----------------------------------------------------------------------------
+
+  // ✅ SEÇÃO DE INFORMAÇÕES DA ARTE GNEWS (substituindo dicas e input)
+  var infoArteMainGrp = vGrp2.add("group");
+  infoArteMainGrp.alignment = ["left", "top"];
+  infoArteMainGrp.spacing = 12;
+
+  // ✅ CAMPO INPUT REMOVIDO - apenas informações da arte
+  var arteInfoGrp = infoArteMainGrp.add("group");
+  arteInfoGrp.orientation = "column";
+  arteInfoGrp.alignment = ["left", "top"];
+  arteInfoGrp.alignChildren = "left";
+
+  // ----------------------------------------------------------------------------
+
+  // Cabeçalho da seção INFORMAÇÕES DA ARTE
+  var arteHeaderGrp = arteInfoGrp.add("group");
+  arteHeaderGrp.alignment = "fill";
+  arteHeaderGrp.orientation = "stack";
+
+  var arteLabGrp = arteHeaderGrp.add("group");
+  arteLabGrp.alignment = "left";
+
+  var arteLab = arteLabGrp.add("statictext", undefined, "INFORMAÇÕES DA ARTE:");
+  setFgColor(arteLab, normalColor1);
+
+  // Campo para código da arte
+  var codigoGrp = arteInfoGrp.add("group");
+  codigoGrp.orientation = "row";
+  codigoGrp.alignChildren = ["left", "center"];
+  codigoGrp.spacing = 8;
+  codigoGrp.margins = [0, 8, 0, 0];
+
+  var codigoLab = codigoGrp.add("statictext", undefined, "Código:");
+  codigoLab.preferredSize.width = 60;
+  setFgColor(codigoLab, monoColor0);
+
+  var codigoTxt = codigoGrp.add("edittext", [0, 0, 120, 24], "GNVZ036");
+  codigoTxt.helpTip = "Digite o código da arte (ex: GNVZ036)";
+
+  // Informações carregadas automaticamente
+  var infoRows = [
+    { label: "Nome da Arte:", value: "---" },
+    { label: "Servidor Destino:", value: "---" },
+    {
+      label: "Última Atualização:",
+      value: new Date().toLocaleDateString("pt-BR"),
+    },
+  ];
+
+  var infoLabels = [];
+  var infoValues = [];
+
+  for (var r = 0; r < infoRows.length; r++) {
+    var infoRow = arteInfoGrp.add("group");
+    infoRow.orientation = "row";
+    infoRow.alignChildren = ["left", "center"];
+    infoRow.spacing = 8;
+    infoRow.margins = [0, 2, 0, 0];
+
+    var label = infoRow.add("statictext", undefined, infoRows[r].label);
+    label.preferredSize.width = 100;
+    setFgColor(label, monoColor0);
+    infoLabels.push(label);
+
+    var value = infoRow.add("statictext", undefined, infoRows[r].value);
+    value.preferredSize.width = 180;
+    setFgColor(value, normalColor2);
+    infoValues.push(value);
+  }
+
+  // Função para atualizar informações da arte
+  function updateArteInfo() {
+    try {
+      var codigo = codigoTxt.text.trim().toUpperCase();
+      var arteData = getArteData(codigo);
+
+      if (arteData) {
+        infoValues[0].text = arteData.arte || "---";
+        infoValues[1].text = arteData.servidor_destino || "---";
+        infoValues[2].text = new Date().toLocaleDateString("pt-BR");
+      } else {
+        infoValues[0].text = codigo ? "Código não encontrado" : "---";
+        infoValues[1].text = "---";
+        infoValues[2].text = "---";
+      }
+    } catch (e) {
+      infoValues[0].text = "Erro ao carregar";
+      infoValues[1].text = "---";
+      infoValues[2].text = "---";
+    }
+  }
+
+  // Event listener para o campo de código
+  codigoTxt.onChanging = function () {
+    try {
+      updateArteInfo();
+    } catch (e) {
+      // Falha silenciosa
+    }
+  };
+
+  // ----------------------------------------------------------------------------
+
+  // Grupo principal de botões direito
+  var mainBtnGrp2 = vGrp2.add("group");
+  mainBtnGrp2.orientation = "stack";
+  mainBtnGrp2.alignment = "fill";
+
+  // ✅ SEM BOTÃO OUTPUT - apenas botão importar centralizado
+  var rBtnGrp2 = mainBtnGrp2.add("group");
+  rBtnGrp2.alignment = "center";
+  rBtnGrp2.spacing = 16;
+
+  // ✅ BOTÃO SIMPLIFICADO - apenas importar template (sem input)
+  var importBtn = new themeButton(rBtnGrp2, {
+    width: 120,
+    height: 32,
+    textColor: bgColor1,
+    buttonColor: normalColor1,
+    labelTxt: "importar",
+    tips: [lClick + "importar o template selecionado"],
+  });
+
+  setBgColor(D9T_TEMPLATES_w, bgColor1); // Define a cor de fundo da janela
+
+  //---------------------------------------------------------
+
+  D9T_TEMPLATES_w.onShow = function () {
+    // Expande a raiz da árvore de templates
+    templateTree.expanded = true;
+
+    // Expande as pastas de nível 1
+    var branches = templateTree.items;
+
+    for (var i = 0; i < branches.length; i++) {
+      var s = branches[i];
+
+      if (s.type == "node") s.expanded = true;
+    }
+
+    // Calcula e armazena as dimensões da janela
+    extendedWidth = D9T_TEMPLATES_w.size.width; // Com preview
+    compactWidth = extendedWidth - 680; // Sem preview (ajustado para preview maior)
+
+    // ✅ ABRE DIRETO NO TAMANHO TOTAL - mostra a área de preview imediatamente
+    vGrp2.visible = true;
+    newDiv.visible = true;
+    D9T_TEMPLATES_w.size.width = extendedWidth;
+
+    // Foco na caixa de pesquisa
+    searchBox.active = true;
+
+    // Inicializa informações da arte
+    updateArteInfo();
+  };
+
+  //---------------------------------------------------------
+
+  // --- INÍCIO DAS MODIFICAÇÕES ---
+
+  searchBox.onFocus = function () {
+    if (this.text === placeholderText) {
+      this.text = "";
+      setFgColor(this, normalColor1); // Muda para a cor de texto normal
+    }
+  };
+
+  searchBox.onBlur = function () {
+    if (this.text.trim() === "") {
+      this.text = placeholderText;
+      setFgColor(this, monoColor0); // Volta para a cor do placeholder
+    }
+  };
+
+  searchBox.onEnterKey = function () {
+    templateLab.active = true;
+    templateTree.active = true;
+  };
+
+  // Alterado de 'onChange' para 'onChanging' para busca em tempo real
+  searchBox.onChanging = function () {
+    // Aborta se a pesquisa estiver vazia ou for o placeholder
+    if (this.text.trim() === "" || this.text === placeholderText) {
+      buildTree(templatesFolder, templateTree, fileFilter); // Reconstrói a árvore completa se o campo estiver vazio
+      return;
+    }
+
+    try {
+      // Formatação do texto de pesquisa
+      var searchTerm = this.text
+        .trim()
+        .toUpperCase()
+        .replaceSpecialCharacters();
+
+      // Atualiza a árvore de templates
+      buildTree(templatesFolder, templateTree, fileFilter);
+
+      // Encontra os itens na árvore
+      var items = findItem(templateTree, [], searchTerm);
+
+      // Aborta se nenhum item for encontrado
+      if (items.length == 0) return;
+
+      // Expande as pastas para mostrar os resultados da pesquisa
+      for (var n = 0; n < items.length; n++) {
+        var s = items[n];
+
+        if (s.type == "node") s.expanded = true;
+
+        // Expande as pastas do item até a raiz
+        while (s.parent.constructor.name != "TreeView") {
+          s.parent.expanded = true;
+          s = s.parent;
         }
-        return keys;
+      }
+    } catch (e) {
+      // falha silenciosa para não interromper a digitação
+    }
+  };
+
+  // --- FIM DAS MODIFICAÇÕES ---
+
+  //---------------------------------------------------------
+
+  templateTree.onChange = function () {
+    // Pastas na árvore não devem ser selecionáveis
+    if (this.selection != null && this.selection.type == "node")
+      this.selection = null;
+
+    // Caso nenhum template seja selecionado
+    if (this.selection == null) {
+      // ✅ MANTÉM TAMANHO TOTAL mesmo sem seleção
+      return;
     }
 
-    function hexToRgb(hex) {
-        if (hex == undefined) return [Math.random(), Math.random(), Math.random()];
-        hex = hex.replace('#', '');
-        var r = parseInt(hex.substring(0, 2), 16);
-        var g = parseInt(hex.substring(2, 4), 16);
-        var b = parseInt(hex.substring(4, 6), 16);
-        return [r / 255, g / 255, b / 255];
-    }
+    // arquivo de projeto do template
+    projectFile = this.selection.file;
 
-    function setBgColor(element, hexColor) {
-        try {
-            var color = hexToRgb(hexColor);
-            var bType = element.graphics.BrushType.SOLID_COLOR;
-            element.graphics.backgroundColor = element.graphics.newBrush(bType, color);
-        } catch (e) {}
-    }
+    // Base do nome dos arquivos template --> caminho do projeto/nome do template
+    var templateBase =
+      projectFile.path + "/" + deleteFileExt(projectFile.displayName);
 
-    function setFgColor(element, hexColor) {
-        try {
-            var color = hexToRgb(hexColor);
-            var pType = element.graphics.PenType.SOLID_COLOR;
-            element.graphics.foregroundColor = element.graphics.newPen(pType, color, 1);
-        } catch (e) {}
-    }
+    // Criação dos objetos File para os arquivos do template
+    previewFile = new File(templateBase + "_preview.png");
+    configFile = new File(templateBase + "_config.json");
+    scriptFile = new File(templateBase + "_script.js");
 
-    // --- Lógica da Busca ---
-    var searchResults = [];
-    var cancelSearch = false;
-
-    // --- Interface Gráfica ---
-    var win = new Window('palette', scriptName);
-    win.spacing = 8;
-    win.margins = 16;
-    win.orientation = 'column';
-    win.alignChildren = ['fill', 'top'];
-
-    var headerGrp = win.add("group");
-    headerGrp.orientation = "row";
-    headerGrp.alignChildren = ["fill", "center"];
-    headerGrp.alignment = "fill";
-    headerGrp.spacing = 10;
-
-    var titleText = headerGrp.add("statictext", undefined, scriptName);
-    titleText.graphics.font = ScriptUI.newFont("Arial", "Bold", 14);
-
-    var helpBtn;
-    if (typeof themeIconButton !== 'undefined' && typeof D9T_INFO_ICON !== 'undefined' && (typeof lClick !== 'undefined' || typeof lClick === 'string')) {
-        var helpBtnGroup = headerGrp.add('group');
-        helpBtnGroup.alignment = ['right', 'center'];
-        helpBtn = new themeIconButton(helpBtnGroup, {
-            icon: D9T_INFO_ICON,
-            tips: [(lClick || 'Clique') + ' Ajuda']
-        });
+    if (previewFile.exists) {
+      previewImg.image = previewFile;
     } else {
-        helpBtn = headerGrp.add("button", undefined, "?");
-        helpBtn.preferredSize = [24, 24];
-        helpBtn.alignment = ['right', 'center'];
+      previewImg.image = no_preview;
     }
 
-var searchCancelIcon = {
-    inactive: D9T_CLOSE32_ICON.null,    // Estado inativo (antes da pesquisa)
-    normal: D9T_CLOSE32_ICON.normal,    // Estado normal (durante a pesquisa)
-    hover: D9T_CLOSE32_ICON.hover       // Estado hover
-};
-    
-    // --- GRUPO DE PRESETS ---
-    var presetGrp = win.add('group');
-    presetGrp.orientation = 'row';
-    presetGrp.alignChildren = ['left', 'center'];
-    presetGrp.add('statictext', undefined, 'Presets:');
-    
-    var presetNames = getObjectKeys(searchPresets); // USA A NOVA FUNÇÃO
-    presetNames.unshift('— CAMINHO PERSONALIZADO —'); // Adiciona opção para caminho manual
-    var presetDropdown = presetGrp.add('dropdownlist', undefined, presetNames);
-    presetDropdown.preferredSize.width = 265;
+    // Mostra a área de preview
+    vGrp2.visible = true;
+    newDiv.visible = true;
+    D9T_TEMPLATES_w.size.width = extendedWidth;
 
-    var folderGrp = win.add('group');
-    folderGrp.alignment = 'fill';
-    var selectFolderBtn = new themeIconButton(folderGrp, {
-        icon: D9T_PASTA_ICON || undefined,
-        tips: [(lClick || 'Clique') + ' Selecionar pasta para busca']
+    // Preenche o conteúdo da área de preview
+    try {
+      hasInputLayers = false;
+
+      // Checagem do arquivo de configuração
+      if (configFile.exists) {
+        var JSONContent = readFileContent(configFile);
+        templateData = JSON.parse(JSONContent);
+
+        // Verifica as configurações
+        for (var o in defaultTemplateConfigObj) {
+          if (templateData.hasOwnProperty(o)) continue;
+          templateData[o] = defaultTemplateConfigObj[o];
+        }
+
+        // Verifica os layers editáveis
+        hasInputLayers = templateData.inputLayers != null;
+      }
+    } catch (err) {
+      alert(
+        lol +
+          "#D9T_017 - esse template não tem um arquivo de configuração válido!"
+      );
+      return;
+    }
+
+    // ✅ SEM CAMPO INPUT - botão sempre habilitado
+    if (typeof importBtn !== "undefined") {
+      importBtn.enabled = true;
+    }
+  };
+
+  templateTree.onActivate = function () {
+    // ✅ SEM CAMPO INPUT - sem verificação de dados
+    if (typeof importBtn !== "undefined") {
+      importBtn.enabled = true;
+    }
+  };
+
+  //---------------------------------------------------------
+
+  // ✅ EVENT LISTENERS DO INPUT REMOVIDOS - sem campo input
+
+  //---------------------------------------------------------
+
+  importBtn.leftClick.onClick = function () {
+    // ✅ IMPORTAÇÃO DIRETA - sem verificação de input
+    if (!projectFile || !projectFile.exists) return; // Aborta se o arquivo do template não existir
+
+    // Preparação da Interface para o processamento
+    templatesMainGrp.visible = false;
+    optionsMainGrp.visible = true;
+    D9T_TEMPLATES_w.size = [compactWidth, 60];
+    D9T_TEMPLATES_w.text = "IMPORTANDO TEMPLATE...";
+    infoHeaderLab.text = "projeto:  " + projectFile.displayName;
+    D9T_TEMPLATES_w.update();
+    D9T_TEMPLATES_w.center();
+
+    // Define configurações do projeto
+    app.project.bitsPerChannel = 8;
+    app.project.expressionEngine = "javascript-1.0";
+    app.project.linearBlending = true;
+    app.project.timeDisplayType = TimeDisplayType.TIMECODE;
+
+    // Importação do arquivo de projeto
+    try {
+      var IO = new ImportOptions(projectFile);
+      app.project.importFile(IO);
+    } catch (err) {
+      alert(lol + "#D9T_018 - " + err.message);
+      // Reverte a UI em caso de falha na importação
+      templatesMainGrp.visible = true;
+      optionsMainGrp.visible = false;
+      D9T_TEMPLATES_w.size.width = extendedWidth;
+      D9T_TEMPLATES_w.text = scriptName + " " + scriptVersion;
+      return;
+    }
+
+    // Atualização da interface de progresso
+    D9T_TEMPLATES_w.text = "REGISTRANDO LOG...";
+    infoHeaderLab.text = "TEMPLATE IMPORTADO COM SUCESSO!";
+    progressBar.value = 0;
+    D9T_TEMPLATES_w.update();
+
+    // ✅ LOG SIMPLIFICADO - apenas importação
+    try {
+      var logFile = new File(templatesPath + "/log padeiro.csv");
+
+      var dt = new Date();
+      var y = dt.getFullYear();
+      var m = dt.getMonth() + 1;
+      var d = dt.getDate();
+      var hr = dt.getHours();
+      var mi = dt.getMinutes();
+
+      if (m < 10) m = "0" + m;
+      if (d < 10) d = "0" + d;
+      if (hr < 10) hr = "0" + hr;
+      if (mi < 10) mi = "0" + mi;
+
+      var dateStr = [d, m, y].join("/");
+      var timeStr = hr + ":" + mi;
+
+      // Log de importação GNEWS
+      var templateName = projectFile.displayName.replace(/\.[^\.]+$/, "");
+      var logData = [
+        templateName,
+        "1",
+        system.userName,
+        dateStr,
+        timeStr,
+        codigoTxt.text.trim().toUpperCase(),
+        infoValues[0].text,
+        infoValues[1].text,
+      ].join(",");
+
+      saveLogData(logFile, logData);
+
+      // Webhook para importação
+      var webhookURL = "https://n8n.jmbillard.com/webhook/log_db_padeiro";
+      var webData = {
+        template: templateName,
+        quantidade: 1,
+        designer: system.userName,
+        codigo_arte: codigoTxt.text.trim().toUpperCase(),
+        nome_arte: infoValues[0].text,
+        servidor_destino: infoValues[1].text,
+      };
+      sendToWebhookWithCurl(webData, webhookURL);
+    } catch (err) {
+      // Falha silenciosa no log.
+    }
+
+    D9T_TEMPLATES_w.text = "IMPORTAÇÃO CONCLUÍDA";
+    infoHeaderLab.text = "TEMPLATE IMPORTADO COM SUCESSO!";
+    D9T_TEMPLATES_w.size = [compactWidth, 100];
+    optBtnMainGrp.visible = true;
+  };
+
+  nextBtn.leftClick.onClick = function () {
+    // ✅ REMOVIDO: Sistema de fila de renderização
+    D9T_TEMPLATES_w.close();
+  };
+
+  cancelBtn.leftClick.onClick = function () {
+    D9T_TEMPLATES_w.close();
+  };
+
+  D9T_TEMPLATES_w.onClose = function () {
+    // Execução de Script Personalizado (se houver)
+    if (!scriptFile || !scriptFile.exists) return;
+
+    try {
+      scriptFile.open("r");
+      eval(scriptFile.read());
+      scriptFile.close();
+    } catch (err) {
+      alert(lol + "#D9T_021 - " + err.message);
+    }
+  };
+
+  templateTree.onDoubleClick = function () {
+    if (!projectFile || !projectFile.exists) return;
+    try {
+      // Tentar importar o template
+      var IO = new ImportOptions(projectFile);
+      app.project.importFile(IO);
+      D9T_TEMPLATES_w.close(); // Fecha a janela e dispara o onClose para o script externo
+    } catch (err) {
+      alert(lol + "#D9T_022 - " + err.message);
+    }
+  };
+
+  //---------------------------------------------------------
+
+  refreshBtn.leftClick.onClick = function () {
+    buildTree(templatesFolder, templateTree, fileFilter);
+
+    templateTree.expanded = true;
+
+    var branches = templateTree.items;
+
+    for (var i = 0; i < branches.length; i++) {
+      if (branches[i].type == "node") {
+        branches[i].expanded = true;
+      }
+    }
+  };
+
+  //---------------------------------------------------------
+
+  openFldBtn.leftClick.onClick = function () {
+    if (!templatesFolder.exists) {
+      templatesFolder.create();
+    }
+    openFolder(templatesPath);
+  }; // START - FUNÇÃO DE AJUDA GNEWS
+
+  // ✅ BOTÃO OUTPUT REMOVIDO - função não existe mais
+
+  infoBtn.leftClick.onClick = function () {
+    var TARGET_HELP_WIDTH = 450;
+    var MARGIN_SIZE = 15;
+    var TOPIC_SECTION_MARGINS = [10, 5, 10, 5];
+    var TOPIC_SPACING = 5;
+    var TOPIC_TITLE_INDENT = 0;
+    var SUBTOPIC_INDENT = 25;
+
+    var helpWin = new Window("dialog", scriptName + " - Ajuda", undefined, {
+      closeButton: true,
     });
+    helpWin.orientation = "column";
+    helpWin.alignChildren = ["fill", "fill"];
+    helpWin.spacing = 10;
+    helpWin.margins = MARGIN_SIZE;
+    helpWin.preferredSize = [TARGET_HELP_WIDTH, 600];
 
-    var defaultPath = searchPresets['DIA DIA']; // Define o caminho padrão
-    var folderPathTxt = folderGrp.add('edittext', undefined, defaultPath);
-    folderPathTxt.preferredSize.width = 280;
-
-    presetDropdown.selection = presetDropdown.find('DIA DIA'); // Define o preset padrão na UI
-
-    var searchGrp = win.add('group');
-    searchGrp.alignment = 'fill';
-    
-    var searchInput = searchGrp.add('edittext'); 
-    searchInput.preferredSize.width = 280; 
-
-    var searchBtn = new themeIconButton(searchGrp, {
-        icon: D9T_LENS_ICON || undefined,
-        tips: [(lClick || 'Clique') + ' Buscar projetos']
-        
-    });
-
-searchInput.text = '⌕  Digite para buscar...';
-searchInput.active = false; // Para que não apareça selecionado
-
-// Eventos para comportamento de placeholder:
-searchInput.onActivate = function() {
-    if (this.text === '⌕  Digite para buscar...') {
-        this.text = '';
-    }
-};
-
-searchInput.onDeactivate = function() {
-    if (this.text === '') {
-        this.text = '⌕  Digite para buscar...';
-    }
-};
-    var resultTree = win.add('treeview', [0, 0, 320, 0]);
-    resultTree.visible = false;
-
-    var statusGrp = win.add('group');
-    statusGrp.orientation = 'row';
-    statusGrp.alignment = 'fill';
-    statusGrp.spacing = 10;
-
-    var statusTxt = statusGrp.add('statictext', undefined, 'Selecione uma pasta e busque um projeto.');
-    statusTxt.alignment = 'left';
-    statusTxt.preferredSize.width = 200;
-
-    var cancelBtn = statusGrp.add('button', undefined, 'Cancelar');
-    cancelBtn.visible = false;
-    cancelBtn.alignment = ['right', 'center'];
-    cancelBtn.preferredSize = [80, 24];
-
-    // --- Aplicar Tema ---
-    setBgColor(win, bgColor1);
-    setFgColor(titleText, normalColor1);
-    setFgColor(folderPathTxt, normalColor1);
-    setFgColor(statusTxt, normalColor1);
-
-    // --- Eventos da Interface ---
-
-    // Evento para o dropdown de presets
-    presetDropdown.onChange = function() {
-        if (this.selection.index === 0) { // Se for "CAMINHO PERSONALIZADO"
-            return; // Não faz nada, espera a seleção manual
-        }
-        var selectedName = this.selection.text;
-        var newPath = searchPresets[selectedName];
-        folderPathTxt.text = newPath;
-        folderPathTxt.helpTip = newPath;
-        app.settings.saveSetting(SETTINGS_SECTION, "lastProjectPath", newPath); // Salva para persistência
-    };
-
-    // Evento para o botão de selecionar pasta manualmente
-    selectFolderBtn.leftClick.onClick = function() {
-        var selectedFolder = Folder.selectDialog("Selecione a pasta raiz para a busca", folderPathTxt.text);
-        if (selectedFolder) {
-            var newPath = Folder.decode(selectedFolder.fsName);
-            folderPathTxt.text = newPath;
-            folderPathTxt.helpTip = newPath;
-            app.settings.saveSetting(SETTINGS_SECTION, "lastProjectPath", newPath);
-            presetDropdown.selection = 0; // Define o dropdown para "CAMINHO PERSONALIZADO"
-        }
-    };
-
-    cancelBtn.onClick = function() {
-        cancelSearch = true;
-        statusTxt.text = 'Cancelando a busca...';
-        win.update();
-    };
-
-    function doSearch() {
-        win.text = scriptName + ' (Buscando...)';
-        statusTxt.text = 'Iniciando busca...';
-        resultTree.visible = false;
-        resultTree.size.height = 0;
-        win.layout.layout(true);
-
-        searchResults = [];
-        resultTree.removeAll();
-        cancelSearch = false;
-        cancelBtn.visible = true;
-        searchBtn.enabled = false;
-        selectFolderBtn.enabled = false;
-        win.update();
-
-        var rootFolder = new Folder(folderPathTxt.text);
-        var searchTerm = searchInput.text;
-
-        if (!rootFolder.exists || searchTerm === "") {
-            alert("Pasta inválida ou termo de busca vazio.");
-            endSearch();
-            return;
-        }
-
-        var searchQueue = [rootFolder];
-
-        function processQueue() {
-            if (cancelSearch || searchQueue.length === 0) {
-                populateResults();
-                endSearch();
-                return;
-            }
-
-            var currentFolder = searchQueue.shift();
-            statusTxt.text = 'Buscando em: ' + Folder.decode(currentFolder.name);
-            win.update();
-            
-            var files = currentFolder.getFiles();
-            if (files) {
-                 for (var i = 0; i < files.length; i++) {
-                    if(cancelSearch) break;
-                    var file = files[i];
-                    if (file instanceof Folder) {
-                        searchQueue.push(file);
-                    } else {
-                        if ((file.name.toLowerCase().indexOf(searchTerm.toLowerCase()) > -1) && (file.name.match(/\.(aep|aet)$/i))) {
-                            searchResults.push(file);
-                        }
-                    }
-                }
-            }
-            app.setTimeout(processQueue, 10);
-        }
-        processQueue();
+    if (typeof bgColor1 !== "undefined" && typeof setBgColor !== "undefined") {
+      setBgColor(helpWin, bgColor1);
+    } else {
+      helpWin.graphics.backgroundColor = helpWin.graphics.newBrush(
+        helpWin.graphics.BrushType.SOLID_COLOR,
+        [0.05, 0.04, 0.04, 1]
+      );
     }
 
-    function populateResults() {
-        var resultsByFolder = {};
-        for (var i = 0; i < searchResults.length; i++) {
-            var file = searchResults[i];
-            var path = Folder.decode(file.path);
-            if (!resultsByFolder[path]) {
-                resultsByFolder[path] = [];
-            }
-            resultsByFolder[path].push(file);
-        }
+    var headerPanel = helpWin.add("panel", undefined, "");
+    headerPanel.orientation = "column";
+    headerPanel.alignChildren = ["fill", "top"];
+    headerPanel.alignment = ["fill", "top"];
+    headerPanel.spacing = 10;
+    headerPanel.margins = 15;
+    var titleText = headerPanel.add(
+      "statictext",
+      undefined,
+      "AJUDA - GNEWS TEMPLATES"
+    );
+    titleText.graphics.font = ScriptUI.newFont("Arial", "Bold", 16);
+    titleText.alignment = ["center", "center"];
+    if (
+      typeof normalColor1 !== "undefined" &&
+      typeof highlightColor1 !== "undefined" &&
+      typeof setFgColor !== "undefined"
+    ) {
+      setFgColor(titleText, highlightColor1);
+    } else {
+      titleText.graphics.foregroundColor = titleText.graphics.newPen(
+        titleText.graphics.PenType.SOLID_COLOR,
+        [1, 1, 1, 1],
+        1
+      );
+    }
 
-        for (var path in resultsByFolder) {
-            if (resultsByFolder.hasOwnProperty(path)) {
-                var folderNode = resultTree.add('node', path);
-                if (typeof D9T_FOLDER_AE_ICON !== 'undefined') folderNode.image = D9T_FOLDER_AE_ICON;
+    var mainDescText = headerPanel.add(
+      "statictext",
+      undefined,
+      "Gerencie e preencha templates GNEWS com informações automáticas das artes.",
+      { multiline: true }
+    );
+    mainDescText.alignment = ["fill", "fill"];
+    mainDescText.preferredSize.height = 40;
+    if (
+      typeof normalColor1 !== "undefined" &&
+      typeof setFgColor !== "undefined"
+    ) {
+      setFgColor(mainDescText, normalColor1);
+    } else {
+      mainDescText.graphics.foregroundColor = mainDescText.graphics.newPen(
+        mainDescText.graphics.PenType.SOLID_COLOR,
+        [1, 1, 1, 1],
+        1
+      );
+    }
 
-                for (var j = 0; j < resultsByFolder[path].length; j++) {
-                    var file = resultsByFolder[path][j];
-                    var modDate = file.modified;
-                    var dateStr = modDate.getDate() + "/" + (modDate.getMonth() + 1) + "/" + modDate.getFullYear();
-                    var itemText = file.displayName + "   [" + dateStr + "]";
-                    var item = folderNode.add('item', itemText);
-                    item.file = file;
-                    if (typeof D9T_AE_ICON !== 'undefined') item.image = D9T_AE_ICON;
-                }
-            }
-        }
+    var topicsTabPanel = helpWin.add("tabbedpanel");
+    topicsTabPanel.alignment = ["fill", "fill"];
+    topicsTabPanel.margins = 15;
 
-        var count = expandNodes(resultTree);
+    var allHelpTopics = [
+      {
+        tabName: "VISÃO GERAL",
+        topics: [
+          {
+            title: "▶ SELEÇÃO DE TEMPLATE:",
+            text: "Navegue pela árvore à esquerda para selecionar um template (.aep ou .aet). O preview aumentado e informações da arte GNEWS aparecerão à direita.",
+          },
+          {
+            title: "▶ PREVIEW AUMENTADO:",
+            text: "Visualização maior dos templates para melhor análise visual antes do processamento.",
+          },
+          {
+            title: "▶ ATUALIZAR LISTA (🔄):",
+            text: "Recarrega a lista de templates na árvore.",
+          },
+          {
+            title: "▶ ABRIR PASTA (📁):",
+            text: "Abre o diretório onde os templates estão armazenados.",
+          },
+        ],
+      },
+      {
+        tabName: "INFORMAÇÕES GNEWS",
+        topics: [
+          {
+            title: "▶ CÓDIGO DA ARTE:",
+            text: "Digite o código da arte GNEWS (ex: GNVZ036). As informações são carregadas automaticamente do banco de dados.",
+          },
+          {
+            title: "▶ NOME DA ARTE:",
+            text: "Exibido automaticamente baseado no código informado.",
+          },
+          {
+            title: "▶ SERVIDOR DESTINO:",
+            text: "Servidor de destino da arte, carregado automaticamente (ex: FTP VIZ, PAM HARDNEWS).",
+          },
+          {
+            title: "▶ ÚLTIMA ATUALIZAÇÃO:",
+            text: "Data da última modificação/processamento da arte.",
+          },
+        ],
+      },
+      {
+        tabName: "PROCESSAMENTO",
+        topics: [
+          {
+            title: "▶ IMPORTAR:",
+            text: "Importa o template diretamente para o projeto e registra informações GNEWS no log.",
+          },
+          {
+            title: "▶ SEM ORGANIZAÇÃO AUTOMÁTICA:",
+            text: "O projeto não é mais organizado automaticamente, mantendo a estrutura original.",
+          },
+          {
+            title: "▶ SEM METADADOS XMP:",
+            text: "Metadados XMP não são mais adicionados automaticamente.",
+          },
+          {
+            title: "▶ SEM FILA DE RENDER:",
+            text: "Sistema de fila de renderização foi removido para fluxo mais direto.",
+          },
+          {
+            title: "▶ LOG GNEWS:",
+            text: "Registra informações específicas GNEWS incluindo código da arte, nome e servidor destino.",
+          },
+        ],
+      },
+      {
+        tabName: "ATALHOS",
+        topics: [
+          {
+            title: "▶ DUPLO CLIQUE:",
+            text: "Duplo clique em um template importa diretamente sem processamento de texto, mantendo a estrutura original.",
+          },
+        ],
+      },
+    ];
 
-        if (count < 1 && !cancelSearch) {
-            statusTxt.text = 'Nenhum projeto encontrado.';
-        } else if (cancelSearch) {
-            statusTxt.text = 'Busca cancelada. ' + searchResults.length + ' resultado(s) parcial(is).';
+    for (var s = 0; s < allHelpTopics.length; s++) {
+      var currentTabSection = allHelpTopics[s];
+      var tab = topicsTabPanel.add("tab", undefined, currentTabSection.tabName);
+      tab.orientation = "column";
+      tab.alignChildren = ["fill", "top"];
+      tab.spacing = 10;
+      tab.margins = TOPIC_SECTION_MARGINS;
+
+      for (var i = 0; i < currentTabSection.topics.length; i++) {
+        var topic = currentTabSection.topics[i];
+        var topicGrp = tab.add("group");
+        topicGrp.orientation = "column";
+        topicGrp.alignChildren = "fill";
+        topicGrp.spacing = TOPIC_SPACING;
+        if (topic.title.indexOf("▶") === 0) {
+          topicGrp.margins.left = TOPIC_TITLE_INDENT;
         } else {
-             resultTree.visible = true;
-            resultTree.size.height = count >= 16 ? 320 : count * 21 + 5;
-            statusTxt.text = searchResults.length + ' projeto(s) encontrado(s). Duplo-clique para abrir.';
+          topicGrp.margins.left = SUBTOPIC_INDENT;
         }
-        win.layout.layout(true);
+
+        var topicTitle = topicGrp.add("statictext", undefined, topic.title);
+        topicTitle.graphics.font = ScriptUI.newFont("Arial", "Bold", 12);
+        if (
+          typeof highlightColor1 !== "undefined" &&
+          typeof setFgColor !== "undefined"
+        ) {
+          setFgColor(topicTitle, highlightColor1);
+        } else {
+          topicTitle.graphics.foregroundColor = topicTitle.graphics.newPen(
+            topicTitle.graphics.PenType.SOLID_COLOR,
+            [0.83, 0, 0.23, 1],
+            1
+          );
+        }
+        topicTitle.preferredSize.width =
+          TARGET_HELP_WIDTH -
+          MARGIN_SIZE * 2 -
+          (topicsTabPanel.margins.left + topicsTabPanel.margins.right) -
+          (tab.margins.left + tab.margins.right) -
+          topicGrp.margins.left;
+
+        if (topic.text !== "") {
+          var topicText = topicGrp.add("statictext", undefined, topic.text, {
+            multiline: true,
+          });
+          topicText.graphics.font = ScriptUI.newFont("Arial", "Regular", 11);
+          topicText.preferredSize.width =
+            TARGET_HELP_WIDTH -
+            MARGIN_SIZE * 2 -
+            (topicsTabPanel.margins.left + topicsTabPanel.margins.right) -
+            (tab.margins.left + tab.margins.right) -
+            topicGrp.margins.left;
+          topicText.preferredSize.height = 50;
+          if (
+            typeof normalColor1 !== "undefined" &&
+            typeof setFgColor !== "undefined"
+          ) {
+            setFgColor(topicText, normalColor1);
+          } else {
+            topicText.graphics.foregroundColor = topicText.graphics.newPen(
+              topicText.graphics.PenType.SOLID_COLOR,
+              [1, 1, 1, 1],
+              1
+            );
+          }
+        }
+      }
     }
 
-    function endSearch() {
-        win.text = scriptName;
-        cancelBtn.visible = false;
-        searchBtn.enabled = true;
-        selectFolderBtn.enabled = true;
-        win.update();
-    }
-
-    searchBtn.leftClick.onClick = searchInput.onEnterKey = doSearch;
-
-    resultTree.onDoubleClick = function() {
-        if (resultTree.selection && resultTree.selection.type === 'item') {
-            try {
-                app.open(resultTree.selection.file);
-                win.close();
-            } catch (e) {
-                alert("Não foi possível abrir o projeto.\n" + e.toString());
-            }
-        }
-    };
-    
-    var helpFunction = function() {
-        var TARGET_HELP_WIDTH = 450;
-        var MARGIN_SIZE = 15;
-        var TOPIC_SECTION_MARGINS = [10, 5, 10, 5];
-        var TOPIC_SPACING = 5;
-        var TOPIC_TITLE_INDENT = 0;
-        var SUBTOPIC_INDENT = 25;
-
-        var helpWin = new Window("palette", "Ajuda - " + scriptName, undefined, { closeButton: true });
-        helpWin.orientation = "column";
-        helpWin.alignChildren = ["fill", "fill"];
-        helpWin.spacing = 10;
-        helpWin.margins = MARGIN_SIZE;
-        
-        helpWin.preferredSize = [TARGET_HELP_WIDTH, -1];
-
-        setBgColor(helpWin, bgColor1);
-        
-        var headerPanel = helpWin.add("panel", undefined, "");
-        headerPanel.orientation = "column";
-        headerPanel.alignChildren = ["fill", "top"];
-        headerPanel.alignment = ["fill", "top"];
-        headerPanel.spacing = 10;
-        headerPanel.margins = 15;
-        
-        var titleText = headerPanel.add("statictext", undefined, "AJUDA - BUSCAR PROJETOS");
-        titleText.graphics.font = ScriptUI.newFont("Arial", "Bold", 16);
-        titleText.alignment = ["center", "center"];
-        setFgColor(titleText, highlightColor1);
-
-        var mainDescText = headerPanel.add("statictext", undefined, "Esta ferramenta localiza arquivos de projeto do After Effects (.aep, .aet) recursivamente a partir de uma pasta inicial.", {multiline: true});
-        mainDescText.alignment = ["fill", "fill"];
-        setFgColor(mainDescText, normalColor1);
-
-        var topicsTabPanel = helpWin.add("tabbedpanel");
-        topicsTabPanel.alignment = ["fill", "fill"];
-        topicsTabPanel.margins = 15;
-
-        var allHelpTopics = [
-            {
-                tabName: "COMO USAR",
-                topics: [
-                    { title: "▶ PRESETS:", text: "Use o menu 'Presets' para selecionar rapidamente um caminho de busca comum. O caminho será preenchido automaticamente."},
-                    { title: "▶ CAMINHO MANUAL:", text: "Clique no ícone de pasta para escolher um diretório que não está na lista de presets. O menu mudará para 'CAMINHO PERSONALIZADO'."},
-                    { title: "▶ BUSCA E RESULTADOS:", text: "Digite o termo de busca e clique na lupa. Dê um duplo-clique em um item na lista de resultados para abri-lo." }
-                ]
-            },
-            {
-                tabName: "FUNCIONALIDADES",
-                topics: [
-                    { title: "▶ BUSCA RECURSIVA:", text: "A busca não se limita à pasta selecionada, ela se estende a todas as subpastas contidas nela." },
-                    { title: "▶ CANCELAMENTO:", text: "Durante uma busca longa, o botão 'Cancelar' fica visível. Clicá-lo interrompe o processo e exibe os resultados parciais encontrados até aquele momento." },
-                    { title: "▶ MEMÓRIA DE PASTA:", text: "O script memoriza a última pasta utilizada (seja de um preset ou manual), mas sempre iniciará com o preset 'DIA DIA' selecionado." }
-                ]
-            }
-        ];
-
-        for (var s = 0; s < allHelpTopics.length; s++) {
-            var currentTabSection = allHelpTopics[s];
-            var tab = topicsTabPanel.add("tab", undefined, currentTabSection.tabName);
-            tab.orientation = "column";
-            tab.alignChildren = ["fill", "top"];
-            tab.spacing = 10;
-            tab.margins = TOPIC_SECTION_MARGINS;
-
-            for (var i = 0; i < currentTabSection.topics.length; i++) {
-                var topic = currentTabSection.topics[i];
-                var topicGrp = tab.add("group");
-                topicGrp.orientation = "column";
-                topicGrp.alignChildren = "fill";
-                topicGrp.spacing = TOPIC_SPACING;
-                
-                topicGrp.margins.left = (topic.title.indexOf("▶") === 0) ? TOPIC_TITLE_INDENT : SUBTOPIC_INDENT;
-
-                var topicTitle = topicGrp.add("statictext", undefined, topic.title);
-                topicTitle.graphics.font = ScriptUI.newFont("Arial", "Bold", 12);
-                setFgColor(topicTitle, highlightColor1);
-
-                if(topic.text !== ""){
-                    var topicText = topicGrp.add("statictext", undefined, topic.text, { multiline: true });
-                    topicText.graphics.font = ScriptUI.newFont("Arial", "Regular", 11);
-                    setFgColor(topicText, normalColor1);
-                }
-            }
-        }
-
-        var closeBtnGrp = helpWin.add("group");
-        closeBtnGrp.alignment = "center";
-        closeBtnGrp.margins = [0, 10, 0, 0];
-        var closeBtn = closeBtnGrp.add("button", undefined, "Fechar");
-        closeBtn.onClick = function() {
-            helpWin.close();
-        };
-
-        helpWin.layout.layout(true);
-        helpWin.center();
-        helpWin.show();
+    var closeBtnGrp = helpWin.add("group");
+    closeBtnGrp.alignment = "center";
+    closeBtnGrp.margins = [0, 10, 0, 0];
+    var closeBtn = closeBtnGrp.add("button", undefined, "OK");
+    closeBtn.onClick = function () {
+      helpWin.close();
     };
 
-    if (helpBtn.leftClick) {
-        helpBtn.leftClick.onClick = helpFunction;
-    } else { 
-        helpBtn.onClick = helpFunction;
-    }
-
-    win.center();
-    win.show();
-
-    function expandNodes(nodeTree) {
-        var count = 0;
-        var branches = nodeTree.items;
-        nodeTree.expanded = true;
-        for (var i = 0; i < branches.length; i++) {
-            if (branches[i].type == 'node') {
-                count += expandNodes(branches[i]);
-            }
-            count++;
-        }
-        return count;
-    }
+    helpWin.layout.layout(true);
+    helpWin.center();
+    helpWin.show();
+  }; // END - FUNÇÃO DE AJUDA GNEWS
+  // Exibe a janela
+  D9T_TEMPLATES_w.show();
 }

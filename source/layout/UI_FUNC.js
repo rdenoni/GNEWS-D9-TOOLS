@@ -207,17 +207,6 @@ function D9T_UI_EVENTS(uiObj) {
 		d9TemplateDialog();
 	};
 
-	uiObj.templates.rightClick.onClick = function () {
-		if (app.project.numItems == 0) return;
-		var aItem = app.project.activeItem;
-		if (aItem == null) return;
-		try {
-			PadMakerDialog();
-		} catch (err) {
-			alert(lol + '#D9T_MAKER - ' + '' + err.message);
-		}
-	};
-
 	uiObj.link.leftClick.onClick = function () {
 		D9T_RUN_SCRIPT('GNEWS CopyLinks.jsx');
 	};
