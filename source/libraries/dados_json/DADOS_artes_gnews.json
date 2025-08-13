@@ -1,34 +1,189 @@
 {
-  "Artes": [
-    "Destaque",
-    "Base Caracter",
-    "Foto",
-    "Twitter",        
-    "Gráfico Barra",
-    "Gráfico Linha",
-    "Gráfico Pizza",    
-    "Mapa",
-    "Mapa Insert",    
-    "Linha do Tempo",   
-    "Perfil",
-    "Transcricao",            
-    "Fato Fake",
-    "Frase",
-    "Cabeçalho Promo",
-    "Display",
-    "Escalada",
-    "Colagem",
-    "Let",
-    "Creditos",    
-    "Localizador",
-    "WhatsApp",
-    "Gravador",
-    "Mosaico",
-    "Legenda",
-    "Vinheta",
-    "Dicionario",
-    "Nuvem de Palavras",
-    "Persianas",
-    "Promo"    
+  "artes_codificadas": [
+    {
+      "codigo": "GNPH001",
+      "arte": "Destaque",
+      "servidor_destino": "PAM HARDNEWS"
+    },
+    {
+      "codigo": "GNPH002",
+      "arte": "Twitter",
+      "servidor_destino": "PAM HARDNEWS"
+    },
+    {
+      "codigo": "GNPH003",
+      "arte": "Base Caracter",
+      "servidor_destino": "PAM HARDNEWS"
+    },
+    {
+      "codigo": "GNPH004",
+      "arte": "Mapa",
+      "servidor_destino": "PAM HARDNEWS"
+    },
+    {
+      "codigo": "GNPH005",
+      "arte": "Mapa Insert",
+      "servidor_destino": "PAM HARDNEWS"
+    },
+    {
+      "codigo": "GNPH006",
+      "arte": "Foto",
+      "servidor_destino": "PAM HARDNEWS"
+    },
+    {
+      "codigo": "GNPH007",
+      "arte": "Cabeçalho Promo",
+      "servidor_destino": "PAM HARDNEWS"
+    },
+    {
+      "codigo": "GNPH008",
+      "arte": "Gráfico Barra",
+      "servidor_destino": "PAM HARDNEWS"
+    },
+    {
+      "codigo": "GNPH009",
+      "arte": "Gráfico Linha",
+      "servidor_destino": "PAM HARDNEWS"
+    },
+    {
+      "codigo": "GNPH010",
+      "arte": "Gráfico Pizza",
+      "servidor_destino": "PAM HARDNEWS"
+    },
+    {
+      "codigo": "GNPH011",
+      "arte": "Pesquisa",
+      "servidor_destino": "PAM HARDNEWS"
+    },
+    {
+      "codigo": "GNPH012",
+      "arte": "Fato Fake",
+      "servidor_destino": "PAM HARDNEWS"
+    },
+    {
+      "codigo": "GNPH013",
+      "arte": "Linha do Tempo",
+      "servidor_destino": "PAM HARDNEWS"
+    },
+    {
+      "codigo": "GNPH014",
+      "arte": "Perfil",
+      "servidor_destino": "PAM HARDNEWS"
+    },
+    {
+      "codigo": "GNPH015",
+      "arte": "Transcrição",
+      "servidor_destino": "PAM HARDNEWS"
+    },
+    {
+      "codigo": "GNPH016",
+      "arte": "Frase",
+      "servidor_destino": "PAM HARDNEWS"
+    },
+    {
+      "codigo": "GNPH017",
+      "arte": "WhatsApp",
+      "servidor_destino": "PAM HARDNEWS"
+    },
+    {
+      "codigo": "GNPH018",
+      "arte": "Gravador",
+      "servidor_destino": "PAM HARDNEWS"
+    },
+    {
+      "codigo": "GNPH019",
+      "arte": "Mosaico",
+      "servidor_destino": "PAM HARDNEWS"
+    },
+    {
+      "codigo": "GNPH020",
+      "arte": "Dicionário",
+      "servidor_destino": "PAM HARDNEWS"
+    },
+    {
+      "codigo": "GNPH021",
+      "arte": "Nuvem de Palavras",
+      "servidor_destino": "PAM HARDNEWS"
+    },
+    {
+      "codigo": "GNPH022",
+      "arte": "Telão",
+      "servidor_destino": "PAM HARDNEWS"
+    },
+    {
+      "codigo": "GNPM023",
+      "arte": "Display",
+      "servidor_destino": "PAM MAGAZINE"
+    },
+    {
+      "codigo": "GNPM024",
+      "arte": "Escalada",
+      "servidor_destino": "PAM MAGAZINE"
+    },
+    {
+      "codigo": "GNPM025",
+      "arte": "Colagem",
+      "servidor_destino": "PAM MAGAZINE"
+    },
+    {
+      "codigo": "GNPM026",
+      "arte": "Let",
+      "servidor_destino": "PAM MAGAZINE"
+    },
+    {
+      "codigo": "GNPM027",
+      "arte": "Caça Palavras",
+      "servidor_destino": "PAM MAGAZINE"
+    },
+    {
+      "codigo": "GNPM028",
+      "arte": "Vinheta",
+      "servidor_destino": "PAM MAGAZINE"
+    },
+    {
+      "codigo": "GNPM029",
+      "arte": "Claquete",
+      "servidor_destino": "PAM MAGAZINE"
+    },
+    {
+      "codigo": "GNPM030",
+      "arte": "Persiana",
+      "servidor_destino": "PAM MAGAZINE"
+    },
+    {
+      "codigo": "GNPM031",
+      "arte": "Parallax",
+      "servidor_destino": "PAM MAGAZINE"
+    },
+    {
+      "codigo": "GNPM032",
+      "arte": "Promo",
+      "servidor_destino": "PAM MAGAZINE"
+    },
+    {
+      "codigo": "GNIH033",
+      "arte": "Créditos",
+      "servidor_destino": "ILHA HARDNEWS"
+    },
+    {
+      "codigo": "GNIH034",
+      "arte": "Localizador",
+      "servidor_destino": "ILHA HARDNEWS"
+    },
+    {
+      "codigo": "GNIH035",
+      "arte": "Legenda",
+      "servidor_destino": "ILHA HARDNEWS"
+    },
+    {
+      "codigo": "GNVZ036",
+      "arte": "QR Code",
+      "servidor_destino": "FTP VIZ"
+    },
+    {
+      "codigo": "GNVZ037",
+      "arts": "Totem",
+      "servidor_destino": "FTP VIZ"
+    }
   ]
 }

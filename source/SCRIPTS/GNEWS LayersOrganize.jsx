@@ -1,5 +1,5 @@
 // Auto Layer Organizer - Script Principal
-// Versão 3.4 (Ícone no botão principal)
+// Versão 4.1 (Correções aplicadas)
 // Este script lê as configurações de um arquivo JSON externo.
 // Execute o script AutoLayerOrganizer_Settings.jsx para alterar as configurações.
 
@@ -7,11 +7,14 @@
     // START - FUNÇÕES DE CONFIGURAÇÃO E AUXILIARES
     var DEBUG_MODE = true;
     
+    var COLORS = { 
+        success: [0.2, 0.8, 0.2], error: [0.8, 0.2, 0.2], warning: [0.9, 0.7, 0.2], info: [0.2, 0.6, 0.9], neutral: [0.9, 0.9, 0.9],
+    };
+
     function debugLog(message) {
         if (DEBUG_MODE) $.writeln("[DEBUG] " + message);
     }
 
-    // Função para carregar a configuração de um arquivo JSON.
     function loadConfig() {
         var configFile = new File(Folder.userData.fsName + "/organizer_config.json");
         var defaultConfig = {
@@ -43,33 +46,45 @@
 
     var config = loadConfig();
 
-    // Funções de localização e estilo (essenciais para a UI)
     var bgColor1 = '#0B0D0E', normalColor1 = '#C7C8CA', highlightColor1 = '#E0003A';
     function hexToRgb(hex) { if (hex == undefined) return [Math.random(), Math.random(), Math.random()]; hex = hex.replace('#', ''); var r = parseInt(hex.substring(0, 2), 16); var g = parseInt(hex.substring(2, 4), 16); var b = parseInt(hex.substring(4, 6), 16); return [r / 255, g / 255, b / 255]; }
     function setBgColor(element, hexColor) { try { var color = hexToRgb(hexColor); var bType = element.graphics.BrushType.SOLID_COLOR; element.graphics.backgroundColor = element.graphics.newBrush(bType, color); } catch (e) {} }
     function setFgColor(element, hexColor) { try { var color = hexToRgb(hexColor); var pType = element.graphics.PenType.SOLID_COLOR; element.graphics.foregroundColor = element.graphics.newPen(pType, color, 1); } catch (e) {} }
 
+    function setStatusColor(element, color) {
+        try {
+            if (element && element.graphics) {
+                element.graphics.foregroundColor = element.graphics.newPen(element.graphics.PenType.SOLID_COLOR, color, 1);
+            }
+        } catch (e) { debugLog("Erro ao definir cor do status: " + e.toString()); }
+    }
+
     function getLocalizedString(key) {
         var strings = {
             PT: {
-                windowTitle: "Auto Layer Organizer v3.4",
-                automateBtn: "\u2728 ORGANIZAR", // <-- ALTERADO AQUI
+                windowTitle: "Auto Layer Organizer v4.1",
+                automateBtn: "\u2728 ORGANIZAR", 
+                organizeBtnTip: "Executa as ações de organização selecionadas na composição ativa.",
                 helpBtnTip: "Ajuda sobre o Auto Layer Organizer",
                 helpBtnShortTip: "Ajuda",
                 optionsPanel: "Opções",
                 applyColorsCheck: "Aplicar cores",
+                applyColorsTip: "Aplica um esquema de cores pré-definido às camadas com base no seu tipo.",
                 renameLayersCheck: "Renomear camadas",
+                renameLayersTip: "Renomeia as camadas adicionando um prefixo padrão (ex: Shp_, Txt_).",
                 reorderLayersCheck: "Reordenar por tipo",
-                reorderLayersTip: "Agrupa por tipo mantendo ordem temporal",
+                reorderLayersTip: "Agrupa as camadas por tipo, mantendo a ordem temporal original dentro de cada grupo.",
                 reorderByTimeCheck: "Reordenar por tempo",
-                reorderByTimeTip: "Camadas mais tardias ficam no topo",
+                reorderByTimeTip: "Organiza as camadas de modo que as que começam mais tarde na timeline fiquem no topo.",
                 deleteHiddenCheck: "Deletar ocultas",
+                deleteHiddenTip: "Remove permanentemente todas as camadas com a visibilidade desativada (olho desligado).",
                 statusWaiting: "Aguardando...",
+                statusReady: "Pronto para uso...",
                 statusStarting: "Iniciando...",
                 statusNoComp: "ERRO: Nenhuma comp selecionada!",
                 statusCompFound: "Comp encontrada: ",
                 statusSearchingHidden: "Buscando ocultas...",
-                statusDeletingHidden: "Excluindo {0} ocultas...",
+                statusDeletingHidden: "Excluindo camadas ocultas...",
                 statusNoHiddenToDelete: "Nenhuma oculta para deletar.",
                 statusCheckingExpressions: "Verificando expressões...",
                 statusIndexWarning: "AVISO: Expressões com índice detectadas",
@@ -77,7 +92,7 @@
                 statusReordered: "Reordenação concluída! {0} camadas",
                 statusNoOrderChange: "Ordem já conforme solicitado.",
                 statusNoLayersLeft: "Nenhuma camada restante.",
-                statusCompleted: "Concluído!\nTotal: {0} | Visíveis: {1} | Ocultas: {2}\nShapes: {3} | Textos: {4} | Sólidos: {5}\nAjustes: {6} | Comps: {7} | Câmeras: {8}",
+                statusCompleted: "Concluído!\nTotal: {0} | Visíveis: {1}\nShapes: {2} | Textos: {3} | Sólidos: {4}\nAjustes: {5} | Comps: {6} | Câmeras: {7}",
                 statusActions: "\nAções: ",
                 statusRenamed: "Renomeadas: {0}",
                 statusColored: "Coloridas: {0}",
@@ -93,27 +108,33 @@
                 skippedLayersMessage: "As seguintes camadas não foram modificadas:\n\n{0}",
                 skippedLayerInfo: "Camada: {0} (Índice: {1})\nMotivo: {2}\n",
                 reasonIndex: "Expressão com referência a índice",
-                reasonLinked: "Vínculo com outra camada (parent, track matte ou máscara)"
+                reasonLinked: "Vínculo com outra camada (parent, track matte ou máscara)",
+                reasonLocked: "Camada bloqueada"
             },
-            EN: {
-                windowTitle: "Auto Layer Organizer v3.4",
-                automateBtn: "\u2728 ORGANIZE", // <-- CHANGED HERE
+            EN: { 
+                windowTitle: "Auto Layer Organizer v4.1",
+                automateBtn: "\u2728 ORGANIZE",
+                organizeBtnTip: "Executes the selected organization actions on the active composition.",
                 helpBtnTip: "Help for Auto Layer Organizer",
                 helpBtnShortTip: "Help",
                 optionsPanel: "Options",
                 applyColorsCheck: "Apply colors",
+                applyColorsTip: "Applies a predefined color scheme to layers based on their type.",
                 renameLayersCheck: "Rename layers",
+                renameLayersTip: "Renames layers by adding a standard prefix (e.g., Shp_, Txt_).",
                 reorderLayersCheck: "Reorder by type",
-                reorderLayersTip: "Groups by type while keeping temporal order",
+                reorderLayersTip: "Groups layers by type, keeping the original temporal order within each group.",
                 reorderByTimeCheck: "Reorder by time",
-                reorderByTimeTip: "Later layers go to the top",
+                reorderByTimeTip: "Organizes layers so that those that start later in the timeline are at the top.",
                 deleteHiddenCheck: "Delete hidden",
+                deleteHiddenTip: "Permanently removes all layers with visibility turned off (eyeball off).",
                 statusWaiting: "Waiting...",
+                statusReady: "Ready to use...",
                 statusStarting: "Starting...",
                 statusNoComp: "ERROR: No comp selected!",
                 statusCompFound: "Comp found: ",
                 statusSearchingHidden: "Searching for hidden layers...",
-                statusDeletingHidden: "Deleting {0} hidden layers...",
+                statusDeletingHidden: "Deleting hidden layers...",
                 statusNoHiddenToDelete: "No hidden layers to delete.",
                 statusCheckingExpressions: "Checking expressions...",
                 statusIndexWarning: "WARNING: Index-dependent expressions detected",
@@ -121,7 +142,7 @@
                 statusReordered: "Reordering complete! {0} layers",
                 statusNoOrderChange: "Order is already as requested.",
                 statusNoLayersLeft: "No layers remaining.",
-                statusCompleted: "Completed!\nTotal: {0} | Visible: {1} | Hidden: {2}\nShapes: {3} | Texts: {4} | Solids: {5}\nAdjustments: {6} | Comps: {7} | Cameras: {8}",
+                statusCompleted: "Completed!\nTotal: {0} | Visible: {1}\nShapes: {2} | Texts: {3} | Solids: {4}\nAdjustments: {5} | Comps: {6} | Cameras: {7}",
                 statusActions: "\nActions: ",
                 statusRenamed: "Renamed: {0}",
                 statusColored: "Colored: {0}",
@@ -137,13 +158,14 @@
                 skippedLayersMessage: "The following layers were not modified:\n\n{0}",
                 skippedLayerInfo: "Layer: {0} (Index: {1})\nReason: {2}\n",
                 reasonIndex: "Expression with index reference",
-                reasonLinked: "Linked to another layer (parent, track matte, or mask)"
+                reasonLinked: "Linked to another layer (parent, track matte, or mask)",
+                reasonLocked: "Layer locked"
             }
         };
         return strings[config.language][key] || key;
     }
 
-    // START - FUNÇÃO DE AJUDA PADRONIZADA (showLayersOrganizeHelp)
+    // START - FUNÇÃO DE AJUDA PADRONIZADA
     function showLayersOrganizeHelp() {
         var TARGET_HELP_WIDTH = 450;
         var MARGIN_SIZE = 15;
@@ -160,11 +182,7 @@
         
         helpWin.preferredSize = [TARGET_HELP_WIDTH, 600];
 
-        if (typeof bgColor1 !== 'undefined' && typeof setBgColor !== 'undefined') {
-            setBgColor(helpWin, bgColor1);
-        } else {
-            helpWin.graphics.backgroundColor = helpWin.graphics.newBrush(helpWin.graphics.BrushType.SOLID_COLOR, [0.05, 0.04, 0.04, 1]);
-        }
+        setBgColor(helpWin, bgColor1);
 
         var headerPanel = helpWin.add("panel", undefined, "");
         headerPanel.orientation = "column";
@@ -176,20 +194,12 @@
         var titleText = headerPanel.add("statictext", undefined, "AJUDA - AUTO LAYER ORGANIZER");
         titleText.graphics.font = ScriptUI.newFont("Arial", "Bold", 16);
         titleText.alignment = ["center", "center"];
-        if (typeof normalColor1 !== 'undefined' && typeof highlightColor1 !== 'undefined' && typeof setFgColor !== 'undefined') {
-            setFgColor(titleText, highlightColor1);
-        } else {
-            titleText.graphics.foregroundColor = titleText.graphics.newPen(titleText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 1], 1);
-        }
+        setFgColor(titleText, highlightColor1);
 
         var mainDescText = headerPanel.add("statictext", undefined, "Esta ferramenta automatiza a organização de camadas em suas composições.", {multiline: true});
         mainDescText.alignment = ["fill", "fill"];
         mainDescText.preferredSize.height = 40;
-        if (typeof normalColor1 !== 'undefined' && typeof setFgColor !== 'undefined') {
-            setFgColor(mainDescText, normalColor1);
-        } else {
-            mainDescText.graphics.foregroundColor = mainDescText.graphics.newPen(mainDescText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 1], 1);
-        }
+        setFgColor(mainDescText, normalColor1);
 
         var topicsTabPanel = helpWin.add("tabbedpanel");
         topicsTabPanel.alignment = ["fill", "fill"];
@@ -199,7 +209,7 @@
             {
                 tabName: "FUNCIONALIDADES",
                 topics: [
-                    { title: "▶ RENOMEAR CAMADAS:", text: "Adiciona prefixos padrão (ex: 'Shp_', 'Txt_') aos nomes das camadas com base em seu tipo. Isso padroniza a identificação visual no painel Timeline." },
+                    { title: "▶ RENOMEAR CAMADAS:", text: "Adiciona prefixos padrão (ex: 'Shp_', 'Txt_') aos nomes das camadas com base em seu tipo. Remove prefixos duplicados automaticamente." },
                     { title: "▶ APLICAR CORES:", text: "Atribui cores de rótulo padrão a cada tipo de camada (ex: Shapes Azul, Textos Vermelho) para melhor distinção visual." },
                     { title: "▶ REORDENAR POR TIPO:", text: "Agrupa as camadas na Timeline por tipo (ex: todos os Ajustes primeiro, depois Câmeras, Nulos, Textos, etc.), mantendo a ordem temporal original dentro de cada grupo de tipo. " },
                     { title: "▶ REORDENAR POR TEMPO:", text: "Reorganiza as camadas de modo que as que começam mais tarde na Timeline apareçam no topo da pilha. Útil para fluxos de trabalho que priorizam o tempo de início." },
@@ -209,8 +219,9 @@
             {
                 tabName: "COMPORTAMENTO",
                 topics: [
-                    { title: "▶ EXPRESSÕES COM ÍNDICE:", text: "Camadas com expressões que referenciam outras camadas por seu número de índice (ex: `thisComp.layer(1)`) não serão reordenadas para evitar quebrar as animações. Uma notificação aparecerá se isso ocorrer." },
+                    { title: "▶ EXPRESSÕES COM ÍNDICE:", text: "Camadas com expressões que referenciam outras camadas por seu número de índice (ex: `thisComp.layer(1)`) não serão reordenadas para evitar quebrar as animações." },
                     { title: "▶ CAMADAS VINCULADAS:", text: "Camadas que são pais/filhos, track mattes ou têm máscaras aplicadas NÃO serão deletadas quando 'Deletar Ocultas' for usado, para proteger a integridade do projeto." },
+                    { title: "▶ CAMADAS BLOQUEADAS:", text: "Camadas com cadeado ativado não serão renomeadas, preservando nomes importantes manualmente definidos." },
                     { title: "▶ BOTÃO CONFIGURAÇÕES (Script separado):", text: "Para personalizar prefixos, cores e idioma, execute o script 'AutoLayerOrganizer_Settings.jsx' separadamente." }
                 ]
             }
@@ -239,25 +250,15 @@
 
                 var topicTitle = topicGrp.add("statictext", undefined, topic.title);
                 topicTitle.graphics.font = ScriptUI.newFont("Arial", "Bold", 12);
-                if (typeof highlightColor1 !== 'undefined' && typeof setFgColor !== 'undefined') {
-                    setFgColor(topicTitle, highlightColor1);
-                } else {
-                    topicTitle.graphics.foregroundColor = topicTitle.graphics.newPen(topicTitle.graphics.PenType.SOLID_COLOR, [0.83, 0, 0.23, 1], 1);
-                }
+                setFgColor(topicTitle, highlightColor1);
                 topicTitle.preferredSize.width = (TARGET_HELP_WIDTH - (MARGIN_SIZE * 2) - (topicsTabPanel.margins.left + topicsTabPanel.margins.right) - (tab.margins.left + tab.margins.right) - topicGrp.margins.left);
-
 
                 if(topic.text !== ""){
                     var topicText = topicGrp.add("statictext", undefined, topic.text, { multiline: true });
                     topicText.graphics.font = ScriptUI.newFont("Arial", "Regular", 11);
                     topicText.preferredSize.width = (TARGET_HELP_WIDTH - (MARGIN_SIZE * 2) - (topicsTabPanel.margins.left + topicsTabPanel.margins.right) - (tab.margins.left + tab.margins.right) - topicGrp.margins.left);
                     topicText.preferredSize.height = 50;
-                    
-                    if (typeof normalColor1 !== 'undefined' && typeof setFgColor !== 'undefined') {
-                        setFgColor(topicText, normalColor1);
-                    } else {
-                        topicText.graphics.foregroundColor = topicText.graphics.newPen(topicText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 1], 1);
-                    }
+                    setFgColor(topicText, normalColor1);
                 }
             }
         }
@@ -335,21 +336,37 @@
         }
     }
     
-    function updateStatus(message, params) {
-        var text = getLocalizedString(message);
+    // CORREÇÃO: Variável statusText movida para escopo global da closure
+    var statusText = null;
+    
+    function updateStatus(messageOrKey, type, params) {
+        if (!statusText) return;
+    
+        var text = getLocalizedString(messageOrKey);
+        if (text === messageOrKey && messageOrKey.indexOf('status') !== 0) {
+            text = messageOrKey; 
+        }
+
         if (params) {
             for (var i = 0; i < params.length; i++) {
                 text = text.replace("{" + i + "}", params[i]);
             }
         }
+        
+        var color = COLORS[type] || COLORS.neutral;
         statusText.text = text;
+        setStatusColor(statusText, color);
+        
+        if (type === "success") { 
+            app.setTimeout(function () {
+                if (statusText && statusText.text === text) { 
+                    statusText.text = getLocalizedString("statusReady");
+                    setStatusColor(statusText, COLORS.neutral);
+                }
+            }, 3000);
+        }
     }
-    
-    function updateProgress(current, total) {
-        progressBar.value = Math.round((current / total) * 100);
-        updateStatus("statusProcessing");
-    }
-    
+
     function isLayerLinked(comp, layer) {
         for (var i = 1; i <= comp.numLayers; i++) {
             var otherLayer = comp.layer(i);
@@ -410,8 +427,63 @@
             return false;
         }
     }
+    
+    // NOVA FUNÇÃO: Remove prefixos duplicados e palavras repetidas
+    function cleanLayerName(name, prefix) {
+        if (!name) return "";
+        
+        // Remove todos os prefixos conhecidos primeiro
+        var allPrefixes = [];
+        for (var key in config.prefixes) {
+            allPrefixes.push(config.prefixes[key]);
+        }
+        
+        // Remove prefixos repetidos (ex: "Null_Null_" -> "")
+        var cleanName = name;
+        for (var i = 0; i < allPrefixes.length; i++) {
+            var prefixPattern = new RegExp("^(" + escapeRegExp(allPrefixes[i]) + ")+", "gi");
+            cleanName = cleanName.replace(prefixPattern, "");
+        }
+        
+        // Remove underscores duplos ou no início
+        cleanName = cleanName.replace(/^_+/, "").replace(/__+/g, "_");
+        
+        // Remove palavras duplicadas como "null null" (case insensitive)
+        var words = ["null", "text", "txt", "shape", "shp", "solid", "sld", "comp", "camera", "cam", "adjustment", "ajust", "video", "vid", "image", "img"];
+        for (var j = 0; j < words.length; j++) {
+            var wordPattern = new RegExp("^(" + words[j] + "[_\\s]*)+" + words[j], "gi");
+            cleanName = cleanName.replace(wordPattern, words[j]);
+        }
+        
+        // Se após limpar ficou vazio, usa um nome padrão
+        if (cleanName === "" || cleanName === "_") {
+            cleanName = "Layer";
+        }
+        
+        // Adiciona o novo prefixo
+        return prefix + cleanName;
+    }
+    
+    // NOVA FUNÇÃO: Verifica se a layer é referenciada por expressões
+    function isLayerReferencedByExpressions(comp, targetLayer) {
+        for (var i = 1; i <= comp.numLayers; i++) {
+            var layer = comp.layer(i);
+            if (layer !== targetLayer) {
+                var props = getAllProperties(layer);
+                for (var j = 0; j < props.length; j++) {
+                    var prop = props[j];
+                    if (prop.canSetExpression && prop.expression !== "") {
+                        if (expressionReferencesLayer(prop.expression, targetLayer)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    
     // END - FUNÇÕES DE LÓGICA DO SCRIPT
-
 
     // START - OBJETO PRINCIPAL DO SCRIPT
     var LayersOrganizer = {
@@ -428,12 +500,12 @@
 
             if (!self.ui.applyColorsCheck.value && !self.ui.renameLayersCheck.value && !self.ui.reorderLayersCheck.value && 
                 !self.ui.reorderByTimeCheck.value && !self.ui.deleteHiddenCheck.value) {
-                updateStatus("statusNoActions");
+                updateStatus("statusNoActions", "warning");
                 return;
             }
 
             self.isProcessing = true;
-            updateStatus("statusStarting");
+            updateStatus("statusStarting", "info");
             self.ui.organizeBtn.enabled = false;
             self.ui.helpBtn.enabled = false;
             
@@ -442,39 +514,49 @@
             try {
                 var comp = app.project.activeItem;
                 if (!comp || !(comp instanceof CompItem)) {
-                    updateStatus("statusNoComp");
+                    updateStatus("statusNoComp", "error");
+                    self.isProcessing = false; 
+                    self.ui.organizeBtn.enabled = true; 
+                    self.ui.helpBtn.enabled = true;
+                    app.endUndoGroup();
                     return;
                 }
                 
-                updateStatus("statusCompFound", [comp.name]);
+                updateStatus("statusCompFound", "info", [comp.name]);
                 
-                function getPrefixList() {
-                    var prefixes = [];
-                    for (var key in config.prefixes) {
-                        prefixes.push(config.prefixes[key]);
+                function forceUIUpdate() {
+                    if (self.ui.win && typeof self.ui.win.update === 'function') {
+                        self.ui.win.update();
                     }
-                    return prefixes;
                 }
                 
-                function removePrefix(name) {
-                    var prefixes = getPrefixList().join("|");
-                    var regex = new RegExp("^(" + prefixes + ")", "i");
-                    return name.replace(regex, "");
-                }
+                // NOVO: Verifica se há layers selecionadas
+                var selectedLayers = comp.selectedLayers;
+                var processOnlySelected = selectedLayers && selectedLayers.length > 0;
                 
-                var stats = { total: comp.numLayers, enabled: 0, disabled: 0, renamed: 0, colored: 0, deleted: 0, reordered: 0,
-                              shapes: 0, texts: 0, solids: 0, adjustments: 0, comps: 0, cameras: 0, nulls: 0, images: 0, videos: 0,
-                              skippedIndexDependent: 0 };
+                var stats = { 
+                    total: processOnlySelected ? selectedLayers.length : comp.numLayers, 
+                    enabled: 0, disabled: 0, renamed: 0, colored: 0, deleted: 0, reordered: 0,
+                    shapes: 0, texts: 0, solids: 0, adjustments: 0, comps: 0, cameras: 0, nulls: 0, images: 0, videos: 0,
+                    skippedIndexDependent: 0, skippedReferenced: 0 
+                };
                 
-                for (var i = 1; i <= comp.numLayers; i++) {
-                    var layer = comp.layer(i);
-                    if (layer.enabled) stats.enabled++; else stats.disabled++;
+                // Conta layers habilitadas/desabilitadas
+                if (processOnlySelected) {
+                    for (var i = 0; i < selectedLayers.length; i++) {
+                        if (selectedLayers[i].enabled) stats.enabled++; else stats.disabled++;
+                    }
+                } else {
+                    for (var i = 1; i <= comp.numLayers; i++) {
+                        var layer = comp.layer(i);
+                        if (layer.enabled) stats.enabled++; else stats.disabled++;
+                    }
                 }
                 
                 var skippedLayers = [];
 
-                if (self.ui.deleteHiddenCheck.value) {
-                    updateStatus("statusSearchingHidden");
+                if (self.ui.deleteHiddenCheck.value && !processOnlySelected) {
+                    updateStatus("statusSearchingHidden", "info");
                     var layerIndicesToDelete = [];
                     for (var i = comp.numLayers; i >= 1; i--) {
                         var layer = comp.layer(i);
@@ -487,90 +569,278 @@
                         }
                     }
                     if (layerIndicesToDelete.length > 0) {
-                        updateStatus("statusDeletingHidden", [layerIndicesToDelete.length]);
-                        for (var j = 0; j < layerIndicesToDelete.length; j++) {
-                            comp.layer(layerIndicesToDelete[j]).remove();
+                        var totalToDelete = layerIndicesToDelete.length;
+                        updateStatus("statusDeletingHidden", "info");
+                        forceUIUpdate();
+                        
+                        // Processa em lotes para melhor performance
+                        var batchSize = 10;
+                        for (var j = 0; j < totalToDelete; j++) {
+                            if (j % batchSize === 0) {
+                                var progressText = getLocalizedString("statusDeletingHidden") + " (" + (j + 1) + "/" + totalToDelete + ")";
+                                updateStatus(progressText, "info");
+                                forceUIUpdate();
+                            }
+                            
+                            var layerToDelete = comp.layer(layerIndicesToDelete[j]);
+                            // Desbloqueia se necessário
+                            var wasLocked = layerToDelete.locked;
+                            if (wasLocked) layerToDelete.locked = false;
+                            
+                            layerToDelete.remove();
                             stats.deleted++;
-                            updateProgress(j + 1, layerIndicesToDelete.length);
                         }
                     } else {
-                        updateStatus("statusNoHiddenToDelete");
+                        updateStatus("statusNoHiddenToDelete", "info");
                     }
                 }
                 
                 if (comp.numLayers > 0) {
                     var layerInfos = [];
+                    var layersToProcess = processOnlySelected ? selectedLayers : [];
                     
-                    for (var i = 1; i <= comp.numLayers; i++) {
-                        var layer = comp.layer(i);
+                    // Se não há seleção, processa todas as layers
+                    if (!processOnlySelected) {
+                        for (var i = 1; i <= comp.numLayers; i++) {
+                            layersToProcess.push(comp.layer(i));
+                        }
+                    }
+                    
+                    var totalLayersToProcess = layersToProcess.length;
+                    var updateInterval = Math.max(1, Math.floor(totalLayersToProcess / 20)); // Atualiza UI a cada 5% do progresso
+
+                    for (var i = 0; i < totalLayersToProcess; i++) {
+                        // Atualiza status apenas em intervalos para melhor performance
+                        if (i % updateInterval === 0 || i === totalLayersToProcess - 1) {
+                            var progressText = getLocalizedString("statusProcessing") + " (" + (i + 1) + "/" + totalLayersToProcess + ")";
+                            updateStatus(progressText, "info");
+                            if (totalLayersToProcess > 100) {
+                                // Só força atualização da UI para grandes quantidades
+                                if (i % (updateInterval * 5) === 0) {
+                                    forceUIUpdate();
+                                }
+                            } else {
+                                forceUIUpdate();
+                            }
+                        }
+
+                        var layer = layersToProcess[i];
                         var originalName = layer.name;
                         var newName = originalName;
                         var layerType = "Unknown";
                         
-                        if (layer instanceof CameraLayer) { layerType = "CameraLayer"; stats.cameras++; newName = config.prefixes.CameraLayer + removePrefix(originalName); }
-                        else if (layer.nullLayer) { layerType = "NullLayer"; stats.nulls++; newName = config.prefixes.NullLayer + removePrefix(originalName); }
-                        else if (layer.adjustmentLayer) { layerType = "AdjustmentLayer"; stats.adjustments++; newName = config.prefixes.AdjustmentLayer + removePrefix(originalName); }
-                        else if (isTextLayer(layer)) { layerType = "TextLayer"; stats.texts++; newName = config.prefixes.TextLayer + removePrefix(originalName); }
-                        else if (isShapeLayer(layer)) { layerType = "ShapeLayer"; stats.shapes++; newName = config.prefixes.ShapeLayer + removePrefix(originalName); }
-                        else if (isSolidLayer(layer)) { layerType = "SolidLayer"; stats.solids++; newName = config.prefixes.SolidLayer + removePrefix(originalName); }
-                        else if (layer.source instanceof CompItem) { layerType = "CompItem"; stats.comps++; newName = config.prefixes.CompItem + removePrefix(originalName); }
-                        else if (layer.source && layer.source.file && /\.(psd|ai|jpg|jpeg|png|gif)$/i.test(layer.source.file.name)) { layerType = "ImageLayer"; stats.images++; newName = config.prefixes.ImageLayer + removePrefix(originalName); }
-                        else if (layer.source && layer.source.file && /\.(mov|mp4|avi|mkv)$/i.test(layer.source.file.name)) { layerType = "VideoLayer"; stats.videos++; newName = config.prefixes.VideoLayer + removePrefix(originalName); }
-                        
-                        if (layerType !== "Unknown") {
-                            if (self.ui.renameLayersCheck.value && layer.name !== newName) { layer.name = newName; stats.renamed++; }
-                            if (self.ui.applyColorsCheck.value && config.layerColorIndices[layerType]) { if (setLayerColor(layer, config.layerColorIndices[layerType])) stats.colored++; }
+                        // Determina o tipo de layer e define o prefixo apropriado
+                        var prefix = "";
+                        if (layer instanceof CameraLayer) { 
+                            layerType = "CameraLayer"; 
+                            stats.cameras++; 
+                            prefix = config.prefixes.CameraLayer;
+                        }
+                        else if (layer.nullLayer) { 
+                            layerType = "NullLayer"; 
+                            stats.nulls++; 
+                            prefix = config.prefixes.NullLayer;
+                        }
+                        else if (layer.adjustmentLayer) { 
+                            layerType = "AdjustmentLayer"; 
+                            stats.adjustments++; 
+                            prefix = config.prefixes.AdjustmentLayer;
+                        }
+                        else if (isTextLayer(layer)) { 
+                            layerType = "TextLayer"; 
+                            stats.texts++; 
+                            prefix = config.prefixes.TextLayer;
+                        }
+                        else if (isShapeLayer(layer)) { 
+                            layerType = "ShapeLayer"; 
+                            stats.shapes++; 
+                            prefix = config.prefixes.ShapeLayer;
+                        }
+                        else if (isSolidLayer(layer)) { 
+                            layerType = "SolidLayer"; 
+                            stats.solids++; 
+                            prefix = config.prefixes.SolidLayer;
+                        }
+                        else if (layer.source instanceof CompItem) { 
+                            layerType = "CompItem"; 
+                            stats.comps++; 
+                            prefix = config.prefixes.CompItem;
+                        }
+                        else if (layer.source && layer.source.file && /\.(psd|ai|jpg|jpeg|png|gif)$/i.test(layer.source.file.name)) { 
+                            layerType = "ImageLayer"; 
+                            stats.images++; 
+                            prefix = config.prefixes.ImageLayer;
+                        }
+                        else if (layer.source && layer.source.file && /\.(mov|mp4|avi|mkv)$/i.test(layer.source.file.name)) { 
+                            layerType = "VideoLayer"; 
+                            stats.videos++; 
+                            prefix = config.prefixes.VideoLayer;
                         }
                         
-                        layerInfos.push({ layer: layer, type: layerType, index: i, startTime: layer.startTime });
+                        if (layerType !== "Unknown") {
+                            // Renomear layers
+                            if (self.ui.renameLayersCheck.value) {
+                                // Só verifica expressões se não for uma grande quantidade de layers
+                                var skipRename = false;
+                                if (totalLayersToProcess < 50) {
+                                    skipRename = isLayerReferencedByExpressions(comp, layer);
+                                    if (skipRename) {
+                                        stats.skippedReferenced++;
+                                        skippedLayers.push({ 
+                                            layer: layer, 
+                                            index: layer.index, 
+                                            reason: "Referenciada por expressões em outras layers" 
+                                        });
+                                    }
+                                }
+                                
+                                if (!skipRename) {
+                                    newName = cleanLayerName(originalName, prefix);
+                                    if (layer.name !== newName) {
+                                        // Desbloqueia temporariamente se necessário
+                                        var wasLocked = layer.locked;
+                                        if (wasLocked) layer.locked = false;
+                                        
+                                        layer.name = newName;
+                                        stats.renamed++;
+                                        
+                                        // Rebloqueia se estava bloqueada
+                                        if (wasLocked) layer.locked = true;
+                                    }
+                                }
+                            }
+                            
+                            // Aplicar cores
+                            if (self.ui.applyColorsCheck.value && config.layerColorIndices[layerType]) {
+                                // Para layers travadas, destrava temporariamente
+                                var wasLocked = layer.locked;
+                                if (wasLocked) layer.locked = false;
+                                
+                                if (setLayerColor(layer, config.layerColorIndices[layerType])) {
+                                    stats.colored++;
+                                }
+                                
+                                if (wasLocked) layer.locked = true;
+                            }
+                        }
+                        
+                        layerInfos.push({ layer: layer, type: layerType, index: layer.index, startTime: layer.startTime });
                     }
 
+                    // Reordenação de layers
                     if (self.ui.reorderLayersCheck.value || self.ui.reorderByTimeCheck.value) {
+                        // Se ambos estiverem marcados, usa apenas o mais recente clicado
                         if (self.ui.reorderLayersCheck.value && self.ui.reorderByTimeCheck.value) {
-                            showReorderConflictAlert();
-                        } else {
-                            updateStatus("statusCheckingExpressions");
+                            self.ui.reorderByTimeCheck.value = false;
+                        }
+                        
+                        // Só reordena se não estamos processando apenas layers selecionadas
+                        if (!processOnlySelected) {
+                            updateStatus("statusCheckingExpressions", "info");
                             var layersToReorder = [];
-                            for (var i = 0; i < layerInfos.length; i++) {
-                                if (hasIndexDependentExpressions(layerInfos[i].layer)) {
+                            var lockedStates = {}; // Armazena estados de travamento
+                            
+                            // Verifica expressões apenas para pequenas quantidades
+                            var checkExpressions = totalLayersToProcess < 50;
+                            
+                            for (var k = 0; k < layerInfos.length; k++) {
+                                var shouldSkip = false;
+                                
+                                if (checkExpressions && hasIndexDependentExpressions(layerInfos[k].layer)) {
                                     stats.skippedIndexDependent++;
-                                    skippedLayers.push({ layer: layerInfos[i].layer, index: layerInfos[i].index, reason: getLocalizedString("reasonIndex") });
-                                } else {
-                                    layersToReorder.push(layerInfos[i]);
+                                    skippedLayers.push({ 
+                                        layer: layerInfos[k].layer, 
+                                        index: layerInfos[k].index, 
+                                        reason: getLocalizedString("reasonIndex") 
+                                    });
+                                    shouldSkip = true;
+                                }
+                                
+                                if (!shouldSkip) {
+                                    // Armazena estado de travamento e destrava se necessário
+                                    lockedStates[k] = layerInfos[k].layer.locked;
+                                    if (layerInfos[k].layer.locked) {
+                                        layerInfos[k].layer.locked = false;
+                                    }
+                                    layersToReorder.push(layerInfos[k]);
                                 }
                             }
 
-                            updateStatus("statusReordering");
-                            layersToReorder.sort(function(a, b) {
-                                if (self.ui.reorderLayersCheck.value) {
+                            updateStatus("statusReordering", "info");
+                            forceUIUpdate();
+
+                            if (self.ui.reorderLayersCheck.value) {
+                                // Ordena por tipo
+                                layersToReorder.sort(function(a, b) {
                                     var typeIndexA = findIndex(self.layerTypeOrder, a.type);
                                     var typeIndexB = findIndex(self.layerTypeOrder, b.type);
                                     if (typeIndexA === typeIndexB) return a.startTime - b.startTime;
                                     return typeIndexA - typeIndexB;
-                                } else { // reorderByTimeCheck
-                                    return b.startTime - a.startTime;
+                                });
+                                
+                                var totalToReorder = layersToReorder.length;
+                                var updateInterval = Math.max(1, Math.floor(totalToReorder / 10));
+                                
+                                for (var m = totalToReorder - 1; m >= 0; m--) {
+                                    if (m % updateInterval === 0) {
+                                        var progressText = getLocalizedString("statusReordering") + " (" + (totalToReorder - m) + "/" + totalToReorder + ")";
+                                        updateStatus(progressText, "info");
+                                        if (totalToReorder > 100 && m % (updateInterval * 2) === 0) {
+                                            forceUIUpdate();
+                                        }
+                                    }
+                                    layersToReorder[m].layer.moveToBeginning();
                                 }
-                            });
 
-                            for (var i = layersToReorder.length - 1; i >= 0; i--) {
-                                layersToReorder[i].layer.moveToBeginning();
+                            } else if (self.ui.reorderByTimeCheck.value) {
+                                // Ordena por tempo
+                                layersToReorder.sort(function(a, b) {
+                                    return b.startTime - a.startTime; 
+                                });
+                                
+                                var totalToReorder = layersToReorder.length;
+                                var updateInterval = Math.max(1, Math.floor(totalToReorder / 10));
+                                
+                                if (totalToReorder > 0) {
+                                    layersToReorder[0].layer.moveToBeginning();
+                                    
+                                    for (var m = 1; m < totalToReorder; m++) {
+                                        if (m % updateInterval === 0) {
+                                            var progressText = getLocalizedString("statusReordering") + " (" + (m + 1) + "/" + totalToReorder + ")";
+                                            updateStatus(progressText, "info");
+                                            if (totalToReorder > 100 && m % (updateInterval * 2) === 0) {
+                                                forceUIUpdate();
+                                            }
+                                        }
+                                        layersToReorder[m].layer.moveAfter(layersToReorder[m - 1].layer);
+                                    }
+                                }
                             }
+                            
+                            // Restaura estados de travamento
+                            for (var n = 0; n < layersToReorder.length; n++) {
+                                var originalIndex = layerInfos.indexOf(layersToReorder[n]);
+                                if (lockedStates[originalIndex]) {
+                                    layersToReorder[n].layer.locked = true;
+                                }
+                            }
+                            
                             stats.reordered = layersToReorder.length;
-                            updateStatus("statusReordered", [stats.reordered]);
                         }
                     }
                 } else {
-                    updateStatus("statusNoLayersLeft");
+                    updateStatus("statusNoLayersLeft", "warning");
                 }
                 
                 if (skippedLayers.length > 0) {
                     showSkippedLayersFeedback(skippedLayers);
                 }
-
+                
+                var visibleCount = (stats.enabled + stats.disabled) - stats.deleted;
                 var statusMessage = getLocalizedString("statusCompleted")
-                    .replace("{0}", comp.numLayers).replace("{1}", stats.enabled - stats.deleted).replace("{2}", stats.disabled - stats.deleted)
-                    .replace("{3}", stats.shapes).replace("{4}", stats.texts).replace("{5}", stats.solids)
-                    .replace("{6}", stats.adjustments).replace("{7}", stats.comps).replace("{8}", stats.cameras);
+                    .replace("{0}", comp.numLayers).replace("{1}", visibleCount)
+                    .replace("{2}", stats.shapes).replace("{3}", stats.texts).replace("{4}", stats.solids)
+                    .replace("{5}", stats.adjustments).replace("{6}", stats.comps).replace("{7}", stats.cameras);
                 
                 var actions = [];
                 if (stats.renamed > 0) actions.push(getLocalizedString("statusRenamed").replace("{0}", stats.renamed));
@@ -580,14 +850,12 @@
                 if (stats.skippedIndexDependent > 0) actions.push(getLocalizedString("statusIndexCancelled"));
                 
                 if (actions.length > 0) {
-                    statusMessage += getLocalizedString("statusActions") + actions.join(" | ");
+                    statusMessage += getLocalizedString("statusActions") + actions.join("  •  ");
                 }
-                updateStatus(statusMessage);
-                self.ui.progressBar.value = 100;
+                updateStatus(statusMessage, "success");
                 
             } catch (err) {
-                updateStatus("statusError" + err.toString());
-                self.ui.progressBar.value = 0;
+                updateStatus(getLocalizedString("statusError") + err.toString(), "error");
             } finally {
                 self.isProcessing = false;
                 self.ui.organizeBtn.enabled = true;
@@ -602,7 +870,7 @@
             self.ui.win.orientation = "column";
             self.ui.win.spacing = 10;
             self.ui.win.margins = 15;
-            self.ui.win.preferredSize.width = 20;
+            self.ui.win.preferredSize.width = 20;  // CORREÇÃO: Mantém largura original
             
             setBgColor(self.ui.win, bgColor1);
 
@@ -614,8 +882,10 @@
 
             var titleText = headerGrp.add("statictext", undefined, "Auto Layer Organizer");
             titleText.graphics.font = ScriptUI.newFont("Arial", "Bold", 14);
-            titleText.preferredSize.width = 0;
+            titleText.preferredSize.width = 180;
+            setFgColor(titleText, highlightColor1);
             
+            // CORREÇÃO: Restaura o botão temático de ajuda
             if (typeof themeIconButton !== 'undefined' && typeof D9T_INFO_ICON !== 'undefined' && typeof lClick !== 'undefined') {
                 var helpBtnGroup = headerGrp.add('group');
                 helpBtnGroup.alignment = ['right', 'center'];
@@ -637,13 +907,39 @@
             self.ui.optionsPanel.spacing = 5;
             
             self.ui.applyColorsCheck = self.ui.optionsPanel.add("checkbox", undefined, getLocalizedString("applyColorsCheck"));
+            self.ui.applyColorsCheck.helpTip = getLocalizedString("applyColorsTip");
+            
             self.ui.renameLayersCheck = self.ui.optionsPanel.add("checkbox", undefined, getLocalizedString("renameLayersCheck"));
+            self.ui.renameLayersCheck.helpTip = getLocalizedString("renameLayersTip");
+
             self.ui.reorderLayersCheck = self.ui.optionsPanel.add("checkbox", undefined, getLocalizedString("reorderLayersCheck"));
             self.ui.reorderLayersCheck.helpTip = getLocalizedString("reorderLayersTip");
+
             self.ui.reorderByTimeCheck = self.ui.optionsPanel.add("checkbox", undefined, getLocalizedString("reorderByTimeCheck"));
             self.ui.reorderByTimeCheck.helpTip = getLocalizedString("reorderByTimeTip");
+
             self.ui.deleteHiddenCheck = self.ui.optionsPanel.add("checkbox", undefined, getLocalizedString("deleteHiddenCheck"));
+            self.ui.deleteHiddenCheck.helpTip = getLocalizedString("deleteHiddenTip");
             
+            // CORREÇÃO: Adiciona lógica para desabilitar checkbox conflitante
+            self.ui.reorderLayersCheck.onClick = function() {
+                if (self.ui.reorderLayersCheck.value) {
+                    self.ui.reorderByTimeCheck.enabled = false;
+                    self.ui.reorderByTimeCheck.value = false;
+                } else {
+                    self.ui.reorderByTimeCheck.enabled = true;
+                }
+            };
+            
+            self.ui.reorderByTimeCheck.onClick = function() {
+                if (self.ui.reorderByTimeCheck.value) {
+                    self.ui.reorderLayersCheck.enabled = false;
+                    self.ui.reorderLayersCheck.value = false;
+                } else {
+                    self.ui.reorderLayersCheck.enabled = true;
+                }
+            };
+
             var mainBtnPanel = self.ui.win.add("group");
             mainBtnPanel.orientation = "row";
             mainBtnPanel.alignment = ["fill", "fill"];
@@ -652,26 +948,35 @@
             self.ui.organizeBtn.alignment = 'fill'; 
             self.ui.organizeBtn.preferredSize.height = 40;
             self.ui.organizeBtn.preferredSize.width = 200;
+            self.ui.organizeBtn.helpTip = getLocalizedString("organizeBtnTip");
             self.ui.organizeBtn.onClick = function() { self.executeOrganize(); };
             
-            var statusBar = self.ui.win.add("group");
-            statusBar.orientation = "column";
-            statusBar.alignment = ["fill", "center"];
-            statusBar.spacing = 5;
+            var statusPanel = self.ui.win.add("panel", undefined, "Status");
+            statusPanel.alignment = "fill";
+            statusPanel.margins = 10;
+            statusPanel.preferredSize.height = 20;  // CORREÇÃO: Mantém altura original
+            var statusGroup = statusPanel.add("group");
+            statusGroup.alignment = "fill";
+            statusGroup.orientation = "row";
             
-            statusText = statusBar.add("statictext", undefined, getLocalizedString("statusWaiting")); 
-            statusText.alignment = ["fill", "center"];
+            // CORREÇÃO: Inicializa statusText corretamente
+            statusText = statusGroup.add("statictext", undefined, getLocalizedString("statusReady"), {multiline: true});
+            statusText.alignment = ['fill', 'fill']; 
+            statusText.justify = 'left';
+            setStatusColor(statusText, COLORS.neutral);
             
-            progressBar = statusBar.add("progressbar", undefined, 0, 100); 
-            progressBar.alignment = 'fill';
+            self.ui.win.onResizing = self.ui.win.onResize = function() { 
+                if(this.layout) this.layout.resize(); 
+            };
             
-            self.ui.win.onResizing = self.ui.win.onResize = function() { if(this.layout) this.layout.resize(); };
-            if (self.ui.win instanceof Window) { self.ui.win.center(); self.ui.win.show(); } else { self.ui.win.layout.layout(true); }
+            if (self.ui.win instanceof Window) { 
+                self.ui.win.center(); 
+                self.ui.win.show(); 
+            } else { 
+                self.ui.win.layout.layout(true); 
+            }
         }
     };
-    
-    // Globals for status updates
-    var statusText, progressBar;
 
     LayersOrganizer.buildUI(this);
 })();
