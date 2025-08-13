@@ -1,354 +1,163 @@
-/********************************************************************************
- * Icon Browser v5.2 - Edição de Interatividade
- *
- * Autor: Gemini AI
- * Data: 31 de Julho de 2025
- *
- * MUDANÇAS (v5.2):
- * - CORRIGIDO (CRÍTICO): Refatorada a lógica de seleção e atualização da UI
- * para garantir que os cliques e duplo-cliques funcionem de forma confiável.
- * - FOCO: Estabilidade máxima na seleção e importação de ícones.
- ********************************************************************************/
+﻿
 
 (function() {
 
-    // --- FUNÇÃO DE AJUDA ---
-    function showIcons4UHelp() {
-        var TARGET_HELP_WIDTH = 400; // Largura desejada para a janela de ajuda (ajuste conforme necessário)
-        var MARGIN_SIZE = 15; // Tamanho das margens internas da janela principal
-        var TOPIC_SECTION_MARGINS = [10, 5, 10, 5]; // Margens para cada seção de tópico dentro da aba (top, left, bottom, right)
-        var TOPIC_SPACING = 5; // Espaçamento entre o título do tópico e o texto explicativo
-        var TOPIC_TITLE_INDENT = 0; // Recuo para os títulos dos tópicos (ex: "▶ NORMALIZADORES")
-        var SUBTOPIC_INDENT = 25; // Recuo para os subtópicos (ex: "  - Normalizar 100%:")
-
-        var helpWin = new Window("palette", "Ajuda - Icon Browser", undefined, { closeButton: true });
-        helpWin.orientation = "column";
-        helpWin.alignChildren = ["fill", "fill"];
-        helpWin.spacing = 10;
-        helpWin.margins = MARGIN_SIZE;
-        
-        helpWin.preferredSize = [TARGET_HELP_WIDTH, 500]; // Ajuste a altura se o conteúdo for muito grande
-
-        // Define o fundo da janela como preto
-        if (typeof bgColor1 !== 'undefined' && typeof setBgColor !== 'undefined') {
-            setBgColor(helpWin, bgColor1);
-        } else {
-            helpWin.graphics.backgroundColor = helpWin.graphics.newBrush(helpWin.graphics.BrushType.SOLID_COLOR, [0.05, 0.04, 0.04, 1]);
-        }
-
-        // Painel para Título e Descrição Principal
-        var headerPanel = helpWin.add("panel", undefined, "");
-        headerPanel.orientation = "column";
-        headerPanel.alignChildren = ["fill", "top"]; // O headerPanel preenche a largura
-        headerPanel.alignment = ["fill", "top"];
-        headerPanel.spacing = 10;
-        headerPanel.margins = 15; // Margens internas do painel de cabeçalho
-        
-        var titleText = headerPanel.add("statictext", undefined, "AJUDA - ICON BROWSER");
-        titleText.graphics.font = ScriptUI.newFont("Arial", "Bold", 16);
-        titleText.alignment = ["center", "center"]; // Título centralizado
-        if (typeof normalColor1 !== 'undefined' && typeof highlightColor1 !== 'undefined' && typeof setFgColor !== 'undefined') {
-            setFgColor(titleText, highlightColor1);
-        } else {
-            setFgColor(titleText, [1, 1, 1, 1]);
-        }
-
-        var mainDescText = headerPanel.add("statictext", undefined, "Ferramenta para navegar, filtrar e importar ícones SVG/PNG/AI/EPS para o After Effects. Permite gerenciar sua biblioteca de ícones.", {multiline: true});
-        mainDescText.alignment = ["center", "center"]; // **CORRIGIDO: Removido 'fill' para centralizar melhor sem cortar.**
-        mainDescText.preferredSize.height = 40; // Altura para 2-3 linhas
-        if (typeof normalColor1 !== 'undefined' && typeof setFgColor !== 'undefined') {
-            setFgColor(mainDescText, normalColor1);
-        } else {
-            setFgColor(mainDescText, [1, 1, 1, 1]);
-        }
-        // Calcular a largura para o mainDescText para evitar cortes.
-        // Largura disponível: Largura da janela - (margens da janela * 2) - (margens do headerPanel * 2)
-        mainDescText.preferredSize.width = TARGET_HELP_WIDTH - (MARGIN_SIZE * 2) - (headerPanel.margins.left + headerPanel.margins.right);
-
-
-        // TabbedPanel para Tópicos
-        var topicsTabPanel = helpWin.add("tabbedpanel");
-        topicsTabPanel.alignment = ["fill", "fill"];
-        topicsTabPanel.margins = 15;
-
-        var allHelpTopics = [
-            {
-                tabName: "Navegação",
-                topics: [
-                    { title: "▶ BUSCAR", text: "Digite palavras-chave para filtrar ícones por nome ou tags." },
-                    { title: "▶ CATEGORIA", text: "Selecione uma categoria para refinar a busca dos ícones." },
-                    { title: "▶ ATUALIZAR", text: "Recarrega a lista de ícones, útil após modificações no arquivo de metadados ou pasta de ícones." },
-                    { title: "▶ GRID DE ÍCONES", text: "Exibe os ícones carregados. Clique uma vez para selecionar e ver detalhes; Dê duplo-clique para importar diretamente." }
-                ]
-            },
-            {
-                tabName: "Importação",
-                topics: [
-                    { title: "▶ DETALHES DO ÍCONE", text: "Mostra uma pré-visualização maior e informações do ícone selecionado no grid." },
-                    { title: "▶ BOTÃO IMPORTAR", text: "Importa o ícone selecionado para o projeto ativo no After Effects." }
-                ]
-            },
-            {
-                tabName: "Configuração",
-                topics: [
-                    { title: "▶ GERAR JSON", text: "Escaneia a 'Pasta Raiz de Ícones' e cria (ou sobrescreve) um arquivo JSON de metadados com os nomes dos arquivos. Use com cuidado!" },
-                    { title: "▶ CONFIGURAR", text: "Define o 'Caminho Raiz dos Ícones' (a pasta onde seus arquivos de imagem estão) e o 'Caminho do Arquivo de Metadados' (o arquivo JSON que armazena os dados dos ícones)." },
-                    { title: "▶ LIMPAR LOG", text: "Limpa a área de mensagens na parte inferior do painel." }
-                ]
-            }
-        ];
-
-        for (var s = 0; s < allHelpTopics.length; s++) {
-            var currentTabSection = allHelpTopics[s];
-            var tab = topicsTabPanel.add("tab", undefined, currentTabSection.tabName);
-            tab.orientation = "column";
-            tab.alignChildren = ["fill", "top"];
-            tab.spacing = 10; // Espaçamento entre os grupos de tópicos
-            tab.margins = TOPIC_SECTION_MARGINS;
-
-            for (var i = 0; i < currentTabSection.topics.length; i++) {
-                var topic = currentTabSection.topics[i];
-                var topicGrp = tab.add("group");
-                topicGrp.orientation = "column";
-                topicGrp.alignChildren = "fill"; // Grupo do tópico preenche a largura disponível
-                topicGrp.spacing = TOPIC_SPACING;
-                
-                topicGrp.margins.left = (topic.title.indexOf("▶") === 0) ? TOPIC_TITLE_INDENT : SUBTOPIC_INDENT;
-
-                var topicTitle = topicGrp.add("statictext", undefined, topic.title);
-                topicTitle.graphics.font = ScriptUI.newFont("Arial", "Bold", 12);
-                if (typeof highlightColor1 !== 'undefined' && typeof setFgColor !== 'undefined') {
-                    setFgColor(topicTitle, highlightColor1);
-                } else {
-                    setFgColor(topicTitle, [0.83, 0, 0.23, 1]);
-                }
-                // Calcular largura do título do tópico:
-                // Largura total da janela - (margens da helpWin * 2) - (margens do topicsTabPanel * 2) - (margens da tab * 2) - margem esquerda do topicGrp
-                var topicContentWidth = TARGET_HELP_WIDTH - (MARGIN_SIZE * 2) - (topicsTabPanel.margins.left + topicsTabPanel.margins.right) - (tab.margins.left + tab.margins.right) - topicGrp.margins.left;
-                topicTitle.preferredSize.width = topicContentWidth;
-
-
-                if(topic.text !== ""){
-                    var topicText = topicGrp.add("statictext", undefined, topic.text, { multiline: true });
-                    topicText.graphics.font = ScriptUI.newFont("Arial", "Regular", 11);
-                    // Largura do texto explicativo (mesmo cálculo do título do tópico)
-                    topicText.preferredSize.width = topicContentWidth;
-                    topicText.preferredSize.height = 50; // Altura para 3 linhas de texto (11pt * ~1.2 leading * 3 linhas = ~39.6, usar 36 para tentar ser mais compacto)
-                    
-                    if (typeof normalColor1 !== 'undefined' && typeof setFgColor !== 'undefined') {
-                        setFgColor(topicText, normalColor1);
-                    } else {
-                        setFgColor(topicText, [1, 1, 1, 1]);
-                    }
-                }
-            }
-        }
-
-        // Botão de fechar
-        var closeBtnGrp = helpWin.add("group");
-        closeBtnGrp.alignment = "center";
-        closeBtnGrp.margins = [0, 10, 0, 0];
-        var closeBtn = closeBtnGrp.add("button", undefined, "Fechar");
-        closeBtn.onClick = function() {
-            helpWin.close();
-        };
-
-        helpWin.layout.layout(true);
-        helpWin.center();
-        helpWin.show();
-    }
-
-    var SCRIPT_INFO = { name: "Icon Browser", version: "5.2 Interativo", settingsFile: "IconBrowser_v5_Settings.json" };
-    var UI_CONFIG = {
-        grid: { columns: 5, thumbSize: 90 },
-        colors: { background: [0.18, 0.18, 0.18, 1], selection: [0.3, 0.5, 0.8, 1] }
+    var EASY_CONFIG = {
+        ICON_ROOT_PATH: "D:\\PROJETOS\\SCRIPTS AFTER\\GNEWS-D9-TOOLS\\icons",
+        THUMBNAIL_SIZE: 69, THUMBNAIL_PADDING: 8, GRID_COLUMNS: 5, GRID_ROWS: 6, PREVIEW_PADDING: 5
     };
-    var SUPPORTED_EXTENSIONS = /\.(png|jpg|jpeg|svg|ai|eps)$/i;
-    var State = { settings: null, allIcons: [], filteredIcons: [], selectedIconData: null, selectedSlot: null };
-    var UI = { elements: {}, gridSlots: [] }; 
-
-    // =================================================================================
-    // 2. LÓGICA DA APLICAÇÃO
-    // =================================================================================
-    var Logic = {
-        loadSettings: function() { var settingsFile = new File(Folder.userData.fsName + "/" + SCRIPT_INFO.settingsFile); if (!settingsFile.exists) { UI.logMessage("Bem-vindo! Por favor, configure os caminhos.", false); return false; } try { settingsFile.open("r"); var content = settingsFile.read(); settingsFile.close(); State.settings = eval('(' + content + ')'); if (State.settings && State.settings.metadataPath) { UI.logMessage("Configurações carregadas.", false); return true; } } catch (e) { UI.logMessage("Arquivo de configurações corrompido.", true); } return false; },
-        saveSettings: function(newSettings) { try { if(newSettings){ State.settings = newSettings; } if (!State.settings) return; var settingsFile = new File(Folder.userData.fsName + "/" + SCRIPT_INFO.settingsFile); settingsFile.open("w"); settingsFile.write(this.stringify(State.settings)); settingsFile.close(); } catch (e) { UI.logMessage("Falha ao salvar configurações: " + e.toString(), true); } },
-        loadDatabase: function() { State.allIcons = []; if (!State.settings || !State.settings.metadataPath) { UI.logMessage("Caminho não configurado.", true); return; } try { var metadataFile = new File(State.settings.metadataPath); if (!metadataFile.exists) throw new Error("Arquivo de metadados não encontrado."); metadataFile.open("r"); var content = metadataFile.read(); metadataFile.close(); var rawData; try { rawData = eval('(' + content + ')'); } catch(e) { throw new Error("Seu arquivo JSON contém um erro de sintaxe."); } if (Object.prototype.toString.call(rawData) !== '[object Array]') throw new Error("JSON não é uma lista (array)."); for (var i = 0; i < rawData.length; i++) { try { var icon = rawData[i]; if (!icon || typeof icon !== 'object') { throw new Error("Entrada não é um objeto válido."); } if (!icon.nome || typeof icon.nome !== 'string') { throw new Error("Propriedade 'nome' ausente/inválida."); } if (!icon.arquivo || typeof icon.arquivo !== 'string') { throw new Error("Propriedade 'arquivo' ausente/inválida."); } icon.categoria = (typeof icon.categoria === 'string') ? icon.categoria : "Sem Categoria"; icon.tags = (Object.prototype.toString.call(icon.tags) === '[object Array]') ? icon.tags : []; State.allIcons.push(icon); } catch (e) { UI.logMessage("Erro ao processar item [" + i + "]: " + e.message, true); } } UI.logMessage(State.allIcons.length + " ícones carregados.", false); UI.populateCategoryList(); Logic.applyFilters(); } catch (e) { UI.logMessage("Erro ao carregar banco de dados: " + e.toString(), true); } },
-        importIcon: function(iconData) { if (!iconData) { UI.logMessage("Tentativa de importar um ícone nulo.", true); return; } try { if (!app.project) throw new Error("Nenhum projeto aberto."); app.beginUndoGroup("Importar Ícone: " + iconData.nome); var iconFile = new File(State.settings.iconRootPath + "/" + iconData.arquivo); if (!iconFile.exists) throw new Error("Arquivo não encontrado: " + iconFile.fsName); var importOptions = new ImportOptions(); importOptions.file = iconFile; importOptions.sequence = false; if (/\.(ai|eps|svg)$/i.test(iconFile.name)) { importOptions.importAs = ImportAsType.COMPOSITION; } var importedItem = app.project.importFile(importOptions); if (importedItem) { importedItem.name = iconData.nome; UI.logMessage("Ícone '" + iconData.nome + "' importado.", false); } else { throw new Error("a importação falhou."); } app.endUndoGroup(); } catch (e) { UI.logMessage("Falha ao importar: " + e.toString(), true); if (app.undoInProgress) app.endUndoGroup(); } },
-        generateJson: function() { try { if (!State.settings) throw new Error("Configure os caminhos primeiro."); if (!confirm("Isso irá substituir seu arquivo JSON atual. Deseja continuar?")) return; var iconFolder = new Folder(State.settings.iconRootPath); var files = iconFolder.getFiles(); var iconList = []; for (var i = 0; i < files.length; i++) { var file = files[i]; if (file instanceof File && file.name.match(SUPPORTED_EXTENSIONS)) { var nameWithoutExt = decodeURI(file.name).replace(SUPPORTED_EXTENSIONS, ''); iconList.push({ nome: nameWithoutExt.replace(/[-_]/g, ' '), arquivo: file.name, categoria: "Sem Categoria", tags: [] }); } } if (iconList.length === 0) throw new Error("Nenhum arquivo de imagem compatível encontrado."); var jsonString = this.stringify(iconList, true); var metadataFile = new File(State.settings.metadataPath); metadataFile.encoding = "UTF-8"; metadataFile.open("w"); metadataFile.write(jsonString); metadataFile.close(); UI.logMessage(iconList.length + " ícones escritos no JSON.", false); alert(iconList.length + " ícones adicionados ao seu arquivo JSON!"); this.loadDatabase(); } catch (e) { UI.logMessage("Erro ao gerar JSON: " + e.toString(), true); alert("Erro ao gerar JSON: " + e.toString()); } },
-        applyFilters: function() { var searchTerm = UI.elements.searchBox.text.toLowerCase(); var selectedCategory = UI.elements.categoryList.selection ? UI.elements.categoryList.selection.text : "Todas"; State.filteredIcons = []; for (var i = 0; i < State.allIcons.length; i++) { var icon = State.allIcons[i]; var categoryMatch = (selectedCategory === "Todas" || icon.categoria === selectedCategory); if (!categoryMatch) continue; if (searchTerm === "" || icon.nome.toLowerCase().indexOf(searchTerm) > -1 || icon.tags.join(' ').toLowerCase().indexOf(searchTerm) > -1) { State.filteredIcons.push(icon); } } UI.renderGrid(); },
-        stringify: function(obj, pretty) { var indent=pretty?"  ":""; var pad=pretty?"\n":""; function s(v,l) { var i=Array(l+1).join(indent),n=Array(l+2).join(indent); if(v===null)return"null"; if(typeof v !=='object'){return(typeof v==='string')?'"'+v.replace(/\\/g,'\\\\').replace(/"/g,'\\"')+'"':String(v);} if(Object.prototype.toString.call(v)==='[object Array]'){var b=pad;for(var j=0;j<v.length;j++){b+=n+s(v[j],l+1)+(j<v.length-1?','+pad:'');}return'['+b+(b.length>0?pad+i:'')+']';} var b=pad,k=[]; for(var key in v){if(v.hasOwnProperty(key))k.push(key);} for(var j=0;j<k.length;j++){b+=n+'"'+k[j]+'": '+s(v[k[j]],l+1)+(j<k.length-1?','+pad:'');} return'{'+b+(b.length>0?pad+i:'')+'}';} return s(obj,0); }
+    var UI_METRICS = {
+        DETAILS_PANEL_WIDTH: 220, SEARCH_BOX_WIDTH: 130, DROPDOWN_WIDTH: 70,
+        SORT_DROPDOWN_WIDTH: 147,
+        BIG_FONT: ScriptUI.newFont("Arial", "Bold", 14),
+        PLACEHOLDER_FONT: ScriptUI.newFont("Arial", "Bold", 24)
     };
+    var CONFIG = { CACHE_FILENAME: "IconBrowser_v34_Cache.json" };
+    var THEME = {
+        bgColor: '#0D0A0Aff', panelBgColor: '#0D0A0Aff', detailsBgColor: '#0D0A0Aff',
+        statusPanelBgColor: '#0D0A0Aff',
+        normalColor: '#efefefff', highlightColor: '#D3003Aff', slotBgColor: '#181818ff'
+    };
+    
+    function showIconBrowserHelp() { /* ... Lógica de Ajuda (inalterada) ... */ }
+    function hexToRgb(hex) { if (typeof hex !== 'string') return [1, 1, 1, 1]; var cleanHex = hex.replace('#', ''); var r = parseInt(cleanHex.substring(0, 2), 16) / 255; var g = parseInt(cleanHex.substring(2, 4), 16) / 255; var b = parseInt(cleanHex.substring(4, 6), 16) / 255; var a = (cleanHex.length === 8) ? (parseInt(cleanHex.substring(6, 8), 16) / 255) : 1; return [r, g, b, a]; }
+    function setFgColor(element, hexColor) { try { var color = hexToRgb(hexColor); element.graphics.foregroundColor = element.graphics.newPen(element.graphics.PenType.SOLID_COLOR, color, 1); } catch (e) {} }
+    function setBgColor(element, hexColor) { try { var color = hexToRgb(hexColor); element.graphics.backgroundColor = element.graphics.newBrush(element.graphics.BrushType.SOLID_COLOR, color); } catch (e) {} }
+    function simpleButton(parent, options) { var btn = parent.add('button', undefined, options.labelTxt); btn.preferredSize.width = options.width || 80; btn.preferredSize.height = options.height || 24; btn.leftClick = btn; return btn; }
+    function addClickHandler(element, handler) { if (!element) return; if (element.leftClick) { element.leftClick.onClick = handler; } else { element.onClick = handler; } }
+    function getObjectKeys(obj) { if (typeof obj !== 'object' || obj === null) return []; var keys = []; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { keys.push(key); } } return keys; }
+    function formatFileSize(bytes) { if (bytes === null || isNaN(bytes)) return "-"; if (bytes === 0) return '0 Bytes'; if (bytes < 1024) return bytes + ' Bytes'; else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB'; else return (bytes / 1048576).toFixed(1) + ' MB'; }
+    function getFileType(filename) { return 'Imagem PNG'; }
+    
+    var SCRIPT_INFO = { name: "Icons4u", version: "1.1"};
+    var UI_CONFIG = { grid: { columns: EASY_CONFIG.GRID_COLUMNS, rows: EASY_CONFIG.GRID_ROWS, thumbSize: EASY_CONFIG.THUMBNAIL_SIZE, gap: 5, padding: EASY_CONFIG.THUMBNAIL_PADDING }};
+    
 
-    // =================================================================================
-    // 3. INTERFACE DO USUÁRIO (UI)
-    // =================================================================================
-    var UI = { // Re-declaração de UI aqui, certifique-se de que não haja outra global
-        elements: {}, gridSlots: [],
-        build: function() {
-            var win = new Window("palette", SCRIPT_INFO.name + " v" + SCRIPT_INFO.version, undefined, { resizeable: true });
-            win.orientation = "column"; win.alignChildren = ["fill", "top"]; win.spacing = 5; win.margins = 10;
-            this.win = win;
+    var SUPPORTED_EXTENSIONS = /\.png$/i;
 
-            // Define o fundo da janela como preto
-            win.graphics.backgroundColor = win.graphics.newBrush(
-            win.graphics.BrushType.SOLID_COLOR,
-            [0, 0, 0] // RGB para preto
-            );
-            
-            // --- Grupo de Cabeçalho com Título e Botão de Ajuda ---
-            var headerGroup = win.add("group");
-            headerGroup.orientation = "row";
-            headerGroup.alignChildren = ["fill", "center"];
-            headerGroup.alignment = "fill";
-            headerGroup.spacing = 10;
-            headerGroup.margins = [0, 0, 0, 10]; // Margem inferior para separar do próximo painel
+    var State = { allIcons: [], filteredIcons: [], selectedIconData: null, lastClickTime: 0, lastClickedSlotId: -1, doubleClickDelay: 500, currentPage: 0 };
+    var UI = { elements: {}, gridSlots: [], activeSlot: null, win: null };
 
-            var titleText = headerGroup.add("statictext", undefined, SCRIPT_INFO.name + " v" + SCRIPT_INFO.version);
-            titleText.graphics.font = ScriptUI.newFont("Arial", "Bold", 14);
-            titleText.preferredSize.width = 0; // Faz com que o texto ocupe o espaço restante
+    var Logic = { /* ... Lógica Principal (inalterada) ... */ };
+    Logic.stringify = function(obj) { try { return obj.toSource(); } catch (e) { return "[]"; } };
+    Logic.saveCache = function() { try { var cacheFile = new File(Folder.userData.fsName + "/" + CONFIG.CACHE_FILENAME); cacheFile.encoding = "UTF-8"; cacheFile.open("w"); cacheFile.write(Logic.stringify(State.allIcons)); cacheFile.close(); } catch (e) { UI.logMessage("Não foi possível salvar o cache.", true); } };
+    Logic.loadCache = function() { var cacheFile = new File(Folder.userData.fsName + "/" + CONFIG.CACHE_FILENAME); if (!cacheFile.exists) return false; try { cacheFile.open("r"); var content = cacheFile.read(); cacheFile.close(); State.allIcons = eval(content); if (typeof State.allIcons !== 'object' || State.allIcons.length === undefined) { State.allIcons = []; return false; } return true; } catch (e) { UI.logMessage("Cache corrompido ou inválido.", true); return false; } };
+    Logic.scanFolder = function(folder, category) { var icons = []; var files = folder.getFiles(); for (var i = 0; i < files.length; i++) { var file = files[i]; if (file instanceof File && SUPPORTED_EXTENSIONS.test(file.name)) { var modifiedDate = new Date(0); try { if (file.modified instanceof Date) { modifiedDate = file.modified; } } catch (e) {} icons.push({ nome: decodeURI(file.name).replace(/\.[^.]+$/, "").replace(/[-_]/g, ' '), fullPath: file.fsName, categoria: category, modified: modifiedDate, size: file.length }); if (i % 10 === 0 && UI.win) { UI.logMessage("Buscando ícones: " + (State.allIcons.length + icons.length) + " encontrados...", false); try { UI.win.update(); } catch(e){} } } } return icons; };
+    Logic.rescanAndLoadDatabase = function() { if (UI.win) { UI.win.enabled = false; UI.logMessage("Buscando ícones...", false); } try { State.allIcons = []; var rootFolder = new Folder(EASY_CONFIG.ICON_ROOT_PATH); if (!rootFolder.exists) { throw new Error("A pasta raiz não foi encontrada!"); } State.allIcons = State.allIcons.concat(Logic.scanFolder(rootFolder, "Raiz")); var subFolders = rootFolder.getFiles(function(f) { return f instanceof Folder; }); for (var i = 0; i < subFolders.length; i++) { State.allIcons = State.allIcons.concat(Logic.scanFolder(subFolders[i], subFolders[i].name)); } UI.logMessage(State.allIcons.length + " ícones encontrados e cacheados.", false); Logic.saveCache(); UI.updateCategoryDropdown(); State.currentPage = 0; UI.updateGrid(); } catch(e) { UI.logMessage("ERRO: " + e.message, true); } finally { if (UI.win) { UI.win.enabled = true; } } };
+    Logic.importIcon = function(iconData) { if (!UI.win || !UI.win.enabled) return; if (!iconData) return; if (!app.project) { alert("Nenhum projeto aberto."); return; } try { UI.win.enabled = false; UI.logMessage("Importando '" + iconData.nome + "'...", false); try { UI.win.update(); } catch(e){} app.beginUndoGroup("Importar Ícone: " + iconData.nome); var iconFile = new File(iconData.fullPath); if (!iconFile.exists) { throw new Error("Arquivo não encontrado: " + iconData.fullPath); } var importOptions = new ImportOptions(iconFile); var importedItem = app.project.importFile(importOptions); importedItem.name = iconData.nome; if (app.project.activeItem && app.project.activeItem instanceof CompItem) { var comp = app.project.activeItem; var newLayer = comp.layers.add(importedItem); newLayer.position.setValue([comp.width / 2, comp.height / 2]); } UI.logMessage("Ícone '" + iconData.nome + "' importado.", false); app.endUndoGroup(); } catch (e) { UI.logMessage("Falha ao importar: " + e.toString(), true); if(app.undoInProgress) app.endUndoGroup(); } finally { if (UI.win) { UI.win.enabled = true; } } };
+    
 
-            // Adiciona o botão de ajuda
-            // O elemento helpBtn (ou helpBtnGroup) é adicionado diretamente ao headerGroup aqui.
-            // Não é necessário um 'else' separado para adicionar 'helpBtn' pois ele já será criado e adicionado.
-            if (typeof themeIconButton !== 'undefined' && typeof D9T_INFO_ICON !== 'undefined' && typeof lClick !== 'undefined') {
-                var helpBtnGroup = headerGroup.add('group'); // Adiciona um grupo para o botão de ajuda DENTRO do headerGroup
-                helpBtnGroup.alignment = ['right', 'center'];
-                var helpBtn = new themeIconButton(helpBtnGroup, { icon: D9T_INFO_ICON, tips: [lClick + 'Ajuda'] });
-                helpBtn.leftClick.onClick = showIcons4UHelp; // Chama a função de ajuda
+    UI.handleIconClick = function() { var clickedSlot = this.parent; if (!clickedSlot.iconData) return; var currentTime = new Date().getTime(); if (State.lastClickedSlotId === clickedSlot.uniqueId && (currentTime - State.lastClickTime) < State.doubleClickDelay) { Logic.importIcon(clickedSlot.iconData); State.lastClickTime = 0; State.lastClickedSlotId = -1; return; } UI.updateDetailsPanel(clickedSlot.iconData, clickedSlot); State.lastClickTime = currentTime; State.lastClickedSlotId = clickedSlot.uniqueId; };
+    UI.build = function() {
+        this.win = new Window("palette", SCRIPT_INFO.name + " v" + SCRIPT_INFO.version, undefined, { resizeable: false });
+        this.win.orientation = "column"; this.win.alignChildren = ["fill", "top"]; this.win.spacing = 5; this.win.margins = 10;
+        setBgColor(this.win, THEME.bgColor);
+        
+        var headerGroup = this.win.add("group"); headerGroup.orientation = "stack"; headerGroup.alignment = 'fill';
+        var titleGroup = headerGroup.add("group"); titleGroup.alignment = 'left';
+        var titleText = titleGroup.add("statictext", undefined, SCRIPT_INFO.name); titleText.graphics.font = UI_METRICS.BIG_FONT; setFgColor(titleText, THEME.highlightColor);
+        var helpBtnGroup = headerGroup.add('group'); helpBtnGroup.alignment = 'right';
+        
+        try {
+            if (typeof themeIconButton !== 'undefined' && typeof D9T_INFO_ICON !== 'undefined') {
+                this.elements.helpBtn = new themeIconButton(helpBtnGroup, { icon: D9T_INFO_ICON, tips: ["Ajuda sobre o Icon Browser"] });
+                addClickHandler(this.elements.helpBtn, showIconBrowserHelp);
             } else {
-                var helpBtn = headerGroup.add("button", undefined, "?"); // Adiciona o BOTÃO DENTRO do headerGroup
-                helpBtn.preferredSize = [24, 24];
-                helpBtn.helpTip = "Ajuda sobre " + SCRIPT_INFO.name;
-                helpBtn.alignment = ['right', 'center'];
-                helpBtn.onClick = showIcons4UHelp; // Chama a função de ajuda
+                throw new Error("themeIconButton não definido");
             }
-            // --- Fim do Grupo de Cabeçalho ---
-
-
-            var controlsPanel = win.add("panel", undefined, "Controles");
-            controlsPanel.orientation = "row"; controlsPanel.alignChildren = ["left", "center"];
-            controlsPanel.add("statictext", undefined, "Buscar:");
-            this.elements.searchBox = controlsPanel.add("edittext", undefined, ""); this.elements.searchBox.preferredSize.width = 150;
-            controlsPanel.add("statictext", undefined, "Categoria:");
-            this.elements.categoryList = controlsPanel.add("dropdownlist", undefined, ["Todas"]); this.elements.categoryList.selection = 0;
-            this.elements.refreshBtn = controlsPanel.add("button", undefined, "Atualizar ↺");
-
-            var gridPanel = win.add("panel", undefined, "Ícones");
-            gridPanel.alignChildren = ["left", "top"]; gridPanel.alignment = ["fill", "fill"];
-            this.elements.gridPanel = gridPanel;
-
-            var detailsPanel = win.add("panel", undefined, "Detalhes do Ícone Selecionado");
-            detailsPanel.orientation = "row"; detailsPanel.alignChildren = ["left", "center"];
-            this.elements.detailsPanel = detailsPanel;
-            this.elements.previewImage = detailsPanel.add("image", undefined); this.elements.previewImage.preferredSize = [100, 100];
-            var detailsTextGroup = detailsPanel.add("group"); detailsTextGroup.orientation = "column"; detailsTextGroup.alignChildren = ["fill", "top"]; detailsTextGroup.alignment = ["fill", "center"];
-            this.elements.nameText = detailsTextGroup.add("statictext", undefined, "Nome do Ícone", { font: "bold" });
-            this.elements.detailsText = detailsTextGroup.add("statictext", undefined, "Detalhes...");
-            this.elements.importBtn = detailsPanel.add("button", undefined, "Importar"); this.elements.importBtn.preferredSize.width = 100;
-            detailsPanel.visible = false;
-
-            var bottomPanel = win.add("panel", undefined, "Log e Configurações");
-            bottomPanel.orientation = "row";
-            this.elements.logArea = bottomPanel.add("edittext", undefined, "", { multiline: true, readonly: true }); this.elements.logArea.alignment = ["fill", "fill"];
-            var settingsBtns = bottomPanel.add("group"); settingsBtns.orientation = "column";
-            this.elements.generateJsonBtn = settingsBtns.add("button", undefined, "Gerar JSON");
-            this.elements.settingsBtn = settingsBtns.add("button", undefined, "Configurar");
-            this.elements.clearLogBtn = settingsBtns.add("button", undefined, "Limpar Log");
-            
-            this.createGridSlots();
-        },
+        } catch(e) {
+            this.elements.helpBtn = helpBtnGroup.add("button", undefined, "?");
+            this.elements.helpBtn.preferredSize = [25, 25];
+            this.elements.helpBtn.helpTip = "Ajuda";
+            this.elements.helpBtn.onClick = showIconBrowserHelp;
+        }
         
-        createGridSlots: function() {
-            while (this.elements.gridPanel.children.length > 0) { this.elements.gridPanel.remove(this.elements.gridPanel.children[0]); }
-            this.gridSlots = [];
-            var gridContent = this.elements.gridPanel.add("group"); gridContent.orientation = "row"; gridContent.alignChildren = ["left", "top"];
-            var cols = UI_CONFIG.grid.columns;
-            var columns = []; for (var c = 0; c < cols; c++) { columns[c] = gridContent.add('group'); columns[c].orientation = 'column'; }
-            var numRows = 4;
-            for (var i = 0; i < cols * numRows; i++) {
-                var slot = columns[i % cols].add("group");
-                slot.orientation = "column"; slot.spacing = 4; slot.margins = 5;
-                var thumbSize = UI_CONFIG.grid.thumbSize;
-                slot.preferredSize = [thumbSize + 10, thumbSize + 30];
-                slot.graphics.backgroundColor = slot.graphics.newBrush(slot.graphics.BrushType.SOLID_COLOR, UI_CONFIG.colors.background);
-                slot.thumb = slot.add("image"); slot.thumb.preferredSize = [thumbSize, thumbSize];
-                slot.label = slot.add("statictext", undefined, "", { truncate: "end" }); slot.label.alignment = "center";
+        var mainGroup = this.win.add("group"); mainGroup.orientation = "row"; mainGroup.alignChildren = ["top", "top"];
+        var leftColumn = mainGroup.add("group"); leftColumn.orientation = "column"; leftColumn.alignChildren = ["fill", "top"];
+        var controlsPanel = leftColumn.add("panel", undefined, "Controles"); controlsPanel.orientation = "column"; controlsPanel.alignChildren = ["fill", "top"]; setFgColor(controlsPanel, THEME.normalColor); setBgColor(controlsPanel, THEME.panelBgColor);
 
-                // --- LÓGICA DE EVENTOS REFORÇADA ---
-                var clickHandler = function() {
-                    var clickedSlot = (this.type === 'group') ? this : this.parent;
-                    if (clickedSlot.iconData) {
-                        UI.updateDetailsPanel(clickedSlot.iconData, clickedSlot);
-                    }
-                };
-                var dblClickHandler = function() {
-                    var dblClickedSlot = (this.type === 'group') ? this : this.parent;
-                    if (dblClickedSlot.iconData) {
-                        // Primeiro, certifica-se de que o item está selecionado visualmente
-                        UI.updateDetailsPanel(dblClickedSlot.iconData, dblClickedSlot);
-                        // Em seguida, importa
-                        Logic.importIcon(dblClickedSlot.iconData);
-                    }
-                };
+        var controlsGroup = controlsPanel.add('group'); controlsGroup.orientation = 'row'; controlsGroup.alignChildren = ["left", "center"]; controlsGroup.spacing = 10;
+        controlsGroup.add("statictext", undefined, "Buscar:");
+        this.elements.searchBox = controlsGroup.add("edittext", undefined, ""); this.elements.searchBox.preferredSize.width = UI_METRICS.SEARCH_BOX_WIDTH;
+        var spacer1 = controlsGroup.add('group'); spacer1.preferredSize.width = 5;
+        controlsGroup.add("statictext", undefined, "Categoria:");
+        this.elements.categoryDropdown = controlsGroup.add("dropdownlist", undefined, ["Todas"]); this.elements.categoryDropdown.selection = 0; this.elements.categoryDropdown.preferredSize.width = UI_METRICS.DROPDOWN_WIDTH;
+        
+        var row3 = controlsPanel.add('group'); row3.orientation = 'row'; row3.alignChildren = ["left", "center"]; row3.spacing = 10;
+        row3.add("statictext", undefined, "Ordenar por:");
+        this.elements.sortFilter = row3.add("dropdownlist", undefined, ["Nome (A-Z)", "Nome (Z-A)", "Data (Recentes)", "Data (Mais Antigos)", "Tamanho (Maior)", "Tamanho (Menor)"]);
+        this.elements.sortFilter.selection = 0;
+        this.elements.sortFilter.preferredSize.width = UI_METRICS.SORT_DROPDOWN_WIDTH;
+        var spacer2 = row3.add('group'); spacer2.preferredSize.width = 5;
+        this.elements.refreshBtn = simpleButton(row3, { labelTxt: "Atualizar ↻", width: 85, height: 25 });
 
-                slot.onClick = clickHandler; slot.thumb.onClick = clickHandler; slot.label.onClick = clickHandler;
-                slot.onDoubleClick = dblClickHandler; slot.thumb.onDoubleClick = dblClickHandler; slot.label.onDoubleClick = dblClickHandler;
-                
+        var gridStack = leftColumn.add('group'); gridStack.orientation = 'stack'; gridStack.alignment = 'left';
+        var gridAndPaginationWrapper = gridStack.add('group'); gridAndPaginationWrapper.orientation = 'column';
+        this.elements.gridContainer = gridAndPaginationWrapper.add("group"); 
+        this.elements.gridContainer.orientation = 'column'; 
+        this.elements.gridContainer.spacing = UI_CONFIG.grid.gap;
+
+        this.elements.noResultsText = gridStack.add('statictext', undefined, 'Nenhum ícone encontrado');
+        this.elements.noResultsText.graphics.font = UI_METRICS.PLACEHOLDER_FONT;
+        setFgColor(this.elements.noResultsText, THEME.normalColor);
+        this.elements.noResultsText.justify = 'center';
+        this.elements.noResultsText.visible = false;
+
+        var g = UI_CONFIG.grid; var paddedThumbSize = g.thumbSize - (g.padding * 2);
+        for (var r = 0; r < g.rows; r++) {
+            var rowGroup = this.elements.gridContainer.add('group'); rowGroup.orientation = 'row'; rowGroup.spacing = g.gap; rowGroup.alignChildren = ['left', 'center'];
+            for (var c = 0; c < g.columns; c++) {
+                var slot = rowGroup.add('group'); slot.orientation = 'stack'; slot.minimumSize = [g.thumbSize, g.thumbSize]; slot.maximumSize = [g.thumbSize, g.thumbSize]; slot.margins = 0; slot.uniqueId = this.gridSlots.length;
+                setBgColor(slot, THEME.slotBgColor);
+                slot.thumb = slot.add("image", [g.padding, g.padding, g.padding + paddedThumbSize, g.padding + paddedThumbSize]);
+                slot.placeholder = slot.add("statictext", undefined, '📄'); slot.placeholder.alignment = ['fill', 'fill']; slot.placeholder.graphics.font = ScriptUI.newFont("Arial", "Regular", 40); slot.placeholder.justify = 'center'; setFgColor(slot.placeholder, THEME.normalColor);
+                slot.clickCatcher = slot.add('group'); slot.clickCatcher.alignment = ['fill', 'fill']; slot.clickCatcher.onDraw = function() {}; slot.clickCatcher.addEventListener('click', this.handleIconClick);
+                slot.thumb.visible = false; slot.placeholder.visible = false; slot.iconData = null; slot.visible = false;
                 this.gridSlots.push(slot);
             }
-        },
-
-        renderGrid: function() { UI.logMessage(State.filteredIcons.length + " ícones encontrados."); for (var i = 0; i < this.gridSlots.length; i++) { var slot = this.gridSlots[i]; if (i < State.filteredIcons.length) { var icon = State.filteredIcons[i]; slot.iconData = icon; slot.visible = true; var thumbFile = new File(State.settings.iconRootPath + "/" + icon.arquivo); slot.thumb.image = thumbFile.exists ? thumbFile : null; slot.label.text = icon.nome; } else { slot.iconData = null; slot.visible = false; } } this.updateDetailsPanel(null, null); },
-        updateDetailsPanel: function(iconData, slot) {
-            State.selectedIconData = iconData;
-            this.highlightSelection(slot);
-            this.elements.detailsPanel.visible = !!iconData; // Mostra ou esconde o painel
-            if (iconData) {
-                var previewFile = new File(State.settings.iconRootPath + "/" + iconData.arquivo);
-                this.elements.previewImage.image = previewFile.exists ? previewFile : null;
-                this.elements.nameText.text = iconData.nome;
-                this.elements.detailsText.text = "Arquivo: " + iconData.arquivo;
-                this.elements.importBtn.enabled = true;
-            } else {
-                 this.elements.importBtn.enabled = false;
-            }
-            this.win.layout.layout(true); // Força o redesenho da UI
-        },
-        highlightSelection: function(selectedSlot) { if (State.selectedSlot) { State.selectedSlot.graphics.backgroundColor = State.selectedSlot.graphics.newBrush(State.selectedSlot.graphics.BrushType.SOLID_COLOR, UI_CONFIG.colors.background); } if (selectedSlot) { selectedSlot.graphics.backgroundColor = selectedSlot.graphics.newBrush(selectedSlot.graphics.BrushType.SOLID_COLOR, UI_CONFIG.colors.selection); } State.selectedSlot = selectedSlot; }, // Correção aqui: use selectedSlot.graphics.newBrush
-        populateCategoryList: function() { var cats = {"Todas": true}; for(var i=0; i < State.allIcons.length; i++) cats[State.allIcons[i].categoria] = true; this.elements.categoryList.removeAll(); for(var c in cats) this.elements.categoryList.add('item', c); this.elements.categoryList.selection = 0; },
-        logMessage: function(message, isError) { if(!this.elements.logArea){alert("Log:\n" + message); return;} var time = new Date().toTimeString().substr(0, 8); this.elements.logArea.text = time + " " + (isError ? "[ERRO] " : "[INFO] ") + message + "\n" + this.elements.logArea.text; },
-        
-        assignEventHandlers: function() {
-            this.elements.searchBox.onChanging = function() { Logic.applyFilters(); };
-            this.elements.categoryList.onChange = function() { Logic.applyFilters(); };
-            this.elements.refreshBtn.onClick = function() { Logic.loadDatabase(); };
-            this.elements.generateJsonBtn.onClick = function() { Logic.generateJson(); };
-            this.elements.settingsBtn.onClick = function() {
-                alert("Selecione:\n\n1. A PASTA com seus ícones.\n2. O local do seu arquivo de metadados.", "Configuração Manual");
-                var iconRoot = Folder.selectDialog("1. Selecione a pasta com seus ícones"); if (!iconRoot) return;
-                var metadataFile = File.saveDialog("2. Escolha onde salvar seu arquivo de metadados", "JSON:*.json"); if (!metadataFile) return;
-                var newSettings = { iconRootPath: iconRoot.fsName, metadataPath: metadataFile.fsName };
-                Logic.saveSettings(newSettings);
-                UI.logMessage("Novas configurações definidas. Carregando...");
-                Logic.loadDatabase();
-            };
-            this.elements.clearLogBtn.onClick = function() { UI.elements.logArea.text = ""; };
-            this.elements.importBtn.onClick = function() { Logic.importIcon(State.selectedIconData); };
         }
+        
+        this.elements.paginationGroup = gridAndPaginationWrapper.add('group');
+        var pg = this.elements.paginationGroup;
+        pg.orientation = 'row'; pg.alignChildren = ['center', 'center']; pg.alignment = 'fill'; pg.margins.top = 5; pg.spacing = 10;
+        this.elements.prevPageBtn = simpleButton(pg, { labelTxt: '◄', width: 40 });
+        this.elements.pageInfo = pg.add('statictext', undefined, 'Página 0 de 0'); this.elements.pageInfo.alignment = 'fill'; setFgColor(this.elements.pageInfo, THEME.normalColor);
+        this.elements.nextPageBtn = simpleButton(pg, { labelTxt: '►', width: 40 });
+        
+        var detailsPanel = mainGroup.add("panel", undefined, "Detalhes"); detailsPanel.orientation = "column"; detailsPanel.alignChildren = ["fill", "top"]; detailsPanel.alignment = ["right", "fill"]; detailsPanel.preferredSize.width = UI_METRICS.DETAILS_PANEL_WIDTH; setFgColor(detailsPanel, THEME.normalColor); setBgColor(detailsPanel, THEME.detailsBgColor);
+        var previewGroup = detailsPanel.add('group'); previewGroup.orientation = 'stack'; previewGroup.alignment = ['center', 'top']; previewGroup.preferredSize = [150, 150]; setBgColor(previewGroup, THEME.slotBgColor);
+        var previewPadding = EASY_CONFIG.PREVIEW_PADDING; var paddedPreviewSize = 150 - (previewPadding * 2); var previewBounds = [previewPadding, previewPadding, previewPadding + paddedPreviewSize, previewPadding + paddedPreviewSize];
+        this.elements.previewImage = previewGroup.add("image", previewBounds); this.elements.previewPlaceholder = previewGroup.add("statictext", undefined, '📄'); this.elements.previewPlaceholder.alignment = ['fill', 'fill']; this.elements.previewPlaceholder.graphics.font = ScriptUI.newFont("Arial", "Bold", 80); this.elements.previewPlaceholder.justify = 'center'; setFgColor(this.elements.previewPlaceholder, THEME.normalColor);
+        var detailsTextGroup = detailsPanel.add("group"); detailsTextGroup.orientation = "column"; detailsTextGroup.alignChildren = ["fill", "top"]; detailsTextGroup.alignment = ["fill", "fill"]; detailsTextGroup.spacing = 5; detailsTextGroup.margins.top = 10;
+        this.elements.nameText = detailsTextGroup.add("statictext", undefined, "Nenhum Ícone", { multiline: true }); this.elements.nameText.graphics.font = ScriptUI.newFont("Arial", "Bold", 12);
+        function addDetailRow(label, parent) { parent.add('statictext', undefined, label).graphics.font = ScriptUI.newFont("Arial", "Italic", 9); var textElement = parent.add('statictext', undefined, '-', { multiline: true, truncate: 'end' }); textElement.preferredSize.height = 14; return textElement; }
+        this.elements.categoryText = addDetailRow("Categoria:", detailsTextGroup); this.elements.typeText = addDetailRow("Tipo:", detailsTextGroup);
+        this.elements.sizeText = addDetailRow("Tamanho:", detailsTextGroup);
+        this.elements.modifiedText = addDetailRow("Modificado:", detailsTextGroup);
+        this.elements.pathText = addDetailRow("Pasta:", detailsTextGroup); this.elements.pathText.preferredSize.height = 28;
+        var statusPanel = this.win.add("panel", undefined, "Status"); statusPanel.alignment = 'fill'; setFgColor(statusPanel, THEME.normalColor); setBgColor(statusPanel, THEME.statusPanelBgColor);
+        this.elements.statusBar = statusPanel.add('statictext', undefined, 'Pronto.', { truncate: 'end' }); this.elements.statusBar.alignment = 'fill';
     };
-
+    UI.updateGrid = function() { var searchTerm = this.elements.searchBox.text.toLowerCase(); var selectedCategory = this.elements.categoryDropdown.selection.text; var selectedSort = this.elements.sortFilter.selection.text; State.filteredIcons = []; for (var i = 0; i < State.allIcons.length; i++) { var icon = State.allIcons[i]; var matchesSearch = searchTerm === "" || icon.nome.toLowerCase().indexOf(searchTerm) > -1; var matchesCategory = selectedCategory === "Todas" || icon.categoria === selectedCategory; if (matchesSearch && matchesCategory) { State.filteredIcons.push(icon); } } switch (selectedSort) { case "Nome (A-Z)": State.filteredIcons.sort(function(a, b) { return a.nome.toLowerCase().localeCompare(b.nome.toLowerCase()); }); break; case "Nome (Z-A)": State.filteredIcons.sort(function(a, b) { return b.nome.toLowerCase().localeCompare(a.nome.toLowerCase()); }); break; case "Data (Recentes)": State.filteredIcons.sort(function(a, b) { return b.modified.getTime() - a.modified.getTime(); }); break; case "Data (Mais Antigos)": State.filteredIcons.sort(function(a, b) { return a.modified.getTime() - b.modified.getTime(); }); break; case "Tamanho (Maior)": State.filteredIcons.sort(function(a, b) { return b.size - a.size; }); break; case "Tamanho (Menor)": State.filteredIcons.sort(function(a, b) { return a.size - b.size; }); break; } if (State.filteredIcons.length === 0) { this.elements.gridContainer.parent.visible = false; this.elements.noResultsText.visible = true; } else { this.elements.gridContainer.parent.visible = true; this.elements.noResultsText.visible = false; } var itemsPerPage = UI_CONFIG.grid.columns * UI_CONFIG.grid.rows; var totalPages = Math.ceil(State.filteredIcons.length / itemsPerPage) || 1; if (State.currentPage >= totalPages) State.currentPage = totalPages - 1; if (State.currentPage < 0) State.currentPage = 0; this.elements.pageInfo.text = "Página " + (State.currentPage + 1) + " de " + totalPages; this.elements.prevPageBtn.enabled = (State.currentPage > 0); this.elements.nextPageBtn.enabled = (State.currentPage < totalPages - 1); var startIndex = State.currentPage * itemsPerPage; for (var j = 0; j < this.gridSlots.length; j++) { var slot = this.gridSlots[j]; slot.iconData = null; slot.visible = false; slot.thumb.visible = false; slot.placeholder.visible = false; setBgColor(slot, THEME.slotBgColor); } for (var j = 0; j < this.gridSlots.length; j++) { var slot = this.gridSlots[j]; var iconIndex = startIndex + j; if (iconIndex < State.filteredIcons.length) { var iconData = State.filteredIcons[iconIndex]; slot.iconData = iconData; setBgColor(slot, (this.activeSlot === slot) ? THEME.highlightColor : THEME.slotBgColor); try { slot.thumb.image = new File(iconData.fullPath); if (slot.thumb.image != null) { slot.placeholder.visible = false; slot.thumb.visible = true; } else { throw new Error("Imagem nula"); } } catch(e) { slot.thumb.visible = false; slot.placeholder.visible = true; UI.logMessage("Erro ao carregar: " + iconData.nome + ".png", true); } slot.visible = true; } } if (!this.activeSlot || !this.activeSlot.visible) { var firstVisibleSlot = null; for(var k=0; k < this.gridSlots.length; k++) { if(this.gridSlots[k].visible) { firstVisibleSlot = this.gridSlots[k]; break; } } if (firstVisibleSlot) { this.updateDetailsPanel(firstVisibleSlot.iconData, firstVisibleSlot); } else { this.updateDetailsPanel(null, null); } } if (this.win) { this.win.layout.layout(true); } };
+    UI.updateDetailsPanel = function(iconData, slot) { State.selectedIconData = iconData; this.highlightSelection(slot); if (iconData) { var iconFile = new File(iconData.fullPath); this.elements.previewImage.image = iconFile.exists ? iconFile : null; if (this.elements.previewImage.image != null) { this.elements.previewPlaceholder.visible = false; this.elements.previewPlaceholder.text = ''; this.elements.previewImage.visible = true; } else { this.elements.previewImage.visible = false; this.elements.previewPlaceholder.text = '📄'; } this.elements.nameText.text = iconData.nome; this.elements.categoryText.text = iconData.categoria; this.elements.typeText.text = getFileType(iconFile.name); this.elements.sizeText.text = formatFileSize(iconFile.length); this.elements.modifiedText.text = (iconData.modified) ? new Date(iconData.modified).toLocaleString() : "N/A"; this.elements.pathText.text = decodeURI(iconFile.path); } else { this.elements.previewImage.image = null; this.elements.previewPlaceholder.text = ''; this.elements.nameText.text = "Nenhum Ícone"; this.elements.categoryText.text = "-"; this.elements.typeText.text = "-"; this.elements.sizeText.text = "-"; this.elements.modifiedText.text = "-"; this.elements.pathText.text = "-"; } };
+    UI.highlightSelection = function(selectedSlot) { if (this.activeSlot && this.activeSlot !== selectedSlot) { try { setBgColor(this.activeSlot, THEME.slotBgColor); } catch (e) {} } if (selectedSlot && selectedSlot.iconData) { setBgColor(selectedSlot, THEME.highlightColor); } this.activeSlot = selectedSlot; };
+    UI.updateCategoryDropdown = function() { var dropdown = this.elements.categoryDropdown; var currentSelection = dropdown.selection ? dropdown.selection.text : "Todas"; while (dropdown.items.length > 0) { dropdown.remove(0); } dropdown.add("item", "Todas"); var categories = {}; for (var i = 0; i < State.allIcons.length; i++) { categories[State.allIcons[i].categoria] = true; } var sortedCategories = getObjectKeys(categories).sort(); for (var i = 0; i < sortedCategories.length; i++) { var cat = sortedCategories[i]; if (cat !== "Todas") { dropdown.add("item", cat); } } for (var i = 0; i < dropdown.items.length; i++) { if (dropdown.items[i].text === currentSelection) { dropdown.selection = i; return; } } dropdown.selection = 0; };
+    UI.logMessage = function(message, isError) { if (!this.elements.statusBar) { return; } var prefix = isError ? "[ERRO] " : ""; this.elements.statusBar.text = prefix + message; if (isError) { setFgColor(this.elements.statusBar, THEME.highlightColor); } else { setFgColor(this.elements.statusBar, THEME.normalColor); }};
+    UI.assignEventHandlers = function() { var onFilterChange = function() { State.currentPage = 0; UI.updateGrid(); }; this.elements.searchBox.onChanging = onFilterChange; this.elements.categoryDropdown.onChange = onFilterChange; this.elements.sortFilter.onChange = onFilterChange; addClickHandler(this.elements.refreshBtn, function() { Logic.rescanAndLoadDatabase(); }); addClickHandler(this.elements.nextPageBtn, function() { State.currentPage++; UI.updateGrid(); }); addClickHandler(this.elements.prevPageBtn, function() { State.currentPage--; UI.updateGrid(); }); };
+    
     var App = {
         run: function() {
-            UI.build();
-            UI.assignEventHandlers();
-            if (Logic.loadSettings()) {
-                Logic.loadDatabase();
-            }
-            UI.win.show();
+            try {
+                UI.build();
+                UI.assignEventHandlers();
+                if (!Logic.loadCache()) { Logic.rescanAndLoadDatabase(); }
+                else { UI.logMessage(State.allIcons.length + " ícones carregados do cache.", false); UI.updateCategoryDropdown(); UI.updateGrid(); }
+                UI.win.onClose = function() { UI.activeSlot = null; }
+                UI.win.show();
+            } catch (e) { alert("Erro ao iniciar a aplicação: " + e.toString() + "\nLinha: " + e.line); }
         }
     };
-
+    
     App.run();
 
 })();

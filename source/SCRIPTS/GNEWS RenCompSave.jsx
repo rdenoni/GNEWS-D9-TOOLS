@@ -8,8 +8,8 @@
 
 function GNEWS_RenCompSave_UI() {
 
-    // =======================================================================
-    // ETAPA 1: CARREGAMENTO DE DADOS EXTERNOS
+// =======================================================================
+    // ETAPA 1: CARREGAMENTO DE DADOS EXTERNOS (COM VERIFICAÇÕES REFORÇADAS)
     // =======================================================================
 
     function readJsonFile(filePath) {
@@ -22,6 +22,7 @@ function GNEWS_RenCompSave_UI() {
             file.open("r");
             var content = file.read();
             file.close();
+            // A sua versão original do RenCompSave já tinha essa checagem, que é ótima.
             if (typeof JSON !== 'undefined' && typeof JSON.parse === 'function') {
                 return JSON.parse(content);
             } else {
@@ -33,60 +34,106 @@ function GNEWS_RenCompSave_UI() {
         }
     }
 
-    var names, tags, productions, arts, versions;
+    // Função principal de carregamento com validação passo a passo
+    function loadAllData() {
+        try {
+            if (typeof scriptMainPath === 'undefined' || scriptMainPath === null) {
+                throw new Error("Variável global 'scriptMainPath' não encontrada. Execute a partir do painel 'GND9 TOOLS'.");
+            }
 
-    try {
-        if (typeof scriptMainPath === 'undefined' || scriptMainPath === null) {
-            throw new Error("Variável global 'scriptMainPath' não encontrada. Este script deve ser executado a partir do painel 'GND9 TOOLS'.");
-        }
+            var configFilePath = new File(scriptMainPath + "source/config/MORNING_config.json");
+            var configData = readJsonFile(configFilePath.fsName);
+            if (!configData) throw new Error("Não foi possível carregar ou ler o MORNING_config.json.");
+            if (!configData.data_paths) throw new Error("A chave 'data_paths' não foi encontrada no MORNING_config.json.");
 
-        var configFilePath = new File(scriptMainPath + "source/config/MORNING_config.json");
-        var configData = readJsonFile(configFilePath.fsName);
-        if (configData === null) return;
+            var sourceFolder = new Folder(scriptMainPath + "source/");
 
-        var sourceFolder = new Folder(scriptMainPath + "source/");
+            // Carregar Dados da Equipe
+            if (!configData.data_paths.names) throw new Error("'data_paths.names' não definido no config.");
+            var equipeDataPath = new File(sourceFolder.fsName + "/" + configData.data_paths.names.replace("../", ""));
+            var equipeData = readJsonFile(equipeDataPath.fsName);
+            if (!equipeData || !equipeData.equipe) throw new Error("Não foi possível carregar ou ler DADOS_equipe_gnews.json.");
+            
+            var namesList = [];
+            var tagsMap = {};
+            for (var i = 0; i < equipeData.equipe.length; i++) {
+                var membro = equipeData.equipe[i];
+                namesList.push(membro.apelido);
+                tagsMap[membro.apelido] = membro.tag;
+            }
 
-        var equipeDataPath = new File(sourceFolder.fsName + "/" + configData.data_paths.names.replace("../", ""));
-        var equipeData = readJsonFile(equipeDataPath.fsName);
-        if (equipeData === null) return;
-        
-        names = [];
-        tags = {};
-        for (var i = 0; i < equipeData.equipe.length; i++) {
-            var membro = equipeData.equipe[i];
-            names.push(membro.apelido);
-            tags[membro.apelido] = membro.tag;
-        }
-
-        var programacaoDataPath = new File(sourceFolder.fsName + "/" + configData.data_paths.productions.replace("../", ""));
-        var programacaoData = readJsonFile(programacaoDataPath.fsName);
-        if (programacaoData === null) return;
-        
-        productions = [];
-        // LÓGICA ATUALIZADA para ler a chave "programacao_globonews" e usar o "tagName"
-        if (programacaoData.programacao_globonews) {
+            // Carregar Dados de Programação
+            if (!configData.data_paths.productions) throw new Error("'data_paths.productions' não definido no config.");
+            var programacaoDataPath = new File(sourceFolder.fsName + "/" + configData.data_paths.productions.replace("../", ""));
+            var programacaoData = readJsonFile(programacaoDataPath.fsName);
+            if (!programacaoData || !programacaoData.programacao_globonews) throw new Error("Não foi possível carregar ou ler DADOS_programacao_gnews.json.");
+            
+            var productionsList = [];
             for (var i = 0; i < programacaoData.programacao_globonews.length; i++) {
                 var programa = programacaoData.programacao_globonews[i];
                 if (programa && programa.tagName) {
                     var tagNameFormatted = programa.tagName.replace(/_/g, ' ').toLowerCase();
-                    tagNameFormatted = tagNameFormatted.replace(/\b\w/g, function(l){ return l.toUpperCase(); });
-                    productions.push(tagNameFormatted);
+                    productionsList.push(tagNameFormatted.replace(/\b\w/g, function(l){ return l.toUpperCase(); }));
                 }
             }
+
+            // Carregar Dados de Artes (LÓGICA ATUALIZADA)
+            if (!configData.data_paths.arts) throw new Error("'data_paths.arts' não definido no config.");
+            var artesDataPath = new File(sourceFolder.fsName + "/" + configData.data_paths.arts.replace("../", ""));
+            var artesData = readJsonFile(artesDataPath.fsName);
+            if (!artesData) throw new Error("Não foi possível carregar ou ler DADOS_artes_gnews.json.");
+            
+            var artsList = [];
+            if (artesData.artes_codificadas) {
+                var tempArtes = {};
+                for (var i = 0; i < artesData.artes_codificadas.length; i++) {
+                    var arte_obj = artesData.artes_codificadas[i];
+                    if (arte_obj && arte_obj.arte && !tempArtes[arte_obj.arte]) {
+                        artsList.push(arte_obj.arte);
+                        tempArtes[arte_obj.arte] = true;
+                    }
+                }
+                artsList.sort();
+            } else if (artesData.Artes) {
+                artsList = artesData.Artes; // Fallback para o formato antigo
+            } else {
+                 throw new Error("Nenhuma chave válida ('artes_codificadas' ou 'Artes') encontrada no DADOS_artes_gnews.json.");
+            }
+            
+            // Carregar Versões
+            if (!configData.inline_data || !configData.inline_data.versions) throw new Error("'inline_data.versions' não definido no config.");
+            var versionsList = configData.inline_data.versions;
+
+            // Se tudo correu bem, retorna um objeto com todos os dados
+            return {
+                names: namesList,
+                tags: tagsMap,
+                productions: productionsList,
+                arts: artsList,
+                versions: versionsList
+            };
+
+        } catch (e) {
+            // Este catch agora lida com os erros de forma mais segura
+            var errorMessage = "Ocorreu um erro crítico durante o carregamento dos dados:\n" + e.toString();
+            $.writeln(errorMessage); // Escreve no console para debug
+            alert(errorMessage); // Mostra o alerta para o usuário
+            return null; // Retorna nulo para indicar falha
         }
+    }
 
-        var artesDataPath = new File(sourceFolder.fsName + "/" + configData.data_paths.arts.replace("../", ""));
-        var artesData = readJsonFile(artesDataPath.fsName);
-        if (artesData === null) return;
-        arts = artesData.Artes;
-        
-        versions = configData.inline_data.versions;
-
-    } catch (e) {
-        alert("Ocorreu um erro crítico durante o carregamento dos dados:\n" + e.toString());
+    var loadedData = loadAllData();
+    // Se o carregamento falhar, o script para aqui.
+    if (!loadedData) {
         return;
     }
 
+    // Atribui os dados carregados às variáveis do escopo principal
+    var names = loadedData.names;
+    var tags = loadedData.tags;
+    var productions = loadedData.productions;
+    var arts = loadedData.arts;
+    var versions = loadedData.versions;
 
     // =======================================================================
     // LÓGICA E UI DO SCRIPT
@@ -329,20 +376,45 @@ function GNEWS_RenCompSave_UI() {
         previewText.text = message;
     }
 
-    function updatePreview() {
+function removeAccents(str) {
+        if (!str) return "";
+        var com_acento = "áàãâäéèêëíìîïóòõôöúùûüçñÁÀÃÂÄÉÈÊËÍÌÎÏÓÒÕÔÖÚÙÛÜÇÑ";
+        var sem_acento = "aaaaaeeeeiiiiooooouuuucnAAAAAEEEEIIIIOOOOOUUUUCN";
+        var novastr="";
+        for(i=0; i<str.length; i++) {
+            troca=false;
+            for (j=0; j<com_acento.length; j++) {
+                if (str.substr(i,1)==com_acento.substr(j,1)) {
+                    novastr+=sem_acento.substr(j,1);
+                    troca=true;
+                    break;
+                }
+            }
+            if (troca==false) {
+                novastr+=str.substr(i,1);
+            }
+        }
+        return novastr;
+    }
+
+    function onInputChange() {
+        this.text = sanitizeInput(this.text);
+        updatePreview();
+    }
+
+
+function updatePreview() {
         var prodText = prodDrop.selection ? prodDrop.selection.text.toUpperCase() : "";
         var artText = artDrop.selection ? artDrop.selection.text.toUpperCase() : "";
         var versionText = (versionDrop.selection && versionDrop.selection.text !== "Nenhuma") ? " " + versionDrop.selection.text.toUpperCase() : "";
         var baseName = "GNEWS " + prodText + " " + artText;
         var descStr = descInput.text ? " " + descInput.text.toUpperCase() : "";
         var editorStr = editorInput.text ? " - " + editorInput.text.toUpperCase() : "";
-        var alterStr = alterCheck.value ? " c" + getAlterationNumber(baseName + descStr) : "";
+        
+        var compNameForAlterationCheck = baseName + descStr;
+        var alterStr = alterCheck.value ? " c" + getAlterationNumber(compNameForAlterationCheck) : "";
+        
         updateStatusText(baseName + descStr + versionText + editorStr + alterStr);
-    }
-
-    function onInputChange() {
-        this.text = sanitizeInput(this.text);
-        updatePreview();
     }
 
     nameDrop.onChange = prodDrop.onChange = artDrop.onChange = versionDrop.onChange = updatePreview;
@@ -395,7 +467,7 @@ function GNEWS_RenCompSave_UI() {
         }
     };
     
-    createBtn.leftClick.onClick = function() {
+createBtn.leftClick.onClick = function() {
         app.beginUndoGroup("Criar Nova Composição");
         try {
             updatePreview();
@@ -403,6 +475,10 @@ function GNEWS_RenCompSave_UI() {
             if (compName === "" || compName.indexOf("GNEWS") === -1) {
                 updateStatusText("Gere um nome válido antes de criar a composição."); return;
             }
+            
+            // ADICIONADO: Remove a acentuação apenas no momento de criar
+            compName = removeAccents(compName);
+
             app.project.items.addComp(compName, defaultCompSettings.width, defaultCompSettings.height, defaultCompSettings.pixelAspect, defaultCompSettings.duration, defaultCompSettings.frameRate);
             updateStatusText(lang[currentLang].compCreated);
         } catch(e) {
@@ -411,7 +487,7 @@ function GNEWS_RenCompSave_UI() {
         app.endUndoGroup();
     };
 
-    renameBtn.leftClick.onClick = function() {
+renameBtn.leftClick.onClick = function() {
         app.beginUndoGroup("Renomear Composições");
         try {
             var selectedComps = [];
@@ -421,8 +497,12 @@ function GNEWS_RenCompSave_UI() {
             }
             if (selectedComps.length === 0) { throw new Error(lang[currentLang].noComp); }
             if (!editorInput.text) { throw new Error(lang[currentLang].noEditor); }
+            
             updatePreview();
             var finalNameTemplate = previewText.text;
+            // ADICIONADO: Remove a acentuação apenas no momento de renomear
+            finalNameTemplate = removeAccents(finalNameTemplate);
+
             for (var i = 0; i < selectedComps.length; i++) {
                 var compName = finalNameTemplate;
                 if (alterCheck.value && selectedComps.length > 1) {
@@ -569,12 +649,17 @@ function GNEWS_RenCompSave_UI() {
         }
     };
 
-    saveBtn.leftClick.onClick = function() {
+saveBtn.leftClick.onClick = function() {
         if (!editorInput.text) { updateStatusText(lang[currentLang].noEditor); return; }
         updatePreview();
         var finalTagName = tags[names[nameDrop.selection.index]] || "";
-        var projectName = (finalTagName ? finalTagName + " " : "") + previewText.text + ".aep";
+        
+        // ADICIONADO: Remove a acentuação apenas no momento de gerar o nome do arquivo
+        var cleanPreviewText = removeAccents(previewText.text);
+        
+        var projectName = (finalTagName ? finalTagName + " " : "") + cleanPreviewText + ".aep";
         projectName = projectName.replace(/[\/\\:*?"<>|]/g, "_");
+        
         var saveFile = File(lastSavedPath + "/" + projectName).saveDlg("Salvar Projeto Como");
         if (saveFile) {
             try {

@@ -2,14 +2,14 @@
 {
   "info": {
     "description": "Arquivo de configuração mestre para carregar as fontes de dados (libraries) utilizadas nas ferramentas GNEWS-D9.",
-    "version": "1.0",
-    "last_updated": "2025-08-02"
+    "version": "1.1",
+    "last_updated": "2025-08-07"
   },
   "data_paths": {
     "names": "../libraries/dados_json/DADOS_equipe_gnews.json",
-    "tags": "../libraries/dados_json/DADOS_equipe_gnews.json",
     "productions": "../libraries/dados_json/DADOS_programacao_gnews.json",
-    "arts": "../libraries/dados_json/DADOS_artes_gnews.json"
+    "arts": "../libraries/dados_json/DADOS_artes_gnews.json",
+    "tags": "../libraries/dados_json/DADOS_equipe_gnews.json"
   },
   "inline_data": {
     "versions": [

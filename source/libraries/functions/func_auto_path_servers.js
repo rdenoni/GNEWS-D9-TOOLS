@@ -1,228 +1,200 @@
-// func_auto_path_servers.js
+// func_auto_path_servers.js (VERSÃO FINAL - Lógica de detecção corrigida)
 
-function loadJsonFileForAutoPath(filePath) { /* ... (código existente) ... */ }
+function getTags(programacaoData) {
+    var allGnewsProgramTags = [], gnewsJornalTags = [];
+    if (programacaoData && programacaoData.programacao_globonews) {
+        for (var i = 0; i < programacaoData.programacao_globonews.length; i++) {
+            var program = programacaoData.programacao_globonews[i];
+            allGnewsProgramTags.push(program.tagName);
+            if (program.tipo === "Jornal") { gnewsJornalTags.push(program.tagName); }
+        }
+    }
+    return {
+        programas: allGnewsProgramTags,
+        jornais: gnewsJornalTags,
+        artes: ["CREDITO", "CREDITOS", "LETTERING", "LEGENDAS", "LOCALIZADORES", "INSERT", "ALPHA"],
+        pesquisa: ["PESQUISA", "DATAFOLHA", "QUAEST", "IPSOS", "IPEC", "IBGE", "AP", "NORC", "GENIAL"],
+        vizGnews: ["QR CODE", "VIRTUAL", "TOTEM"],
+        artesFant: ["TARJACONFRONTO", "CONFRONTOCAVALINHOS", "CORRIDA"],
+        espFant: ["VINHETACORRIDA", "VINHETACORRIDACAVALINHOS", "CAVALINHOSPATROCINADOS", "FIGURINHAS", "MOLDURASFOGUETE", "MOLDURASSKYPE"],
+        vizFant: ["TELAOBAR", "SELOS", "CONFRONTOSESCUDOS"],
+        touchFant: "TELAOTRANSPARENTE"
+    };
+}
 
-function regrasGNews(compName, caminhosData, programacaoData) {
-    $.writeln("regrasGNews: Analisando comp: " + compName); //
+function findTag(tagArray, compNameUpper) {
+    function createRegExp(tag) {
+        var escapedTag = tag.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&').replace(/_/g, '[\\s-]?');
+        return new RegExp('\\b' + escapedTag + '\\b');
+    }
 
-    var targetPath = null;
-    var foundProgramOrJornalTag = "";
+    for (var i = 0; i < tagArray.length; i++) {
+        var originalTag = tagArray[i];
+        if (createRegExp(originalTag).test(compNameUpper)) {
+            return originalTag;
+        }
+    }
+    
+    var compNameNormalized = compNameUpper.replace(/[\s-]/g, "");
+    for (var j = 0; j < tagArray.length; j++) {
+        var normalizedTag = tagArray[j].replace(/_/g, "");
+        if (normalizedTag !== "" && compNameNormalized.indexOf(normalizedTag) > -1) {
+            return tagArray[j];
+        }
+    }
+    
+    return null;
+}
 
-    var foundGNEWS = compName.includes("GNEWS") > -1;
-    var foundProgramTag = false;
-    var foundJornalTag = false;
-    var foundArteTag = false;
-    var foundPesquisaTag = false;
 
-    var foundCabecalho = compName.includes("CABECALHO");
-    var foundPromo = compName.includes("PROMO");
+function regrasGNews(compName, caminhosData, programacaoData, debugMode) {
+    var trace = [];
+    function logTrace(msg) { if(debugMode) trace.push(msg); }
+    var compNameUpper = compName.toUpperCase();
+    var targetObject = null;
+    var tags = getTags(programacaoData);
+    var foundGNEWS = compNameUpper.indexOf("GNEWS") > -1;
+    var pamMagazineInfo = null, pamHardnewsInfo = null, ilhaHardnewsInfo = null, ilhaMagazineInfo = null, ftpVizInfo = null, mxfArteInfo = null;
 
-    // --- 1. Obter Caminhos Específicos dos dados carregados ---
-    var pamMagazinePath = null;
-    var pamHardnewsPath = null;
-    var ilhaHardnewsPath = null;
-    var ilhaMagazinePath = null;
-    var ftpVizPath = null;
-    var mxfArtePath = null;
-    var ftpEsportePath = null;
-    var ftpCooluxPath = null;
-
-    for (var serverKey in caminhosData) { //
-        if (caminhosData.hasOwnProperty(serverKey)) { //
-            var serverItems = caminhosData[serverKey]; //
-            for (var i = 0; i < serverItems.length; i++) { //
-                if (serverItems[i].nome === "PAM MAGAZINE") { pamMagazinePath = serverItems[i].caminho; } //
-                else if (serverItems[i].nome === "PAM HARDNEWS") { pamHardnewsPath = serverItems[i].caminho; } //
-                else if (serverItems[i].nome === "ILHA HARDNEWS") { ilhaHardnewsPath = serverItems[i].caminho; } //
-                else if (serverItems[i].nome === "ILHA MAGAZINE") { ilhaMagazinePath = serverItems[i].caminho; } //
-                else if (serverItems[i].nome === "FTP VIZ") { ftpVizPath = serverItems[i].caminho; } //
-                else if (serverItems[i].nome === "MXF ARTE") { mxfArtePath = serverItems[i].caminho; } //
-                else if (serverItems[i].nome === "FTP ESPORTE") { ftpEsportePath = serverItems[i].caminho; } //
-                else if (serverItems[i].nome === "FTP COLUX") { ftpCooluxPath = serverItems[i].caminho; } //
+    for (var serverKey in caminhosData) {
+        if (caminhosData.hasOwnProperty(serverKey)) {
+            var serverItems = caminhosData[serverKey];
+            for (var i = 0; i < serverItems.length; i++) {
+                var item = serverItems[i];
+                if (item.nome === "PAM MAGAZINE") { pamMagazineInfo = item; }
+                else if (item.nome === "PAM HARDNEWS") { pamHardnewsInfo = item; }
+                else if (item.nome === "PARA ILHA HARDNEWS") { ilhaHardnewsInfo = item; } // Corrigido para corresponder ao JSON
+                else if (item.nome === "PARA ILHA MAGAZINE") { ilhaMagazineInfo = item; } // Corrigido para corresponder ao JSON
+                else if (item.nome === "FTP VIZ") { ftpVizInfo = item; }
+                else if (item.nome === "MXF ARTE") { mxfArteInfo = item; }
             }
         }
     }
-
-    if (!pamMagazinePath || !pamHardnewsPath || !ilhaHardnewsPath || !ilhaMagazinePath || !ftpVizPath || !mxfArtePath) {
-        $.writeln("regrasGNews: ERRO: Um ou mais caminhos GNEWS essenciais não foram encontrados no DADOS_caminhos_gnews.json."); //
-        return null;
-    }
-
-    // --- 2. Obter Tags de Programa e Jornal dos dados carregados ---
-    var allGnewsProgramTags = [];
-    var gnewsJornalTags = [];
-    if (programacaoData && programacaoData.programacao_globonews) { //
-        for (var i = 0; i < programacaoData.programacao_globonews.length; i++) { //
-            var program = programacaoData.programacao_globonews[i]; //
-            allGnewsProgramTags.push(program.tagName); //
-            if (program.tipo === "Jornal") { //
-                gnewsJornalTags.push(program.tagName); //
-            }
+    
+    var foundProgramOrJornalTag = findTag(tags.programas, compNameUpper);
+    var isJornal = findTag(tags.jornais, compNameUpper) !== null;
+    var isArte = findTag(tags.artes, compNameUpper) !== null;
+    var isPesquisa = findTag(tags.pesquisa, compNameUpper) !== null;
+    var isVizGnews = findTag(tags.vizGnews, compNameUpper) !== null;
+    var isPrograma = foundProgramOrJornalTag !== null;
+    var isCabecalho = compNameUpper.indexOf("CABECALHO") > -1;
+    var isPromo = compNameUpper.indexOf("PROMO") > -1;
+    var subfolderForIlha = (foundProgramOrJornalTag) ? "\\" + foundProgramOrJornalTag : "";
+    
+    logTrace("--- Avaliando Regras GNEWS ---");
+    if (foundGNEWS) {
+        logTrace("Palavra 'GNEWS' encontrada. Verificando regras...");
+        if (isCabecalho && ftpVizInfo) { 
+            logTrace("Regra 'CABECALHO' ativada... SUCESSO!");
+            targetObject = { nome: ftpVizInfo.nome, caminho: ftpVizInfo.caminho }; 
+        }
+        else if (isPromo && mxfArteInfo) { 
+            logTrace("Regra 'PROMO' ativada... SUCESSO!");
+            targetObject = { nome: mxfArteInfo.nome, caminho: mxfArteInfo.caminho }; 
+        }
+        else if (isVizGnews && ftpVizInfo) {
+            logTrace("Regra 'VIZ GNEWS (QR/Virtual/Totem)' ativada... SUCESSO!");
+            targetObject = { nome: ftpVizInfo.nome, caminho: ftpVizInfo.caminho };
+        }
+        else if (isPesquisa && pamHardnewsInfo && ilhaHardnewsInfo) { 
+            logTrace("Regra 'PESQUISA' (Duplo Destino) ativada... SUCESSO!");
+            targetObject = { 
+                nome: "PAM HARDNEWS E PARA ILHA HARDNEWS", // CORRIGIDO
+                caminho: pamHardnewsInfo.caminho + "\nE TAMBÉM:\n" + ilhaHardnewsInfo.caminho 
+            }; 
+        }
+        else if (isJornal && isArte && ilhaHardnewsInfo) { 
+            logTrace("Regra 'Jornal + Arte' ativada... SUCESSO!");
+            targetObject = { nome: "PARA ILHA HARDNEWS", caminho: ilhaHardnewsInfo.caminho + "\\GNEWS" + subfolderForIlha }; 
+        }
+        else if (isPrograma && !isJornal && isArte && ilhaMagazineInfo) {
+             logTrace("Regra 'Programa (não jornal) + Arte' ativada... SUCESSO!");
+             targetObject = { nome: "PARA ILHA MAGAZINE", caminho: ilhaMagazineInfo.caminho + "\\GNEWS" + subfolderForIlha }; 
+        }
+        else if (isJornal && pamHardnewsInfo) { 
+            logTrace("Regra 'Apenas Jornal' ativada... SUCESSO!");
+            targetObject = { nome: pamHardnewsInfo.nome, caminho: pamHardnewsInfo.caminho }; 
+        }
+        else if (isPrograma && pamMagazineInfo) {
+             logTrace("Regra 'Apenas Programa' ativada... SUCESSO!");
+             targetObject = { nome: pamMagazineInfo.nome, caminho: pamMagazineInfo.caminho }; 
+        } else {
+            logTrace("Nenhuma regra específica da GNEWS correspondeu.");
         }
     } else {
-        $.writeln("regrasGNews: ERRO: Dados de programação GNEWS incompletos ou ausentes no DADOS_programacao_gnews.json."); //
-        return null;
+        logTrace("Palavra 'GNEWS' não encontrada. Pulando regras GNEWS.");
     }
-
-    // --- 3. Definir Tags de Arte e Pesquisa ---
-    var artesGnIlhaTags = ["CREDITO", "LETTERING", "LEGENDAS", "LOCALIZADORES", "INSERT", "ALPHA"];
-    var pesquisaTags = ["pesquisa", "pesquisas", "Datafolha", "quaest", "ipsos", "ipec", "IBGE", "AP", "NORC", "genial"];
-
-    // --- 4. Avaliar as Condições de Match no Nome da Composição ---
-    for (var i = 0; i < allGnewsProgramTags.length; i++) {
-        if (compName.includes(allGnewsProgramTags[i])) {
-            foundProgramTag = true;
-            foundProgramOrJornalTag = allGnewsProgramTags[i];
-            $.writeln("regrasGNews: Tag de programa/jornal encontrada: " + allGnewsProgramTags[i]);
-            break;
-        }
-    }
-    for (var i = 0; i < gnewsJornalTags.length; i++) {
-        if (compName.includes(gnewsJornalTags[i])) {
-            foundJornalTag = true;
-            foundProgramOrJornalTag = gnewsJornalTags[i];
-            $.writeln("regrasGNews: Tag de jornal específica encontrada: " + gnewsJornalTags[i]);
-            break;
-        }
-    }
-    for (var i = 0; i < artesGnIlhaTags.length; i++) {
-        if (compName.includes(artesGnIlhaTags[i])) {
-            foundArteTag = true;
-            $.writeln("regrasGNews: Tag de arte encontrada: " + artesGnIlhaTags[i]);
-            break;
-        }
-    }
-    for (var i = 0; i < pesquisaTags.length; i++) {
-        if (compName.includes(pesquisaTags[i])) {
-            foundPesquisaTag = true;
-            $.writeln("regrasGNews: Tag de pesquisa encontrada: " + pesquisaTags[i]);
-            break;
-        }
-    }
-
-    var subfolderForIlha = (foundProgramOrJornalTag) ? "\\" + foundProgramOrJornalTag : "";
-
-    // --- 5. Lógica de Decisão para o Caminho (com Prioridade) ---
-    if (foundGNEWS && foundCabecalho) {
-        targetPath = ftpVizPath;
-        $.writeln("regrasGNews: Regra 'FTP VIZ (CABECALHO)' ativada. Caminho: " + targetPath);
-    } else if (foundGNEWS && foundPromo) {
-        targetPath = mxfArtePath;
-        $.writeln("regrasGNews: Regra 'MXF ARTE (PROMO)' ativada. Caminho: " + targetPath);
-    } else if (foundGNEWS && foundPesquisaTag) {
-        targetPath = pamHardnewsPath; // Escolhido como padrão para Pesquisa, conforme discussão anterior
-        $.writeln("regrasGNews: Regra 'Pesquisa' ativada. Caminho: " + targetPath);
-    } else if (foundGNEWS && foundJornalTag && foundArteTag) {
-        targetPath = ilhaHardnewsPath + "\\GNEWS" + subfolderForIlha;
-        $.writeln("regrasGNews: Regra 'ILHA HARDNEWS (Jornal + Arte)' ativada. Caminho: " + targetPath);
-    } else if (foundGNEWS && foundProgramTag && foundArteTag) {
-        targetPath = ilhaMagazinePath + "\\GNEWS" + subfolderForIlha;
-        $.writeln("regrasGNews: Regra 'ILHA MAGAZINE (Programa + Arte)' ativada. Caminho: " + targetPath);
-    } else if (foundGNEWS && foundJornalTag) {
-        targetPath = pamHardnewsPath;
-        $.writeln("regrasGNews: Regra 'PAM HARDNEWS (Jornal)' ativada. Caminho: " + targetPath);
-    } else if (foundGNEWS && foundProgramTag) {
-        targetPath = pamMagazinePath;
-        $.writeln("regrasGNews: Regra 'PAM MAGAZINE (Programa)' ativada. Caminho: " + targetPath);
-    }
-
-    if (!targetPath) {
-        $.writeln("regrasGNews: Nenhum caminho específico GNEWS encontrado para: " + compName);
-    }
-    return targetPath;
+    
+    if (debugMode) { return { result: targetObject, trace: trace }; } 
+    else { return targetObject; }
 }
 
-function regrasFant(compName, caminhosData) {
-    $.writeln("regrasFant: Analisando comp: " + compName); //
-
-    var targetPath = null;
-
-    var ilhaMagazinePathForFant = null;
-    var ftpEsportePath = null;
-    var ftpVizPath = null;
-    var ftpCooluxPath = null;
-
-    for (var serverKey in caminhosData) { //
-        if (caminhosData.hasOwnProperty(serverKey)) { //
-            var serverItems = caminhosData[serverKey]; //
-            for (var i = 0; i < serverItems.length; i++) { //
-                if (serverItems[i].nome === "ILHA MAGAZINE") { ilhaMagazinePathForFant = serverItems[i].caminho; } //
-                else if (serverItems[i].nome === "FTP ESPORTE") { ftpEsportePath = serverItems[i].caminho; } //
-                else if (serverItems[i].nome === "FTP VIZ") { ftpVizPath = serverItems[i].caminho; } //
-                else if (serverItems[i].nome === "FTP COLUX") { ftpCooluxPath = serverItems[i].caminho; } //
+function regrasFant(compName, caminhosData, programacaoData, debugMode) {
+    var trace = [];
+    function logTrace(msg) { if(debugMode) trace.push(msg); }
+    var compNameUpper = compName.toUpperCase();
+    var compNameNormalized = compNameUpper.replace(/[\s_-]/g, "");
+    var targetObject = null;
+    var tags = getTags(programacaoData);
+    logTrace("--- Avaliando Regras FANT ---");
+    if (compNameUpper.indexOf("FANT") === -1) {
+        logTrace("Palavra 'FANT' não encontrada. Pulando regras FANT.");
+        if (debugMode) { return { result: null, trace: trace }; }
+        return null;
+    }
+    logTrace("Palavra 'FANT' encontrada. Verificando regras...");
+    var ilhaMagazineInfo = null, ftpEsporteInfo = null, ftpVizInfo = null, ftpCooluxInfo = null;
+    for (var serverKey in caminhosData) {
+        if (caminhosData.hasOwnProperty(serverKey)) {
+            var serverItems = caminhosData[serverKey];
+            for (var i = 0; i < serverItems.length; i++) {
+                var item = serverItems[i];
+                if (item.nome === "ILHA MAGAZINE") { ilhaMagazineInfo = item; }
+                else if (item.nome === "FTP ESPORTE") { ftpEsporteInfo = item; }
+                else if (item.nome === "FTP VIZ") { ftpVizInfo = item; }
+                else if (item.nome === "FTP COLUX") { ftpCooluxInfo = item; }
             }
         }
     }
+    
+    var foundArtesFtIlhaTag = findTag(tags.artesFant, compNameUpper);
+    var foundFantEspTag = findTag(tags.espFant, compNameUpper);
+    var foundFantVizTag = findTag(tags.vizFant, compNameUpper);
+    var foundCooluxChamadas = compNameUpper.indexOf("CHAMADAS") > -1;
+    var foundCooluxSab = compNameUpper.indexOf("SAB") > -1;
+    var foundTvTouchScreenTag = compNameNormalized.indexOf(tags.touchFant) > -1;
 
-    if (!ilhaMagazinePathForFant || !ftpEsportePath || !ftpVizPath || !ftpCooluxPath) {
-        $.writeln("regrasFant: ERRO: Um ou mais caminhos FANT essenciais não foram encontrados no DADOS_caminhos_gnews.json."); //
-        return null;
+    if (foundTvTouchScreenTag) {
+        logTrace("Regra 'TV TouchScreen' ativada... SUCESSO!");
+        targetObject = { nome: "TV TouchScreen", caminho: "Não aplicável - verificar com produção" };
     }
-
-    var artesFtIlhaTags = ["TARJA CONFRONTO", "CONFRONTO CAVALINHOS", "CORRIDA"];
-    var fantEspTags = ["VINHETA CORRIDA", "VINHETA CORRIDA CAVALINHOS", "CAVALINHOS PATROCINADOS", "FIGURINHAS", "MOLDURAS FOGUETE", "MOLDURAS SKYPE"];
-    var fantVizTags = ["TELAO BAR", "SELOS", "CONFRONTOS ESCUDOS"];
-    var fantCooluxTags = ["CHAMADAS", "SAB"];
-    var fantTvTouchScreenTag = "TELAO TRANSPARENTE";
-
-    var foundArtesFtIlhaTag = false;
-    var foundFantEspTag = false;
-    var foundFantVizTag = false;
-    var foundCooluxChamadas = compName.includes("CHAMADAS");
-    var foundCooluxSab = compName.includes("SAB");
-    var foundTvTouchScreenTag = compName.includes(fantTvTouchScreenTag);
-
-    for (var i = 0; i < artesFtIlhaTags.length; i++) {
-        if (compName.includes(artesFtIlhaTags[i])) {
-            foundArtesFtIlhaTag = true;
-            $.writeln("regrasFant: Tag de arte FANT encontrada: " + artesFtIlhaTags[i]);
-            break;
-        }
+    else if (foundCooluxChamadas && foundCooluxSab && ftpCooluxInfo) {
+        logTrace("Regra 'FTP COOLUX (Chamadas Sábado)' ativada... SUCESSO!");
+        targetObject = { nome: ftpCooluxInfo.nome, caminho: ftpCooluxInfo.caminho };
     }
-    for (var i = 0; i < fantEspTags.length; i++) {
-        if (compName.includes(fantEspTags[i])) {
-            foundFantEspTag = true;
-            $.writeln("regrasFant: Tag FANT especial encontrada: " + fantEspTags[i]);
-            break;
-        }
+    else if (foundFantVizTag && ftpVizInfo) {
+        logTrace("Regra 'FTP VIZ (Fantástico)' ativada... SUCESSO!");
+        targetObject = { nome: ftpVizInfo.nome, caminho: ftpVizInfo.caminho };
     }
-    for (var i = 0; i < fantVizTags.length; i++) {
-        if (compName.includes(fantVizTags[i])) {
-            foundFantVizTag = true;
-            $.writeln("regrasFant: Tag FANT VIZ encontrada: " + fantVizTags[i]);
-            break;
-        }
+    else if (foundFantEspTag && ftpEsporteInfo) {
+        logTrace("Regra 'FTP ESPORTE (Fantástico)' ativada... SUCESSO!");
+        targetObject = { nome: ftpEsporteInfo.nome, caminho: ftpEsporteInfo.caminho + "\\FANTASTICO" };
     }
-
-    if (compName.includes("FANT") && foundTvTouchScreenTag) {
-        targetPath = "TV TouchScreen";
-        $.writeln("regrasFant: Regra 'TV TouchScreen' ativada. Caminho: " + targetPath);
-    } else if (compName.includes("FANT") && foundCooluxChamadas && foundCooluxSab) {
-        targetPath = ftpCooluxPath;
-        $.writeln("regrasFant: Regra 'FTP COOLUX (Chamadas Sábado)' ativada. Caminho: " + targetPath);
-    } else if (compName.includes("FANT") && foundFantVizTag) {
-        targetPath = ftpVizPath;
-        $.writeln("regrasFant: Regra 'FTP VIZ (Fantástico)' ativada. Caminho: " + targetPath);
-    } else if (compName.includes("FANT") && foundFantEspTag) {
-        targetPath = ftpEsportePath + "\\FANTASTICO";
-        $.writeln("regrasFant: Regra 'FTP ESPORTE (Fantástico)' ativada. Caminho: " + targetPath);
-    } else if (compName.includes("FANT") && foundArtesFtIlhaTag) {
-        targetPath = ilhaMagazinePathForFant + "\\FANT";
-        $.writeln("regrasFant: Regra 'PARA ILHA FANTÁSTICO (Arte Específica)' ativada. Caminho: " + targetPath);
-    } else if (compName.includes("FANT")) {
-        targetPath = ilhaMagazinePathForFant + "\\FANT";
-        $.writeln("regrasFant: Regra 'PARA ILHA FANTÁSTICO (Genérico)' ativada. Caminho: " + targetPath);
+    else if (foundArtesFtIlhaTag && ilhaMagazineInfo) {
+        logTrace("Regra 'ILHA MAGAZINE (Arte Específica)' ativada... SUCESSO!");
+        targetObject = { nome: "PARA ILHA FANTÁSTICO", caminho: ilhaMagazineInfo.caminho + "\\FANT" };
     }
-
-    if (!targetPath) {
-        $.writeln("regrasFant: Nenhum caminho específico FANT encontrado para: " + compName);
+    else if (ilhaMagazineInfo) {
+        logTrace("Regra 'ILHA MAGAZINE (Genérico)' ativada... SUCESSO!");
+        targetObject = { nome: "PARA ILHA FANTÁSTICO", caminho: ilhaMagazineInfo.caminho + "\\FANT" };
+    } else {
+        logTrace("Nenhuma regra específica do FANT correspondeu.");
     }
-    return targetPath;
+    if (debugMode) { return { result: targetObject, trace: trace }; } 
+    else { return targetObject; }
 }
 
-if (typeof $.global.MailMakerAutoPath === 'undefined') {
-    $.global.MailMakerAutoPath = {};
-}
+$.global.MailMakerAutoPath = {};
 $.global.MailMakerAutoPath.regrasGNews = regrasGNews;
 $.global.MailMakerAutoPath.regrasFant = regrasFant;
-$.global.MailMakerAutoPath.loadJsonFile = loadJsonFileForAutoPath;
+$.global.MailMakerAutoPath.getTags = getTags;

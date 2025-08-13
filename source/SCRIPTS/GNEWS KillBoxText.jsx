@@ -1,8 +1,10 @@
 /*
-GNEWS KillBoxText v7.1 - Final (Themed)
+GNEWS KillBoxText v7.3 - Final (Themed & Advanced Help)
 
 - Lógica 100% original preservada.
 - Interface redesenhada com o tema do Padeiro.
+- Sistema de ajuda avançado com janela dedicada e abas.
+- Removidas as funções de tema duplicadas para restaurar a aparência.
 */
 
 function GNEWS_KillBoxText_UI() {
@@ -298,7 +300,7 @@ function GNEWS_KillBoxText_UI() {
 
     // --- INTERFACE GRÁFICA REDESENHADA ---
     
-    var SCRIPT_NAME = "GNEWS KillBoxText", SCRIPT_VERSION = "v7.1";
+    var SCRIPT_NAME = "GNEWS KillBoxText", SCRIPT_VERSION = "v7.3";
     var win = new Window("palette", SCRIPT_NAME + " " + SCRIPT_VERSION);
     win.orientation = "column";
     win.alignChildren = ["fill", "top"];
@@ -358,12 +360,96 @@ function GNEWS_KillBoxText_UI() {
         runConversion(mode);
     };
 
+    // --- NOVO SISTEMA DE AJUDA ---
     helpBtn.leftClick.onClick = function() {
-        alert("GNEWS KillBoxText v7.1\n\nEsta ferramenta converte camadas de texto que usam 'Box Text' (texto de parágrafo) em camadas de 'Point Text' (texto de ponto), que são mais fáceis de animar.\n\nMODOS:\n- INTEIRO: Converte a caixa de texto em uma única camada de texto de ponto.\n- POR LINHA: Cria uma nova camada de texto para cada linha.\n- POR PALAVRA: Cria uma nova camada de texto para cada palavra.\n- POR LETRA: Cria uma nova camada de texto para cada letra.");
+        var TARGET_HELP_WIDTH = 450;
+        var MARGIN_SIZE = 15;
+        
+        var helpWin = new Window("palette", "Ajuda - " + SCRIPT_NAME, undefined, { closeButton: true });
+        helpWin.orientation = "column";
+        helpWin.alignChildren = ["fill", "fill"];
+        helpWin.spacing = 10;
+        helpWin.margins = MARGIN_SIZE;
+        helpWin.preferredSize = [TARGET_HELP_WIDTH, -1];
+
+        setBgColor(helpWin, bgColor1);
+        
+        var headerPanel = helpWin.add("panel", undefined, "");
+        headerPanel.orientation = "column";
+        headerPanel.alignChildren = ["fill", "top"];
+        headerPanel.margins = 15;
+        
+        var titleText = headerPanel.add("statictext", undefined, "AJUDA - GNEWS KILLBOXTEXT");
+        titleText.graphics.font = ScriptUI.newFont("Arial", "Bold", 16);
+        titleText.alignment = "center";
+        setFgColor(titleText, highlightColor1);
+
+        var mainDescText = headerPanel.add("statictext", undefined, "Esta ferramenta converte camadas de texto de parágrafo ('Box Text') em camadas de texto de ponto ('Point Text'), separando-as para facilitar a animação.", { multiline: true });
+        mainDescText.alignment = ["fill", "fill"];
+        setFgColor(mainDescText, normalColor1);
+
+        var topicsTabPanel = helpWin.add("tabbedpanel");
+        topicsTabPanel.alignment = ["fill", "fill"];
+        topicsTabPanel.margins = 15;
+
+        var allHelpTopics = [{
+            tabName: "Modos de Conversão",
+            topics: [
+                { title: "▶ COMO USAR:", text: "Selecione uma ou mais camadas de texto na sua composição, escolha o modo de conversão desejado e clique no botão 'Converter'." },
+                { title: "▶ MODO INTEIRO:", text: "Converte toda a caixa de texto em uma única camada de 'Point Text', mantendo a formatação e a aparência geral. Ideal para quando você só precisa se livrar da caixa de texto." },
+                { title: "▶ MODO POR LINHA:", text: "Cria uma nova camada de texto separada para cada linha do texto original. Útil para animar a entrada de linhas inteiras." },
+                { title: "▶ MODO POR PALAVRA:", text: "Cria uma nova camada de texto para cada palavra, mantendo a posição e o alinhamento de cada uma. Perfeito para animações de palavras individuais." },
+                { title: "▶ MODO POR LETRA:", text: "Cria uma nova camada de texto para cada caractere. Este é o modo mais detalhado, ideal para animações complexas de caracteres (pode gerar muitas camadas)." }
+            ]
+        }];
+
+        for (var s = 0; s < allHelpTopics.length; s++) {
+            var currentTabSection = allHelpTopics[s];
+            var tab = topicsTabPanel.add("tab", undefined, currentTabSection.tabName);
+            tab.orientation = "column";
+            tab.alignChildren = ["fill", "top"];
+            tab.spacing = 10;
+            tab.margins = [10, 5, 10, 5];
+
+            for (var i = 0; i < currentTabSection.topics.length; i++) {
+                var topic = currentTabSection.topics[i];
+                var topicGrp = tab.add("group");
+                topicGrp.orientation = "column";
+                topicGrp.alignChildren = "fill";
+                topicGrp.spacing = 5;
+                topicGrp.margins.left = (topic.title.indexOf("▶") === 0) ? 0 : 25;
+
+                var topicTitle = topicGrp.add("statictext", undefined, topic.title);
+                topicTitle.graphics.font = ScriptUI.newFont("Arial", "Bold", 12);
+                setFgColor(topicTitle, highlightColor1);
+
+                if(topic.text !== ""){
+                    var topicText = topicGrp.add("statictext", undefined, topic.text, { multiline: true });
+                    topicText.graphics.font = ScriptUI.newFont("Arial", "Regular", 11);
+                    setFgColor(topicText, normalColor1);
+                }
+            }
+        }
+
+        var closeBtnGrp = helpWin.add("group");
+        closeBtnGrp.alignment = "center";
+        closeBtnGrp.margins = [0, 10, 0, 0];
+        var closeBtn = closeBtnGrp.add("button", undefined, "Fechar");
+        closeBtn.onClick = function() { helpWin.close(); };
+
+        helpWin.layout.layout(true);
+        helpWin.center();
+        helpWin.show();
     };
 
     win.center();
     win.show();
 }
 
-GNEWS_KillBoxText_UI();
+try {
+    // Este script depende de variáveis e funções de tema (ex: bgColor1, setBgColor, themeButton)
+    // que devem ser definidas no escopo global pelo painel que o carrega.
+    GNEWS_KillBoxText_UI();
+} catch(e) {
+    alert("Erro ao iniciar GNEWS KillBoxText:\n" + e.toString());
+}
