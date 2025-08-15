@@ -1,9 +1,10 @@
 /***************************************************
  * GNEWS RenCompSave.jsx
- * Versão: 7.3 - Completo
- * Última Atualização: 2025-08-02
- * Descrição: Versão completa com a lógica de leitura
- * para o novo formato do DADOS_programacao_gnews.json.
+ * Versão: 7.4 - Modificado
+ * Última Atualização: 2025-08-15
+ * Descrição: Versão com inicialização de valores padrão
+ * e seleção de produção baseada em horário. Não
+ * captura mais a comp ativa ao iniciar.
  ***************************************************/
 
 function GNEWS_RenCompSave_UI() {
@@ -110,7 +111,8 @@ function GNEWS_RenCompSave_UI() {
                 tags: tagsMap,
                 productions: productionsList,
                 arts: artsList,
-                versions: versionsList
+                versions: versionsList,
+                programacaoRaw: programacaoData // ADICIONADO: Retorna os dados brutos de programação
             };
 
         } catch (e) {
@@ -134,7 +136,106 @@ function GNEWS_RenCompSave_UI() {
     var productions = loadedData.productions;
     var arts = loadedData.arts;
     var versions = loadedData.versions;
+    var programacaoData = loadedData.programacaoRaw;
 
+    // =======================================================================
+    // FUNÇÃO PARA DEFINIR VALORES PADRÃO NA ABERTURA
+    // =======================================================================
+function setDefaultValuesWithTimeLogic() {
+    // Define valores padrão para campos de texto e checkbox
+    descInput.text = "";
+    editorInput.text = "";
+    alterCheck.value = false;
+
+    // Define a seleção padrão para "NOME"
+    for (var i = 0; i < nameDrop.items.length; i++) {
+        if (nameDrop.items[i].text.toLowerCase() === "d9") {
+            nameDrop.selection = i;
+            break;
+        }
+    }
+
+    // Define a seleção padrão para "TIPO"
+    for (var i = 0; i < artDrop.items.length; i++) {
+        if (artDrop.items[i].text.toLowerCase() === "base caracter") {
+            artDrop.selection = i;
+            break;
+        }
+    }
+    
+    // Define a seleção padrão para "VERSÃO"
+    versionDrop.selection = 0; // "Nenhuma"
+
+    // --- NOVA LÓGICA CORRIGIDA ---
+
+    // Função auxiliar para verificar se o dia atual corresponde à regra de exibição
+    function isDayInSchedule(scheduleString, currentDay) {
+        var s = scheduleString.toLowerCase();
+        
+        if (s.indexOf("diariamente") > -1 || s.indexOf("segunda a domingo") > -1) {
+            return true;
+        }
+        if (s.indexOf("segunda a sexta") > -1) {
+            return ["seg", "ter", "qua", "qui", "sex"].indexOf(currentDay) > -1;
+        }
+        if (s.indexOf("sábados e domingos") > -1) {
+            return ["sab", "dom"].indexOf(currentDay) > -1;
+        }
+        if (s.indexOf("segunda") > -1) return currentDay === "seg";
+        if (s.indexOf("terça") > -1) return currentDay === "ter";
+        if (s.indexOf("quarta") > -1) return currentDay === "qua";
+        if (s.indexOf("quinta") > -1) return currentDay === "qui";
+        if (s.indexOf("sexta") > -1) return currentDay === "sex";
+        if (s.indexOf("sábado") > -1) return currentDay === "sab";
+        if (s.indexOf("domingo") > -1) return currentDay === "dom";
+
+        return false;
+    }
+
+    try {
+        var now = new Date();
+        var dayMap = ["dom", "seg", "ter", "qua", "qui", "sex", "sab"];
+        var currentDay = dayMap[now.getDay()];
+        var currentTime = pad(now.getHours()) + ":" + pad(now.getMinutes());
+        var productionFound = false;
+
+        for (var i = 0; i < programacaoData.programacao_globonews.length; i++) {
+            var programa = programacaoData.programacao_globonews[i];
+            
+            if (programa.horario && programa.dias_exibicao) {
+                // 1. Quebra a string de horário em início e fim
+                var timeParts = programa.horario.split(" - ");
+                var startTime = timeParts[0];
+                var endTime = timeParts[1];
+
+                // 2. Verifica se o dia de hoje está na regra de exibição
+                if (isDayInSchedule(programa.dias_exibicao, currentDay)) {
+                    // 3. Verifica se a hora atual está dentro do intervalo
+                    if (currentTime >= startTime && currentTime < endTime) {
+                        var tagNameFormatted = programa.tagName.replace(/_/g, ' ').toLowerCase();
+                        var productionName = tagNameFormatted.replace(/\b\w/g, function(l){ return l.toUpperCase(); });
+                        
+                        for (var p = 0; p < prodDrop.items.length; p++) {
+                            if (prodDrop.items[p].text === productionName) {
+                                prodDrop.selection = p;
+                                productionFound = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            if(productionFound) break;
+        }
+        if(!productionFound) {
+            prodDrop.selection = 0; // Fallback
+        }
+    } catch(e){
+         prodDrop.selection = 0; // Fallback em caso de erro
+         $.writeln("ERRO CRÍTICO na função de horário: " + e.toString());
+    }
+}
+    
     // =======================================================================
     // LÓGICA E UI DO SCRIPT
     // =======================================================================
@@ -487,8 +588,7 @@ function updatePreview() {
             }
         }
     }
-    if (app.project.activeItem instanceof CompItem) { updateFieldsFromComp(); } else { updatePreview(); }
-
+    
     captureBtn.leftClick.onClick = function() {
         if (!(app.project.activeItem instanceof CompItem)) { updateStatusText(lang[currentLang].noComp); return; }
         updateFieldsFromComp();
@@ -562,7 +662,7 @@ renameBtn.leftClick.onClick = function() {
         app.endUndoGroup();
     };
     
-organizeBtn.leftClick.onClick = function() {
+    organizeBtn.leftClick.onClick = function() {
         if (!app.project) {
             updateStatusText("Por favor, abra um projeto.");
             return;
@@ -873,6 +973,10 @@ saveBtn.leftClick.onClick = function() {
 
     win.center();
     win.show();
+    
+    // Define os valores padrão ao iniciar o script e atualiza a pré-visualização
+    setDefaultValuesWithTimeLogic();
+    updatePreview();
 }
 
 if (app.project) {
