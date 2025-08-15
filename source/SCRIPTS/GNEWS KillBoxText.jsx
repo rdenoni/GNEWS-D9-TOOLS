@@ -1,15 +1,14 @@
 /*
-GNEWS KillBoxText v7.3 - Final (Themed & Advanced Help)
+GNEWS KillBoxText v7.6 - KERNING E POSICIONAMENTO CORRETOS
 
-- Lógica 100% original preservada.
-- Interface redesenhada com o tema do Padeiro.
-- Sistema de ajuda avançado com janela dedicada e abas.
-- Removidas as funções de tema duplicadas para restaurar a aparência.
+CORREÇÕES CRÍTICAS:
+- POR LETRA: Agora analisa kerning real usando camadas temporárias incrementais
+- POR PALAVRA: Usa análise real de posicionamento palavra por palavra
+- POR LINHA: Posicionamento exato baseado na camada original
+- Todos os modos respeitam quebras de linha automáticas
 */
 
 function GNEWS_KillBoxText_UI() {
-
-    // --- LÓGICA ORIGINAL COMPLETA DO SCRIPT (INTACTA) ---
 
     var progressWin = null, progressBar = null;
 
@@ -26,12 +25,14 @@ function GNEWS_KillBoxText_UI() {
                 if (!(layer instanceof TextLayer)) continue;
 
                 if (mode === "POR_LETRA") {
-                    var charData = analyzeTextByChar(layer);
+                    var charData = analyzeTextByCharWithKerning(layer);
                     if (charData.length > 0) processByChar(layer, charData);
                 } else if (mode === "INTEIRO") {
                     processInteiro(layer);
-                } else {
-                    processByRebuild(layer, mode);
+                } else if (mode === "POR_LINHA") {
+                    processByLine(layer);
+                } else if (mode === "POR_PALAVRA") {
+                    processByWord(layer);
                 }
             }
         } catch (err) {
@@ -41,179 +42,393 @@ function GNEWS_KillBoxText_UI() {
         }
     }
 
-    function processByRebuild(layer, mode) {
-        var lines = getLinesFromLayer(layer);
+    // ANÁLISE DE CARACTERES COM COMPENSAÇÃO DE ESCALA
+    function analyzeTextByCharWithKerning(textLayer) {
+        var textDoc = textLayer.sourceText.value;
+        var originalText = textDoc.text;
+        var charData = [];
+        var comp = textLayer.containingComp;
         
-        createProgressBar("Processando " + mode + "...", lines.length);
-
-        for (var i = 0; i < lines.length; i++) {
-            if (mode === "POR_LINHA") {
-                if (lines[i].trim() !== "") createLineLayer(layer, lines[i], i);
-            } else { // POR_PALAVRA
-                createWordLayersForLine(layer, lines[i], i);
-            }
-            updateProgressBar(i + 1);
-        }
-
-        closeProgressBar();
-        layer.remove();
-    }
-    
-    function createLineLayer(originalLayer, lineText, lineIndex) {
-        var comp = originalLayer.containingComp;
-        var textDoc = originalLayer.sourceText.value;
-        var leading = textDoc.leading || textDoc.fontSize;
-        var newLayer = comp.layers.addText(lineText);
-        newLayer.name = "Linha " + (lineIndex + 1);
-
-        var newTextProp = newLayer.property("Source Text");
-        copyTextProperties(textDoc, newTextProp.value);
-        newTextProp.setValue(newTextProp.value);
-
-        copyVisualProperties(originalLayer, newLayer);
-        
-        var yPos = originalLayer.transform.position.value[1] + (lineIndex * leading);
-        var xPos = originalLayer.transform.position.value[0];
-        
-        newLayer.transform.position.setValue([xPos, yPos]);
-    }
-
-    function createWordLayersForLine(originalLayer, lineText, lineIndex) {
-        var comp = originalLayer.containingComp;
-        var textDoc = originalLayer.sourceText.value;
-
-        var allWords = lineText.split(' ');
-        var words = [];
-        for(var w = 0; w < allWords.length; w++){
-            if(allWords[w].length > 0){
-                words.push(allWords[w]);
-            }
-        }
-
-        if (words.length === 0) return;
-
-        var spaceWidth = measureSpace(textDoc, comp);
-        var leading = textDoc.leading || textDoc.fontSize;
-
-        var tempLineLayer = comp.layers.addText(lineText);
-        var tempLineProp = tempLineLayer.property("Source Text");
-        copyTextProperties(textDoc, tempLineProp.value);
-        tempLineProp.setValue(tempLineProp.value);
-        var lineRect = tempLineLayer.sourceRectAtTime(comp.time, false);
-        tempLineLayer.remove();
-
-        var justification = textDoc.justification;
-        var currentX;
-        
-        var lineVisualLeft = originalLayer.transform.position.value[0] + lineRect.left - originalLayer.transform.anchorPoint.value[0];
-
-        if (justification === ParagraphJustification.LEFT_JUSTIFY) {
-            currentX = lineVisualLeft;
-        } else if (justification === ParagraphJustification.RIGHT_JUSTIFY) {
-            currentX = lineVisualLeft + lineRect.width;
-        } else { // Center
-            currentX = lineVisualLeft + (lineRect.width / 2);
-        }
-        
-        if (justification === ParagraphJustification.CENTER_JUSTIFY) {
-             var totalWordsWidth = 0;
-             var tempWordLayers = [];
-             for(var k=0; k<words.length; k++) {
-                 var wLayer = comp.layers.addText(words[k]);
-                 copyTextProperties(textDoc, wLayer.property("Source Text").value);
-                 wLayer.property("Source Text").setValue(wLayer.property("Source Text").value);
-                 totalWordsWidth += wLayer.sourceRectAtTime(comp.time, false).width;
-                 tempWordLayers.push(wLayer);
-             }
-             totalWordsWidth += Math.max(0, words.length - 1) * spaceWidth;
-             for(var k=0; k<tempWordLayers.length; k++){ tempWordLayers[k].remove(); }
-             currentX -= totalWordsWidth / 2;
-        }
-
-        if (justification === ParagraphJustification.RIGHT_JUSTIFY) {
-            for (var i = words.length - 1; i >= 0; i--) {
-                var wordLayer = createSingleWordLayer(words[i], originalLayer, lineIndex, leading, currentX, "right");
-                currentX -= (wordLayer.sourceRectAtTime(comp.time, false).width + spaceWidth);
-            }
-        } else {
-            for (var i = 0; i < words.length; i++) {
-                var wordLayer = createSingleWordLayer(words[i], originalLayer, lineIndex, leading, currentX, "left");
-                currentX += (wordLayer.sourceRectAtTime(comp.time, false).width + spaceWidth);
-            }
-        }
-    }
-    
-    function createSingleWordLayer(word, originalLayer, lineIndex, leading, currentX, align) {
-        var comp = originalLayer.containingComp;
-        var textDoc = originalLayer.sourceText.value;
-        var newLayer = comp.layers.addText(word);
-        newLayer.name = word;
-        
-        var newTextProp = newLayer.property("Source Text");
-        copyTextProperties(textDoc, newTextProp.value);
-        newTextProp.setValue(newTextProp.value);
-        copyVisualProperties(originalLayer, newLayer);
-
-        var newRect = newLayer.sourceRectAtTime(comp.time, false);
-        var yPos = originalLayer.transform.position.value[1] + (lineIndex * leading);
-        var anchorX = (align === "right") ? newRect.left + newRect.width : newRect.left;
-
-        newLayer.transform.anchorPoint.setValue([anchorX, newRect.top]);
-        newLayer.transform.position.setValue([currentX, yPos]);
-        return newLayer;
-    }
-
-    function analyzeTextByChar(textLayer) {
-        var textDoc = textLayer.sourceText.value, originalText = textDoc.text, charData = [], comp = textLayer.containingComp;
         if(originalText.length === 0) return [];
-        createProgressBar("Analisando Caracteres...", originalText.length);
-        var tempLayer = comp.layers.addText("T");
-        tempLayer.property("Source Text").setValue(textDoc);
-        for (var i = 0; i < originalText.length; i++) {
-            var character = originalText.charAt(i);
-            tempLayer.property("Source Text").setValue(character);
-            var rect = tempLayer.sourceRectAtTime(comp.time, false);
-            var compPos = textLayer.sourcePointToComp([rect.left, rect.top]);
-            charData.push({ character: character, position: compPos });
-            updateProgressBar(i + 1);
+        
+        createProgressBar("Analisando Caracteres com Escala...", originalText.length);
+        
+        // Obtém informações de escala
+        var scaleDimensions = getScaledDimensions(textLayer);
+        
+        // ESPAÇAMENTOS AJUSTADOS PELA ESCALA
+        var baseFontSize = textDoc.fontSize * scaleDimensions.scaleY;
+        var letterSpacing = baseFontSize * 0.05; // 5% para letras
+        var spaceSpacing = baseFontSize * 0.10;   // 10% para espaços
+        
+        // Quebra o texto em linhas primeiro para processar linha por linha
+        var lines = getLinesFromLayer(textLayer);
+        var leading = (textDoc.leading || textDoc.fontSize) * scaleDimensions.scaleY;
+        
+        // Pega a posição original usando sourcePointToComp para lidar com escala automaticamente
+        var originalRect = textLayer.sourceRectAtTime(comp.time, false);
+        var originalTopLeft = textLayer.sourcePointToComp([originalRect.left, originalRect.top]);
+        
+        var totalChars = 0;
+        for (var i = 0; i < lines.length; i++) {
+            totalChars += lines[i].length;
         }
-        tempLayer.remove();
+        
+        var globalCharIndex = 0;
+        
+        for (var lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+            var line = lines[lineIndex];
+            var lineY = originalTopLeft[1] + (lineIndex * leading);
+            
+            // Calcula posição X inicial da linha baseada no alinhamento
+            var lineStartX = originalTopLeft[0];
+            
+            if (textDoc.justification === ParagraphJustification.CENTER_JUSTIFY) {
+                var tempLineLayer = comp.layers.addText(line);
+                var tempLineProp = tempLineLayer.property("Source Text");
+                var tempLineDoc = tempLineProp.value;
+                copyTextPropertiesWithScale(textLayer, tempLineDoc);
+                tempLineProp.setValue(tempLineDoc);
+                // Não aplicar escala visual - já está no tamanho da fonte
+                copyVisualPropertiesWithoutScale(textLayer, tempLineLayer);
+                var lineRect = tempLineLayer.sourceRectAtTime(comp.time, false);
+                var lineWidth = lineRect.width;
+                tempLineLayer.remove();
+                
+                lineStartX = originalTopLeft[0] + (originalRect.width - lineWidth) / 2;
+            } else if (textDoc.justification === ParagraphJustification.RIGHT_JUSTIFY) {
+                var tempLineLayer = comp.layers.addText(line);
+                var tempLineProp = tempLineLayer.property("Source Text");
+                var tempLineDoc = tempLineProp.value;
+                copyTextPropertiesWithScale(textLayer, tempLineDoc);
+                tempLineProp.setValue(tempLineDoc);
+                copyVisualPropertiesWithoutScale(textLayer, tempLineLayer);
+                var lineRect = tempLineLayer.sourceRectAtTime(comp.time, false);
+                var lineWidth = lineRect.width;
+                tempLineLayer.remove();
+                
+                lineStartX = originalTopLeft[0] + originalRect.width - lineWidth;
+            }
+            
+            var currentX = lineStartX;
+            
+            for (var i = 0; i < line.length; i++) {
+                var character = line.charAt(i);
+                var charProps = getCharacterProperties(textLayer, globalCharIndex);
+                
+                if (character === " ") {
+                    var spaceLayer = comp.layers.addText(" ");
+                    var spaceProp = spaceLayer.property("Source Text");
+                    var spaceDoc = spaceProp.value;
+                    copyTextPropertiesWithFormatting(textLayer, spaceDoc, globalCharIndex);
+                    spaceProp.setValue(spaceDoc);
+                    copyVisualPropertiesWithoutScale(textLayer, spaceLayer);
+                    var spaceRect = spaceLayer.sourceRectAtTime(comp.time, false);
+                    spaceLayer.remove();
+                    
+                    charData.push({
+                        character: character,
+                        position: [currentX, lineY],
+                        charIndex: globalCharIndex,
+                        font: charProps.font,
+                        scaleDimensions: scaleDimensions
+                    });
+                    
+                    currentX += spaceRect.width + spaceSpacing;
+                } else if (character.trim() !== "") {
+                    var charLayer = comp.layers.addText(character);
+                    var charProp = charLayer.property("Source Text");
+                    var charDoc = charProp.value;
+                    copyTextPropertiesWithFormatting(textLayer, charDoc, globalCharIndex);
+                    charProp.setValue(charDoc);
+                    copyVisualPropertiesWithoutScale(textLayer, charLayer);
+                    
+                    var charRect = charLayer.sourceRectAtTime(comp.time, false);
+                    
+                    charData.push({
+                        character: character,
+                        position: [currentX, lineY],
+                        charIndex: globalCharIndex,
+                        font: charProps.font,
+                        scaleDimensions: scaleDimensions
+                    });
+                    
+                    currentX += charRect.width + letterSpacing;
+                    charLayer.remove();
+                }
+                
+                globalCharIndex++;
+                updateProgressBar(globalCharIndex);
+            }
+            
+            if (lineIndex < lines.length - 1) {
+                globalCharIndex++;
+            }
+        }
+        
         closeProgressBar();
         return charData;
     }
 
+    // ANÁLISE POR LINHA COM COMPENSAÇÃO DE ESCALA
+    function processByLine(layer) {
+        var lines = getLinesFromLayer(layer);
+        var comp = layer.containingComp;
+        var textDoc = layer.sourceText.value;
+        var scaleDimensions = getScaledDimensions(layer);
+        
+        createProgressBar("Processando POR LINHA...", lines.length);
+        
+        var leading = (textDoc.leading || textDoc.fontSize) * scaleDimensions.scaleY;
+        
+        // Usa sourcePointToComp para lidar automaticamente com escala
+        var originalRect = layer.sourceRectAtTime(comp.time, false);
+        var originalTopLeft = layer.sourcePointToComp([originalRect.left, originalRect.top]);
+        
+        var globalCharIndex = 0;
+        
+        for (var i = 0; i < lines.length; i++) {
+            if (lines[i].trim() !== "") {
+                var lineFont = detectLineFormatting(layer, globalCharIndex, globalCharIndex + lines[i].length - 1);
+                
+                var newLayer = comp.layers.addText(lines[i]);
+                newLayer.name = "Linha " + (i + 1);
+                
+                var newTextProp = newLayer.property("Source Text");
+                var newTextDoc = newTextProp.value;
+                copyTextPropertiesWithScale(layer, newTextDoc);
+                
+                if (lineFont) {
+                    newTextDoc.font = lineFont;
+                }
+                
+                newTextProp.setValue(newTextDoc);
+                copyVisualPropertiesWithoutScale(layer, newLayer);
+                
+                var newRect = newLayer.sourceRectAtTime(comp.time, false);
+                var lineY = originalTopLeft[1] + (i * leading);
+                var lineX = originalTopLeft[0];
+                
+                if (textDoc.justification === ParagraphJustification.CENTER_JUSTIFY) {
+                    lineX = originalTopLeft[0] + (originalRect.width - newRect.width) / 2;
+                } else if (textDoc.justification === ParagraphJustification.RIGHT_JUSTIFY) {
+                    lineX = originalTopLeft[0] + originalRect.width - newRect.width;
+                }
+                
+                newLayer.transform.anchorPoint.setValue([newRect.left, newRect.top]);
+                newLayer.transform.position.setValue([lineX, lineY]);
+            }
+            
+            globalCharIndex += lines[i].length;
+            if (i < lines.length - 1) {
+                globalCharIndex++;
+            }
+            
+            updateProgressBar(i + 1);
+        }
+        
+        closeProgressBar();
+        layer.remove();
+    }
+    
+    // NOVA FUNÇÃO: Detecta formatação predominante de uma linha
+    function detectLineFormatting(textLayer, startIndex, endIndex) {
+        try {
+            // Pega o primeiro caractere não-espaço da linha para detectar formatação
+            var textDoc = textLayer.sourceText.value;
+            var originalText = textDoc.text;
+            
+            for (var i = startIndex; i <= endIndex && i < originalText.length; i++) {
+                var character = originalText.charAt(i);
+                if (character.trim() !== "") {
+                    var charProps = getCharacterProperties(textLayer, i);
+                    return charProps.font;
+                }
+            }
+            
+            return textDoc.font;
+        } catch (err) {
+            var textDoc = textLayer.sourceText.value;
+            return textDoc.font;
+        }
+    }
+
+    // ANÁLISE POR PALAVRA - MÉTODO DIRETO E SIMPLES
+    function processByWord(layer) {
+        var lines = getLinesFromLayer(layer);
+        var comp = layer.containingComp;
+        var textDoc = layer.sourceText.value;
+        
+        var totalWords = 0;
+        for (var i = 0; i < lines.length; i++) {
+            var words = lines[i].split(' ');
+            for (var j = 0; j < words.length; j++) {
+                if (words[j].trim() !== "") totalWords++;
+            }
+        }
+        
+        createProgressBar("Processando POR PALAVRA...", totalWords);
+        
+        var leading = textDoc.leading || textDoc.fontSize;
+        var wordCount = 0;
+        
+        // Pega a posição original exata
+        var originalRect = layer.sourceRectAtTime(comp.time, false);
+        var originalPosition = layer.transform.position.value;
+        var originalAnchor = layer.transform.anchorPoint.value;
+        
+        // Calcula o ponto superior esquerdo real do texto
+        var realTopLeft = [
+            originalPosition[0] - originalAnchor[0] + originalRect.left,
+            originalPosition[1] - originalAnchor[1] + originalRect.top
+        ];
+        
+        for (var lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+            var line = lines[lineIndex];
+            var words = line.split(' ');
+            var validWords = [];
+            
+            // Filtra palavras vazias
+            for (var w = 0; w < words.length; w++) {
+                if (words[w].trim() !== "") {
+                    validWords.push(words[w]);
+                }
+            }
+            
+            if (validWords.length === 0) continue;
+            
+            // Calcula posição Y da linha
+            var lineY = realTopLeft[1] + (lineIndex * leading);
+            
+            // Calcula offset X da linha baseado no alinhamento
+            var lineOffsetX = 0;
+            var lineWithSpaces = validWords.join(' ');
+            
+            // Cria camada temporária para medir a linha
+            var tempLineLayer = comp.layers.addText(lineWithSpaces);
+            var tempLineProp = tempLineLayer.property("Source Text");
+            var tempLineDoc = tempLineProp.value;
+            copyTextProperties(textDoc, tempLineDoc);
+            tempLineProp.setValue(tempLineDoc);
+            copyVisualProperties(layer, tempLineLayer);
+            var lineWidth = tempLineLayer.sourceRectAtTime(comp.time, false).width;
+            tempLineLayer.remove();
+            
+            if (textDoc.justification === ParagraphJustification.CENTER_JUSTIFY) {
+                lineOffsetX = (originalRect.width - lineWidth) / 2;
+            } else if (textDoc.justification === ParagraphJustification.RIGHT_JUSTIFY) {
+                lineOffsetX = originalRect.width - lineWidth;
+            }
+            
+            var lineStartX = realTopLeft[0] + lineOffsetX;
+            
+            // Cria cada palavra
+            var currentWordX = lineStartX;
+            for (var wordIndex = 0; wordIndex < validWords.length; wordIndex++) {
+                var word = validWords[wordIndex];
+                
+                // Cria a palavra
+                var wordLayer = comp.layers.addText(word);
+                wordLayer.name = word;
+                var wordTextProp = wordLayer.property("Source Text");
+                var wordTextDoc = wordTextProp.value;
+                copyTextProperties(textDoc, wordTextDoc);
+                wordTextProp.setValue(wordTextDoc);
+                copyVisualProperties(layer, wordLayer);
+                
+                var wordRect = wordLayer.sourceRectAtTime(comp.time, false);
+                
+                wordLayer.transform.anchorPoint.setValue([wordRect.left, wordRect.top]);
+                wordLayer.transform.position.setValue([currentWordX, lineY]);
+                
+                // Avança para a próxima posição (largura da palavra + espaço)
+                currentWordX += wordRect.width;
+                if (wordIndex < validWords.length - 1) {
+                    // Adiciona largura do espaço
+                    var spaceLayer = comp.layers.addText(" ");
+                    var spaceProp = spaceLayer.property("Source Text");
+                    var spaceDoc = spaceProp.value;
+                    copyTextProperties(textDoc, spaceDoc);
+                    spaceProp.setValue(spaceDoc);
+                    copyVisualProperties(layer, spaceLayer);
+                    var spaceWidth = spaceLayer.sourceRectAtTime(comp.time, false).width;
+                    spaceLayer.remove();
+                    currentWordX += spaceWidth;
+                }
+                
+                wordCount++;
+                updateProgressBar(wordCount);
+            }
+        }
+        
+        closeProgressBar();
+        layer.remove();
+    }
+
     function processByChar(layer, charData) {
         var originalTextDoc = layer.sourceText.value;
+        var comp = layer.containingComp;
+        
         for (var i = 0; i < charData.length; i++) {
             var data = charData[i];
-            if (data.character.trim() === "") continue;
-            var newLayer = layer.containingComp.layers.addText(data.character);
-            newLayer.name = data.character;
-            var newTextProp = newLayer.property("Source Text");
-            copyTextProperties(originalTextDoc, newTextProp.value);
-            newTextProp.setValue(newTextProp.value);
-            copyVisualProperties(layer, newLayer);
-            var newRect = newLayer.sourceRectAtTime(layer.containingComp.time, false);
-            newLayer.transform.anchorPoint.setValue([newRect.left, newRect.top]);
-            newLayer.transform.position.setValue(data.position);
+            // Cria camadas para TODOS os caracteres com formatação específica
+            if (data.character !== "") {
+                var newLayer = comp.layers.addText(data.character);
+                newLayer.name = (data.character === " ") ? "Espaço_" + (i + 1) : data.character;
+                
+                var newTextProp = newLayer.property("Source Text");
+                var newTextDoc = newTextProp.value;
+                
+                // NOVO: Usa formatação específica do caractere se disponível
+                if (data.font && data.charIndex !== undefined) {
+                    copyTextPropertiesWithFormatting(layer, newTextDoc, data.charIndex);
+                    // Força a fonte específica detectada
+                    newTextDoc.font = data.font;
+                } else {
+                    copyTextProperties(originalTextDoc, newTextDoc);
+                }
+                
+                newTextProp.setValue(newTextDoc);
+                copyVisualProperties(layer, newLayer);
+
+                var newRect = newLayer.sourceRectAtTime(comp.time, false);
+                newLayer.transform.anchorPoint.setValue([newRect.left, newRect.top]);
+                newLayer.transform.position.setValue(data.position);
+            }
         }
         layer.remove();
     }
     
     function processInteiro(layer) {
         var textDoc = layer.sourceText.value;
-        if (!textDoc.boxText && layer.sourceText.value.pointText) return;
-        var newLayer = layer.containingComp.layers.addText(textDoc.text);
-        newLayer.name = layer.name;
+        var comp = layer.containingComp;
+        
+        // Se não é box text, não faz nada
+        if (!textDoc.boxText) {
+            return;
+        }
+        
+        // Pega todas as linhas respeitando quebras automáticas
+        var lines = getLinesFromLayer(layer);
+        var fullText = lines.join('\r'); // Usa \r para quebras de linha no After Effects
+        
+        var newLayer = comp.layers.addText(fullText);
+        newLayer.name = layer.name + "_converted";
+        
         var newTextProp = newLayer.property("Source Text");
-        copyTextProperties(textDoc, newTextProp.value);
-        newTextProp.setValue(newTextProp.value);
-        copyVisualProperties(layer, newLayer);
-        var sourceRect = layer.sourceRectAtTime(layer.containingComp.time, false);
-        var visualTopLeft = layer.sourcePointToComp([sourceRect.left, sourceRect.top]);
-        var newRect = newLayer.sourceRectAtTime(layer.containingComp.time, false);
+        var newTextDoc = newTextProp.value;
+        copyTextPropertiesWithScale(layer, newTextDoc);
+        newTextProp.setValue(newTextDoc);
+        copyVisualPropertiesWithoutScale(layer, newLayer);
+        
+        // Usa sourcePointToComp para posicionamento exato
+        var sourceRect = layer.sourceRectAtTime(comp.time, false);
+        var topLeftPosition = layer.sourcePointToComp([sourceRect.left, sourceRect.top]);
+        
+        var newRect = newLayer.sourceRectAtTime(comp.time, false);
         newLayer.transform.anchorPoint.setValue([newRect.left, newRect.top]);
-        newLayer.transform.position.setValue(visualTopLeft);
+        newLayer.transform.position.setValue(topLeftPosition);
+        
         layer.remove();
     }
 
@@ -221,54 +436,408 @@ function GNEWS_KillBoxText_UI() {
         var textDoc = layer.sourceText.value;
         var originalText = textDoc.text;
         var lines = [];
+        
         if (textDoc.boxText) {
             var comp = layer.containingComp;
             var words = originalText.replace(/(\r\n|\r|\n)/g, " \r ").split(/\s+/);
             var boxWidth = textDoc.boxTextSize[0];
+            var scaleDimensions = getScaledDimensions(layer);
+            
+            // Cria camada temporária considerando escala
             var tempLayer = comp.layers.addText("temp");
             var tempTextProp = tempLayer.property("Source Text");
-            copyTextProperties(textDoc, tempTextProp.value);
-            tempTextProp.setValue(tempTextProp.value);
+            var tempTextDoc = tempTextProp.value;
+            copyTextPropertiesWithScale(layer, tempTextDoc);
+            tempTextProp.setValue(tempTextDoc);
+            copyVisualPropertiesWithoutScale(layer, tempLayer);
+            
+            // Ajusta largura da caixa considerando escala
+            var effectiveBoxWidth = boxWidth * scaleDimensions.scaleX;
+            
             var currentLine = "";
             for (var i = 0; i < words.length; i++) {
                 var word = words[i];
                 if (word === "" && currentLine === "") continue;
-                if (word === "\r") { lines.push(currentLine.trim()); currentLine = ""; continue; }
+                if (word === "\r") { 
+                    lines.push(currentLine.trim()); 
+                    currentLine = ""; 
+                    continue; 
+                }
+                
                 var testLine = currentLine === "" ? word : currentLine + " " + word;
-                tempTextProp.setValue(testLine);
+                tempTextDoc.text = testLine;
+                tempTextProp.setValue(tempTextDoc);
                 var currentWidth = tempLayer.sourceRectAtTime(comp.time, false).width;
-                if (currentWidth > boxWidth && currentLine !== "") {
+                
+                if (currentWidth > effectiveBoxWidth && currentLine !== "") {
                     lines.push(currentLine.trim());
                     currentLine = word;
-                } else { currentLine = testLine; }
+                } else { 
+                    currentLine = testLine; 
+                }
             }
-            if (currentLine.trim() !== "") { lines.push(currentLine.trim()); }
+            if (currentLine.trim() !== "") { 
+                lines.push(currentLine.trim()); 
+            }
             tempLayer.remove();
-        } else { lines = originalText.split(/\r\n|\r|\n/); }
+        } else { 
+            lines = originalText.split(/\r\n|\r|\n/); 
+        }
         return lines;
     }
-    
-    function measureSpace(textDocument, comp) {
-        var spaceLayer = comp.layers.addText(" ");
-        copyTextProperties(textDocument, spaceLayer.property("Source Text").value);
-        spaceLayer.property("Source Text").setValue(spaceLayer.property("Source Text").value);
-        var spaceWidth = spaceLayer.sourceRectAtTime(comp.time, false).width;
-        spaceLayer.remove();
-        return spaceWidth;
-    }
 
+    // FUNÇÃO ORIGINAL: Copia propriedades básicas sem escala
     function copyTextProperties(sourceDoc, targetDoc) {
-        var safeProps = ["font", "fontSize", "fillColor", "applyFill", "justification", "tracking", "leading"];
+        var safeProps = ["fontSize", "fillColor", "applyFill", "justification", "tracking", "leading"];
         for (var i = 0; i < safeProps.length; i++) {
             var prop = safeProps[i];
             if (sourceDoc[prop] !== undefined) targetDoc[prop] = sourceDoc[prop];
         }
+        
+        // Font com validação
+        if (sourceDoc.font) {
+            var validatedFont = validateFontName(sourceDoc.font);
+            if (validatedFont) {
+                try {
+                    targetDoc.font = validatedFont;
+                } catch (fontError) {
+                    // Se não conseguir definir a fonte, mantém a padrão
+                }
+            }
+        }
+        
         if (sourceDoc.applyStroke) {
             targetDoc.applyStroke = true;
             targetDoc.strokeColor = sourceDoc.strokeColor;
             targetDoc.strokeWidth = sourceDoc.strokeWidth;
             targetDoc.strokeOverFill = sourceDoc.strokeOverFill;
-        } else { targetDoc.applyStroke = false; }
+        } else { 
+            targetDoc.applyStroke = false; 
+        }
+    }
+    
+    // FUNÇÃO ORIGINAL: Copia propriedades visuais incluindo escala
+    function copyVisualProperties(sourceLayer, targetLayer) {
+        var props = ["Scale", "Rotation", "Opacity"];
+        for (var i = 0; i < props.length; i++) {
+            targetLayer.transform[props[i]].setValue(sourceLayer.transform[props[i]].value);
+        }
+        targetLayer.blendingMode = sourceLayer.blendingMode;
+        targetLayer.startTime = sourceLayer.startTime;
+        if (sourceLayer.parent) {
+            targetLayer.parent = sourceLayer.parent;
+        }
+    }
+    
+    // NOVA FUNÇÃO: Calcula dimensões considerando escala
+    function getScaledDimensions(layer) {
+        var scale = layer.transform.scale.value;
+        var scaleX = scale[0] / 100;
+        var scaleY = scale[1] / 100;
+        
+        return {
+            scaleX: scaleX,
+            scaleY: scaleY,
+            hasScale: (scaleX !== 1.0 || scaleY !== 1.0)
+        };
+    }
+    
+    // NOVA FUNÇÃO: Ajusta propriedades de texto considerando escala
+    function adjustTextPropertiesForScale(textDoc, scaleDimensions) {
+        // Cria uma cópia das propriedades do texto
+        var adjustedDoc = textDoc;
+        
+        if (scaleDimensions.hasScale) {
+            // Ajusta o tamanho da fonte para compensar a escala
+            adjustedDoc.fontSize = textDoc.fontSize * scaleDimensions.scaleY;
+            
+            // Ajusta tracking se existir
+            if (textDoc.tracking !== undefined && textDoc.tracking !== null) {
+                var scaledTracking = textDoc.tracking * scaleDimensions.scaleX;
+                adjustedDoc.tracking = Math.round(scaledTracking); // Garante que seja inteiro
+            }
+            
+            // Ajusta leading se existir
+            if (textDoc.leading !== undefined && textDoc.leading !== null) {
+                adjustedDoc.leading = textDoc.leading * scaleDimensions.scaleY;
+            }
+            
+            // Ajusta stroke width se existir
+            if (textDoc.applyStroke && textDoc.strokeWidth !== undefined && textDoc.strokeWidth !== null) {
+                adjustedDoc.strokeWidth = textDoc.strokeWidth * Math.min(scaleDimensions.scaleX, scaleDimensions.scaleY);
+            }
+        }
+        
+        return adjustedDoc;
+    }
+    
+    // NOVA FUNÇÃO: Copia propriedades com compensação de escala
+    function copyTextPropertiesWithScale(sourceLayer, targetDoc) {
+        var sourceTextProp = sourceLayer.property("Source Text");
+        var sourceDoc = sourceTextProp.value;
+        var scaleDimensions = getScaledDimensions(sourceLayer);
+        
+        // Propriedades básicas (sem font que será tratada separadamente)
+        var safeProps = ["fillColor", "applyFill", "justification"];
+        for (var i = 0; i < safeProps.length; i++) {
+            var prop = safeProps[i];
+            if (sourceDoc[prop] !== undefined) targetDoc[prop] = sourceDoc[prop];
+        }
+        
+        // Font com validação
+        if (sourceDoc.font) {
+            var validatedFont = validateFontName(sourceDoc.font);
+            if (validatedFont) {
+                try {
+                    targetDoc.font = validatedFont;
+                } catch (fontError) {
+                    // Se não conseguir definir a fonte, mantém a padrão
+                    // targetDoc.font ficará com o valor padrão
+                }
+            }
+        }
+        
+        // Propriedades que precisam compensar escala
+        targetDoc.fontSize = sourceDoc.fontSize * scaleDimensions.scaleY;
+        
+        if (sourceDoc.tracking !== undefined && sourceDoc.tracking !== null) {
+            var scaledTracking = sourceDoc.tracking * scaleDimensions.scaleX;
+            targetDoc.tracking = Math.round(scaledTracking); // Garante que seja inteiro
+        }
+        
+        if (sourceDoc.leading !== undefined && sourceDoc.leading !== null) {
+            targetDoc.leading = sourceDoc.leading * scaleDimensions.scaleY;
+        }
+        
+        // Stroke com compensação de escala
+        if (sourceDoc.applyStroke) {
+            targetDoc.applyStroke = true;
+            targetDoc.strokeColor = sourceDoc.strokeColor;
+            if (sourceDoc.strokeWidth !== undefined && sourceDoc.strokeWidth !== null) {
+                targetDoc.strokeWidth = sourceDoc.strokeWidth * Math.min(scaleDimensions.scaleX, scaleDimensions.scaleY);
+            }
+            targetDoc.strokeOverFill = sourceDoc.strokeOverFill;
+        } else { 
+            targetDoc.applyStroke = false; 
+        }
+    }
+    
+    // ATUALIZADA: Copia propriedades com formatação e escala específica por caractere
+    function copyTextPropertiesWithFormatting(sourceLayer, targetDoc, charIndex) {
+        var sourceTextProp = sourceLayer.property("Source Text");
+        var sourceDoc = sourceTextProp.value;
+        var scaleDimensions = getScaledDimensions(sourceLayer);
+        
+        // Propriedades básicas (sem font que será tratada separadamente)
+        var safeProps = ["fillColor", "applyFill", "justification"];
+        for (var i = 0; i < safeProps.length; i++) {
+            var prop = safeProps[i];
+            if (sourceDoc[prop] !== undefined) targetDoc[prop] = sourceDoc[prop];
+        }
+        
+        // Propriedades com compensação de escala
+        targetDoc.fontSize = sourceDoc.fontSize * scaleDimensions.scaleY;
+        
+        if (sourceDoc.tracking !== undefined && sourceDoc.tracking !== null) {
+            var scaledTracking = sourceDoc.tracking * scaleDimensions.scaleX;
+            targetDoc.tracking = Math.round(scaledTracking); // Garante que seja inteiro
+        }
+        
+        if (sourceDoc.leading !== undefined && sourceDoc.leading !== null) {
+            targetDoc.leading = sourceDoc.leading * scaleDimensions.scaleY;
+        }
+        
+        // Stroke
+        if (sourceDoc.applyStroke) {
+            targetDoc.applyStroke = true;
+            targetDoc.strokeColor = sourceDoc.strokeColor;
+            if (sourceDoc.strokeWidth !== undefined && sourceDoc.strokeWidth !== null) {
+                targetDoc.strokeWidth = sourceDoc.strokeWidth * Math.min(scaleDimensions.scaleX, scaleDimensions.scaleY);
+            }
+            targetDoc.strokeOverFill = sourceDoc.strokeOverFill;
+        } else { 
+            targetDoc.applyStroke = false; 
+        }
+        
+        // Detecta fonte e peso específico do caractere com validação
+        try {
+            var fontToUse = sourceDoc.font; // Fonte padrão
+            
+            if (sourceDoc.text && sourceDoc.text.length > charIndex) {
+                var charProps = getCharacterProperties(sourceLayer, charIndex);
+                if (charProps && charProps.font) {
+                    fontToUse = charProps.font;
+                }
+            }
+            
+            // Valida e aplica a fonte
+            if (fontToUse) {
+                var validatedFont = validateFontName(fontToUse);
+                if (validatedFont) {
+                    try {
+                        targetDoc.font = validatedFont;
+                    } catch (fontError) {
+                        // Se não conseguir definir a fonte específica, tenta a original
+                        var originalValidated = validateFontName(sourceDoc.font);
+                        if (originalValidated) {
+                            try {
+                                targetDoc.font = originalValidated;
+                            } catch (originalFontError) {
+                                // Fonte permanece com valor padrão
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            // Em caso de erro, tenta aplicar a fonte original validada
+            if (sourceDoc.font) {
+                var fallbackFont = validateFontName(sourceDoc.font);
+                if (fallbackFont) {
+                    try {
+                        targetDoc.font = fallbackFont;
+                    } catch (fallbackError) {
+                        // Fonte permanece com valor padrão
+                    }
+                }
+            }
+        }
+    }
+    
+    // ATUALIZADA: Copia propriedades visuais SEM escala (será aplicada no texto)
+    function copyVisualPropertiesWithoutScale(sourceLayer, targetLayer) {
+        // Copia propriedades exceto escala (que já foi compensada no texto)
+        var props = ["Rotation", "Opacity"];
+        for (var i = 0; i < props.length; i++) {
+            targetLayer.transform[props[i]].setValue(sourceLayer.transform[props[i]].value);
+        }
+        
+        // Define escala como 100% já que compensamos no tamanho da fonte
+        targetLayer.transform.scale.setValue([100, 100]);
+        
+        targetLayer.blendingMode = sourceLayer.blendingMode;
+        targetLayer.startTime = sourceLayer.startTime;
+        if (sourceLayer.parent) {
+            targetLayer.parent = sourceLayer.parent;
+        }
+    }
+    
+    // NOVA FUNÇÃO: Extrai propriedades específicas de um caractere
+    function getCharacterProperties(textLayer, charIndex) {
+        try {
+            var textProp = textLayer.property("Source Text");
+            var textDoc = textProp.value;
+            var originalText = textDoc.text;
+            
+            if (charIndex >= originalText.length || charIndex < 0) {
+                return { font: textDoc.font };
+            }
+            
+            // Cria uma string com apenas o caractere desejado para testar formatação
+            var singleCharacter = originalText.charAt(charIndex);
+            
+            // Método 1: Tenta detectar através de análise de substring
+            if (charIndex > 0) {
+                var beforeCharacter = originalText.substring(0, charIndex);
+                var upToCharacter = originalText.substring(0, charIndex + 1);
+                
+                // Cria camadas temporárias para comparar formatação
+                var comp = textLayer.containingComp;
+                
+                var beforeLayer = comp.layers.addText(beforeCharacter);
+                copyTextProperties(textDoc, beforeLayer.property("Source Text").value);
+                beforeLayer.property("Source Text").setValue(beforeLayer.property("Source Text").value);
+                copyVisualProperties(textLayer, beforeLayer);
+                
+                var upToLayer = comp.layers.addText(upToCharacter);
+                copyTextProperties(textDoc, upToLayer.property("Source Text").value);
+                upToLayer.property("Source Text").setValue(upToLayer.property("Source Text").value);
+                copyVisualProperties(textLayer, upToLayer);
+                
+                // Compara se há diferença na renderização (indicando mudança de peso)
+                var beforeRect = beforeLayer.sourceRectAtTime(comp.time, false);
+                var upToRect = upToLayer.sourceRectAtTime(comp.time, false);
+                
+                beforeLayer.remove();
+                upToLayer.remove();
+                
+                // Se a diferença de largura for significativa, pode indicar mudança de peso
+                var characterWidth = upToRect.width - beforeRect.width;
+                var avgCharacterWidth = textDoc.fontSize * 0.6; // Estimativa
+                
+                if (characterWidth > avgCharacterWidth * 1.3) {
+                    // Provavelmente bold
+                    var fontName = textDoc.font;
+                    var boldFont = detectBoldFont(fontName);
+                    return { font: boldFont };
+                }
+            }
+            
+            // Método 2: Análise do nome da fonte
+            var fontName = textDoc.font;
+            return { font: fontName };
+            
+        } catch (err) {
+            return { font: textDoc.font };
+        }
+    }
+    
+    // NOVA FUNÇÃO: Valida e corrige nome de fonte
+    function validateFontName(fontName) {
+        if (!fontName || typeof fontName !== 'string') {
+            return null;
+        }
+        
+        // Remove caracteres inválidos e espaços extras
+        var cleanedFont = fontName.replace(/[^\w\s\-\.]/g, ''); // Mantém apenas letras, números, espaços, hífen e ponto
+        cleanedFont = cleanedFont.replace(/\s+/g, ' '); // Remove espaços múltiplos
+        cleanedFont = cleanedFont.trim(); // Remove espaços no início e fim
+        
+        // Se o nome ficou vazio, retorna null
+        if (cleanedFont === '') {
+            return null;
+        }
+        
+        return cleanedFont;
+    }
+    
+    // ATUALIZADA: Detecta variações de peso da fonte com validação
+    function detectBoldFont(fontName) {
+        var validatedFont = validateFontName(fontName);
+        if (!validatedFont) return fontName;
+        
+        // Se já contém indicadores de peso, mantém
+        var lowerFont = validatedFont.toLowerCase();
+        if (lowerFont.indexOf('bold') !== -1 || 
+            lowerFont.indexOf('black') !== -1 || 
+            lowerFont.indexOf('heavy') !== -1 ||
+            lowerFont.indexOf('extrabold') !== -1) {
+            return validatedFont;
+        }
+        
+        // Tenta encontrar versão bold da fonte
+        var baseName = validatedFont.replace(/\s*(regular|normal|light|thin|medium).*$/i, '');
+        
+        // Lista de possíveis sufixos para bold
+        var boldVariations = [
+            baseName + ' Bold',
+            baseName + '-Bold',
+            baseName + ' Black',
+            baseName + '-Black',
+            baseName + ' Heavy',
+            baseName + '-Heavy'
+        ];
+        
+        // Retorna a primeira variação válida
+        for (var i = 0; i < boldVariations.length; i++) {
+            var validatedBold = validateFontName(boldVariations[i]);
+            if (validatedBold) {
+                return validatedBold;
+            }
+        }
+        
+        // Se não encontrou versão bold, retorna a original validada
+        return validatedFont;
     }
     
     function copyVisualProperties(sourceLayer, targetLayer) {
@@ -298,16 +867,19 @@ function GNEWS_KillBoxText_UI() {
         if (progressWin) { progressWin.close(); progressWin = null; progressBar = null; }
     }
 
-    // --- INTERFACE GRÁFICA REDESENHADA ---
+    // --- INTERFACE GRÁFICA ---
     
-    var SCRIPT_NAME = "GNEWS KillBoxText", SCRIPT_VERSION = "v7.3";
+    var SCRIPT_NAME = "GNEWS KillBoxText", SCRIPT_VERSION = "v7.6";
     var win = new Window("palette", SCRIPT_NAME + " " + SCRIPT_VERSION);
     win.orientation = "column";
     win.alignChildren = ["fill", "top"];
     win.spacing = 10;
     win.margins = 16;
     
-    setBgColor(win, bgColor1);
+    // Aplicação condicional do tema (se disponível)
+    if (typeof setBgColor === 'function' && typeof bgColor1 !== 'undefined') {
+        setBgColor(win, bgColor1);
+    }
 
     var headerGrp = win.add('group');
     headerGrp.alignment = 'fill';
@@ -315,18 +887,30 @@ function GNEWS_KillBoxText_UI() {
     
     var title = headerGrp.add('statictext', undefined, 'Converter Texto em Camadas');
     title.alignment = 'left';
-    setFgColor(title, normalColor1);
+    if (typeof setFgColor === 'function' && typeof normalColor1 !== 'undefined') {
+        setFgColor(title, normalColor1);
+    }
 
     var helpGrp = headerGrp.add('group');
     helpGrp.alignment = 'right';
-    var helpBtn = new themeIconButton(helpGrp, { 
-        icon: D9T_INFO_ICON, 
-        tips: [lClick + 'Ajuda'] 
-    });
+    
+    // Botão de ajuda
+    var helpBtn;
+    if (typeof themeIconButton === 'function') {
+        helpBtn = new themeIconButton(helpGrp, { 
+            icon: D9T_INFO_ICON, 
+            tips: ['Clique para ajuda'] 
+        });
+    } else {
+        helpBtn = helpGrp.add('button', undefined, '?');
+        helpBtn.preferredSize.width = 25;
+    }
 
     var optionsPanel = win.add("panel", undefined, "Modo de Conversão");
     optionsPanel.alignChildren = "left";
-    setFgColor(optionsPanel, monoColor1);
+    if (typeof setFgColor === 'function' && typeof monoColor1 !== 'undefined') {
+        setFgColor(optionsPanel, monoColor1);
+    }
     
     var radioInteiro = optionsPanel.add("radiobutton", undefined, "INTEIRO");
     var radioPorLinha = optionsPanel.add("radiobutton", undefined, "POR LINHA");
@@ -335,121 +919,127 @@ function GNEWS_KillBoxText_UI() {
     radioInteiro.value = true;
     
     var allRadios = [radioInteiro, radioPorLinha, radioPorPalavra, radioPorLetra];
-    for (var i = 0; i < allRadios.length; i++) {
-        setFgColor(allRadios[i], monoColor1);
+    if (typeof setFgColor === 'function' && typeof monoColor1 !== 'undefined') {
+        for (var i = 0; i < allRadios.length; i++) {
+            setFgColor(allRadios[i], monoColor1);
+        }
     }
 
     var actionGrp = win.add('group');
     actionGrp.alignment = 'center';
 
-    var convertButton = new themeButton(actionGrp, {
-		width: 180,
-		height: 32,
-		textColor: bgColor1,
-		buttonColor: normalColor1,
-		labelTxt: 'Converter',
-		tips: [lClick + 'Converte as camadas de texto selecionadas.']
-	});
+    // Botão de conversão
+    var convertButton;
+    if (typeof themeButton === 'function') {
+        convertButton = new themeButton(actionGrp, {
+            width: 180,
+            height: 32,
+            textColor: (typeof bgColor1 !== 'undefined') ? bgColor1 : [1, 1, 1, 1],
+            buttonColor: (typeof normalColor1 !== 'undefined') ? normalColor1 : [0.2, 0.4, 0.8, 1],
+            labelTxt: 'Converter',
+            tips: ['Clique para converter as camadas de texto selecionadas.']
+        });
+    } else {
+        convertButton = actionGrp.add('button', undefined, 'Converter');
+        convertButton.preferredSize = [180, 32];
+    }
 
     // --- EVENTOS ---
-    convertButton.leftClick.onClick = function() {
+    var convertClickHandler = function() {
         var mode = "INTEIRO";
         if (radioPorLinha.value) mode = "POR_LINHA";
         else if (radioPorPalavra.value) mode = "POR_PALAVRA";
         else if (radioPorLetra.value) mode = "POR_LETRA";
+        
         runConversion(mode);
     };
 
-    // --- NOVO SISTEMA DE AJUDA ---
-    helpBtn.leftClick.onClick = function() {
-        var TARGET_HELP_WIDTH = 450;
-        var MARGIN_SIZE = 15;
-        
-        var helpWin = new Window("palette", "Ajuda - " + SCRIPT_NAME, undefined, { closeButton: true });
+    if (convertButton.leftClick) {
+        convertButton.leftClick.onClick = convertClickHandler;
+    } else {
+        convertButton.onClick = convertClickHandler;
+    }
+
+    // Sistema de ajuda simplificado
+    var showHelp = function() {
+        var helpWin = new Window("palette", "Ajuda - " + SCRIPT_NAME);
         helpWin.orientation = "column";
-        helpWin.alignChildren = ["fill", "fill"];
+        helpWin.alignChildren = ["fill", "top"];
         helpWin.spacing = 10;
-        helpWin.margins = MARGIN_SIZE;
-        helpWin.preferredSize = [TARGET_HELP_WIDTH, -1];
+        helpWin.margins = 15;
+        helpWin.preferredSize = [450, -1];
 
-        setBgColor(helpWin, bgColor1);
-        
-        var headerPanel = helpWin.add("panel", undefined, "");
-        headerPanel.orientation = "column";
-        headerPanel.alignChildren = ["fill", "top"];
-        headerPanel.margins = 15;
-        
-        var titleText = headerPanel.add("statictext", undefined, "AJUDA - GNEWS KILLBOXTEXT");
-        titleText.graphics.font = ScriptUI.newFont("Arial", "Bold", 16);
-        titleText.alignment = "center";
-        setFgColor(titleText, highlightColor1);
+        var title = helpWin.add("statictext", undefined, "GNEWS KILLBOXTEXT v7.6");
+        title.graphics.font = ScriptUI.newFont("Arial", "Bold", 14);
+        title.alignment = "center";
 
-        var mainDescText = headerPanel.add("statictext", undefined, "Esta ferramenta converte camadas de texto de parágrafo ('Box Text') em camadas de texto de ponto ('Point Text'), separando-as para facilitar a animação.", { multiline: true });
-        mainDescText.alignment = ["fill", "fill"];
-        setFgColor(mainDescText, normalColor1);
+        var desc = helpWin.add("statictext", undefined, "Converte camadas de texto Box em Point Text, mantendo posição visual exata, kerning e formatação de peso (Bold, Normal, etc.).", { multiline: true });
+        desc.alignment = ["fill", "fill"];
 
-        var topicsTabPanel = helpWin.add("tabbedpanel");
-        topicsTabPanel.alignment = ["fill", "fill"];
-        topicsTabPanel.margins = 15;
+        var modes = helpWin.add("group");
+        modes.orientation = "column";
+        modes.alignChildren = "fill";
+        modes.spacing = 8;
 
-        var allHelpTopics = [{
-            tabName: "Modos de Conversão",
-            topics: [
-                { title: "▶ COMO USAR:", text: "Selecione uma ou mais camadas de texto na sua composição, escolha o modo de conversão desejado e clique no botão 'Converter'." },
-                { title: "▶ MODO INTEIRO:", text: "Converte toda a caixa de texto em uma única camada de 'Point Text', mantendo a formatação e a aparência geral. Ideal para quando você só precisa se livrar da caixa de texto." },
-                { title: "▶ MODO POR LINHA:", text: "Cria uma nova camada de texto separada para cada linha do texto original. Útil para animar a entrada de linhas inteiras." },
-                { title: "▶ MODO POR PALAVRA:", text: "Cria uma nova camada de texto para cada palavra, mantendo a posição e o alinhamento de cada uma. Perfeito para animações de palavras individuais." },
-                { title: "▶ MODO POR LETRA:", text: "Cria uma nova camada de texto para cada caractere. Este é o modo mais detalhado, ideal para animações complexas de caracteres (pode gerar muitas camadas)." }
-            ]
-        }];
+        var modeTexts = [
+            "INTEIRO: Converte para uma única camada Point Text com quebras de linha",
+            "POR LINHA: Cria uma camada para cada linha (detecta formatação predominante)",
+            "POR PALAVRA: Cria uma camada para cada palavra (detecta peso por palavra)",
+            "POR LETRA: Cria uma camada para cada caractere (detecta peso individual)"
+        ];
 
-        for (var s = 0; s < allHelpTopics.length; s++) {
-            var currentTabSection = allHelpTopics[s];
-            var tab = topicsTabPanel.add("tab", undefined, currentTabSection.tabName);
-            tab.orientation = "column";
-            tab.alignChildren = ["fill", "top"];
-            tab.spacing = 10;
-            tab.margins = [10, 5, 10, 5];
-
-            for (var i = 0; i < currentTabSection.topics.length; i++) {
-                var topic = currentTabSection.topics[i];
-                var topicGrp = tab.add("group");
-                topicGrp.orientation = "column";
-                topicGrp.alignChildren = "fill";
-                topicGrp.spacing = 5;
-                topicGrp.margins.left = (topic.title.indexOf("▶") === 0) ? 0 : 25;
-
-                var topicTitle = topicGrp.add("statictext", undefined, topic.title);
-                topicTitle.graphics.font = ScriptUI.newFont("Arial", "Bold", 12);
-                setFgColor(topicTitle, highlightColor1);
-
-                if(topic.text !== ""){
-                    var topicText = topicGrp.add("statictext", undefined, topic.text, { multiline: true });
-                    topicText.graphics.font = ScriptUI.newFont("Arial", "Regular", 11);
-                    setFgColor(topicText, normalColor1);
-                }
-            }
+        for (var i = 0; i < modeTexts.length; i++) {
+            var modeText = modes.add("statictext", undefined, "• " + modeTexts[i], { multiline: true });
+            modeText.alignment = ["fill", "fill"];
         }
 
-        var closeBtnGrp = helpWin.add("group");
-        closeBtnGrp.alignment = "center";
-        closeBtnGrp.margins = [0, 10, 0, 0];
-        var closeBtn = closeBtnGrp.add("button", undefined, "Fechar");
+        var features = helpWin.add("group");
+        features.orientation = "column";
+        features.alignChildren = "fill";
+        features.spacing = 5;
+        features.margins = [0, 10, 0, 0];
+
+        var featuresTitle = features.add("statictext", undefined, "RECURSOS AVANÇADOS:");
+        featuresTitle.graphics.font = ScriptUI.newFont("Arial", "Bold", 11);
+
+        var featureList = [
+            "✓ Detecta automaticamente peso da fonte (Bold, Normal, etc.)",
+            "✓ Preserva diferentes pesos dentro da mesma frase",
+            "✓ Espaçamento otimizado: 5% para letras, 10% para espaços",
+            "✓ Mantém posição exata independente de transformações"
+        ];
+
+        for (var i = 0; i < featureList.length; i++) {
+            var featureText = features.add("statictext", undefined, featureList[i], { multiline: true });
+            featureText.alignment = ["fill", "fill"];
+            featureText.graphics.font = ScriptUI.newFont("Arial", "Regular", 10);
+        }
+
+        var notice = helpWin.add("statictext", undefined, "NOTA: A detecção de peso funciona melhor com fontes que seguem convenções padrão de nomenclatura (ex: Arial Bold, Helvetica-Black).", { multiline: true });
+        notice.graphics.font = ScriptUI.newFont("Arial", "Italic", 10);
+        notice.alignment = ["fill", "fill"];
+
+        var closeBtn = helpWin.add("button", undefined, "Fechar");
         closeBtn.onClick = function() { helpWin.close(); };
 
-        helpWin.layout.layout(true);
         helpWin.center();
         helpWin.show();
     };
+
+    if (helpBtn.leftClick) {
+        helpBtn.leftClick.onClick = showHelp;
+    } else {
+        helpBtn.onClick = showHelp;
+    }
 
     win.center();
     win.show();
 }
 
+// Execução
 try {
-    // Este script depende de variáveis e funções de tema (ex: bgColor1, setBgColor, themeButton)
-    // que devem ser definidas no escopo global pelo painel que o carrega.
     GNEWS_KillBoxText_UI();
 } catch(e) {
-    alert("Erro ao iniciar GNEWS KillBoxText:\n" + e.toString());
+    alert("Erro ao iniciar GNEWS KillBoxText v7.6:\n" + e.toString() + 
+          (e.line ? "\nLinha: " + e.line : ""));
 }

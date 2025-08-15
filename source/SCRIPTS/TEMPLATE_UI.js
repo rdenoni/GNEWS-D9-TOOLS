@@ -350,7 +350,7 @@ function d9TemplateDialog() {
 
 	// ✅ SEM BOTÃO OUTPUT - apenas botão importar centralizado
 	var rBtnGrp2 = mainBtnGrp2.add('group');
-	rBtnGrp2.alignment = 'center';
+	rBtnGrp2.alignment = 'right';
 	rBtnGrp2.spacing = 16;
 
 	// ✅ BOTÃO SIMPLIFICADO - apenas importar template (sem input)
@@ -609,7 +609,7 @@ function d9TemplateDialog() {
 			saveLogData(logFile, logData);
 
 			// Webhook para importação
-			var webhookURL = "https://n8n.jmbillard.com/webhook/log_db_padeiro";
+			var webhookURL = "";
 			var webData = {
 				template: templateName,
 				quantidade: 1,

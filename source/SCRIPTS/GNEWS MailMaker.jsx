@@ -1,13 +1,14 @@
 /***************************************************
- * GNEWS MailMaker - VERSÃO FINAL (v30.4)
- * Implementada a janela de ajuda detalhada com abas e tópicos.
+ * GNEWS MailMaker - VERSÃO (v37.0)
+ * - Implementado o método de cópia exato fornecido pelo usuário,
+ * utilizando arquivo temporário com codificação UTF-16.
  ***************************************************/
 
 (function() {
 
     // === CONFIGURAÇÕES BÁSICAS ===
     var config = {
-        windowTitle: "GNEWS MailMaker v30.4 - FINAL",
+        windowTitle: "GNEWS MailMaker v37.0 - FINAL",
     };
     
     // === DADOS GLOBAIS ===
@@ -53,7 +54,7 @@
         ui.statusText.text = message;
         setStatusColor(ui.statusText, color);
         
-        if (type === "success") {
+        if (type === "success" || type === "info" || type === "warning") {
             app.setTimeout(function () {
                 if (ui.statusText.text === message) { 
                     ui.statusText.text = "Pronto";
@@ -91,105 +92,63 @@
     function toTitleCase(str) { return str.replace(/\w\S*/g, function(txt) { return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); }); }
     function findDropdownItem(dropdown, text) { for(var i = 0; i < dropdown.items.length; i++) { if (dropdown.items[i].text === text) return i; } return -1; }
 
+    function isSecurityPrefEnabled() {
+        try {
+            var securitySetting = app.preferences.getPrefAsLong("Main Pref Section", "Pref_SCRIPTING_FILE_NETWORK_SECURITY");
+            return (securitySetting === 1);
+        } catch(e) {
+            return false;
+        }
+    }
+
     // === LÓGICA PRINCIPAL ===
+
+    // *** FUNÇÃO DE CÓPIA FORNECIDA PELO USUÁRIO ***
+    function copyToClipboard(text) {
+        var isWindows = $.os.indexOf('Windows') !== -1;
+        var tempFilePath = Folder.temp.fullName + "/ae_clipboard_temp.txt";
+        var file = new File(tempFilePath);
+        var cmd;
     
-    // CORRIGIDO: Função de Ajuda completa, com abas e tópicos
-    function showMailMakerHelp() {
-        var TARGET_HELP_WIDTH = 450;
-        var MARGIN_SIZE = 15;
-        var TOPIC_SECTION_MARGINS = [10, 5, 10, 5];
-        var TOPIC_SPACING = 5;
-        var TOPIC_TITLE_INDENT = 0;
-
-        var helpWin = new Window("dialog", "Ajuda - GNEWS MailMaker", undefined, { closeButton: true });
-        helpWin.orientation = "column";
-        helpWin.alignChildren = ["fill", "fill"];
-        helpWin.spacing = 10;
-        helpWin.margins = MARGIN_SIZE;
-        helpWin.graphics.backgroundColor = helpWin.graphics.newBrush(helpWin.graphics.BrushType.SOLID_COLOR, theme.bgColor);
-        
-        var headerPanel = helpWin.add("panel", undefined, "");
-        headerPanel.orientation = "column";
-        headerPanel.alignChildren = ["fill", "top"];
-        headerPanel.alignment = ["fill", "top"];
-        headerPanel.spacing = 10;
-        headerPanel.margins = 15;
-        
-        var titleText = headerPanel.add("statictext", undefined, "AJUDA - MAILMAKER");
-        titleText.graphics.font = ScriptUI.newFont("Arial", "Bold", 16);
-        titleText.alignment = ["center", "center"];
-        setStatusColor(titleText, theme.highlightColor);
-
-        var mainDescText = headerPanel.add("statictext", undefined, "Esta ferramenta automatiza a criação de e-mails para envio de artes.", {multiline: true});
-        mainDescText.alignment = ["fill", "fill"];
-        setStatusColor(mainDescText, theme.normalColor);
-
-        var topicsTabPanel = helpWin.add("tabbedpanel");
-        topicsTabPanel.alignment = ["fill", "fill"];
-        topicsTabPanel.margins = 15;
-
-        var allHelpTopics = [
-            {
-                tabName: "USO BÁSICO",
-                topics: [
-                    { title: "▶ CAPTURAR:", text: "Clique para pegar o nome da composição ativa (ou selecionadas) e o nome do editor para usar no e-mail." },
-                    { title: "▶ DETECTAR:", text: "Tenta automaticamente encontrar o caminho de destino baseado no nome da composição (GNEWS, FANT)." },
-                    { title: "▶ COPIAR:", text: "Copia o e-mail completo, como mostrado na pré-visualização, para a área de transferência." }
-                ]
-            },
-            {
-                tabName: "CONTEÚDO DO EMAIL",
-                topics: [
-                    { title: "▶ PERSONALIZAÇÃO DE EMAIL:", text: "Ajuste a saudação, despedida e adicione um emoji para personalizar o tom do e-mail." },
-                    { title: "▶ DESCRIÇÃO DO EMAIL:", text: "Use o dropdown 'Template' para selecionar mensagens pré-definidas ou digite uma mensagem personalizada." },
-                    { title: "▶ NOMES DE COMPOSIÇÃO:", text: "Se múltiplas composições forem capturadas, seus nomes aparecerão como uma lista no preview." }
-                ]
+        try {
+            if (isWindows) {
+                file.encoding = "UTF-16"; // Clip no Windows exige UTF-16 LE
+            } else {
+                file.encoding = "UTF-8";  // Mac aceita UTF-8
             }
-        ];
-
-        for (var s = 0; s < allHelpTopics.length; s++) {
-            var currentTabSection = allHelpTopics[s];
-            var tab = topicsTabPanel.add("tab", undefined, currentTabSection.tabName);
-            tab.orientation = "column";
-            tab.alignChildren = ["fill", "top"];
-            tab.spacing = 10;
-            tab.margins = TOPIC_SECTION_MARGINS;
-
-            for (var i = 0; i < currentTabSection.topics.length; i++) {
-                var topic = currentTabSection.topics[i];
-                var topicGrp = tab.add("group");
-                topicGrp.orientation = "column";
-                topicGrp.alignChildren = "fill";
-                topicGrp.spacing = TOPIC_SPACING;
-                topicGrp.margins.left = TOPIC_TITLE_INDENT;
-
-                var topicTitle = topicGrp.add("statictext", undefined, topic.title);
-                topicTitle.graphics.font = ScriptUI.newFont("Arial", "Bold", 12);
-                setStatusColor(topicTitle, theme.highlightColor);
-
-                if(topic.text !== ""){
-                    var topicText = topicGrp.add("statictext", undefined, topic.text, { multiline: true });
-                    topicText.graphics.font = ScriptUI.newFont("Arial", "Regular", 11);
-                    setStatusColor(topicText, theme.normalColor);
-                }
+    
+            file.open("w");
+            file.write(text);
+            file.close();
+    
+            if (isWindows) {
+                // Usa type no arquivo pra garantir multilinhas
+                cmd = 'cmd /c type "' + file.fsName + '" | clip';
+            } else {
+                // Mac usa pbcopy
+                cmd = 'cat "' + file.fsName + '" | pbcopy';
+            }
+    
+            // Executa o comando
+            system.callSystem(cmd);
+        } finally {
+            // Garante que o arquivo temporário seja removido
+            if(file.exists) {
+                file.remove();
             }
         }
-
-        var closeBtnGrp = helpWin.add("group");
-        closeBtnGrp.alignment = "center";
-        var closeBtn = closeBtnGrp.add("button", undefined, "OK");
-        closeBtn.onClick = function() {
-            helpWin.close();
-        };
-
-        helpWin.center();
+    }
+    
+    function showMailMakerHelp() {
+        var helpWin = new Window("dialog", "Ajuda - GNEWS MailMaker");
+        helpWin.add("statictext", undefined, "Esta ferramenta automatiza a criação de e-mails para envio de artes.");
+        helpWin.add("button", undefined, "Fechar", {name: "ok"});
         helpWin.show();
     }
     
     function chooseEditorDialog(editorNames) {
         var dialog = new Window("dialog", "Selecionar Editor Prioritário");
-        dialog.orientation = "column";
-        dialog.alignChildren = "fill";
+        dialog.orientation = "column"; dialog.alignChildren = "fill";
         dialog.graphics.backgroundColor = dialog.graphics.newBrush(dialog.graphics.BrushType.SOLID_COLOR, theme.bgColor);
         var instruction = dialog.add("statictext", undefined, "Múltiplos editores detectados. Escolha um:");
         setStatusColor(instruction, theme.normalColor);
@@ -211,16 +170,20 @@
         appData.customDestinationPath = path;
         ui.manualDestinoInput.text = name;
         ui.manualCaminhoInput.text = path;
+        
         var dropdownIndex = findDropdownItem(ui.destinationDropdown, name);
+        
         var originalOnChange = ui.destinationDropdown.onChange;
         ui.destinationDropdown.onChange = null; 
+        
         if (dropdownIndex > -1) {
             ui.destinationDropdown.selection = dropdownIndex;
             appData.selectedDestination = name;
         } else {
-            if (ui.destinationDropdown.selection) ui.destinationDropdown.selection = null;
+            if (ui.destinationDropdown.selection) { ui.destinationDropdown.selection = null; }
             appData.selectedDestination = null;
         }
+        
         ui.destinationDropdown.onChange = originalOnChange; 
         updateEmailPreview();
     }
@@ -239,7 +202,7 @@
         }
         return "";
     }
-
+    
     function updateEmailPreview() {
         if (!ui.previewText) return;
         var saudacaoCompleta = (appData.capturedEditorName) ? appData.selectedSaudacao + " " + appData.capturedEditorName + ", " + getGreeting() + "." : appData.selectedSaudacao + ", " + getGreeting() + ".";
@@ -254,7 +217,6 @@
 
     function captureCompositions() {
         if (!app.project) { updateStatus("❌ Nenhum projeto aberto", "error"); return false; }
-        updateStatus("Capturando...", "info");
         
         var selectedComps = app.project.selection;
         var compositions = [];
@@ -264,20 +226,17 @@
             if (selectedComps[i] instanceof CompItem) {
                 compositions.push(selectedComps[i].name);
                 var editor = extractEditorName(selectedComps[i].name);
-                if (editor && editorNames.indexOf(editor) === -1) {
-                    editorNames.push(editor);
-                }
+                if (editor && editorNames.indexOf(editor) === -1) editorNames.push(editor);
             }
         }
 
         if (compositions.length === 0 && app.project.activeItem instanceof CompItem) {
             compositions.push(app.project.activeItem.name);
+            var editorFromActive = extractEditorName(app.project.activeItem.name);
+            if (editorFromActive && editorNames.indexOf(editorFromActive) === -1) editorNames.push(editorFromActive);
         }
         
-        if (compositions.length === 0) { 
-            updateStatus("❌ Nenhuma composição selecionada", "error"); 
-            return false; 
-        }
+        if (compositions.length === 0) { updateStatus("❌ Nenhuma composição selecionada", "error"); return false; }
         
         appData.capturedCompNames = compositions;
         
@@ -294,22 +253,85 @@
     }
     
     function runAutoDetectionAndUpdateUI() {
-        if (appData.capturedCompNames.length === 0) {
-            updateStatus("⚠️ Capture uma comp primeiro.", "warning"); return;
-        }
-        if (!$.global.MailMakerAutoPath) {
-            updateStatus("❌ Erro: Lógica de detecção não foi carregada.", "error"); return;
-        }
+        if (appData.capturedCompNames.length === 0) { updateStatus("⚠️ Capture uma comp primeiro.", "warning"); return; }
+        if (!$.global.MailMakerAutoPath) { updateStatus("❌ Erro: Lógica de detecção não foi carregada.", "error"); return; }
         
         var compName = appData.capturedCompNames[0];
-        updateStatus("Analisando '" + compName + "'... 50%", "info");
+        updateStatus("Analisando '" + compName + "'...", "info");
         var detectionResult = $.global.MailMakerAutoPath.regrasGNews(compName, loadedCaminhosJSON, programacaoData, false) || $.global.MailMakerAutoPath.regrasFant(compName, loadedCaminhosJSON, programacaoData, false);
 
         if (detectionResult && detectionResult.nome) {
             setDestination(detectionResult.nome, detectionResult.caminho);
             updateStatus("✅ Destino detectado: " + detectionResult.nome, "success");
         } else {
+            setDestination("", "");
             updateStatus("⚠️ Nenhum destino automático encontrado", "warning");
+        }
+    }
+
+    function renderPreviewFrame() {
+        if (!app.project) { updateStatus("❌ Nenhum projeto aberto.", "error"); return; }
+        var comp = app.project.activeItem;
+        if (!(comp && comp instanceof CompItem)) { updateStatus("⚠️ Nenhuma composição ativa. Selecione uma.", "warning"); return; }
+
+        app.beginUndoGroup("Render Preview Frame");
+        try {
+            if (!isSecurityPrefEnabled()) {
+                alert("A função de preview precisa de permissão para salvar arquivos.\n\nPor favor, habilite a opção 'Allow Scripts to Write Files and Access Network' nas preferências de 'Scripting & Expressions'.");
+                updateStatus("❌ Preview desabilitado por segurança.", "error");
+                app.endUndoGroup();
+                return;
+            }
+
+            if (typeof getPathDayByDay !== 'function') {
+                updateStatus("❌ Erro: 'func_getPathDayByDay.js' não foi carregado.", "error");
+                app.endUndoGroup();
+                return;
+            }
+
+            updateStatus("Verificando caminhos...", "info");
+            var basePath;
+            var primaryPath = getPathDayByDay();
+            var primaryFolder = new Folder(primaryPath);
+
+            if (!primaryFolder.exists) {
+                updateStatus("⚠️ Caminho do dia não encontrado. Usando pasta do projeto.", "warning");
+                if (!app.project.file) {
+                    alert("O projeto atual ainda não foi salvo. Por favor, salve o projeto para que o preview possa ser gerado na mesma pasta.");
+                    updateStatus("❌ Salve o projeto para criar um preview.", "error");
+                    app.endUndoGroup();
+                    return;
+                }
+                basePath = app.project.file.path;
+            } else {
+                basePath = primaryPath;
+            }
+            
+            var previewFolder = new Folder(basePath + "/_PREVIEWS");
+            if (!previewFolder.exists) {
+                if (!previewFolder.create()) {
+                    updateStatus("❌ Não foi possível criar a pasta _PREVIEWS.", "error");
+                    app.endUndoGroup();
+                    return;
+                }
+            }
+            
+            var safeName = comp.name.replace(/[^\w\.\-]/g, '_');
+            var outputFile = new File(previewFolder.fsName + "/" + safeName + "_PREVIEW.png");
+
+            updateStatus("Renderizando preview PNG...", "info");
+            comp.saveFrameToPng(comp.time, outputFile);
+            updateStatus("✅ Preview salvo: " + decodeURI(outputFile.name), "success");
+            
+            if (previewFolder.exists) {
+                previewFolder.execute();
+            }
+
+        } catch (e) {
+            updateStatus("❌ Erro ao renderizar preview: " + e.message, "error");
+            alert("Ocorreu um erro inesperado ao renderizar o preview:\n" + e.toString());
+        } finally {
+            app.endUndoGroup();
         }
     }
     
@@ -319,24 +341,20 @@
         var w = ui.window;
         w.orientation = "column"; w.alignChildren = ["fill", "fill"]; w.spacing = 5; w.margins = 15;
         w.graphics.backgroundColor = w.graphics.newBrush(w.graphics.BrushType.SOLID_COLOR, theme.bgColor);
-
+        
         var mainColumnsGroup = w.add("group");
         mainColumnsGroup.orientation = "row"; mainColumnsGroup.alignChildren = ["top", "top"]; mainColumnsGroup.spacing = 10; mainColumnsGroup.alignment = "fill";
-
         var leftColumn = mainColumnsGroup.add("group");
         leftColumn.orientation = "column"; leftColumn.alignChildren = ["fill", "fill"]; leftColumn.spacing = 10;
         leftColumn.preferredSize.width = 100;
-
         var rightColumn = mainColumnsGroup.add("group");
         rightColumn.orientation = "column"; rightColumn.alignChildren = ["fill", "fill"]; rightColumn.spacing = 10; rightColumn.alignment = ["fill", "fill"];
         rightColumn.preferredSize.width = 400; 
-
         var leftHeaderGroup = leftColumn.add("group");
         leftHeaderGroup.orientation = "row"; leftHeaderGroup.alignChildren = ["left", "center"]; leftHeaderGroup.margins = [0, 0, 0, 10];
         var titleText = leftHeaderGroup.add("statictext", undefined, "GNEWS MailMaker", {truncate: 'end'});
         titleText.graphics.font = ScriptUI.newFont("Arial", "Bold", 15);
         setStatusColor(titleText, theme.highlightColor);
-
         var rightHeaderGroup = rightColumn.add("group");
         rightHeaderGroup.orientation = "row"; rightHeaderGroup.alignChildren = ["right", "center"]; rightHeaderGroup.alignment = "fill"; rightHeaderGroup.margins = [0, 0, 0, 10];
         
@@ -353,91 +371,68 @@
         }
 
         var configPanel = leftColumn.add("panel", undefined, "📩 PERSONALIZAÇÃO DE EMAIL");
-        configPanel.alignChildren = "fill"; configPanel.margins = 15; configPanel.spacing = 15;
-        configPanel.alignment = 'fill'; 
-
+        configPanel.alignChildren = "fill"; configPanel.margins = 15; configPanel.spacing = 15; configPanel.alignment = 'fill'; 
         var greetingGroup = configPanel.add("group");
-        
         var saudacaoSubGroup = greetingGroup.add("group", undefined);
         saudacaoSubGroup.add("statictext", undefined, "Saudação:");
         ui.saudacaoDropdown = saudacaoSubGroup.add("dropdownlist", undefined, saudacoes);
         ui.saudacaoDropdown.preferredSize.width = 60;
-
         var spacer1 = greetingGroup.add("group");
         spacer1.preferredSize.width = 5;
-        
         var despedidaSubGroup = greetingGroup.add("group", undefined, {orientation: "column", alignChildren: "right"});
         despedidaSubGroup.add("statictext", undefined, "Despedida:");
         ui.despedidaDropdown = despedidaSubGroup.add("dropdownlist", undefined, despedidas);
         ui.despedidaDropdown.preferredSize.width = 80;
-
         var emojiSubGroup = greetingGroup.add("group", undefined, {orientation: "column", alignChildren: "right"});
         emojiSubGroup.add("statictext", undefined, "Emoji:");
         ui.emojiDropdown = emojiSubGroup.add("dropdownlist", undefined, emojis);
         ui.emojiDropdown.preferredSize.width = 60;
-
         var messagePanel = leftColumn.add("panel", undefined, "🔤 DESCRIÇÃO DO EMAIL");
         messagePanel.alignChildren = "fill"; messagePanel.margins = 15; messagePanel.spacing = 8;
-        messagePanel.alignment = 'fill';
-        messagePanel.preferredSize.width = 30; 
-        
+        messagePanel.alignment = 'fill'; messagePanel.preferredSize.width = 30; 
         var templateLine = messagePanel.add("group");
         templateLine.orientation = "row";
         templateLine.add("statictext", undefined, "Template:");
         ui.templateDropdown = templateLine.add("dropdownlist", undefined, templateNames);
         ui.templateDropdown.alignment = "fill";
-
         ui.messageInput = messagePanel.add("edittext", undefined, "", { multiline: true, scrollable: true });
         ui.messageInput.alignment = "fill"; ui.messageInput.preferredSize.height = 60;
-
         var destPanel = leftColumn.add("panel", undefined, "📁 CONFIGURAÇÃO DE DESTINO");
         destPanel.alignChildren = "left"; destPanel.margins = 15; destPanel.spacing = 8;
         destPanel.alignment = 'fill';
-        
         var presetLine = destPanel.add("group");
         presetLine.orientation = "row";
         presetLine.add("statictext", undefined, "Preset de Destino:");
         ui.destinationDropdown = presetLine.add("dropdownlist", undefined, destinationNames);
-        ui.destinationDropdown.alignment = "fill";
-        ui.destinationDropdown.preferredSize.width = 150;
-        
+        ui.destinationDropdown.alignment = "fill"; ui.destinationDropdown.preferredSize.width = 150;
         var manualDestLine = destPanel.add("group");
-        manualDestLine.orientation = "row";
-        manualDestLine.spacing = 17; 
+        manualDestLine.orientation = "row"; manualDestLine.spacing = 17; 
         manualDestLine.add("statictext", undefined, "Destino Manual:");
         ui.manualDestinoInput = manualDestLine.add("edittext", undefined, "");
-        ui.manualDestinoInput.alignment = "fill";
-        ui.manualDestinoInput.preferredSize.width = 298;
-
+        ui.manualDestinoInput.alignment = "fill"; ui.manualDestinoInput.preferredSize.width = 298;
         var manualPathLine = destPanel.add("group");
         manualPathLine.orientation = "row";
         manualPathLine.add("statictext", undefined, "Caminho Manual:");
         ui.manualCaminhoInput = manualPathLine.add("edittext", undefined, "");
-        ui.manualCaminhoInput.alignment = "fill";
-        ui.manualCaminhoInput.preferredSize.width = 298;
-        
+        ui.manualCaminhoInput.alignment = "fill"; ui.manualCaminhoInput.preferredSize.width = 298;
         var previewPanel = rightColumn.add("panel", undefined, "👁️ Pré-Visualização do Email");
         previewPanel.alignChildren = "fill"; previewPanel.margins = 15; previewPanel.alignment = ["fill", "fill"];
         ui.previewText = previewPanel.add("edittext", undefined, "", { multiline: true, readonly: true, scrollable: true });
         ui.previewText.alignment = "fill"; ui.previewText.preferredSize.height = 263;
         ui.previewText.graphics.font = ScriptUI.newFont("Courier New", 10);
-        
         var buttonGroup = previewPanel.add("group");
         buttonGroup.orientation = "row"; buttonGroup.alignChildren = ["fill", "center"]; buttonGroup.spacing = 5;
         ui.captureBtn = buttonGroup.add("button", undefined, "🔘 Capturar");
         ui.detectBtn = buttonGroup.add("button", undefined, "🔎 Detectar");
+        ui.previewBtn = buttonGroup.add("button", undefined, "🖼️ Preview");
         ui.copyBtn = buttonGroup.add("button", undefined, "📋 Copiar");
-        ui.captureBtn.preferredSize.height = ui.detectBtn.preferredSize.height = ui.copyBtn.preferredSize.height = 35;
-
+        ui.captureBtn.preferredSize.height = ui.detectBtn.preferredSize.height = ui.previewBtn.preferredSize.height = ui.copyBtn.preferredSize.height = 35;
         var statusPanel = w.add("panel", undefined, "Status");
-        statusPanel.alignment = "fill";
-        statusPanel.margins = 10;
+        statusPanel.alignment = "fill"; statusPanel.margins = 10;
         var statusGroup = statusPanel.add("group");
-        statusGroup.alignment = "fill";
-        statusGroup.orientation = "row";
+        statusGroup.alignment = "fill"; statusGroup.orientation = "row";
         ui.statusText = statusGroup.add("statictext", undefined, "Inicializando...", {truncate: 'end'});
-        ui.statusText.alignment = ['fill', 'center']; 
-        ui.statusText.justify = 'center';
+        ui.statusText.alignment = ['fill', 'center']; ui.statusText.justify = 'center';
         setStatusColor(ui.statusText, COLORS.neutral);
 
         ui.saudacaoDropdown.onChange = function() { if (this.selection) { appData.selectedSaudacao = this.selection.text; updateEmailPreview(); } };
@@ -457,7 +452,6 @@
             }
             updateEmailPreview();
         };
-
         ui.destinationDropdown.onChange = function() {
             if (this.selection) {
                 var selectedPreset = this.selection.text;
@@ -465,14 +459,9 @@
                 setDestination(selectedPreset, presetPath);
             } else { setDestination("", ""); }
         };
-
-        var manualInputHandler = function() {
-            var name = ui.manualDestinoInput.text; var path = ui.manualCaminhoInput.text;
-            setDestination(name, path);
-        };
+        var manualInputHandler = function() { setDestination(ui.manualDestinoInput.text, ui.manualCaminhoInput.text); };
         ui.manualDestinoInput.onChanging = manualInputHandler;
         ui.manualCaminhoInput.onChanging = manualInputHandler;
-        
         ui.captureBtn.onClick = function() { if (captureCompositions()) { updateEmailPreview(); } };
         ui.detectBtn.onClick = function() {
             if (captureCompositions()) {
@@ -480,8 +469,37 @@
                 updateEmailPreview();
             }
         };
-        ui.copyBtn.onClick = function(){ updateStatus("✅ Email copiado!", "success"); };
+        ui.previewBtn.onClick = renderPreviewFrame;
         
+        ui.copyBtn.onClick = function() {
+            try {
+                if (!isSecurityPrefEnabled()) {
+                    var errorMsg = "A função de cópia automática requer uma permissão do After Effects.\n\n" + "Por favor, vá em:\n" + "1. Edit > Preferences > Scripting & Expressions...\n" + "2. Marque a opção 'Allow Scripts to Write Files and Access Network'\n" + "3. Clique OK e tente novamente.";
+                    alert(errorMsg, "Permissão Necessária");
+                    updateStatus("❌ Cópia desabilitada por segurança.", "error");
+                    return;
+                }
+                
+                if (!ui || !ui.previewText) { throw new Error("Componente de texto não encontrado."); }
+
+                var textToCopy = ui.previewText.text;
+                if (!textToCopy) {
+                    updateStatus("⚠️ Nada para copiar.", "warning");
+                    return;
+                }
+                
+                // Chamando a função de cópia solicitada
+                copyToClipboard(textToCopy);
+                
+                updateStatus("✅ Email copiado para a área de transferência!", "success");
+
+            } catch (e) {
+                var detailedError = "Falha ao copiar o texto: " + e.toString();
+                alert(detailedError);
+                updateStatus("❌ Falha ao copiar.", "error");
+            }
+        };
+
         w.onShow = function() {
             if (captureCompositions()) {
                 updateEmailPreview();
@@ -493,9 +511,8 @@
 
     // === INICIALIZAÇÃO ===
     function init() {
-        logDebug("=== INICIANDO MAILMAKER - v30.3 ===");
+        logDebug("=== INICIANDO MAILMAKER - v36.0 ===");
         var mainPath = findScriptMainPath();
-        
         try {
             var globalsFile = new File(mainPath + "source/globals.js");
             if(globalsFile.exists) $.evalFile(globalsFile);
@@ -504,14 +521,14 @@
             var uiFuncFile = new File(mainPath + "source/libraries/functions/UI_FUNC.js");
             if(uiFuncFile.exists) $.evalFile(uiFuncFile);
         } catch(e) { logDebug("Libs de UI não encontradas. Erro: " + e.toString()); }
-
         loadedCaminhosJSON = readJsonFile(mainPath + "source/libraries/dados_json/DADOS_caminhos_gnews.json");
         programacaoData = readJsonFile(mainPath + "source/libraries/dados_json/DADOS_programacao_gnews.json");
-        
         var autoPathScript = new File(mainPath + "source/libraries/functions/func_auto_path_servers.js");
-        if (autoPathScript.exists) { $.evalFile(autoPathScript); logDebug("Lógica de detecção externa carregada."); }
-        else { alert("ERRO CRÍTICO: 'func_auto_path_servers.js' não encontrado."); }
-
+        if (autoPathScript.exists) { $.evalFile(autoPathScript); }
+        else { alert("ERRO CRÍTICO: 'func_auto_path_servers.js' não encontrado."); return; }
+        var getPathDayByDayScript = new File(mainPath + "source/libraries/functions/func_getPathDayByDay.js");
+        if (getPathDayByDayScript.exists) { $.evalFile(getPathDayByDayScript); } 
+        else { logDebug("AVISO: 'func_getPathDayByDay.js' não encontrado."); }
         if (loadedCaminhosJSON) {
             for (var serverName in loadedCaminhosJSON) {
                 if (loadedCaminhosJSON.hasOwnProperty(serverName)) {
@@ -523,25 +540,18 @@
                 }
             }
             destinationNames = getObjectKeys(caminhosData).sort();
-            if (caminhosData["PAM HARDNEWS"] && caminhosData["PARA ILHA HARDNEWS"]) {
-                var combinedName = "PAM HARDNEWS E PARA ILHA HARDNEWS";
-                var combinedPath = caminhosData["PAM HARDNEWS"] + "\nE TAMBÉM:\n" + caminhosData["PARA ILHA HARDNEWS"];
-                caminhosData[combinedName] = combinedPath;
-                destinationNames.push(combinedName);
-                destinationNames.sort();
-            }
-        } else { alert("AVISO: 'DADOS_caminhos_gnews.json' não carregado."); }
-
+        }
         createUI();
-        
-        if(destinationNames.length > 0) { ui.destinationDropdown.selection = 0; }
         ui.saudacaoDropdown.selection = findDropdownItem(ui.saudacaoDropdown, appData.selectedSaudacao);
         ui.despedidaDropdown.selection = findDropdownItem(ui.despedidaDropdown, appData.selectedDespedida);
         ui.emojiDropdown.selection = findDropdownItem(ui.emojiDropdown, appData.selectedEmoji);
         ui.templateDropdown.selection = findDropdownItem(ui.templateDropdown, appData.selectedTemplate);
         appData.emailMessage = templates[appData.selectedTemplate];
         ui.messageInput.text = appData.emailMessage;
-        
+        if (destinationNames.length > 0) {
+            ui.destinationDropdown.selection = 0;
+            ui.destinationDropdown.onChange();
+        }
         updateEmailPreview();
         ui.window.center();
         ui.window.show();

@@ -170,7 +170,48 @@ function GNEWS_RenCompSave_UI() {
         duration: 10, frameRate: 29.97
     };
 
-    var lastSavedPath = app.project && app.project.file ? app.project.file.parent.fsName : Folder.desktop.fsName;
+    // INÍCIO DO CÓDIGO DE SUBSTITUIÇÃO
+
+var lastSavedPath; // Variável para armazenar o caminho de salvamento.
+
+try {
+    // Verifica se a variável global 'scriptMainPath' existe, essencial para encontrar outros scripts.
+    if (typeof scriptMainPath === 'undefined' || scriptMainPath === null) {
+        throw new Error("A variável global 'scriptMainPath' não foi definida.");
+    }
+
+    // Constrói o caminho completo para o arquivo da função.
+    // O uso do construtor 'File' ajuda a normalizar o caminho.
+    var getPathScriptFile = new File(scriptMainPath + "source/libraries/functions/func_getPathDayByDay.js");
+
+    if (getPathScriptFile.exists) {
+        // Se o arquivo existe, lê seu conteúdo e o executa.
+        getPathScriptFile.open('r');
+        var scriptContent = getPathScriptFile.read();
+        getPathScriptFile.close();
+        eval(scriptContent); // Este comando torna a função 'getPathDayByDay' disponível no script.
+
+        // Chama a função recém-carregada para obter o caminho do dia.
+        var dynamicPath = getPathDayByDay();
+
+        // Define o caminho de salvamento padrão com o valor retornado pela função.
+        lastSavedPath = dynamicPath;
+
+        // Opcional: Verifica no console do After Effects se o caminho foi carregado.
+        $.writeln("Caminho dinâmico padrão para salvar definido como: " + lastSavedPath);
+
+    } else {
+        // Lança um erro se o arquivo da função não for encontrado no caminho especificado.
+        throw new Error("Arquivo 'func_getPathDayByDay.js' não encontrado.");
+    }
+} catch(e) {
+    // Bloco de segurança (Fallback): Se qualquer parte do 'try' falhar,
+    // o script reverte para o comportamento original para evitar erros.
+    $.writeln("AVISO: Falha ao obter o caminho dinâmico. Usando o caminho padrão do projeto. Erro: " + e.toString());
+    lastSavedPath = app.project && app.project.file ? app.project.file.parent.fsName : Folder.desktop.fsName;
+}
+
+// FIM DO CÓDIGO DE SUBSTITUIÇÃO
     
     var lang = {
         "pt": {
@@ -521,7 +562,7 @@ renameBtn.leftClick.onClick = function() {
         app.endUndoGroup();
     };
     
-    organizeBtn.leftClick.onClick = function() {
+organizeBtn.leftClick.onClick = function() {
         if (!app.project) {
             updateStatusText("Por favor, abra um projeto.");
             return;
@@ -530,109 +571,117 @@ renameBtn.leftClick.onClick = function() {
         app.beginUndoGroup("Organizar Projeto");
         try {
             updateStatusText("Analisando o projeto...");
+            
+            // Função interna para identificar composições com nome "GNEWS"
             function isGnewsNamedComp(comp) {
                 if (!(comp instanceof CompItem)) return false;
                 return (comp.name.toUpperCase().indexOf("GNEWS ") === 0);
             }
 
-            var compsToExclude_ids = {};
-            if (app.project.selection.length > 0) {
-                for (var j = 0; j < app.project.selection.length; j++) {
-                    if (app.project.selection[j] instanceof CompItem) {
-                        compsToExclude_ids[app.project.selection[j].id] = true;
+            // 1. Identifica as comps a serem protegidas (movidas para a raiz)
+            var compsToProtect_ids = {};
+            var selection = app.project.selection;
+            if (selection.length > 0) {
+                for (var j = 0; j < selection.length; j++) {
+                    if (selection[j] instanceof CompItem) {
+                        compsToProtect_ids[selection[j].id] = true;
                     }
                 }
             } else {
                 for (var i = 1; i <= app.project.numItems; i++) {
-                    if (isGnewsNamedComp(app.project.item(i))) {
-                        compsToExclude_ids[app.project.item(i).id] = true;
+                    var item = app.project.item(i);
+                    if (isGnewsNamedComp(item)) {
+                        compsToProtect_ids[item.id] = true;
                     }
-                }
-                var isExclusionListEmpty = true;
-                for (var key in compsToExclude_ids) {
-                    if (compsToExclude_ids.hasOwnProperty(key)) { isExclusionListEmpty = false; break; }
-                }
-                if (isExclusionListEmpty) {
-                    updateStatusText("Nenhuma comp selecionada ou 'GNEWS' para proteger.");
-                    app.endUndoGroup();
-                    return;
                 }
             }
     
+            // Função para obter ou criar uma pasta
             function getOrCreateFolder(name, parent) {
                 if (parent === undefined) { parent = app.project.rootFolder; }
                 for (var i = 1; i <= parent.numItems; i++) {
-                    if (parent.item(i) instanceof FolderItem && parent.item(i).name === name) { return parent.item(i); }
+                    if (parent.item(i) instanceof FolderItem && parent.item(i).name === name) {
+                        return parent.item(i);
+                    }
                 }
                 return parent.items.addFolder(name);
             }
-
-            function setupProjectFolders() {
-                var folders = {};
-                folders.comps = getOrCreateFolder('01 COMPS');
-                folders.precomps = getOrCreateFolder('02 PRECOMPS');
-                var arquivos = getOrCreateFolder('03 ARQUIVOS');
-                folders.missing = getOrCreateFolder('04 !MISSING');
-                folders.audio = getOrCreateFolder('AUDIO', arquivos);
-                folders.images = getOrCreateFolder('IMAGENS', arquivos);
-                folders.solids = getOrCreateFolder('SOLIDOS', arquivos);
-                folders.video = getOrCreateFolder('VIDEO', arquivos);
-                folders.data = getOrCreateFolder('DADOS', arquivos);
-                return folders;
-            }
-    
+            
+            // 2. Reduz o projeto antes de organizar
             updateStatusText("Reduzindo projeto...");
             app.executeCommand(app.findMenuCommandId("Reduce Project"));
             
-            var folders = setupProjectFolders();
-            var itemsToMove = [];
-            for (var i = 1; i <= app.project.numItems; i++) {
-                var item = app.project.item(i);
-                if (!(item instanceof FolderItem) && !compsToExclude_ids[item.id]) {
-                    itemsToMove.push(item);
-                }
-            }
+            // Prepara a estrutura de pastas
+            var folders = {};
+            var arquivosFolder = getOrCreateFolder('03 ARQUIVOS');
             
-            updateStatusText("Organizando " + itemsToMove.length + " itens...");
-
             var itemsMovedCount = 0;
             var imageExtensions = [".png", ".jpg", ".jpeg", ".psd", ".ai", ".eps", ".tiff", "tga", ".exr"];
     
-            for (var i = 0; i < itemsToMove.length; i++) {
-                var item = itemsToMove[i];
+            // 3. Itera por todos os itens para organizar
+            updateStatusText("Organizando itens...");
+            for (var i = 1; i <= app.project.numItems; i++) {
+                var item = app.project.item(i);
+                
+                // Pula pastas na primeira passada
+                if (item instanceof FolderItem) continue;
+                
+                // REGRA 1: Move as comps protegidas para a raiz do projeto
+                if (compsToProtect_ids[item.id]) {
+                    if (item.parentFolder !== app.project.rootFolder) {
+                        item.parentFolder = app.project.rootFolder;
+                    }
+                    continue; // Pula para o próximo item
+                }
+                
+                // Organiza os itens restantes
                 var moved = false;
                 if (item instanceof CompItem) {
-                    if (item.usedIn.length > 0) { item.parentFolder = folders.precomps; } 
-                    else { item.parentFolder = folders.comps; }
+                    if (item.usedIn.length > 0) {
+                        if (!folders.precomps) folders.precomps = getOrCreateFolder('02 PRECOMPS');
+                        item.parentFolder = folders.precomps;
+                    } else {
+                        if (!folders.comps) folders.comps = getOrCreateFolder('01 COMPS');
+                        item.parentFolder = folders.comps;
+                    }
                     moved = true;
                 } else if (item instanceof FootageItem) {
-                    if (item.footageMissing) { item.parentFolder = folders.missing; } 
-                    else if (item.mainSource instanceof SolidSource) { item.parentFolder = folders.solids; } 
-                    else if (item.hasAudio && !item.hasVideo) { item.parentFolder = folders.audio; } 
-                    else {
+                    if (item.footageMissing) {
+                        if (!folders.missing) folders.missing = getOrCreateFolder('04 !MISSING');
+                        item.parentFolder = folders.missing;
+                    } else if (item.mainSource instanceof SolidSource) {
+                        if (!folders.solids) folders.solids = getOrCreateFolder('SOLIDOS', arquivosFolder);
+                        item.parentFolder = folders.solids;
+                    } else if (item.hasAudio && !item.hasVideo) {
+                        if (!folders.audio) folders.audio = getOrCreateFolder('AUDIO', arquivosFolder);
+                        item.parentFolder = folders.audio;
+                    } else {
                         var isImage = false;
                         for (var j = 0; j < imageExtensions.length; j++) {
-                            if (item.name.toLowerCase().indexOf(imageExtensions[j]) > -1) { isImage = true; break; }
+                            if (item.name.toLowerCase().indexOf(imageExtensions[j]) > -1) {
+                                isImage = true;
+                                break;
+                            }
                         }
-                        if (isImage) { item.parentFolder = folders.images; } 
-                        else { item.parentFolder = folders.video; }
+                        if (isImage) {
+                            if (!folders.images) folders.images = getOrCreateFolder('IMAGENS', arquivosFolder);
+                            item.parentFolder = folders.images;
+                        } else {
+                            if (!folders.video) folders.video = getOrCreateFolder('VIDEO', arquivosFolder);
+                            item.parentFolder = folders.video;
+                        }
                     }
                     moved = true;
                 }
                 if (moved) itemsMovedCount++;
             }
 
-            var mainFolderNames = ["01 COMPS", "02 PRECOMPS", "03 ARQUIVOS", "04 !MISSING", "AUDIO", "IMAGENS", "SOLIDOS", "VIDEO", "DADOS"];
+            // 4. REGRA 2: Remove TODAS as pastas que estiverem vazias
+            updateStatusText("Limpando pastas vazias...");
             for(var i = app.project.numItems; i >= 1; i--) {
                 var item = app.project.item(i);
                 if(item instanceof FolderItem && item.numItems === 0) {
-                    var isMainFolder = false;
-                    for(var j=0; j < mainFolderNames.length; j++){
-                        if(item.name === mainFolderNames[j]){ isMainFolder = true; break; }
-                    }
-                    if(!isMainFolder){
-                        try{ item.remove(); } catch(e){}
-                    }
+                    try{ item.remove(); } catch(e){}
                 }
             }
             
