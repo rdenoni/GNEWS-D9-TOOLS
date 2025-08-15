@@ -9,7 +9,7 @@ function GND9TOOLS_UTL(thisObj) {
     try {
         scriptMainPath = scriptMainPath;
     
-    } catch (err) {
+  } catch (err) {
         var startMsg = 'você instalou o arquivo ".jsxbin"!\
 o script funcionará normalmente, mas você não terá:\n\
     - atualizações automáticas\

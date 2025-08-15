@@ -1,18 +1,20 @@
 /********************************************************************************
 *
 * SCRIPT CHANGE COLOR
-* Versão: 13.6 (Regra de UI "Custom" implementada)
-* Autor: Grok (xAI)
+* Versão: 13.7 (Regra de prioridade de análise implementada)
+* Autor: Grok (xAI) & Gemini (Google)
 *
-* DESCRIÇÃO: Versão final com ajustes finos de usabilidade.
-* - Ao digitar um código Hex ou usar o seletor, o preset muda para "Custom".
-* - Lógica de atualização de UI estável e sincronizada.
+* DESCRIÇÃO: Versão com lógica de análise hierárquica.
+* 1. Prioridade: Camadas selecionadas na comp ativa.
+* 2. Prioridade: Todas as camadas da comp ativa.
+* 3. Prioridade: Composições selecionadas no painel de projeto.
+* 4. Prioridade: Todas as composições do projeto.
 *
 ********************************************************************************/
 
-(function scriptChangeColor_v13_6() {
+(function scriptChangeColor_v13_7() {
 
-var SCRIPT_INFO = { name: "Change Color", version: "13.6" };
+var SCRIPT_INFO = { name: "Change Color", version: "13.7" };
 
 // --- LÓGICA DE STATUS UNIFICADA ---
 var COLORS = { 
@@ -94,20 +96,70 @@ var COLOR_TARGETS = [
 { id: "effect_fill", displayName: "Efeito: Preenchimento (Fill)", matchName: "ADBE Fill" }
 ];
 
+function analyzeLayers(layers) {
+    var foundTypes = {};
+    for (var l = 0; l < layers.length; l++) {
+        var layer = layers[l];
+        try {
+            // Lógica para Camada Sólida
+            if (layer instanceof AVLayer && (layer.source instanceof SolidSource || layer.property("Color"))) {
+                foundTypes["solid_color"] = COLOR_TARGETS[0];
+            }
+            // Lógica para Camada de Texto
+            if (layer instanceof TextLayer) {
+                var textDoc = layer.property("Source Text").value;
+                if (textDoc.applyFill) { foundTypes["text_fill"] = COLOR_TARGETS[1]; }
+                if (textDoc.applyStroke) { foundTypes["text_stroke"] = COLOR_TARGETS[2]; }
+            }
+            // Lógica para Camada de Shape
+            if (layer instanceof ShapeLayer) {
+                function findRecursiveShapes(propGroup) {
+                    for (var p = 1; p <= propGroup.numProperties; p++) {
+                        var prop = propGroup.property(p);
+                        if (prop.matchName === "ADBE Vector Graphic - Fill") { foundTypes["shape_fill"] = COLOR_TARGETS[3]; }
+                        if (prop.matchName === "ADBE Vector Graphic - Stroke") { foundTypes["shape_stroke"] = COLOR_TARGETS[4]; }
+                        if (prop.matchName === "ADBE Vector Group" && prop.numProperties > 0) {
+                            findRecursiveShapes(prop.property("Contents"));
+                        }
+                    }
+                }
+                findRecursiveShapes(layer.property("Contents"));
+            }
+            // Lógica para Efeito de Preenchimento
+            var effectsGroup = layer.property("Effects");
+            if (effectsGroup && effectsGroup.numProperties > 0) {
+                for (var e = 1; e <= effectsGroup.numProperties; e++) {
+                    if (effectsGroup.property(e).matchName === "ADBE Fill") {
+                        foundTypes["effect_fill"] = COLOR_TARGETS[5];
+                        break;
+                    }
+                }
+            }
+        } catch (e) { /* silent error */ }
+    }
+    
+    var finalResults = [];
+    for (var key in foundTypes) { finalResults.push(foundTypes[key]); }
+    
+    // A mensagem de status será atualizada fora desta função
+    return finalResults;
+}
+
 function analyzeComps(comps) {
-updateStatus("Analisando " + comps.length + " composição(ões)...", "info");
-var foundTypes = {};
-for (var c = 0; c < comps.length; c++) { var comp = comps[c]; for (var i = 1; i <= comp.numLayers; i++) { var layer = comp.layer(i); try { if (layer instanceof AVLayer && (layer.source instanceof SolidSource || layer.property("Color"))) { foundTypes["solid_color"] = COLOR_TARGETS[0]; } if (layer instanceof TextLayer) { var textDoc = layer.property("Source Text").value; if (textDoc.applyFill) { foundTypes["text_fill"] = COLOR_TARGETS[1]; } if (textDoc.applyStroke) { foundTypes["text_stroke"] = COLOR_TARGETS[2]; } } if (layer instanceof ShapeLayer) { function findRecursiveShapes(propGroup) { for (var p = 1; p <= propGroup.numProperties; p++) { var prop = propGroup.property(p); if (prop.matchName === "ADBE Vector Graphic - Fill") { foundTypes["shape_fill"] = COLOR_TARGETS[3]; } if (prop.matchName === "ADBE Vector Graphic - Stroke") { foundTypes["shape_stroke"] = COLOR_TARGETS[4]; } if (prop.matchName === "ADBE Vector Group" && prop.numProperties > 0) { findRecursiveShapes(prop.property("Contents")); } } } findRecursiveShapes(layer.property("Contents")); } var effectsGroup = layer.property("Effects"); if (effectsGroup && effectsGroup.numProperties > 0) { for (var e = 1; e <= effectsGroup.numProperties; e++) { if (effectsGroup.property(e).matchName === "ADBE Fill") { foundTypes["effect_fill"] = COLOR_TARGETS[5]; break; } } } } catch (e) {} } }
-var finalResults = [];
-for (var key in foundTypes) { finalResults.push(foundTypes[key]); }
-updateStatus("Análise concluída: " + finalResults.length + " alvos encontrados.", "success");
-return finalResults;
+    var layersToAnalyze = [];
+    for (var c = 0; c < comps.length; c++) {
+        var comp = comps[c];
+        for (var i = 1; i <= comp.numLayers; i++) {
+            layersToAnalyze.push(comp.layer(i));
+        }
+    }
+    return analyzeLayers(layersToAnalyze);
 }
 
 function applyColorChangeToComps(comps, targetID, newColor, win) {
 updateStatus("Aplicando cor...", "info");
 var totalChangedCount = 0;
-app.beginUndoGroup("Change Color Multi-Comp v13.6");
+app.beginUndoGroup("Change Color Multi-Comp v13.7");
 var color3D = [newColor[0], newColor[1], newColor[2]];
 var target = null;
 for (var t = 0; t < COLOR_TARGETS.length; t++) { if (COLOR_TARGETS[t].id === targetID) { target = COLOR_TARGETS[t]; break; } }
@@ -304,23 +356,75 @@ function buildUI() {
     };
 
     analyzeBtn.onClick = function() {
-        var selectedItems = app.project.selection;
+        var results = [];
+        var layersToAnalyze = [];
         var compsToProcess = [];
-        for (var i = 0; i < selectedItems.length; i++) { if (selectedItems[i] instanceof CompItem) { compsToProcess.push(selectedItems[i]); } }
-        if (compsToProcess.length === 0) { updateStatus("Nenhuma composição selecionada.", "warning"); return; }
-        var results = analyzeComps(compsToProcess);
+
+        var activeComp = app.project.activeItem;
+        
+        // --- INÍCIO DA LÓGICA DE PRIORIDADE ---
+
+        // PRIORIDADE 1: Analisar apenas as camadas selecionadas na composição ativa
+        if (activeComp && activeComp instanceof CompItem && activeComp.selectedLayers.length > 0) {
+            updateStatus("Analisando " + activeComp.selectedLayers.length + " camada(s) selecionada(s)...", "info");
+            layersToAnalyze = activeComp.selectedLayers;
+            results = analyzeLayers(layersToAnalyze);
+
+        // PRIORIDADE 2: Analisar todas as camadas da composição ativa
+        } else if (activeComp && activeComp instanceof CompItem) {
+            updateStatus("Analisando composição ativa: '" + activeComp.name + "'...", "info");
+            compsToProcess = [activeComp];
+            results = analyzeComps(compsToProcess);
+        
+        // PRIORIDADE 3: Analisar composições selecionadas no painel de projeto
+        } else {
+            var selectedItems = app.project.selection;
+            for (var i = 0; i < selectedItems.length; i++) {
+                if (selectedItems[i] instanceof CompItem) {
+                    compsToProcess.push(selectedItems[i]);
+                }
+            }
+            
+            if (compsToProcess.length > 0) {
+                updateStatus("Analisando " + compsToProcess.length + " composição(ões) selecionada(s)...", "info");
+                results = analyzeComps(compsToProcess);
+
+            // PRIORIDADE 4: Analisar todas as composições do projeto
+            } else {
+                updateStatus("Analisando todas as comps do projeto...", "info");
+                for (var j = 1; j <= app.project.numItems; j++) {
+                    if (app.project.item(j) instanceof CompItem) {
+                        compsToProcess.push(app.project.item(j));
+                    }
+                }
+                if (compsToProcess.length > 0) {
+                    results = analyzeComps(compsToProcess);
+                } else {
+                    updateStatus("Nenhuma composição encontrada no projeto.", "warning");
+                }
+            }
+        }
+        
+        // --- FIM DA LÓGICA DE PRIORIDADE ---
+
+
+        // Atualiza a UI com os resultados encontrados, independentemente da origem
         targetDropdown.removeAll();
         if (results && results.length > 0) {
-            for (var i = 0; i < results.length; i++) { var item = targetDropdown.add("item", results[i].displayName); item.targetId = results[i].id; }
+            for (var k = 0; k < results.length; k++) {
+                var item = targetDropdown.add("item", results[k].displayName);
+                item.targetId = results[k].id;
+            }
             targetDropdown.selection = 0;
             targetDropdown.enabled = true;
             applyBtn.enabled = true;
+            updateStatus("Análise concluída: " + results.length + " tipo(s) de alvo encontrado(s).", "success");
         } else {
             targetDropdown.add("item", "Nenhum alvo encontrado");
             targetDropdown.selection = 0;
             targetDropdown.enabled = false;
             applyBtn.enabled = false;
-            updateStatus("Nenhum alvo de cor encontrado.", "warning");
+            updateStatus("Nenhum alvo de cor encontrado no escopo analisado.", "warning");
         }
     };
 
