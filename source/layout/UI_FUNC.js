@@ -257,7 +257,7 @@ function D9T_UI_EVENTS(uiObj) {
     D9T_RUN_SCRIPT("GNEWS_CropComp.jsx");
   };
 
-  uiObj.centerAnchor.leftClick.onClick = function () {
+  uiObj.AnchorAlign.leftClick.onClick = function () {
     D9T_RUN_SCRIPT("GNEWS_AnchorAlign.jsx");
   };
 

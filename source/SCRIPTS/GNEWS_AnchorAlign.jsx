@@ -26,7 +26,7 @@
         },
 
         // --- FUNÇÃO DE AJUDA ---
-        showCenterAnchorHelp: function() {
+        showAnchorAlignHelp: function() {
             var TARGET_HELP_WIDTH = 450;
             var MARGIN_SIZE = 15;
             var TOPIC_SECTION_MARGINS = [10, 5, 10, 5];
@@ -451,12 +451,12 @@
                 var helpBtnGroup = headerGrp.add('group');
                 helpBtnGroup.alignment = ['right', 'center'];
                 helpBtn = new themeIconButton(helpBtnGroup, { icon: D9T_INFO_ICON, tips: [lClick + 'Ajuda'] });
-                helpBtn.leftClick.onClick = function() { self.showCenterAnchorHelp(); };
+                helpBtn.leftClick.onClick = function() { self.showAnchorAlignHelp(); };
             } else {
                 helpBtn = headerGrp.add("button", undefined, "?");
                 helpBtn.preferredSize = [24, 24];
                 helpBtn.helpTip = "Ajuda sobre o Anchor Master";
-                helpBtn.onClick = function() { self.showCenterAnchorHelp(); };
+                helpBtn.onClick = function() { self.showAnchorAlignHelp(); };
             }
 
             var panel = win.add("panel", undefined, "Posição da Âncora");

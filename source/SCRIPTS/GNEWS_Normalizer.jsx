@@ -113,7 +113,7 @@
     anchorPanel.alignChildren = 'fill';
     var anchorBtnsGroup = anchorPanel.add("group"); anchorBtnsGroup.orientation = "row";
         var normalizeAnchorBtn = anchorBtnsGroup.add("button", undefined, "\u2295 Normalizar Ancora");
-    var centerAnchorBtn = anchorBtnsGroup.add("button", undefined, "\u29BF Centralizar Ancora");
+    var AnchorAlignBtn = anchorBtnsGroup.add("button", undefined, "\u29BF Centralizar Ancora");
 
 
     var posPanel = pal.add("panel", undefined, "Posição");
@@ -159,7 +159,7 @@
     
     function deselectAllLayers(comp) { for (var i = 1; i <= comp.numLayers; i++) { comp.layer(i).selected = false; } }
     
-    function runCenterAnchorCommand() {
+    function runAnchorAlignCommand() {
         var commandID = 0;
         try { commandID = app.findMenuCommandId("Center Anchor Point in Layer Content"); } catch(e) {}
         if (commandID === 0) { try { commandID = app.findMenuCommandId("Centralizar ponto de ancoragem no conteúdo da camada"); } catch(e) {} }
@@ -461,7 +461,7 @@
         app.endUndoGroup();
     };
 
-    centerAnchorBtn.onClick = function () {
+    AnchorAlignBtn.onClick = function () {
         app.beginUndoGroup("Centralizar Âncora");
         var layers = getLayers(true); if (!layers) { app.endUndoGroup(); return; }
         var comp = app.project.activeItem; var processedCount = 0;
@@ -472,7 +472,7 @@
             if (layer instanceof AVLayer || layer instanceof ShapeLayer || layer instanceof TextLayer) {
                 try {
                     layer.selected = true;
-                    if (runCenterAnchorCommand()) { processedCount++; }
+                    if (runAnchorAlignCommand()) { processedCount++; }
                     layer.selected = false;
                 } catch (e) { }
             }

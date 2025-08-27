@@ -141,9 +141,9 @@ o script funcionará normalmente, mas você não terá:\n\
                         lClick + 'Executar TextBox'
                     ]
                 },
-                centerAnchor: {
+                AnchorAlign: {
                     type: 'imageButton',
-                    labelTxt: 'CenterAnchor',
+                    labelTxt: 'AnchorAlign',
                     icon: D9T_ANCHOR_ICON, 
                     tips: [
                         lClick + 'Executar AutoCenter'
@@ -171,7 +171,7 @@ o script funcionará normalmente, mas você não terá:\n\
                     labelTxt: 'CropComp',
                     icon: D9T_CROP_ICON, 
                     tips: [
-                        lClick + 'Executar AutoCrop'
+                        lClick + 'Cropa um comp pelas extremidades, cria multiplas comp '
                     ]
                 }
             }
