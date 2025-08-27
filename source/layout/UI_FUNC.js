@@ -206,7 +206,7 @@ function D9T_UI_EVENTS(uiObj) {
   };
 
   uiObj.layerOrganizer.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS LayersOrganize.jsx");
+    D9T_RUN_SCRIPT("GNEWS Layers.jsx");
   };
 
   uiObj.layerOrganizer.rightClick.onClick = function () {
@@ -214,7 +214,7 @@ function D9T_UI_EVENTS(uiObj) {
   };
 
   uiObj.icons4U.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS Icons4U.jsx");
+    D9T_RUN_SCRIPT("GNEWS Library.jsx");
   };
 
   uiObj.icons4U.rightClick.onClick = function () {
@@ -222,11 +222,11 @@ function D9T_UI_EVENTS(uiObj) {
   };
 
   uiObj.renCompSave.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS RenCompSave.jsx");
+    D9T_RUN_SCRIPT("GNEWS Renamer.jsx");
   };
 
   uiObj.killBoxText.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS KillBoxText.jsx");
+    D9T_RUN_SCRIPT("GNEWS TextBox.jsx");
   };
 
   uiObj.cropComp.leftClick.onClick = function () {
@@ -234,15 +234,15 @@ function D9T_UI_EVENTS(uiObj) {
   };
 
   uiObj.centerAnchor.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS CenterAnchor.jsx");
+    D9T_RUN_SCRIPT("GNEWS AnchorAlign.jsx");
   };
 
   uiObj.NormalizeMyLife.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS NormalizeMyLife.jsx");
+    D9T_RUN_SCRIPT("GNEWS Normalize.jsx");
   };
 
   uiObj.colorChange.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS ColorChange.jsx");
+    D9T_RUN_SCRIPT("GNEWS Colors.jsx");
   };
 }
 
