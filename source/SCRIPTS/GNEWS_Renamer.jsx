@@ -1,5 +1,5 @@
 /***************************************************
- * GNEWS RenCompSave.jsx
+ * GNEWS Renamer.jsx
  * Versão: 7.4 - Modificado
  * Última Atualização: 2025-08-15
  * Descrição: Versão com inicialização de valores padrão
@@ -7,7 +7,7 @@
  * captura mais a comp ativa ao iniciar.
  ***************************************************/
 
-function GNEWS_RenCompSave_UI() {
+function GNEWS_Renamer_UI() {
 
 // =======================================================================
     // ETAPA 1: CARREGAMENTO DE DADOS EXTERNOS (COM VERIFICAÇÕES REFORÇADAS)
@@ -23,7 +23,7 @@ function GNEWS_RenCompSave_UI() {
             file.open("r");
             var content = file.read();
             file.close();
-            // A sua versão original do RenCompSave já tinha essa checagem, que é ótima.
+            // A sua versão original do Renamer já tinha essa checagem, que é ótima.
             if (typeof JSON !== 'undefined' && typeof JSON.parse === 'function') {
                 return JSON.parse(content);
             } else {
@@ -980,7 +980,7 @@ saveBtn.leftClick.onClick = function() {
 }
 
 if (app.project) {
-    GNEWS_RenCompSave_UI();
+    GNEWS_Renamer_UI();
 } else {
     alert("Por favor, abra um projeto no After Effects primeiro.");
 }

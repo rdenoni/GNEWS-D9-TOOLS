@@ -511,7 +511,7 @@
 
     // === INICIALIZAÇÃO ===
     function init() {
-        logDebug("=== INICIANDO MAILMAKER - v36.0 ===");
+        logDebug("=== INICIANDO MailMaker - v36.0 ===");
         var mainPath = findScriptMainPath();
         try {
             var globalsFile = new File(mainPath + "source/globals.js");

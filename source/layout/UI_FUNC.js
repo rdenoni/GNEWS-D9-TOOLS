@@ -201,7 +201,7 @@ function D9T_UI_EVENTS(uiObj) {
     D9T_RUN_SCRIPT("GNEWS_CopyLinks.jsx");
   };
 
-  uiObj.mailMaker.leftClick.onClick = function () {
+  uiObj.MailMaker.leftClick.onClick = function () {
     D9T_RUN_SCRIPT("GNEWS_MailMaker.jsx");
   };
 
@@ -221,7 +221,7 @@ function D9T_UI_EVENTS(uiObj) {
     D9T_RUN_SCRIPT("LibraryLive_config_ui.jsx");
   };
 
-  uiObj.renCompSave.leftClick.onClick = function () {
+  uiObj.Renamer.leftClick.onClick = function () {
     D9T_RUN_SCRIPT("GNEWS_Renamer.jsx");
   };
 

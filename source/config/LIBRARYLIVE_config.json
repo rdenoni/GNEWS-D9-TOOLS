@@ -12,7 +12,7 @@
       "default_format": "html_list",
       "include_date": true
     },
-    "mailmaker": {
+    "MailMaker": {
       "default_signature": "Atenciosamente, Equipe D9"
     }
   }

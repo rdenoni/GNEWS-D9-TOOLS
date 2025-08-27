@@ -99,18 +99,18 @@ o script funcionará normalmente, mas você não terá:\n\
 
             section3: {
 
-                renCompSave: {
+                Renamer: {
                     type: 'imageButton',
-                    labelTxt: 'RenCompSave',
+                    labelTxt: 'Renamer',
                     icon: D9T_RENOMEAR_ICON, 
                     tips: [
-                        lClick + 'Executar RenCompSave'
+                        lClick + 'Executar Renamer'
                     ]
                 },
             
 
 
-                mailMaker: {
+                MailMaker: {
                     type: 'imageButton',
                     labelTxt: 'MailMaker',
                     icon: D9T_MAIL_ICON,
