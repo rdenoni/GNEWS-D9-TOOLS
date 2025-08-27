@@ -1,4 +1,3 @@
-
 /*
 
 ---------------------------------------------------------------
@@ -28,20 +27,7 @@ function D9T_BUILD_UI(structureObj, uiObj) {
   uiObj.pinGrp.alignment = ["center", "top"];
   uiObj.pinGrp.spacing = 16;
   uiObj.sectionGrpArray.push(uiObj.pinGrp);
-  uiObj.prodGrp = uiObj.pinGrp.add("group");
-  uiObj.sectionGrpArray.push(uiObj.prodGrp);
-  uiObj.prodIconGrp = uiObj.prodGrp.add("group");
-  uiObj.prodIconGrp.orientation = "stack";
-  populateMainIcons(uiObj.prodIconGrp);
-  uiObj.prodDrop = uiObj.prodGrp.add(
-    "dropdownlist",
-    undefined,
-    getProdNames(D9T_prodArray)
-  );
-  uiObj.prodDrop.selection = 0;
-  uiObj.prodDrop.maximumSize = [140, 24];
-  uiObj.prodDrop.minimumSize = [52, 24];
-  uiObj.prodDrop.helpTip = "PRODUÇÃO SELECIONADA";
+  
   uiObj.iconBtnMainGrp = uiObj.pinGrp.add("group");
   uiObj.iconBtnGrp0 = uiObj.iconBtnMainGrp.add("group");
   uiObj.sectionGrpArray.push(uiObj.iconBtnGrp0);
@@ -114,7 +100,8 @@ function D9T_LAYOUT(uiObj) {
   var grpOrientation = isRow ? "row" : "column";
   var btnOrientation = isRow ? "column" : "row";
   var iconOrientation = uiObj.window.size.width < 70 ? "column" : "row";
-  var pinGap = isRow ? 190 : 80;
+  
+  var pinGap = isRow ? 50 : 50; 
   var infoGap = isRow ? 110 : 56;
   var iconGap = uiObj.iconButtonArray.length * 28;
   if (!isRow && uiObj.window.size.width >= 70)
@@ -154,14 +141,12 @@ function D9T_LAYOUT(uiObj) {
     uiObj.mainGrp.spacing = uiObj.window.size.height < 44 ? 24 : 16;
     uiObj.pinGrp.alignment = isRow ? "left" : "top";
     uiObj.pinGrp.spacing = 20;
-    uiObj.prodGrp.spacing = 4;
     uiObj.iconBtnMainGrp.orientation = iconOrientation;
     uiObj.iconBtnMainGrp.spacing = 4;
     uiObj.iconBtnGrp0.spacing = 4;
     uiObj.iconBtnGrp1.spacing = 4;
     uiObj.infoGrp.alignment = isRow ? "right" : "bottom";
     uiObj.infoGrp.spacing = 0;
-    uiObj.prodDrop.size.width = uiObj.window.size.width - 10;
     uiObj.mainLogo.size.width = uiObj.window.size.width - 10;
   } catch (err) {
     alert(lol + "#D9T_LAYOUT - " + "" + err.message);
@@ -195,20 +180,6 @@ function D9T_UI_EVENTS(uiObj) {
       );
     }
   }
-
-  uiObj.vLab.addEventListener("mousedown", function () {
-    var siteUrl = repoURL + "/blob/main/README.md#-d9-script";
-    openWebSite(siteUrl);
-  });
-
-  uiObj.prodDrop.onChange = function () {
-    var i = this.selection.index;
-    changeIcon(i, uiObj.prodIconGrp);
-    templatesPath = D9T_prodArray[i].templatesPath;
-    templatesFolder = new Folder(D9T_prodArray[i].templatesPath);
-    if (!templatesFolder.exists)
-      alert(lol + "#D9T_002 - pasta de templates não localizada...");
-  };
 
   uiObj.buscar.leftClick.onClick = function () {
     findDialog();
@@ -246,6 +217,10 @@ function D9T_UI_EVENTS(uiObj) {
     D9T_RUN_SCRIPT("GNEWS Icons4U.jsx");
   };
 
+  uiObj.icons4U.rightClick.onClick = function () {
+    D9T_RUN_SCRIPT("LibraryLive_config_ui.jsx");
+  };
+
   uiObj.renCompSave.leftClick.onClick = function () {
     D9T_RUN_SCRIPT("GNEWS RenCompSave.jsx");
   };
@@ -276,7 +251,8 @@ function changeIcon(imageIndex, imagesGrp) {
     imagesGrp.children[i].visible = i == imageIndex;
   }
 }
-function populateMainIcons(imagesGrp) {
+// --- FUNÇÃO CORRIGIDA ---
+function populateMainIcons(imagesGrp, dropdownList) { // Aceita o dropdown como parâmetro
   while (imagesGrp.children.length > 0) {
     imagesGrp.remove(imagesGrp.children[0]);
   }
@@ -294,22 +270,32 @@ function populateMainIcons(imagesGrp) {
       " para editar a lista de produções";
     newIcon.preferredSize = [24, 24];
     newIcon.visible = i == 0;
+    
+    // Evento de duplo-clique CORRIGIDO
     newIcon.addEventListener("click", function (c) {
       if (c.detail == 2) {
         d9ProdFoldersDialog(D9T_prodArray);
-        D9T_ui.prodDrop.removeAll();
+        
+        // Atualiza a lista de produções a partir do arquivo
         D9T_prodArray = updateProdData(configFile);
-        populateDropdownList(
-          getProdNames(D9T_prodArray),
-          imagesGrp.parent.children[1]
-        );
-        populateMainIcons(imagesGrp);
-        D9T_ui.prodDrop.selection = 0;
+        
+        // Se um dropdown foi passado, atualiza-o
+        if (dropdownList) {
+            dropdownList.removeAll();
+            populateDropdownList(getProdNames(D9T_prodArray), dropdownList);
+            dropdownList.selection = 0;
+            // Dispara o evento onChange manualmente para recarregar a árvore de templates
+            dropdownList.onChange(); 
+        }
+
+        // Repopula os ícones
+        populateMainIcons(imagesGrp, dropdownList);
         imagesGrp.layout.layout(true);
       }
     });
   }
 }
+
 function themeDivider(sectionGrp) {
   var newDiv = sectionGrp.add("customButton", [0, 0, 1, 1]);
   setUiCtrlColor(newDiv, divColor1);

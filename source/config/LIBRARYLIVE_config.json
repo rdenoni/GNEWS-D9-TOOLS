@@ -1,0 +1,19 @@
+{
+  "version": "1.0",
+  "userName": "D9 User",
+  "tool_settings": {
+    "icons4u": {
+      "icon_root_path": "D:\\PROJETOS\\SCRIPTS AFTER\\GNEWS-D9-TOOLS\\icons",
+      "image_root_path": "D:\\PROJETOS\\SCRIPTS AFTER\\GNEWS-D9-TOOLS\\imagens",
+      "thumbnail_size": 70,
+      "grid_columns": 7
+    },
+    "copylinks": {
+      "default_format": "html_list",
+      "include_date": true
+    },
+    "mailmaker": {
+      "default_signature": "Atenciosamente, Equipe D9"
+    }
+  }
+}
