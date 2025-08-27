@@ -42,8 +42,8 @@ o script funcionará normalmente, mas você não terá:\n\
         #include 'source/SCRIPTS/GNEWS_Templates.jsx';
         #include 'source/SCRIPTS/MAKER_UI.js';
         #include 'source/SCRIPTS/FOLDER_UI.js';
-        #include 'source/SCRIPTS/FIND_UI.js';
-        #include 'source/SCRIPTS/FIND_PROJ_UI.js';
+        #include 'source/SCRIPTS/GNEWS_SearchLayers.jsx';
+        #include 'source/SCRIPTS/GNEWS_FinderProject.jsx';
         
 
     
