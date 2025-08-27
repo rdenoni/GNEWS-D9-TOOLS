@@ -238,11 +238,11 @@ function D9T_UI_EVENTS(uiObj) {
   };
 
   uiObj.icons4U.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS_Library.jsx");
+    D9T_RUN_SCRIPT("GNEWS_LibraryLive.jsx");
   };
 
   uiObj.icons4U.rightClick.onClick = function () {
-    D9T_RUN_SCRIPT("LibraryLive_config_ui.jsx");
+    D9T_RUN_SCRIPT_CONFIG("LibraryLive_configWin.jsx");
   };
 
   uiObj.Renamer.leftClick.onClick = function () {
