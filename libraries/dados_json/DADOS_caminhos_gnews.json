@@ -1,0 +1,99 @@
+{
+  "pamjb.servicos.corp.tvglobo.com.br": [
+    {
+      "nome": "PAM HARDNEWS",
+      "caminho": "\\\\pamjb.servicos.corp.tvglobo.com.br\\Arte_Ilha\\UPLOAD_PAM_HARDNEWS\\01_ENTRADA"
+    },
+    {
+      "nome": "PAM MAGAZINE",
+      "caminho": "\\\\pamjb.servicos.corp.tvglobo.com.br\\Arte_Ilha\\UPLOAD_PAM_MAGAZINE\\01_ENTRADA"
+    },
+    {
+      "nome": "PARA ILHA HARDNEWS",
+      "caminho": "\\\\pamjb.servicos.corp.tvglobo.com.br\\Arte_Ilha\\PARA_ILHA\\Hardnews\\GNEWS"
+    },
+    {
+      "nome": "PARA ILHA MAGAZINE",
+      "caminho": "\\\\pamjb.servicos.corp.tvglobo.com.br\\Arte_Ilha\\PARA_ILHA\\Magazine\\GNEWS"
+    },
+    {
+      "nome": "MXF ARTE",
+      "caminho": "\\\\pamjb.servicos.corp.tvglobo.com.br\\Arte_Ilha\\PARA_ARTE\\PROMO GNEWS\\MXF ARTE Novo"
+    },
+    {
+      "nome": "PARA ARTE",
+      "caminho": "\\\\pamjb.servicos.corp.tvglobo.com.br\\Arte_Ilha\\PARA_ARTE"
+    }
+  ],
+  "vfx-ml-sp.servicos.corp.tvglobo.com.br": [
+    {
+      "nome": "COMPARTILHAMENTO",
+      "caminho": "\\\\vfx-ml-sp.servicos.corp.tvglobo.com.br\\VFX\\compartilhamento"
+    }
+  ],
+  "10.3.44.130": [
+    {
+      "nome": "FTP ESPORTE",
+      "caminho": "\\\\10.3.44.130\\edit5\\GLOBO\\ARTES"
+    }
+  ],
+  "10.197.102.2": [
+    {
+      "nome": "FTP COLUX",
+      "caminho": "\\\\10.197.102.2\\coolux\\TELAO 2024-07-27\\MIDIA\\"
+    }
+  ],
+  "arteserver": [
+    {
+      "nome": "ARTE SERVER",
+      "caminho": "\\\\arteserver\\_PRODUCAO_DIA_A_DIA\\"
+    }
+  ],
+  "unidade_mapeada_T": [
+    {
+      "nome": "GNEWS",
+      "caminho": "T:/JORNALISMO/GLOBONEWS/"
+    },
+    {
+      "nome": "FANTASTICO",
+      "caminho": "T:/JORNALISMO/TVGLOBO/SEMANAIS_REDE/FANTASTICO"
+    },
+    {
+      "nome": "BDBR",
+      "caminho": "T:/JORNALISMO/TVGLOBO/DIARIOS_REDE/BDBR"
+    },
+    {
+      "nome": "ESPORTE",
+      "caminho": "T:/ESPORTE/TVGLOBO/FUTEBOL"
+    },
+    {
+      "nome": "BOM DIA SÁBADO",
+      "caminho": "T:/JORNALISMO/TVGLOBO/SEMANAIS_REDE/BOM_DIA_SABADO"
+    },
+    {
+      "nome": "DIA DIA GN RJ",
+      "caminho": "T:/JORNALISMO/GLOBONEWS/DIARIOS/RJ/2025"
+    },
+    {
+      "nome": "DIA DIA SP",
+      "caminho": "T:/JORNALISMO/GLOBONEWS/DIARIOS/SP/2025"
+    },
+    {
+      "nome": "DIA DIA FANT",
+      "caminho": "T:/JORNALISMO/TVGLOBO/SEMANAIS_REDE/FANTASTICO/RJ/FACTUAL_DIA A DIA"
+    },
+    {
+      "nome": "FANT FUTEBOL",
+      "caminho": "T:/JORNALISMO/TVGLOBO/SEMANAIS_REDE/FANTASTICO/RJ/FUTEBOL"
+    },
+    {
+      "nome": "FANT MATÉRIA",
+      "caminho": "T:/JORNALISMO/TVGLOBO/SEMANAIS_REDE/FANTASTICO/RJ/2025S"
+    },
+    {
+      "nome": "FANT SERIES",
+      "caminho": "T:/JORNALISMO/TVGLOBO/SEMANAIS_REDE/FANTASTICO/RJ/SERIES/"
+    }
+  ]
+
+}

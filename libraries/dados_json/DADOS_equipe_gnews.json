@@ -1,0 +1,105 @@
+    {
+  "equipe": [
+    {
+      "nome": "Matheus Stone",
+      "cargo": "Produtor I",
+      "setor": "ESPORTE e JORNALISMO",
+      "apelido": "Matheus",
+      "tag": "mcr"
+    },
+    {
+      "nome": "Rodrigo Trovão",
+      "cargo": "Produtor I",
+      "setor": "ESPORTE e JORNALISMO",
+      "apelido": "Trovão",
+      "tag": "rtr"
+    },
+    {
+      "nome": "Rafael Denoni",
+      "cargo": "Designer III",
+      "setor": "Promo e JORNALISMO",
+      "apelido": "D9",
+      "tag": "d9r"
+    },
+    {
+      "nome": "Igor Vinicios",
+      "cargo": "Designer II",
+      "setor": "JORNALISMO",
+      "apelido": "Igor",
+      "tag": "igr"
+    },
+    {
+      "nome": "Elson Junior",
+      "cargo": "Designer II",
+      "setor": "Promo e JORNALISMO",
+      "apelido": "Elson",
+      "tag": "etr"
+    },
+    {
+      "nome": "Rafael Escobar",
+      "cargo": "Designer II",
+      "setor": "JORNALISMO",
+      "apelido": "Escobar",
+      "tag": "rsc"
+    },
+    {
+      "nome": "Ian Caldas",
+      "cargo": "Designer I",
+      "setor": "JORNALISMO",
+      "apelido": "Ian",
+      "tag": "iar"
+    },
+    {
+      "nome": "Fabio Farias",
+      "cargo": "Designer I",
+      "setor": "JORNALISMO",
+      "apelido": "Fábio",
+      "tag": "fjr"
+    },
+    {
+      "nome": "Gilson Goliveira",
+      "cargo": "Designer I",
+      "setor": "JORNALISMO",
+      "apelido": "Gilson",
+      "tag": "gsr"
+    },
+    {
+      "nome": "Helena Cunha",
+      "cargo": "Designer I",
+      "setor": "JORNALISMO",
+      "apelido": "Helena",
+      "tag": "hcr"
+    },
+    {
+      "nome": "Amanda Rodrigues",
+      "cargo": "Designer I",
+      "setor": "JORNALISMO e ESPORTE",
+      "apelido": "Amanda",
+      "tag": "iar"
+    },
+    
+    {
+      "nome": "Gabriela Pelegrineti",
+      "cargo": "Designer I",
+      "setor": "JORNALISMO e ESPORTE",
+      "apelido": "Gabriela",
+      "tag": "gpr"
+    },
+
+    {
+      "nome": "Maria Freitas",
+      "cargo": "Designer I",
+      "setor": "JORNALISMO e ESPORTE",
+      "apelido": "Maria",
+      "tag": "mfr"
+
+    },
+     {
+      "nome": "Barbara Machado",
+      "cargo": "Estagiária",
+      "setor": "JORNALISMO e ESPORTE",
+      "apelido": "Barbara",
+      "tag": "brr"
+    }
+  ]
+}
