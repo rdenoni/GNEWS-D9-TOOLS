@@ -82,7 +82,7 @@ o script funcionará normalmente, mas você não terá:\n\
                     labelTxt: 'Templates',
                     icon: D9T_TEMPLATES_ICON,
                     tips: [
-                        lClick + 'Preencher templates',
+                        lClick + 'Acessa projetos de Templates, ilustrações e base temáticas ',
                        
                     ]
                 },
@@ -91,7 +91,7 @@ o script funcionará normalmente, mas você não terá:\n\
                     labelTxt: 'LibraryLive',
                     icon: D9T_LIBRARY_ICON,
                     tips: [
-                        lClick + 'Procura icones no projeto',
+                        lClick + 'Biblioteca de icones e imagens',
                         rClick + 'Configurações dos caminhos'
                     ]
                 },
@@ -104,7 +104,7 @@ o script funcionará normalmente, mas você não terá:\n\
                     labelTxt: 'Renamer',
                     icon: D9T_RENAMER_ICON, 
                     tips: [
-                        lClick + 'Executar Renamer'
+                        lClick + 'Renomei comp, salva e organiza projeto.'
                     ]
                 },
             
@@ -124,7 +124,7 @@ o script funcionará normalmente, mas você não terá:\n\
                     labelTxt: 'LayerToLasy',
                     icon: D9T_LAYERS_ICON, 
                     tips: [
-                        lClick + 'Organizador de Layers',
+                        lClick + 'Organizada Layers',
                         rClick + 'Janela de configurações'
                     ]
                 },
@@ -138,7 +138,7 @@ o script funcionará normalmente, mas você não terá:\n\
                     labelTxt: 'TextBox',
                     icon: D9T_TEXT_ICON,
                     tips: [
-                        lClick + 'Executar TextBox'
+                        lClick + 'Converte BoxLayers em LayerTexts, também separa texto em linhas, palavras e letras.'
                     ]
                 },
                 AnchorAlign: {
