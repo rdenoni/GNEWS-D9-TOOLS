@@ -39,7 +39,7 @@ o script funcionará normalmente, mas você não terá:\n\
 
         // utilidades com interface
         #include 'source/layout/UI_FUNC.js';
-        #include 'source/SCRIPTS/TEMPLATE_UI.js';
+        #include 'source/SCRIPTS/GNEWS_Templates.jsx';
         #include 'source/SCRIPTS/MAKER_UI.js';
         #include 'source/SCRIPTS/FOLDER_UI.js';
         #include 'source/SCRIPTS/FIND_UI.js';

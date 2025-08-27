@@ -198,15 +198,15 @@ function D9T_UI_EVENTS(uiObj) {
   };
 
   uiObj.link.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS CopyLinks.jsx");
+    D9T_RUN_SCRIPT("GNEWS_CopyLinks.jsx");
   };
 
   uiObj.mailMaker.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS MailMaker.jsx");
+    D9T_RUN_SCRIPT("GNEWS_MailMaker.jsx");
   };
 
   uiObj.layerOrganizer.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS Layers.jsx");
+    D9T_RUN_SCRIPT("GNEWS_Layers.jsx");
   };
 
   uiObj.layerOrganizer.rightClick.onClick = function () {
@@ -214,7 +214,7 @@ function D9T_UI_EVENTS(uiObj) {
   };
 
   uiObj.icons4U.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS Library.jsx");
+    D9T_RUN_SCRIPT("GNEWS_Library.jsx");
   };
 
   uiObj.icons4U.rightClick.onClick = function () {
@@ -222,27 +222,27 @@ function D9T_UI_EVENTS(uiObj) {
   };
 
   uiObj.renCompSave.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS Renamer.jsx");
+    D9T_RUN_SCRIPT("GNEWS_Renamer.jsx");
   };
 
   uiObj.killBoxText.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS TextBox.jsx");
+    D9T_RUN_SCRIPT("GNEWS_TextBox.jsx");
   };
 
   uiObj.cropComp.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS CropComp.jsx");
+    D9T_RUN_SCRIPT("GNEWS_CropComp.jsx");
   };
 
   uiObj.centerAnchor.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS AnchorAlign.jsx");
+    D9T_RUN_SCRIPT("GNEWS_AnchorAlign.jsx");
   };
 
   uiObj.NormalizeMyLife.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS Normalize.jsx");
+    D9T_RUN_SCRIPT("GNEWS_Normalize.jsx");
   };
 
   uiObj.colorChange.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS Colors.jsx");
+    D9T_RUN_SCRIPT("GNEWS_Colors.jsx");
   };
 }
 
