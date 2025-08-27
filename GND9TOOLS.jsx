@@ -146,7 +146,7 @@ o script funcionará normalmente, mas você não terá:\n\
                     labelTxt: 'AnchorAlign',
                     icon: D9T_ANCHOR_ICON, 
                     tips: [
-                        lClick + 'Executar AutoCenter'
+                        lClick + 'Alinhar a âncora em qualquer posição do box de uma layer'
                     ]
                 },
                 colorChange: {
@@ -154,7 +154,7 @@ o script funcionará normalmente, mas você não terá:\n\
                     labelTxt: 'ColorChange',
                     icon: D9T_COLOR_ICON, 
                     tips: [
-                        lClick + 'Executar ColorChange'
+                        lClick + 'Troca a cor de multiplas layers filtradas na comp'
                     ]
                 },
                 Normalizer: {
@@ -162,7 +162,7 @@ o script funcionará normalmente, mas você não terá:\n\
                     labelTxt: 'Normalizer',
                     icon: D9T_NORMALIZER_ICON, 
                     tips: [
-                        lClick + 'Executar Normalizer'
+                        lClick + 'Normaliza tamanho, rotação, posição e âncora'
                     ]
                 },
 
@@ -171,7 +171,7 @@ o script funcionará normalmente, mas você não terá:\n\
                     labelTxt: 'CropComp',
                     icon: D9T_CROP_ICON, 
                     tips: [
-                        lClick + 'Cropa um comp pelas extremidades, cria multiplas comp '
+                        lClick + 'Cropa um comp pelas extremidades de uma ou mais layers, cria multiplas comps com footages selecionados'
                     ]
                 }
             }
