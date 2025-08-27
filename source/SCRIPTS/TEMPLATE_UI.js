@@ -1,5 +1,3 @@
-
-
 /*
 
 ---------------------------------------------------------------
@@ -67,6 +65,8 @@ function d9TemplateDialog() {
     var bgColor1 = '#0B0D0E'; // Cor de fundo principal
     var normalColor1 = '#C7C8CA'; // Cor de texto normal
 	var monoColor0 = '#686F75'; // Cor cinza para o placeholder
+	var monoColor2 = '#302b2bff';
+	var normalColor2 = '#ffffffff';
     var highlightColor1 = '#E0003A'; // Cor de destaque para títulos de tópico
     // Funções de cor necessárias para o tema
     function hexToRgb(hex) { if (hex == undefined) return [Math.random(), Math.random(), Math.random()]; hex = hex.replace('#', ''); var r = parseInt(hex.substring(0, 2), 16); var g = parseInt(hex.substring(2, 4), 16); var b = parseInt(hex.substring(4, 6), 16); return [r / 255, g / 255, b / 255]; }
@@ -147,8 +147,35 @@ function d9TemplateDialog() {
 	vGrp2.visible = false;
 
 	// ----------------------------------------------------------------------------
+	// --- INÍCIO DA ADIÇÃO DO DROPDOWN DE PRODUÇÃO ---
 
-	// Grupo para o cabeçalho
+	var prodHeaderGrp = vGrp1.add('group');
+    prodHeaderGrp.alignment = 'fill';
+    prodHeaderGrp.orientation = 'stack';
+    var prodLab = prodHeaderGrp.add('statictext', undefined, 'PRODUÇÃO:');
+    setFgColor(prodLab, normalColor1);
+    
+    var prodGrp = vGrp1.add('group');
+    prodGrp.spacing = 4;
+    prodGrp.alignment = 'fill';
+    
+    var prodIconGrp = prodGrp.add('group');
+    prodIconGrp.orientation = 'stack';
+    populateMainIcons(prodIconGrp);
+    
+    var prodDrop = prodGrp.add('dropdownlist', undefined, getProdNames(D9T_prodArray));
+    prodDrop.selection = 0;
+    prodDrop.alignment = ['fill', 'center'];
+    prodDrop.helpTip = "PRODUÇÃO SELECIONADA";
+    
+    var divProd = themeDivider(vGrp1);
+    divProd.alignment = ['fill', 'center'];
+
+	// --- FIM DA ADIÇÃO DO DROPDOWN DE PRODUÇÃO ---
+	// ----------------------------------------------------------------------------
+
+
+	// Grupo para o cabeçalho da busca
 	var templatesHeaderGrp = vGrp1.add('group');
 	templatesHeaderGrp.alignment = 'fill';
 	templatesHeaderGrp.orientation = 'stack';
@@ -175,8 +202,6 @@ function d9TemplateDialog() {
 	var treeGrp = vGrp1.add('group');
 	treeGrp.orientation = 'column';
 	treeGrp.spacing = 4;
-
-	// --- INÍCIO DAS MODIFICAÇÕES ---
 	
 	var placeholderText = '⌕  Digite para buscar...';
 	
@@ -186,7 +211,7 @@ function d9TemplateDialog() {
 	setFgColor(searchBox, monoColor0); // Cor cinza para o placeholder
 	
 	// Cria a árvore de templates
-	var templateTree = treeGrp.add('treeview', [0, 0, 320, 464]);
+	var templateTree = treeGrp.add('treeview', [0, 0, 320, 420]); // Altura ajustada
 	setFgColor(templateTree, monoColor2);
 	buildTree(templatesFolder, templateTree, fileFilter); // Cria a árvore de templates
 
@@ -196,7 +221,6 @@ function d9TemplateDialog() {
 	mainBtnGrp1.alignment = 'fill';
 	mainBtnGrp1.margins = [0, 8, 0, 0];
 	
-	// --- FIM DAS MODIFICAÇÕES ---
 
 	// Grupo de botões esquerdo
 	var lBtnGrp1 = mainBtnGrp1.add('group');
@@ -366,6 +390,32 @@ function d9TemplateDialog() {
 	setBgColor(D9T_TEMPLATES_w, bgColor1); // Define a cor de fundo da janela
 
 	//---------------------------------------------------------
+	// --- INÍCIO DA ADIÇÃO DOS EVENTOS ---
+	//---------------------------------------------------------
+	
+	prodDrop.onChange = function () {
+		var i = this.selection.index;
+		changeIcon(i, prodIconGrp); // Atualiza o ícone da produção
+		
+		// Atualiza as variáveis globais de caminho
+		templatesPath = D9T_prodArray[i].templatesPath;
+		templatesFolder = new Folder(D9T_prodArray[i].templatesPath);
+		
+		if (!templatesFolder.exists) {
+			alert(lol + "#D9T_002 - pasta de templates não localizada...");
+			return;
+		}
+		
+		// Reconstrói a árvore com o novo caminho e expande os nós
+		buildTree(templatesFolder, templateTree, fileFilter);
+		templateTree.expanded = true;
+		var branches = templateTree.items;
+		for (var b = 0; b < branches.length; b++) {
+			if (branches[b].type == 'node') {
+				branches[b].expanded = true;
+			}
+		}
+	};
 
 	D9T_TEMPLATES_w.onShow = function () {
 		// Expande a raiz da árvore de templates
@@ -396,10 +446,6 @@ function d9TemplateDialog() {
 		updateArteInfo();
 	};
 
-	//---------------------------------------------------------
-
-	// --- INÍCIO DAS MODIFICAÇÕES ---
-	
 	searchBox.onFocus = function() {
 		if (this.text === placeholderText) {
 			this.text = '';
@@ -419,7 +465,6 @@ function d9TemplateDialog() {
 		templateTree.active = true;
 	};
 	
-	// Alterado de 'onChange' para 'onChanging' para busca em tempo real
 	searchBox.onChanging = function () {
 		// Aborta se a pesquisa estiver vazia ou for o placeholder
 		if (this.text.trim() === '' || this.text === placeholderText) {
@@ -457,10 +502,6 @@ function d9TemplateDialog() {
 		}
 	};
 	
-	// --- FIM DAS MODIFICAÇÕES ---
-
-	//---------------------------------------------------------
-
 	templateTree.onChange = function () {
 		// Pastas na árvore não devem ser selecionáveis
 		if (this.selection != null && this.selection.type == 'node') this.selection = null;
@@ -528,13 +569,7 @@ function d9TemplateDialog() {
 			importBtn.enabled = true;
 		}
 	};
-
-	//---------------------------------------------------------
-
-	// ✅ EVENT LISTENERS DO INPUT REMOVIDOS - sem campo input
-
-	//---------------------------------------------------------
-
+	
 	importBtn.leftClick.onClick = function () {
 		// ✅ IMPORTAÇÃO DIRETA - sem verificação de input
 		if (!projectFile || !projectFile.exists) return; // Aborta se o arquivo do template não existir
@@ -662,9 +697,7 @@ function d9TemplateDialog() {
 			alert(lol + '#D9T_022 - ' + err.message);
 		}
 	};
-
-	//---------------------------------------------------------
-
+	
 	refreshBtn.leftClick.onClick = function () {
 		buildTree(templatesFolder, templateTree, fileFilter);
 
@@ -679,8 +712,6 @@ function d9TemplateDialog() {
 		}
 	};
 
-	//---------------------------------------------------------
-
 	openFldBtn.leftClick.onClick = function () {
 		if (!templatesFolder.exists) {
 			templatesFolder.create();
@@ -688,9 +719,6 @@ function d9TemplateDialog() {
 		openFolder(templatesPath);
 	};
 
-	// ✅ BOTÃO OUTPUT REMOVIDO - função não existe mais
-
-    // START - FUNÇÃO DE AJUDA GNEWS
     infoBtn.leftClick.onClick = function() {
         var TARGET_HELP_WIDTH = 450;
         var MARGIN_SIZE = 15;
@@ -836,7 +864,6 @@ function d9TemplateDialog() {
         helpWin.center();
         helpWin.show();
     };
-    // END - FUNÇÃO DE AJUDA GNEWS
 
 	// Exibe a janela
 	D9T_TEMPLATES_w.show();

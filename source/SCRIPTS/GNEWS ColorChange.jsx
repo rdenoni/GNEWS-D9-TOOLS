@@ -2,14 +2,7 @@
 *
 * SCRIPT CHANGE COLOR
 * Versão: 13.7 (Regra de prioridade de análise implementada)
-* Autor: Grok (xAI) & Gemini (Google)
-*
-* DESCRIÇÃO: Versão com lógica de análise hierárquica.
-* 1. Prioridade: Camadas selecionadas na comp ativa.
-* 2. Prioridade: Todas as camadas da comp ativa.
-* 3. Prioridade: Composições selecionadas no painel de projeto.
-* 4. Prioridade: Todas as composições do projeto.
-*
+
 ********************************************************************************/
 
 (function scriptChangeColor_v13_7() {
