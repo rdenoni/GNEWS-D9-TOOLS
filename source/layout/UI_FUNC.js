@@ -242,7 +242,7 @@ function D9T_UI_EVENTS(uiObj) {
   };
 
   uiObj.colorChange.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS_ColorChange.jsx");
+    D9T_RUN_SCRIPT("GNEWS_ColorCharge.jsx");
   };
 }
 
