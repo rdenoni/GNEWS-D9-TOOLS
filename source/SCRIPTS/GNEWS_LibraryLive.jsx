@@ -75,13 +75,13 @@
             titleText.graphics.font = ScriptUI.newFont("Arial", "Bold", 16); titleText.alignment = ["center", "center"];
             setHelpFgColor(titleText, helpTheme.highlightColor);
 
-            var mainDescText = headerPanel.add("statictext", undefined, "Esta ferramenta permite navegar, Finders e importar mídias (ícones e imagens) diretamente para o seu projeto.", {multiline: true});
+            var mainDescText = headerPanel.add("statictext", undefined, "Esta ferramenta permite navegar, buscar e importar mídias (ícones e imagens) diretamente para o seu projeto.", {multiline: true});
             mainDescText.alignment = ["fill", "fill"]; mainDescText.preferredSize.height = 40; setHelpFgColor(mainDescText, helpTheme.normalColor);
 
             var topicsTabPanel = helpWin.add("tabbedpanel");
             topicsTabPanel.alignment = ["fill", "fill"]; topicsTabPanel.margins = 15;
             
-            var allHelpTopics = [ { tabName: "FUNCIONALIDADES", topics: [ { title: "▶ Navegação e Visualização", text: "Use o menu 'Pasta' para alternar entre a visualização de 'Icones' (quadrados) e 'Imagens' (16:9). A grade e o painel de preview se ajustarão automaticamente." }, { title: "▶ Importar um Item (Duplo-Clique)", text: "Dê um duplo-clique em qualquer item para importá-lo para o seu projeto atual. Se uma composição estiver aberta, o item será adicionado como uma nova camada no centro." }, { title: "▶ Ver Detalhes (Clique Simples)", text: "Clique uma vez em um item para selecioná-lo. Isso exibirá uma pré-visualização maior e informações detalhadas como nome, tipo, tamanho e data no painel 'Detalhes' à direita." }, { title: "▶ Paginação", text: "Use as setas ◄ e ► abaixo da grade para navegar entre as páginas de resultados." } ] }, { tabName: "BUSCA E CONFIGURAÇÃO", topics: [ { title: "▶ Busca e Filtros", text: "Digite no campo 'Finders' para filtrar os itens por nome. Use os menus 'Categoria' e 'Ordenar por' para refinar ainda mais os resultados." }, { title: "▶ Botão de Atualizar (↻)", text: "Clique neste botão para forçar o script a re-escanear suas pastas de origem. Use isso se você adicionou, removeu ou renomeou arquivos enquanto o painel estava aberto." }, { title: "▶ Definindo as Pastas", text: "IMPORTANTE: Para configurar quais pastas usar para 'Icones' e 'Imagens', clique com o BOTÃO DIREITO no ícone da ferramenta 'LibraryLive' na sua barra principal GND9TOOLS." } ] } ];
+            var allHelpTopics = [ { tabName: "FUNCIONALIDADES", topics: [ { title: "▶ Navegação e Visualização", text: "Use o menu 'Pasta' para alternar entre a visualização de 'Icones' (quadrados) e 'Imagens' (16:9). A grade e o painel de preview se ajustarão automaticamente." }, { title: "▶ Importar um Item (Duplo-Clique)", text: "Dê um duplo-clique em qualquer item para importá-lo para o seu projeto atual. Se uma composição estiver aberta, o item será adicionado como uma nova camada no centro." }, { title: "▶ Ver Detalhes (Clique Simples)", text: "Clique uma vez em um item para selecioná-lo. Isso exibirá uma pré-visualização maior e informações detalhadas como nome, tipo, tamanho e data no painel 'Detalhes' à direita." }, { title: "▶ Paginação", text: "Use as setas ◄ e ► abaixo da grade para navegar entre as páginas de resultados." } ] }, { tabName: "BUSCA E CONFIGURAÇÃO", topics: [ { title: "▶ Busca e Filtros", text: "Digite no campo 'Buscar' para filtrar os itens por nome. Use os menus 'Categoria' e 'Ordenar por' para refinar ainda mais os resultados." }, { title: "▶ Botão de Atualizar (↻)", text: "Clique neste botão para forçar o script a re-escanear suas pastas de origem. Use isso se você adicionou, removeu ou renomeou arquivos enquanto o painel estava aberto." }, { title: "▶ Definindo as Pastas", text: "IMPORTANTE: Para configurar quais pastas usar para 'Icones' e 'Imagens', clique com o BOTÃO DIREITO no ícone da ferramenta 'LibraryLive' na sua barra principal GND9TOOLS." } ] } ];
 
             for (var s = 0; s < allHelpTopics.length; s++) {
                 var currentTabSection = allHelpTopics[s];
@@ -265,12 +265,12 @@
         controlsPanel.preferredSize = [510, 85];
         setFgColor(controlsPanel, THEME.normalColor); setBgColor(controlsPanel, THEME.panelBgColor);
         var row1 = controlsPanel.add('group'); row1.orientation = 'row'; row1.alignChildren = ["left", "center"]; row1.spacing = 10;
-        row1.add("statictext", undefined, "Finders:");
-        var searchBox = this.elements.searchBox = row1.add("edittext", undefined, "Digite para Finders...");
+        row1.add("statictext", undefined, "Buscar:");
+        var searchBox = this.elements.searchBox = row1.add("edittext", undefined, "Digite para Buscar...");
         searchBox.preferredSize.width = UI_METRICS.SEARCH_BOX_WIDTH;
         searchBox.graphics.foregroundColor = searchBox.graphics.newPen(searchBox.graphics.PenType.SOLID_COLOR, [0.6, 0.6, 0.6], 1);
-        searchBox.addEventListener('focus', function () { if (this.text === "Digite para Finders...") { this.text = ""; this.graphics.foregroundColor = this.graphics.newPen(this.graphics.PenType.SOLID_COLOR, hexToRgb(THEME.normalColor).slice(0, 3), 1); } });
-        searchBox.addEventListener('blur', function () { if (this.text === "") { this.text = "Digite para Finders..."; this.graphics.foregroundColor = this.graphics.newPen(this.graphics.PenType.SOLID_COLOR, [0.6, 0.6, 0.6], 1); } });
+        searchBox.addEventListener('focus', function () { if (this.text === "Digite para Buscar...") { this.text = ""; this.graphics.foregroundColor = this.graphics.newPen(this.graphics.PenType.SOLID_COLOR, hexToRgb(THEME.normalColor).slice(0, 3), 1); } });
+        searchBox.addEventListener('blur', function () { if (this.text === "") { this.text = "Digite para Buscar..."; this.graphics.foregroundColor = this.graphics.newPen(this.graphics.PenType.SOLID_COLOR, [0.6, 0.6, 0.6], 1); } });
         row1.add("statictext", undefined, "Pasta:");
         this.elements.viewDropdown = row1.add("dropdownlist", undefined, ["Icones", "Imagens"]);
         this.elements.viewDropdown.selection = 0;
@@ -307,7 +307,7 @@
     };
     UI.updateGrid = function () {
         var currentSearchText = this.elements.searchBox.text;
-        var searchTerm = (currentSearchText === "Digite para Finders...") ? "" : currentSearchText.toLowerCase();
+        var searchTerm = (currentSearchText === "Digite para Buscar...") ? "" : currentSearchText.toLowerCase();
         var selectedCategory = this.elements.categoryDropdown.selection.text;
         var selectedSort = this.elements.sortFilter.selection.text;
         State.filteredIcons = [];

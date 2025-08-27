@@ -74,7 +74,7 @@ function findDialog() {
 	var findEdTxt = inputGrp.add('edittext', [0, 0, 240, 32]);
 
 	var findBtn = new themeIconButton(inputGrp, {
-		icon: D9T_Finders_ICON,
+		icon: D9T_FINDERS_ICON,
 		tips: [lClick + 'Finders']
 	});
 
@@ -150,7 +150,7 @@ function findDialog() {
 
 		var sKey = findEdTxt.text;
 		if (sKey == '' || app.project.numItems == 0) {
-			findW.text = 'Finders...';
+			findW.text = 'Buscar...';
 			return;
 		}
 		var optObj = {

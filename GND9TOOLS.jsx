@@ -58,7 +58,7 @@ o script funcionará normalmente, mas você não terá:\n\
                     labelTxt: 'CopyLinks',
                     icon: D9T_LINKS_ICON,
                     tips: [
-                        lClick + 'Executar GNEWS CopyLinks.jsx'
+                        lClick + 'Acesso rápido a pastas na rede e favoritar caminhos'
                     ]
                 }
             },
@@ -72,8 +72,8 @@ o script funcionará normalmente, mas você não terá:\n\
                     labelTxt: 'Finders',
                     icon: D9T_FINDERS_ICON,
                     tips: [
-                        lClick + 'Finders em layers de texto',
-                        rClick + 'Finders por arquivos de projeto (.aep)'
+                        lClick + 'Buscar em layers de texto',
+                        rClick + 'Buscar por arquivos de projeto'
                     ]
                 },
 
@@ -83,7 +83,7 @@ o script funcionará normalmente, mas você não terá:\n\
                     icon: D9T_TEMPLATES_ICON,
                     tips: [
                         lClick + 'Preencher templates',
-                        rClick + 'Criar novo template'
+                       
                     ]
                 },
                 LibraryLive: {

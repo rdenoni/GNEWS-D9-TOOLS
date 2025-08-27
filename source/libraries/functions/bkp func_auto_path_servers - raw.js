@@ -282,7 +282,7 @@
      * 6. Caso contrário (apenas "FANT"): Retorna caminho do PARA ILHA Magazine + "\FANT".
      *
      * @param {CompItem} comp - A composição a ser manipulada.
-     * @param {object} caminhosData - Dados dos caminhos (usado para Finders caminhos base).
+     * @param {object} caminhosData - Dados dos caminhos (usado para buscar caminhos base).
      */
     function regrasFant(comp, caminhosData) {
         alert("Executando REGRAS DO FANT para: " + comp.name);
@@ -296,7 +296,7 @@
         var ftpEsportePath = null;
         var ftpVizPath = null;
         var ftpCooluxPath = null;
-        // Não é necessário Finders 'TV TouchScreen' no JSON, pois a string é literal.
+        // Não é necessário buscar 'TV TouchScreen' no JSON, pois a string é literal.
 
 
         for (var serverKey in caminhosData) {

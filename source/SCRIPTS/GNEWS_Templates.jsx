@@ -203,7 +203,7 @@ function d9TemplateDialog() {
 	treeGrp.orientation = 'column';
 	treeGrp.spacing = 4;
 	
-	var placeholderText = '⌕  Digite para Finders...';
+	var placeholderText = '⌕  Digite para Buscar...';
 	
 	// Cria a caixa de pesquisa
 	var searchBox = treeGrp.add('edittext', [0, 0, 320, 24], '');
