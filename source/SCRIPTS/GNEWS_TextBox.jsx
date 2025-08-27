@@ -1,5 +1,5 @@
 /*
-GNEWS KillBoxText v7.6 - KERNING E POSICIONAMENTO CORRETOS
+GNEWS TextBox v7.6 - KERNING E POSICIONAMENTO CORRETOS
 
 CORREÇÕES CRÍTICAS:
 - POR LETRA: Agora analisa kerning real usando camadas temporárias incrementais
@@ -8,7 +8,7 @@ CORREÇÕES CRÍTICAS:
 - Todos os modos respeitam quebras de linha automáticas
 */
 
-function GNEWS_KillBoxText_UI() {
+function GNEWS_TextBox_UI() {
 
     var progressWin = null, progressBar = null;
 
@@ -18,7 +18,7 @@ function GNEWS_KillBoxText_UI() {
         var selectedLayers = comp.selectedLayers;
         if (selectedLayers.length === 0) { alert("Selecione pelo menos uma camada de texto."); return; }
 
-        app.beginUndoGroup("GNEWS KillBoxText");
+        app.beginUndoGroup("GNEWS TextBox");
         try {
             for (var i = 0; i < selectedLayers.length; i++) {
                 var layer = selectedLayers[i];
@@ -869,7 +869,7 @@ function GNEWS_KillBoxText_UI() {
 
     // --- INTERFACE GRÁFICA ---
     
-    var SCRIPT_NAME = "GNEWS KillBoxText", SCRIPT_VERSION = "v7.6";
+    var SCRIPT_NAME = "GNEWS TextBox", SCRIPT_VERSION = "v7.6";
     var win = new Window("palette", SCRIPT_NAME + " " + SCRIPT_VERSION);
     win.orientation = "column";
     win.alignChildren = ["fill", "top"];
@@ -969,7 +969,7 @@ function GNEWS_KillBoxText_UI() {
         helpWin.margins = 15;
         helpWin.preferredSize = [450, -1];
 
-        var title = helpWin.add("statictext", undefined, "GNEWS KILLBOXTEXT v7.6");
+        var title = helpWin.add("statictext", undefined, "GNEWS TextBox v7.6");
         title.graphics.font = ScriptUI.newFont("Arial", "Bold", 14);
         title.alignment = "center";
 
@@ -1038,8 +1038,8 @@ function GNEWS_KillBoxText_UI() {
 
 // Execução
 try {
-    GNEWS_KillBoxText_UI();
+    GNEWS_TextBox_UI();
 } catch(e) {
-    alert("Erro ao iniciar GNEWS KillBoxText v7.6:\n" + e.toString() + 
+    alert("Erro ao iniciar GNEWS TextBox v7.6:\n" + e.toString() + 
           (e.line ? "\nLinha: " + e.line : ""));
 }

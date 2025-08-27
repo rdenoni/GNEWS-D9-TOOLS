@@ -316,9 +316,9 @@ try {
     
     var lang = {
         "pt": {
-            title: "RENOMEAR E SALVAR", name: "NOME:", prod: "PRODUÇÃO:", art: "TIPO:", alter: "CORREÇÃO:",
+            title: "Renamer E SALVAR", name: "NOME:", prod: "PRODUÇÃO:", art: "TIPO:", alter: "CORREÇÃO:",
             desc: "DESCRIÇÃO:", version: "VERSÃO:", editor: "EDITOR:", capture: "CAPTURAR", save: "SALVAR",
-            copy: "COPIAR", create: "CRIAR", rename: "RENOMEAR",
+            copy: "COPIAR", create: "CRIAR", rename: "Renamer",
             noComp: "Nenhuma composição selecionada!", noEditor: "O campo EDITOR é obrigatório!",
             renamed: "Composições renomeadas!", saved: "Projeto salvo como: ", saveCancelled: "Salvamento cancelado.",
             compNameCopied: "Nome da composição copiado!", compCreated: "Composição criada com sucesso!"
@@ -629,7 +629,7 @@ createBtn.leftClick.onClick = function() {
     };
 
 renameBtn.leftClick.onClick = function() {
-        app.beginUndoGroup("Renomear Composições");
+        app.beginUndoGroup("Renamer Composições");
         try {
             var selectedComps = [];
             var selection = app.project.selection;
@@ -641,7 +641,7 @@ renameBtn.leftClick.onClick = function() {
             
             updatePreview();
             var finalNameTemplate = previewText.text;
-            // ADICIONADO: Remove a acentuação apenas no momento de renomear
+            // ADICIONADO: Remove a acentuação apenas no momento de Renamer
             finalNameTemplate = removeAccents(finalNameTemplate);
 
             for (var i = 0; i < selectedComps.length; i++) {
@@ -858,7 +858,7 @@ saveBtn.leftClick.onClick = function() {
         headerPanel.spacing = 10;
         headerPanel.margins = 15;
         
-        var titleText = headerPanel.add("statictext", undefined, "AJUDA - RENOMEAR, SALVAR E ORGANIZAR");
+        var titleText = headerPanel.add("statictext", undefined, "AJUDA - Renamer, SALVAR E ORGANIZAR");
         titleText.graphics.font = ScriptUI.newFont("Arial", "Bold", 16);
         titleText.alignment = ["center", "center"];
         if (typeof normalColor1 !== 'undefined' && typeof highlightColor1 !== 'undefined' && typeof setFgColor !== 'undefined') {
@@ -892,7 +892,7 @@ saveBtn.leftClick.onClick = function() {
                     { title: "▶ BOTÕES DE AÇÃO:", text: ""},
                     { title: "  - Capturar:", text: "Preenche os campos com base na composição selecionada no projeto." },
                     { title: "  - Criar:", text: "Cria uma nova composição vazia utilizando o nome gerado." },
-                    { title: "  - Renomear:", text: "Aplica o nome gerado a todas as composições que estiverem selecionadas." },
+                    { title: "  - Renamer:", text: "Aplica o nome gerado a todas as composições que estiverem selecionadas." },
                     { title: "  - Copiar:", text: "Copia o nome da composição atualmente ativa para a área de transferência." },
                     { title: "  - Salvar:", text: "Salva uma cópia do projeto (.aep) com um nome padronizado, incluindo a tag do seu nome." }
                 ]

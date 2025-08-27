@@ -70,7 +70,7 @@
                 optionsPanel: "Opções",
                 applyColorsCheck: "Aplicar cores",
                 applyColorsTip: "Aplica um esquema de cores pré-definido às camadas com base no seu tipo.",
-                renameLayersCheck: "Renomear camadas",
+                renameLayersCheck: "Renamer camadas",
                 renameLayersTip: "Renomeia as camadas adicionando um prefixo padrão (ex: Shp_, Txt_).",
                 reorderLayersCheck: "Reordenar por tipo",
                 reorderLayersTip: "Agrupa as camadas por tipo, mantendo a ordem temporal original dentro de cada grupo.",
@@ -209,7 +209,7 @@
             {
                 tabName: "FUNCIONALIDADES",
                 topics: [
-                    { title: "▶ RENOMEAR CAMADAS:", text: "Adiciona prefixos padrão (ex: 'Shp_', 'Txt_') aos nomes das camadas com base em seu tipo. Remove prefixos duplicados automaticamente." },
+                    { title: "▶ Renamer CAMADAS:", text: "Adiciona prefixos padrão (ex: 'Shp_', 'Txt_') aos nomes das camadas com base em seu tipo. Remove prefixos duplicados automaticamente." },
                     { title: "▶ APLICAR CORES:", text: "Atribui cores de rótulo padrão a cada tipo de camada (ex: Shapes Azul, Textos Vermelho) para melhor distinção visual." },
                     { title: "▶ REORDENAR POR TIPO:", text: "Agrupa as camadas na Timeline por tipo (ex: todos os Ajustes primeiro, depois Câmeras, Nulos, Textos, etc.), mantendo a ordem temporal original dentro de cada grupo de tipo. " },
                     { title: "▶ REORDENAR POR TEMPO:", text: "Reorganiza as camadas de modo que as que começam mais tarde na Timeline apareçam no topo da pilha. Útil para fluxos de trabalho que priorizam o tempo de início." },
@@ -678,7 +678,7 @@
                         }
                         
                         if (layerType !== "Unknown") {
-                            // Renomear layers
+                            // Renamer layers
                             if (self.ui.renameLayersCheck.value) {
                                 // Só verifica expressões se não for uma grande quantidade de layers
                                 var skipRename = false;

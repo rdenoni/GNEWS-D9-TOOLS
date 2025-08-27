@@ -49,7 +49,7 @@ function d9TemplateDialog() {
 		// Falha silenciosa se não conseguir carregar dados das artes
 	}
 
-	// Função para buscar dados da arte pelo código
+	// Função para Finders dados da arte pelo código
 	function getArteData(codigo) {
 		if (!artesData || !artesData.artes_codificadas) return null;
 		
@@ -203,7 +203,7 @@ function d9TemplateDialog() {
 	treeGrp.orientation = 'column';
 	treeGrp.spacing = 4;
 	
-	var placeholderText = '⌕  Digite para buscar...';
+	var placeholderText = '⌕  Digite para Finders...';
 	
 	// Cria a caixa de pesquisa
 	var searchBox = treeGrp.add('edittext', [0, 0, 320, 24], '');

@@ -205,11 +205,11 @@ function D9T_UI_EVENTS(uiObj) {
     }
   }
 
-  uiObj.buscar.leftClick.onClick = function () {
+  uiObj.Finders.leftClick.onClick = function () {
     findDialog();
   };
 
-  uiObj.buscar.rightClick.onClick = function () {
+  uiObj.Finders.rightClick.onClick = function () {
     D9TFindProjectDialog();
   };
 
@@ -237,11 +237,11 @@ function D9T_UI_EVENTS(uiObj) {
     D9T_RUN_SCRIPT_CONFIG("LayersOrder_configWin.js");
   };
 
-  uiObj.icons4U.leftClick.onClick = function () {
+  uiObj.LibraryLive.leftClick.onClick = function () {
     D9T_RUN_SCRIPT("GNEWS_LibraryLive.jsx");
   };
 
-  uiObj.icons4U.rightClick.onClick = function () {
+  uiObj.LibraryLive.rightClick.onClick = function () {
     D9T_RUN_SCRIPT_CONFIG("LibraryLive_configWin.jsx");
   };
 
@@ -249,7 +249,7 @@ function D9T_UI_EVENTS(uiObj) {
     D9T_RUN_SCRIPT("GNEWS_Renamer.jsx");
   };
 
-  uiObj.killBoxText.leftClick.onClick = function () {
+  uiObj.TextBox.leftClick.onClick = function () {
     D9T_RUN_SCRIPT("GNEWS_TextBox.jsx");
   };
 
@@ -261,8 +261,8 @@ function D9T_UI_EVENTS(uiObj) {
     D9T_RUN_SCRIPT("GNEWS_AnchorAlign.jsx");
   };
 
-  uiObj.NormalizeMyLife.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS_Normalize.jsx");
+  uiObj.NormalizerMyLife.leftClick.onClick = function () {
+    D9T_RUN_SCRIPT("GNEWS_Normalizer.jsx");
   };
 
   uiObj.colorChange.leftClick.onClick = function () {

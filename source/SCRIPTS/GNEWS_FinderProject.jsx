@@ -22,7 +22,7 @@ function getPathDayByDay() {
 
 
 function D9TFindProjectDialog() {
-    var scriptName = 'BUSCAR PROJETOS';
+    var scriptName = 'Finders PROJETOS';
     var SETTINGS_SECTION = "D9TSearch";
 
     var searchPresets = {
@@ -122,12 +122,12 @@ function D9TFindProjectDialog() {
     var searchGrp = win.add('group');
     searchGrp.alignment = 'left';
     
-    var searchBtn = new themeIconButton(searchGrp, { icon: D9T_LENS_ICON || undefined, tips: [(lClick || 'Clique') + ' Buscar projetos'] });
+    var searchBtn = new themeIconButton(searchGrp, { icon: D9T_LENS_ICON || undefined, tips: [(lClick || 'Clique') + ' Finders projetos'] });
     var spacer1 = searchGrp.add('group'); spacer1.preferredSize.width = 1;
     var searchInput = searchGrp.add('edittext'); 
     searchInput.preferredSize.width = 372;
 
-    var placeholderText = 'Digite para buscar...';
+    var placeholderText = 'Digite para Finders...';
     searchInput.text = placeholderText;
     searchInput.active = false; 
     searchInput.onActivate = function() {

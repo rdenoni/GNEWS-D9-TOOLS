@@ -67,13 +67,13 @@ o script funcionará normalmente, mas você não terá:\n\
             section2: { 
                 
 
-        buscar: {
+        Finders: {
                     type: 'imageButton',
-                    labelTxt: 'Buscar',
-                    icon: D9T_BUSCAR_ICON,
+                    labelTxt: 'Finders',
+                    icon: D9T_FINDERS_ICON,
                     tips: [
-                        lClick + 'Buscar em layers de texto',
-                        rClick + 'Buscar por arquivos de projeto (.aep)'
+                        lClick + 'Finders em layers de texto',
+                        rClick + 'Finders por arquivos de projeto (.aep)'
                     ]
                 },
 
@@ -86,9 +86,9 @@ o script funcionará normalmente, mas você não terá:\n\
                         rClick + 'Criar novo template'
                     ]
                 },
-                icons4U: {
+                LibraryLive: {
                     type: 'imageButton',
-                    labelTxt: 'Icons4U',
+                    labelTxt: 'LibraryLive',
                     icon: D9T_LIBRARY_ICON,
                     tips: [
                         lClick + 'Procura icones no projeto',
@@ -102,7 +102,7 @@ o script funcionará normalmente, mas você não terá:\n\
                 Renamer: {
                     type: 'imageButton',
                     labelTxt: 'Renamer',
-                    icon: D9T_RENOMEAR_ICON, 
+                    icon: D9T_RENAMER_ICON, 
                     tips: [
                         lClick + 'Executar Renamer'
                     ]
@@ -133,12 +133,12 @@ o script funcionará normalmente, mas você não terá:\n\
             section4: { // Grupo 4
 
 
-                killBoxText: {
+                TextBox: {
                     type: 'imageButton',
-                    labelTxt: 'KillBoxtext',
+                    labelTxt: 'TextBox',
                     icon: D9T_FONTES_ICON,
                     tips: [
-                        lClick + 'Executar KillBoxText'
+                        lClick + 'Executar TextBox'
                     ]
                 },
                 centerAnchor: {
@@ -157,12 +157,12 @@ o script funcionará normalmente, mas você não terá:\n\
                         lClick + 'Executar ColorChange'
                     ]
                 },
-                NormalizeMyLife: {
+                NormalizerMyLife: {
                     type: 'imageButton',
-                    labelTxt: 'NormalizeMyLife',
-                    icon: D9T_NORMALIZE_ICON, 
+                    labelTxt: 'NormalizerMyLife',
+                    icon: D9T_Normalizer_ICON, 
                     tips: [
-                        lClick + 'Executar NormalizeMyLife'
+                        lClick + 'Executar NormalizerMyLife'
                     ]
                 },
 

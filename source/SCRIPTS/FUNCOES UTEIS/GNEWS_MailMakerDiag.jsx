@@ -95,8 +95,8 @@
                     for (var i = 0; i < tagArray.length; i++) {
                         var tag = tagArray[i];
                         var official = tag.replace(/_/g, " ");
-                        var normalized = tag.replace(/_/g, "");
-                        if (compName.indexOf(official) > -1 || compName.indexOf(tag) > -1 || (normalized !== "" && compName.replace(/[\s-]/g, "").indexOf(normalized) > -1) ) {
+                        var Normalizerd = tag.replace(/_/g, "");
+                        if (compName.indexOf(official) > -1 || compName.indexOf(tag) > -1 || (Normalizerd !== "" && compName.replace(/[\s-]/g, "").indexOf(Normalizerd) > -1) ) {
                              found.push(tag);
                         }
                     }

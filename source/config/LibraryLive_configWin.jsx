@@ -56,11 +56,11 @@
     if (!centralConfig) return;
 
     if (!centralConfig.tool_settings) centralConfig.tool_settings = {};
-    if (!centralConfig.tool_settings.icons4u) centralConfig.tool_settings.icons4u = { icon_root_path: "", image_root_path: "" };
+    if (!centralConfig.tool_settings.LibraryLive) centralConfig.tool_settings.LibraryLive = { icon_root_path: "", image_root_path: "" };
     
-    var icons4uConfig = centralConfig.tool_settings.icons4u;
+    var LibraryLiveConfig = centralConfig.tool_settings.LibraryLive;
 
-    var win = new Window("dialog", "Configurações - Icons4U");
+    var win = new Window("dialog", "Configurações - LibraryLive");
     setBgColor(win, THEME.bgColor);
     win.orientation = "column";
     win.alignChildren = ["fill", "top"];
@@ -77,7 +77,7 @@
     
     var iconLabel = iconGroup.add("statictext", undefined, "Pasta de Ícones:");
     setFgColor(iconLabel, THEME.normalColor);
-    var iconPath = iconGroup.add("edittext", undefined, icons4uConfig.icon_root_path);
+    var iconPath = iconGroup.add("edittext", undefined, LibraryLiveConfig.icon_root_path);
     iconPath.preferredSize.width = 350;
     
     addClickHandler(iconBtn, function() {
@@ -95,7 +95,7 @@
 
     var imageLabel = imageGroup.add("statictext", undefined, "Pasta de Imagens:");
     setFgColor(imageLabel, THEME.normalColor);
-    var imagePath = imageGroup.add("edittext", undefined, icons4uConfig.image_root_path);
+    var imagePath = imageGroup.add("edittext", undefined, LibraryLiveConfig.image_root_path);
     imagePath.preferredSize.width = 350;
     
     addClickHandler(imageBtn, function() {
@@ -110,11 +110,11 @@
     var okBtn = btnGroup.add("button", undefined, "Salvar", {name: "ok"});
 
     okBtn.onClick = function() {
-        centralConfig.tool_settings.icons4u.icon_root_path = iconPath.text;
-        centralConfig.tool_settings.icons4u.image_root_path = imagePath.text;
+        centralConfig.tool_settings.LibraryLive.icon_root_path = iconPath.text;
+        centralConfig.tool_settings.LibraryLive.image_root_path = imagePath.text;
         
         if (saveCentralConfig(centralConfig)) {
-            alert("Configurações do Icons4U salvas com sucesso!");
+            alert("Configurações do LibraryLive salvas com sucesso!");
             win.close();
         }
     };
