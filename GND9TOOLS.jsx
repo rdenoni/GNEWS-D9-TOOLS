@@ -85,10 +85,30 @@ o script funcionará normalmente, mas você não terá:\n\
                         lClick + 'Preencher templates',
                         rClick + 'Criar novo template'
                     ]
-                }
+                },
+                icons4U: {
+                    type: 'imageButton',
+                    labelTxt: 'Icons4U',
+                    icon: D9T_LIBRARY_ICON,
+                    tips: [
+                        lClick + 'Procura icones no projeto',
+                        rClick + 'Configurações dos caminhos'
+                    ]
+                },
             },
 
             section3: {
+
+                renCompSave: {
+                    type: 'imageButton',
+                    labelTxt: 'RenCompSave',
+                    icon: D9T_RENOMEAR_ICON, 
+                    tips: [
+                        lClick + 'Executar RenCompSave'
+                    ]
+                },
+            
+
 
                 mailMaker: {
                     type: 'imageButton',
@@ -108,15 +128,8 @@ o script funcionará normalmente, mas você não terá:\n\
                         rClick + 'Janela de configurações'
                     ]
                 },
-                renCompSave: {
-                    type: 'imageButton',
-                    labelTxt: 'RenCompSave',
-                    icon: D9T_RENOMEAR_ICON, 
-                    tips: [
-                        lClick + 'Executar RenCompSave'
-                    ]
-                }
-            },
+},
+
             section4: { // Grupo 4
 
 
@@ -152,15 +165,7 @@ o script funcionará normalmente, mas você não terá:\n\
                         lClick + 'Executar NormalizeMyLife'
                     ]
                 },
-                icons4U: {
-                    type: 'imageButton',
-                    labelTxt: 'Icons4U',
-                    icon: D9T_LIBRARY_ICON,
-                    tips: [
-                        lClick + 'Procura icones no projeto',
-                        rClick + 'Configurações dos caminhos'
-                    ]
-                },
+
                 cropComp: {
                     type: 'imageButton',
                     labelTxt: 'CropComp',
