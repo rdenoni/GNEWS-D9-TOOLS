@@ -40,8 +40,8 @@ o script funcionará normalmente, mas você não terá:\n\
         // utilidades com interface
         #include 'source/layout/UI_FUNC.js';
         #include 'source/SCRIPTS/GNEWS_Templates.jsx';
-        #include 'source/SCRIPTS/MAKER_UI.js';
-        #include 'source/SCRIPTS/FOLDER_UI.js';
+        //#include 'source/SCRIPTS/MAKER_UI.js';
+        #include 'source/SCRIPTS/Template_configWindow.js';
         #include 'source/SCRIPTS/GNEWS_SearchLayers.jsx';
         #include 'source/SCRIPTS/GNEWS_FinderProject.jsx';
         
