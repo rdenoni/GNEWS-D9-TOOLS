@@ -14,7 +14,7 @@
  *
  **********************************************************************************/
 
-(function createNormalizerrsToolkit(thisObj) {
+(function createNormalizersToolkit(thisObj) {
     var pal = (thisObj instanceof Panel) ? thisObj : new Window("palette", "Kit de Ferramentas - Normalizadores v15.6", undefined, { resizeable: true });
     if (pal === null) return;
     pal.orientation = "column";
@@ -107,12 +107,12 @@
     var scalePanel = pal.add("panel", undefined, "Escala");
     scalePanel.alignChildren = 'fill';
     var cbIncludeStrokeScale = scalePanel.add("checkbox", undefined, "Ajustar Largura do Stroke"); cbIncludeStrokeScale.value = true;
-    var NormalizerScaleBtn = scalePanel.add("button", undefined, "\u21F2 Normalizar Escala 100%");
+    var normalizeScaleBtn = scalePanel.add("button", undefined, "\u21F2 Normalizar Escala 100%");
     
     var anchorPanel = pal.add("panel", undefined, "Âncora");
     anchorPanel.alignChildren = 'fill';
     var anchorBtnsGroup = anchorPanel.add("group"); anchorBtnsGroup.orientation = "row";
-        var NormalizerAnchorBtn = anchorBtnsGroup.add("button", undefined, "\u2295 Normalizar Ancora");
+        var normalizeAnchorBtn = anchorBtnsGroup.add("button", undefined, "\u2295 Normalizar Ancora");
     var centerAnchorBtn = anchorBtnsGroup.add("button", undefined, "\u29BF Centralizar Ancora");
 
 
@@ -126,7 +126,7 @@
     var rotPanel = pal.add("panel", undefined, "Rotação");
     rotPanel.alignChildren = 'fill';
     var rotBtnsGroup = rotPanel.add("group"); rotBtnsGroup.orientation = "row";
-        var NormalizerRotBtn = rotBtnsGroup.add("button", undefined, "\u21BB Normalizar Rotação");
+        var normalizeRotBtn = rotBtnsGroup.add("button", undefined, "\u21BB Normalizar Rotação");
     var zeroRotationBtn = rotBtnsGroup.add("button", undefined, "\u21BB Resetar Rotação");
 
 
@@ -237,7 +237,7 @@
     // --- LÓGICA DOS BOTÕES ---
     // =================================================================================
     
-    NormalizerScaleBtn.onClick = function() {
+    normalizeScaleBtn.onClick = function() {
         var layers = getLayers(true); if (!layers) return;
         var comp = app.project.activeItem;
         app.beginUndoGroup("Normalizar Escala 100%");
@@ -323,7 +323,7 @@
         feedbackTxt.text = "Posição de " + c + " camada(s) zerada via Âncora.";
     };
 
-    NormalizerRotBtn.onClick = function() {
+    normalizeRotBtn.onClick = function() {
         var comp = app.project.activeItem;
         var layers = getLayers(true);
         if (!layers) return;
@@ -430,7 +430,7 @@
         app.endUndoGroup(); feedbackTxt.text = "Rotação zerada em " + processedCount + " camada(s).";
     };
     
-    NormalizerAnchorBtn.onClick = function () {
+    normalizeAnchorBtn.onClick = function () {
         app.beginUndoGroup("Zerar Anchor Point e Compensar Posição");
         var layers = getLayers(true);
         if (!layers) { app.endUndoGroup(); return; }

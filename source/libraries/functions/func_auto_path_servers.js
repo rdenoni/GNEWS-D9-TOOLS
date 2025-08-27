@@ -35,10 +35,10 @@ function findTag(tagArray, compNameUpper) {
         }
     }
     
-    var compNameNormalizerd = compNameUpper.replace(/[\s-]/g, "");
+    var compNameNormalized = compNameUpper.replace(/[\s-]/g, "");
     for (var j = 0; j < tagArray.length; j++) {
-        var NormalizerdTag = tagArray[j].replace(/_/g, "");
-        if (NormalizerdTag !== "" && compNameNormalizerd.indexOf(NormalizerdTag) > -1) {
+        var normalizedTag = tagArray[j].replace(/_/g, "");
+        if (normalizedTag !== "" && compNameNormalized.indexOf(normalizedTag) > -1) {
             return tagArray[j];
         }
     }
@@ -133,7 +133,7 @@ function regrasFant(compName, caminhosData, programacaoData, debugMode) {
     var trace = [];
     function logTrace(msg) { if(debugMode) trace.push(msg); }
     var compNameUpper = compName.toUpperCase();
-    var compNameNormalizerd = compNameUpper.replace(/[\s_-]/g, "");
+    var compNameNormalized = compNameUpper.replace(/[\s_-]/g, "");
     var targetObject = null;
     var tags = getTags(programacaoData);
     logTrace("--- Avaliando Regras FANT ---");
@@ -162,7 +162,7 @@ function regrasFant(compName, caminhosData, programacaoData, debugMode) {
     var foundFantVizTag = findTag(tags.vizFant, compNameUpper);
     var foundCooluxChamadas = compNameUpper.indexOf("CHAMADAS") > -1;
     var foundCooluxSab = compNameUpper.indexOf("SAB") > -1;
-    var foundTvTouchScreenTag = compNameNormalizerd.indexOf(tags.touchFant) > -1;
+    var foundTvTouchScreenTag = compNameNormalized.indexOf(tags.touchFant) > -1;
 
     if (foundTvTouchScreenTag) {
         logTrace("Regra 'TV TouchScreen' ativada... SUCESSO!");

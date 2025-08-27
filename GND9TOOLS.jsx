@@ -136,7 +136,7 @@ o script funcionará normalmente, mas você não terá:\n\
                 TextBox: {
                     type: 'imageButton',
                     labelTxt: 'TextBox',
-                    icon: D9T_FONTES_ICON,
+                    icon: D9T_TEXT_ICON,
                     tips: [
                         lClick + 'Executar TextBox'
                     ]
@@ -157,12 +157,12 @@ o script funcionará normalmente, mas você não terá:\n\
                         lClick + 'Executar ColorChange'
                     ]
                 },
-                NormalizerMyLife: {
+                Normalizer: {
                     type: 'imageButton',
-                    labelTxt: 'NormalizerMyLife',
-                    icon: D9T_Normalizer_ICON, 
+                    labelTxt: 'Normalizer',
+                    icon: D9T_NORMALIZER_ICON, 
                     tips: [
-                        lClick + 'Executar NormalizerMyLife'
+                        lClick + 'Executar Normalizer'
                     ]
                 },
 

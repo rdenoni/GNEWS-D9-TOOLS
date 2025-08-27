@@ -261,7 +261,7 @@ function D9T_UI_EVENTS(uiObj) {
     D9T_RUN_SCRIPT("GNEWS_AnchorAlign.jsx");
   };
 
-  uiObj.NormalizerMyLife.leftClick.onClick = function () {
+  uiObj.Normalizer.leftClick.onClick = function () {
     D9T_RUN_SCRIPT("GNEWS_Normalizer.jsx");
   };
 

@@ -164,7 +164,7 @@ var D9T_RENAMER_ICON = {
   hover: Renamer0,
 };
 
-var D9T_FONTES_ICON = {
+var D9T_TEXT_ICON = {
   normal: fontes1,
   hover: fontes0,
 };
@@ -179,7 +179,7 @@ var D9T_COLOR_ICON = {
   hover: color1,
 };
 
-var D9T_Normalizer_ICON = {
+var D9T_NORMALIZER_ICON = {
   normal: Normalizer0,
   hover: Normalizer1,
 };
