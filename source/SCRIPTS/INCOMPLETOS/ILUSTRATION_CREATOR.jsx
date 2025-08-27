@@ -5,11 +5,7 @@
  * Versão: 4.3
  *
  * Descrição: Ferramenta para arquivar e converter ilustrações.
- *
- * Alterações v4.3 (Correção de Bug):
- * - Adicionado o carregamento das bibliotecas 'FUNC lib.js',
- * 'UI_FUNC.js' e 'FOLDER_UI.js' para resolver o erro de
- * dependência indireta da função 'd9ProdFoldersDialog'.
+
  ***************************************************/
 
 (function ilustraSaverV4_3() {
@@ -63,7 +59,7 @@
             "/source/globals.js",
             "/source/libraries/functions/FUNC lib.js",
             "/source/libraries/functions/UI_FUNC.js",
-            "/source/libraries/ui/FOLDER_UI.js"
+            "/source/libraries/ui/Template_configWindow.js"
         ];
         try {
             for (var i = 0; i < libFiles.length; i++) {
