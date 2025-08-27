@@ -1,7 +1,7 @@
 // Auto Layer Organizer - Script Principal
 // Versão 4.1 (Correções aplicadas)
 // Este script lê as configurações de um arquivo JSON externo.
-// Execute o script AutoLayerOrganizer_Settings.jsx para alterar as configurações.
+// Execute o script AutoLayerOrder_Settings.jsx para alterar as configurações.
 
 (function() {
     // START - FUNÇÕES DE CONFIGURAÇÃO E AUXILIARES
@@ -222,7 +222,7 @@
                     { title: "▶ EXPRESSÕES COM ÍNDICE:", text: "Camadas com expressões que referenciam outras camadas por seu número de índice (ex: `thisComp.layer(1)`) não serão reordenadas para evitar quebrar as animações." },
                     { title: "▶ CAMADAS VINCULADAS:", text: "Camadas que são pais/filhos, track mattes ou têm máscaras aplicadas NÃO serão deletadas quando 'Deletar Ocultas' for usado, para proteger a integridade do projeto." },
                     { title: "▶ CAMADAS BLOQUEADAS:", text: "Camadas com cadeado ativado não serão renomeadas, preservando nomes importantes manualmente definidos." },
-                    { title: "▶ BOTÃO CONFIGURAÇÕES (Script separado):", text: "Para personalizar prefixos, cores e idioma, execute o script 'AutoLayerOrganizer_Settings.jsx' separadamente." }
+                    { title: "▶ BOTÃO CONFIGURAÇÕES (Script separado):", text: "Para personalizar prefixos, cores e idioma, execute o script 'AutoLayerOrder_Settings.jsx' separadamente." }
                 ]
             }
         ];

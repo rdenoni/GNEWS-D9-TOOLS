@@ -41,7 +41,7 @@ o script funcionará normalmente, mas você não terá:\n\
         #include 'source/layout/UI_FUNC.js';
         #include 'source/SCRIPTS/GNEWS_Templates.jsx';
         //#include 'source/SCRIPTS/MAKER_UI.js';
-        #include 'source/SCRIPTS/Template_configWindow.js';
+        #include 'source/SCRIPTS/Template_configWin.js';
         #include 'source/SCRIPTS/GNEWS_SearchLayers.jsx';
         #include 'source/SCRIPTS/GNEWS_FinderProject.jsx';
         
@@ -119,7 +119,7 @@ o script funcionará normalmente, mas você não terá:\n\
                     ]
                 },
 
-                layerOrganizer: {
+                LayerOrder: {
                     type: 'imageButton',
                     labelTxt: 'LayerToLasy',
                     icon: D9T_LAYERS_ICON, 

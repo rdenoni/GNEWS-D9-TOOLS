@@ -59,7 +59,7 @@
             "/source/globals.js",
             "/source/libraries/functions/FUNC lib.js",
             "/source/libraries/functions/UI_FUNC.js",
-            "/source/libraries/ui/Template_configWindow.js"
+            "/source/libraries/ui/Template_configWin.js"
         ];
         try {
             for (var i = 0; i < libFiles.length; i++) {

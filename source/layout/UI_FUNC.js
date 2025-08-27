@@ -179,6 +179,30 @@ function D9T_UI_EVENTS(uiObj) {
         'Erro ao executar o script "' + scriptFileName + '":\n' + err.message
       );
     }
+    }
+    function D9T_RUN_SCRIPT_CONFIG(scriptFileName) {
+    try {
+      var scriptPath = scriptMainPath + "source/config/" + scriptFileName;
+      var scriptFile = new File(scriptPath);
+
+      if (scriptFile.exists) {
+        scriptFile.open("r");
+        var scriptContent = scriptFile.read();
+        scriptFile.close();
+        eval(scriptContent);
+      } else {
+        alert(
+          'Erro: O script "' +
+            scriptFileName +
+            '" não foi encontrado no caminho:\n' +
+            scriptPath
+        );
+      }
+    } catch (err) {
+      alert(
+        'Erro ao executar o script "' + scriptFileName + '":\n' + err.message
+      );
+    }
   }
 
   uiObj.buscar.leftClick.onClick = function () {
@@ -205,12 +229,12 @@ function D9T_UI_EVENTS(uiObj) {
     D9T_RUN_SCRIPT("GNEWS_MailMaker.jsx");
   };
 
-  uiObj.layerOrganizer.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS_Layers.jsx");
+  uiObj.LayerOrder.leftClick.onClick = function () {
+    D9T_RUN_SCRIPT("GNEWS_LayerOrder.jsx");
   };
 
-  uiObj.layerOrganizer.rightClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS LayerToLasy_config_ui.jsx");
+  uiObj.LayerOrder.rightClick.onClick = function () {
+    D9T_RUN_SCRIPT_CONFIG("LayersOrder_configWin.js");
   };
 
   uiObj.icons4U.leftClick.onClick = function () {
