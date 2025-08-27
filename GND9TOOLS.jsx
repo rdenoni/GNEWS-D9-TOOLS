@@ -46,13 +46,13 @@ o script funcionará normalmente, mas você não terá:\n\
         #include 'source/SCRIPTS/FIND_PROJ_UI.js';
         
 
-    // ESTRUTURA DA UI ATUALIZADA E CORRIGIDA
+    
     var D9T_mainGrpUiStructure = {
         pinGrp: {
             // A seção de pins superior está vazia de botões de ação
         },
         mainGrp: {
-            section1: { // Grupo 1
+            section1: { 
                 link: {
                     type: 'imageButton',
                     labelTxt: 'CopyLinks',
@@ -64,7 +64,7 @@ o script funcionará normalmente, mas você não terá:\n\
             },
 
 
-            section2: { // Grupo 2
+            section2: { 
                 
 
         buscar: {
@@ -88,12 +88,12 @@ o script funcionará normalmente, mas você não terá:\n\
                 }
             },
 
-            section3: { // Grupo 3
+            section3: {
 
                 mailMaker: {
                     type: 'imageButton',
                     labelTxt: 'MailMaker',
-                    icon: D9T_ORGANIZAR_ICON,
+                    icon: D9T_MAIL_ICON,
                     tips: [
                         'Cria Emails prontos.'                 
                     ]
@@ -102,15 +102,16 @@ o script funcionará normalmente, mas você não terá:\n\
                 layerOrganizer: {
                     type: 'imageButton',
                     labelTxt: 'LayerToLasy',
-                    icon: D9T_DIRETORIOS_ICON, // Ícone temporário, pode ser trocado
+                    icon: D9T_LAYERS_ICON, 
                     tips: [
-                        lClick + 'Organizador de Layers'
+                        lClick + 'Organizador de Layers',
+                        rClick + 'Janela de configurações'
                     ]
                 },
                 renCompSave: {
                     type: 'imageButton',
                     labelTxt: 'RenCompSave',
-                    icon: D9T_RENOMEAR_ICON, // Usando o ícone de Renomear
+                    icon: D9T_RENOMEAR_ICON, 
                     tips: [
                         lClick + 'Executar RenCompSave'
                     ]
@@ -122,7 +123,7 @@ o script funcionará normalmente, mas você não terá:\n\
                 killBoxText: {
                     type: 'imageButton',
                     labelTxt: 'KillBoxtext',
-                    icon: D9T_FONTES_ICON, // Ícone temporário
+                    icon: D9T_FONTES_ICON,
                     tips: [
                         lClick + 'Executar KillBoxText'
                     ]
@@ -130,7 +131,7 @@ o script funcionará normalmente, mas você não terá:\n\
                 centerAnchor: {
                     type: 'imageButton',
                     labelTxt: 'CenterAnchor',
-                    icon: D9T_PASTAS_ICON, // Ícone temporário
+                    icon: D9T_ANCHOR_ICON, 
                     tips: [
                         lClick + 'Executar AutoCenter'
                     ]
@@ -138,7 +139,7 @@ o script funcionará normalmente, mas você não terá:\n\
                 colorChange: {
                     type: 'imageButton',
                     labelTxt: 'ColorChange',
-                    icon: D9T_PASTAS_ICON, // Ícone temporário
+                    icon: D9T_COLOR_ICON, 
                     tips: [
                         lClick + 'Executar ColorChange'
                     ]
@@ -146,7 +147,7 @@ o script funcionará normalmente, mas você não terá:\n\
                 NormalizeMyLife: {
                     type: 'imageButton',
                     labelTxt: 'NormalizeMyLife',
-                    icon: D9T_PASTAS_ICON, // Ícone temporário
+                    icon: D9T_NORMALIZE_ICON, 
                     tips: [
                         lClick + 'Executar NormalizeMyLife'
                     ]
@@ -154,15 +155,16 @@ o script funcionará normalmente, mas você não terá:\n\
                 icons4U: {
                     type: 'imageButton',
                     labelTxt: 'Icons4U',
-                    icon: D9T_BUSCAR_ICON, // Ícone temporário
+                    icon: D9T_LIBRARY_ICON,
                     tips: [
                         lClick + 'Procura icones no projeto',
+                        rClick + 'Configurações dos caminhos'
                     ]
                 },
                 cropComp: {
                     type: 'imageButton',
                     labelTxt: 'CropComp',
-                    icon: D9T_ATALHOS_ICON, // Ícone temporário
+                    icon: D9T_CROP_ICON, 
                     tips: [
                         lClick + 'Executar AutoCrop'
                     ]
