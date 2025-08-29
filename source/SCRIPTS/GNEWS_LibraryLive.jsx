@@ -26,8 +26,8 @@
         PREVIEW_PADDING: 5,
         PREVIEW_SIZE_SQUARE: 170,
         PREVIEW_SIZE_16_9_WIDTH: 270,
-        ICON_ROOT_PATH: "",
-        IMAGE_ROOT_PATH: ""
+        ICON_ROOT_PATH: [], // MODIFICADO: Agora um array
+        IMAGE_ROOT_PATH: [] // MODIFICADO: Agora um array
     };
 
     // =================================================================================
@@ -127,10 +127,12 @@
     var UI = { elements: {}, gridSlots: [], activeSlot: null, win: null };
     var Logic = {};
 
+    // ATUALIZADO: Lê a lista de caminhos (arrays) do arquivo de configuração.
     Logic.loadSettings = function () {
         var configFile = new File(scriptMainPath + 'source/config/LIBRARYLIVE_config.json');
-        var defaultConfig = { icon_root_path: "", image_root_path: "" };
+        var defaultConfig = { icon_root_paths: [], image_root_paths: [] };
         var finalConfig = defaultConfig;
+        
         if (configFile.exists) {
             try {
                 configFile.open("r");
@@ -139,34 +141,71 @@
                 if (centralConfig.tool_settings && centralConfig.tool_settings.LibraryLive) {
                     finalConfig = centralConfig.tool_settings.LibraryLive;
                 }
-            } catch (e) { }
+            } catch (e) { /* Usa o default em caso de erro */ }
         }
-        EASY_CONFIG.ICON_ROOT_PATH = finalConfig.icon_root_path;
-        EASY_CONFIG.IMAGE_ROOT_PATH = finalConfig.image_root_path;
+
+        // Retrocompatibilidade: Converte string única para array se necessário
+        if (finalConfig.icon_root_path && !finalConfig.icon_root_paths) {
+            finalConfig.icon_root_paths = [finalConfig.icon_root_path];
+        }
+        if (finalConfig.image_root_path && !finalConfig.image_root_paths) {
+            finalConfig.image_root_paths = [finalConfig.image_root_path];
+        }
+
+        // Carrega os arrays de caminhos
+        EASY_CONFIG.ICON_ROOT_PATH = finalConfig.icon_root_paths || [];
+        EASY_CONFIG.IMAGE_ROOT_PATH = finalConfig.image_root_paths || [];
     };
+
     Logic.stringify = function (obj) { try { return obj.toSource(); } catch (e) { return "{}"; } };
     Logic.getCacheFilename = function () { return (State.currentView === "Icones") ? CONFIG.CACHE_FILENAME_ICONS : CONFIG.CACHE_FILENAME_IMAGES; };
     Logic.saveCache = function () { try { var cacheFile = new File(Folder.userData.fsName + "/" + Logic.getCacheFilename()); cacheFile.encoding = "UTF-8"; cacheFile.open("w"); cacheFile.write(Logic.stringify(State.allIcons)); cacheFile.close(); } catch (e) { UI.logMessage("Não foi possível salvar o cache.", true); } };
     Logic.loadCache = function () { var cacheFile = new File(Folder.userData.fsName + "/" + Logic.getCacheFilename()); if (!cacheFile.exists) return false; try { cacheFile.open("r"); var content = cacheFile.read(); cacheFile.close(); if (content.length < 5) return false; State.allIcons = eval("(" + content + ")"); if (typeof State.allIcons !== 'object' || State.allIcons.length === undefined) { State.allIcons = []; return false; } return true; } catch (e) { UI.logMessage("Cache corrompido ou inválido.", true); return false; } };
     Logic.scanFolder = function (folder, category) { var items = []; var extensionRegex = (State.currentView === "Imagens") ? /\.(png|jpg|jpeg)$/i : /\.png$/i; var files = folder.getFiles(); for (var i = 0; i < files.length; i++) { var file = files[i]; if (file instanceof File && extensionRegex.test(file.name)) { var modifiedDate = new Date(0); try { if (file.modified instanceof Date) { modifiedDate = file.modified; } } catch (e) { } items.push({ nome: decodeURI(file.name).replace(/\.[^.]+$/, "").replace(/[-_]/g, ' '), fullPath: file.fsName, categoria: category, modified: modifiedDate, size: file.length }); } } return items; };
+    
+    // ATUALIZADO: Escaneia todas as pastas válidas da lista.
     Logic.rescanAndLoadDatabase = function () {
         if (UI.win) { UI.logMessage("Buscando...", false); }
         try {
-            State.allIcons = [];
-            var rootPath = (State.currentView === "Icones") ? EASY_CONFIG.ICON_ROOT_PATH : EASY_CONFIG.IMAGE_ROOT_PATH;
-            if (!rootPath || rootPath === "") { throw new Error("O caminho para '" + State.currentView + "' não foi configurado."); }
-            var rootFolder = new Folder(rootPath);
-            if (!rootFolder.exists) { throw new Error("A pasta raiz de " + State.currentView + " não foi encontrada!"); }
-            State.allIcons = State.allIcons.concat(Logic.scanFolder(rootFolder, "Raiz"));
-            var subFolders = rootFolder.getFiles(function (f) { return f instanceof Folder; });
-            for (var i = 0; i < subFolders.length; i++) { State.allIcons = State.allIcons.concat(Logic.scanFolder(subFolders[i], subFolders[i].name)); }
-            UI.logMessage(State.allIcons.length + " " + State.currentView.toLowerCase() + " encontrados e cacheados.", false);
+            State.allIcons = []; // Limpa a lista de itens antes de começar
+            var pathList = (State.currentView === "Icones") ? EASY_CONFIG.ICON_ROOT_PATH : EASY_CONFIG.IMAGE_ROOT_PATH;
+            
+            if (!pathList || pathList.length === 0) {
+                throw new Error("Nenhum caminho para '" + State.currentView + "' foi configurado.");
+            }
+    
+            var validFoldersFound = 0;
+            for (var i = 0; i < pathList.length; i++) {
+                var currentPath = pathList[i];
+                if (currentPath && currentPath.replace(/\s/g, '') !== '') {
+                    var testFolder = new Folder(currentPath);
+                    if (testFolder.exists) {
+                        validFoldersFound++;
+                        // Escaneia a pasta raiz e suas subpastas, adicionando ao resultado total
+                        State.allIcons = State.allIcons.concat(Logic.scanFolder(testFolder, "Raiz"));
+                        var subFolders = testFolder.getFiles(function (f) { return f instanceof Folder; });
+                        for (var j = 0; j < subFolders.length; j++) {
+                            State.allIcons = State.allIcons.concat(Logic.scanFolder(subFolders[j], subFolders[j].name));
+                        }
+                    }
+                }
+            }
+            
+            if (validFoldersFound === 0) {
+                throw new Error("Nenhuma das pastas configuradas para '" + State.currentView + "' foi encontrada. Verifique as configurações.");
+            }
+            
+            UI.logMessage(State.allIcons.length + " " + State.currentView.toLowerCase() + " encontrados em " + validFoldersFound + " pastas.", false);
             Logic.saveCache();
             UI.updateCategoryDropdown();
             State.currentPage = 0;
             UI.updateGrid();
-        } catch (e) { UI.logMessage("ERRO: " + e.message, true); }
+    
+        } catch (e) { 
+            UI.logMessage("ERRO: " + e.message, true); 
+        }
     };
+
     Logic.importIcon = function (iconData) { if (!UI.win || !UI.win.enabled) return; if (!iconData) return; if (!app.project) { alert("Nenhum projeto aberto."); return; } try { UI.win.enabled = false; UI.logMessage("Importando '" + iconData.nome + "'...", false); try { UI.win.update(); } catch (e) { } app.beginUndoGroup("Importar Ícone: " + iconData.nome); var iconFile = new File(iconData.fullPath); if (!iconFile.exists) { throw new Error("Arquivo não encontrado: " + iconData.fullPath); } var importOptions = new ImportOptions(iconFile); var importedItem = app.project.importFile(importOptions); importedItem.name = iconData.nome; if (app.project.activeItem && app.project.activeItem instanceof CompItem) { var comp = app.project.activeItem; var newLayer = comp.layers.add(importedItem); newLayer.position.setValue([comp.width / 2, comp.height / 2]); } UI.logMessage("'" + iconData.nome + "' importado.", false); app.endUndoGroup(); } catch (e) { UI.logMessage("Falha ao importar: " + e.toString(), true); if (app.undoInProgress) app.endUndoGroup(); } finally { if (UI.win) { UI.win.enabled = true; } } };
 
     // --- DEFINIÇÕES DE UI ---

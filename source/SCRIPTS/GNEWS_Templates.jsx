@@ -31,9 +31,21 @@ function d9TemplateDialog() {
 	var newCompsArray = []; // Array de templates criados
 	var newOutputsArray = []; // Array de módulos individuais de saída
 
-	// ✅ VARIÁVEIS PARA INPUT REMOVIDAS
+	// VARIÁVEIS PARA INPUT REMOVIDAS
 	var hasInputData = false; // Removido mas mantido para compatibilidade
 	var hasInputLayers = false; // Removido mas mantido para compatibilidade
+
+	// Define o caminho para o arquivo de configuração do usuário
+	try {
+		var configFolder = new Folder(scriptMainPath + 'Template_configWin');
+		if (!configFolder.exists) {
+			configFolder.create();
+		}
+		var userConfigFile = new File(configFolder.fullName + '/TEMPLATES_USER_config.json');
+	} catch (e) {
+		// Falha silenciosa se não conseguir criar a pasta/arquivo.
+	}
+
 
 	// Carrega dados das artes GNEWS
 	var artesData = null;
@@ -52,7 +64,7 @@ function d9TemplateDialog() {
 	// Função para Finders dados da arte pelo código
 	function getArteData(codigo) {
 		if (!artesData || !artesData.artes_codificadas) return null;
-		
+
 		for (var i = 0; i < artesData.artes_codificadas.length; i++) {
 			if (artesData.artes_codificadas[i].codigo === codigo) {
 				return artesData.artes_codificadas[i];
@@ -61,19 +73,19 @@ function d9TemplateDialog() {
 		return null;
 	}
 
-    // Definindo cores para consistência, se não vierem de um arquivo global
-    var bgColor1 = '#0B0D0E'; // Cor de fundo principal
-    var normalColor1 = '#C7C8CA'; // Cor de texto normal
+	// Definindo cores para consistência, se não vierem de um arquivo global
+	var bgColor1 = '#0B0D0E'; // Cor de fundo principal
+	var normalColor1 = '#C7C8CA'; // Cor de texto normal
 	var monoColor0 = '#686F75'; // Cor cinza para o placeholder
 	var monoColor2 = '#302b2bff';
 	var normalColor2 = '#ffffffff';
-    var highlightColor1 = '#E0003A'; // Cor de destaque para títulos de tópico
-    // Funções de cor necessárias para o tema
-    function hexToRgb(hex) { if (hex == undefined) return [Math.random(), Math.random(), Math.random()]; hex = hex.replace('#', ''); var r = parseInt(hex.substring(0, 2), 16); var g = parseInt(hex.substring(2, 4), 16); var b = parseInt(hex.substring(4, 6), 16); return [r / 255, g / 255, b / 255]; }
-    function setBgColor(element, hexColor) { try { var color = hexToRgb(hexColor); var bType = element.graphics.BrushType.SOLID_COLOR; element.graphics.backgroundColor = element.graphics.newBrush(bType, color); } catch (e) {} }
-    function setFgColor(element, hexColor) { try { var color = hexToRgb(hexColor); var pType = element.graphics.PenType.SOLID_COLOR; element.graphics.foregroundColor = element.graphics.newPen(pType, color, 1); } catch (e) {} }
+	var highlightColor1 = '#E0003A'; // Cor de destaque para títulos de tópico
+	// Funções de cor necessárias para o tema
+	function hexToRgb(hex) { if (hex == undefined) return [Math.random(), Math.random(), Math.random()]; hex = hex.replace('#', ''); var r = parseInt(hex.substring(0, 2), 16); var g = parseInt(hex.substring(2, 4), 16); var b = parseInt(hex.substring(4, 6), 16); return [r / 255, g / 255, b / 255]; }
+	function setBgColor(element, hexColor) { try { var color = hexToRgb(hexColor); var bType = element.graphics.BrushType.SOLID_COLOR; element.graphics.backgroundColor = element.graphics.newBrush(bType, color); } catch (e) { } }
+	function setFgColor(element, hexColor) { try { var color = hexToRgb(hexColor); var pType = element.graphics.PenType.SOLID_COLOR; element.graphics.foregroundColor = element.graphics.newPen(pType, color, 1); } catch (e) { } }
 
-	// Janela principal - ✅ PALETTE para não bloquear cliques
+	// Janela principal - PALETTE para não bloquear cliques
 	var D9T_TEMPLATES_w = new Window('palette', scriptName + ' ' + scriptVersion);
 
 	// Grupo principal
@@ -150,26 +162,26 @@ function d9TemplateDialog() {
 	// --- INÍCIO DA ADIÇÃO DO DROPDOWN DE PRODUÇÃO ---
 
 	var prodHeaderGrp = vGrp1.add('group');
-    prodHeaderGrp.alignment = 'fill';
-    prodHeaderGrp.orientation = 'stack';
-    var prodLab = prodHeaderGrp.add('statictext', undefined, 'PRODUÇÃO:');
-    setFgColor(prodLab, normalColor1);
-    
-    var prodGrp = vGrp1.add('group');
-    prodGrp.spacing = 4;
-    prodGrp.alignment = 'fill';
-    
-    var prodIconGrp = prodGrp.add('group');
-    prodIconGrp.orientation = 'stack';
-    populateMainIcons(prodIconGrp);
-    
-    var prodDrop = prodGrp.add('dropdownlist', undefined, getProdNames(D9T_prodArray));
-    prodDrop.selection = 0;
-    prodDrop.alignment = ['fill', 'center'];
-    prodDrop.helpTip = "PRODUÇÃO SELECIONADA";
-    
-    var divProd = themeDivider(vGrp1);
-    divProd.alignment = ['fill', 'center'];
+	prodHeaderGrp.alignment = 'fill';
+	prodHeaderGrp.orientation = 'stack';
+	var prodLab = prodHeaderGrp.add('statictext', undefined, 'PRODUÇÃO:');
+	setFgColor(prodLab, normalColor1);
+
+	var prodGrp = vGrp1.add('group');
+	prodGrp.spacing = 4;
+	prodGrp.alignment = 'fill';
+
+	var prodIconGrp = prodGrp.add('group');
+	prodIconGrp.orientation = 'stack';
+	populateMainIcons(prodIconGrp);
+
+	var prodDrop = prodGrp.add('dropdownlist', undefined, getProdNames(D9T_prodArray));
+	prodDrop.selection = 0;
+	prodDrop.alignment = ['fill', 'center'];
+	prodDrop.helpTip = "PRODUÇÃO SELECIONADA";
+
+	var divProd = themeDivider(vGrp1);
+	divProd.alignment = ['fill', 'center'];
 
 	// --- FIM DA ADIÇÃO DO DROPDOWN DE PRODUÇÃO ---
 	// ----------------------------------------------------------------------------
@@ -202,17 +214,17 @@ function d9TemplateDialog() {
 	var treeGrp = vGrp1.add('group');
 	treeGrp.orientation = 'column';
 	treeGrp.spacing = 4;
-	
+
 	var placeholderText = '⌕  Digite para Buscar...';
-	
+
 	// Cria a caixa de pesquisa
 	var searchBox = treeGrp.add('edittext', [0, 0, 320, 24], '');
 	searchBox.text = placeholderText;
 	setFgColor(searchBox, monoColor0); // Cor cinza para o placeholder
-	
+
 	// Cria a árvore de templates
 	var templateTree = treeGrp.add('treeview', [0, 0, 320, 420]); // Altura ajustada
-	setFgColor(templateTree, monoColor2);
+	setFgColor(templateTree, monoColor1);
 	buildTree(templatesFolder, templateTree, fileFilter); // Cria a árvore de templates
 
 	// Grupo principal de botões
@@ -220,7 +232,7 @@ function d9TemplateDialog() {
 	mainBtnGrp1.orientation = 'stack';
 	mainBtnGrp1.alignment = 'fill';
 	mainBtnGrp1.margins = [0, 8, 0, 0];
-	
+
 
 	// Grupo de botões esquerdo
 	var lBtnGrp1 = mainBtnGrp1.add('group');
@@ -257,10 +269,10 @@ function d9TemplateDialog() {
 	previewGrp.orientation = 'column';
 	previewGrp.alignChildren = 'left';
 
-	// ✅ PREVIEW AUMENTADO - de [440, 250] para [600, 338]
+	
 	var previewImg = previewGrp.add('image', [0, 0, 600, 338], no_preview);
 
-	// ----------------------------------------------------------------------------
+	
 
 	// Divisor horizontal
 	var newDiv = themeDivider(vGrp2);
@@ -273,7 +285,7 @@ function d9TemplateDialog() {
 	infoArteMainGrp.alignment = ['left', 'top'];
 	infoArteMainGrp.spacing = 12;
 
-	// ✅ CAMPO INPUT REMOVIDO - apenas informações da arte
+	
 	var arteInfoGrp = infoArteMainGrp.add('group');
 	arteInfoGrp.orientation = 'column';
 	arteInfoGrp.alignment = ['left', 'top'];
@@ -339,7 +351,7 @@ function d9TemplateDialog() {
 		try {
 			var codigo = codigoTxt.text.trim().toUpperCase();
 			var arteData = getArteData(codigo);
-			
+
 			if (arteData) {
 				infoValues[0].text = arteData.arte || '---';
 				infoValues[1].text = arteData.servidor_destino || '---';
@@ -357,7 +369,7 @@ function d9TemplateDialog() {
 	}
 
 	// Event listener para o campo de código
-	codigoTxt.onChanging = function() {
+	codigoTxt.onChanging = function () {
 		try {
 			updateArteInfo();
 		} catch (e) {
@@ -392,20 +404,32 @@ function d9TemplateDialog() {
 	//---------------------------------------------------------
 	// --- INÍCIO DA ADIÇÃO DOS EVENTOS ---
 	//---------------------------------------------------------
-	
+
 	prodDrop.onChange = function () {
 		var i = this.selection.index;
 		changeIcon(i, prodIconGrp); // Atualiza o ícone da produção
-		
+
+	//	Salva a seleção atual no arquivo de configuração
+		try {
+			if (userConfigFile) {
+				var userConfig = { "lastProductionIndex": i };
+				userConfigFile.open('w');
+				userConfigFile.write(JSON.stringify(userConfig));
+				userConfigFile.close();
+			}
+		} catch (e) {
+			// Falha silenciosa se não conseguir salvar.
+		}
+
 		// Atualiza as variáveis globais de caminho
 		templatesPath = D9T_prodArray[i].templatesPath;
 		templatesFolder = new Folder(D9T_prodArray[i].templatesPath);
-		
+
 		if (!templatesFolder.exists) {
 			alert(lol + "#D9T_002 - pasta de templates não localizada...");
 			return;
 		}
-		
+
 		// Reconstrói a árvore com o novo caminho e expande os nós
 		buildTree(templatesFolder, templateTree, fileFilter);
 		templateTree.expanded = true;
@@ -418,6 +442,38 @@ function d9TemplateDialog() {
 	};
 
 	D9T_TEMPLATES_w.onShow = function () {
+		// Calcula e armazena as dimensões da janela
+		extendedWidth = D9T_TEMPLATES_w.size.width; 
+		compactWidth = extendedWidth - 680; 
+
+		// ABRE DIRETO NO TAMANHO TOTAL - mostra a área de preview imediatamente
+		vGrp2.visible = true;
+		newDiv.visible = true;
+		D9T_TEMPLATES_w.size.width = extendedWidth;
+
+		// Carrega a última preferência do usuário para o dropdown
+		try {
+			if (userConfigFile && userConfigFile.exists) {
+				userConfigFile.open('r');
+				var configContent = userConfigFile.read();
+				userConfigFile.close();
+				var userConfig = JSON.parse(configContent);
+				if (userConfig.hasOwnProperty('lastProductionIndex')) {
+					var lastIndex = parseInt(userConfig.lastProductionIndex);
+					// Valida se o índice salvo ainda é válido
+					if (lastIndex >= 0 && lastIndex < prodDrop.items.length) {
+						prodDrop.selection = lastIndex;
+					}
+				}
+			}
+		} catch (e) {
+			// Falha silenciosa se o arquivo de config estiver corrompido ou for inválido
+		}
+
+		// Dispara o evento onChange para garantir que a árvore de templates seja carregada corretamente
+		// de acordo com a seleção do dropdown (seja ela a padrão ou a carregada do arquivo)
+		prodDrop.onChange();
+
 		// Expande a raiz da árvore de templates
 		templateTree.expanded = true;
 
@@ -430,15 +486,6 @@ function d9TemplateDialog() {
 			if (s.type == 'node') s.expanded = true;
 		}
 
-		// Calcula e armazena as dimensões da janela
-		extendedWidth = D9T_TEMPLATES_w.size.width; // Com preview
-		compactWidth = extendedWidth - 680; // Sem preview (ajustado para preview maior)
-
-		// ✅ ABRE DIRETO NO TAMANHO TOTAL - mostra a área de preview imediatamente
-		vGrp2.visible = true;
-		newDiv.visible = true;
-		D9T_TEMPLATES_w.size.width = extendedWidth;
-
 		// Foco na caixa de pesquisa
 		searchBox.active = true;
 
@@ -446,14 +493,14 @@ function d9TemplateDialog() {
 		updateArteInfo();
 	};
 
-	searchBox.onFocus = function() {
+	searchBox.onFocus = function () {
 		if (this.text === placeholderText) {
 			this.text = '';
 			setFgColor(this, normalColor1); // Muda para a cor de texto normal
 		}
 	};
 
-	searchBox.onBlur = function() {
+	searchBox.onBlur = function () {
 		if (this.text.trim() === '') {
 			this.text = placeholderText;
 			setFgColor(this, monoColor0); // Volta para a cor do placeholder
@@ -464,14 +511,14 @@ function d9TemplateDialog() {
 		templateLab.active = true;
 		templateTree.active = true;
 	};
-	
+
 	searchBox.onChanging = function () {
 		// Aborta se a pesquisa estiver vazia ou for o placeholder
 		if (this.text.trim() === '' || this.text === placeholderText) {
 			buildTree(templatesFolder, templateTree, fileFilter); // Reconstrói a árvore completa se o campo estiver vazio
 			return;
 		}
-		
+
 		try {
 			// Formatação do texto de pesquisa
 			var searchTerm = this.text.trim().toUpperCase().replaceSpecialCharacters();
@@ -497,11 +544,11 @@ function d9TemplateDialog() {
 					s = s.parent;
 				}
 			}
-		} catch(e) {
+		} catch (e) {
 			// falha silenciosa para não interromper a digitação
 		}
 	};
-	
+
 	templateTree.onChange = function () {
 		// Pastas na árvore não devem ser selecionáveis
 		if (this.selection != null && this.selection.type == 'node') this.selection = null;
@@ -569,7 +616,7 @@ function d9TemplateDialog() {
 			importBtn.enabled = true;
 		}
 	};
-	
+
 	importBtn.leftClick.onClick = function () {
 		// ✅ IMPORTAÇÃO DIRETA - sem verificação de input
 		if (!projectFile || !projectFile.exists) return; // Aborta se o arquivo do template não existir
@@ -663,7 +710,7 @@ function d9TemplateDialog() {
 		D9T_TEMPLATES_w.size = [compactWidth, 100];
 		optBtnMainGrp.visible = true;
 	};
-	
+
 	nextBtn.leftClick.onClick = function () {
 		// ✅ REMOVIDO: Sistema de fila de renderização
 		D9T_TEMPLATES_w.close();
@@ -676,7 +723,7 @@ function d9TemplateDialog() {
 	D9T_TEMPLATES_w.onClose = function () {
 		// Execução de Script Personalizado (se houver)
 		if (!scriptFile || !scriptFile.exists) return;
-		
+
 		try {
 			scriptFile.open('r');
 			eval(scriptFile.read());
@@ -697,7 +744,7 @@ function d9TemplateDialog() {
 			alert(lol + '#D9T_022 - ' + err.message);
 		}
 	};
-	
+
 	refreshBtn.leftClick.onClick = function () {
 		buildTree(templatesFolder, templateTree, fileFilter);
 
@@ -719,151 +766,151 @@ function d9TemplateDialog() {
 		openFolder(templatesPath);
 	};
 
-    infoBtn.leftClick.onClick = function() {
-        var TARGET_HELP_WIDTH = 450;
-        var MARGIN_SIZE = 15;
-        var TOPIC_SECTION_MARGINS = [10, 5, 10, 5];
-        var TOPIC_SPACING = 5;
-        var TOPIC_TITLE_INDENT = 0;
-        var SUBTOPIC_INDENT = 25;
+	infoBtn.leftClick.onClick = function () {
+		var TARGET_HELP_WIDTH = 450;
+		var MARGIN_SIZE = 15;
+		var TOPIC_SECTION_MARGINS = [10, 5, 10, 5];
+		var TOPIC_SPACING = 5;
+		var TOPIC_TITLE_INDENT = 0;
+		var SUBTOPIC_INDENT = 25;
 
-        var helpWin = new Window("dialog", scriptName + " - Ajuda", undefined, { closeButton: true });
-        helpWin.orientation = "column";
-        helpWin.alignChildren = ["fill", "fill"];
-        helpWin.spacing = 10;
-        helpWin.margins = MARGIN_SIZE;
-        
-        helpWin.preferredSize = [TARGET_HELP_WIDTH, 600];
+		var helpWin = new Window("dialog", scriptName + " - Ajuda", undefined, { closeButton: true });
+		helpWin.orientation = "column";
+		helpWin.alignChildren = ["fill", "fill"];
+		helpWin.spacing = 10;
+		helpWin.margins = MARGIN_SIZE;
 
-        if (typeof bgColor1 !== 'undefined' && typeof setBgColor !== 'undefined') {
-            setBgColor(helpWin, bgColor1);
-        } else {
-            helpWin.graphics.backgroundColor = helpWin.graphics.newBrush(helpWin.graphics.BrushType.SOLID_COLOR, [0.05, 0.04, 0.04, 1]);
-        }
+		helpWin.preferredSize = [TARGET_HELP_WIDTH, 600];
 
-        var headerPanel = helpWin.add("panel", undefined, "");
-        headerPanel.orientation = "column";
-        headerPanel.alignChildren = ["fill", "top"];
-        headerPanel.alignment = ["fill", "top"];
-        headerPanel.spacing = 10;
-        headerPanel.margins = 15;
-        
-        var titleText = headerPanel.add("statictext", undefined, "AJUDA - GNEWS TEMPLATES");
-        titleText.graphics.font = ScriptUI.newFont("Arial", "Bold", 16);
-        titleText.alignment = ["center", "center"];
-        if (typeof normalColor1 !== 'undefined' && typeof highlightColor1 !== 'undefined' && typeof setFgColor !== 'undefined') {
-            setFgColor(titleText, highlightColor1);
-        } else {
-            titleText.graphics.foregroundColor = titleText.graphics.newPen(titleText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 1], 1);
-        }
+		if (typeof bgColor1 !== 'undefined' && typeof setBgColor !== 'undefined') {
+			setBgColor(helpWin, bgColor1);
+		} else {
+			helpWin.graphics.backgroundColor = helpWin.graphics.newBrush(helpWin.graphics.BrushType.SOLID_COLOR, [0.05, 0.04, 0.04, 1]);
+		}
 
-        var mainDescText = headerPanel.add("statictext", undefined, "Gerencie e preencha templates GNEWS com informações automáticas das artes.", {multiline: true});
-        mainDescText.alignment = ["fill", "fill"];
-       	mainDescText.preferredSize.height = 40;
-        if (typeof normalColor1 !== 'undefined' && typeof setFgColor !== 'undefined') {
-            setFgColor(mainDescText, normalColor1);
-        } else {
-            mainDescText.graphics.foregroundColor = mainDescText.graphics.newPen(mainDescText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 1], 1);
-        }
+		var headerPanel = helpWin.add("panel", undefined, "");
+		headerPanel.orientation = "column";
+		headerPanel.alignChildren = ["fill", "top"];
+		headerPanel.alignment = ["fill", "top"];
+		headerPanel.spacing = 10;
+		headerPanel.margins = 15;
 
-        var topicsTabPanel = helpWin.add("tabbedpanel");
-        topicsTabPanel.alignment = ["fill", "fill"];
-        topicsTabPanel.margins = 15;
+		var titleText = headerPanel.add("statictext", undefined, "AJUDA - GNEWS TEMPLATES");
+		titleText.graphics.font = ScriptUI.newFont("Arial", "Bold", 16);
+		titleText.alignment = ["center", "center"];
+		if (typeof normalColor1 !== 'undefined' && typeof highlightColor1 !== 'undefined' && typeof setFgColor !== 'undefined') {
+			setFgColor(titleText, highlightColor1);
+		} else {
+			titleText.graphics.foregroundColor = titleText.graphics.newPen(titleText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 1], 1);
+		}
 
-        var allHelpTopics = [
-            {
-                tabName: "VISÃO GERAL",
-                topics: [
-                    { title: "▶ SELEÇÃO DE TEMPLATE:", text: "Navegue pela árvore à esquerda para selecionar um template (.aep ou .aet). O preview aumentado e informações da arte GNEWS aparecerão à direita." },
-                    { title: "▶ PREVIEW AUMENTADO:", text: "Visualização maior dos templates para melhor análise visual antes do processamento." },
-                    { title: "▶ ATUALIZAR LISTA (🔄):", text: "Recarrega a lista de templates na árvore." },
-                    { title: "▶ ABRIR PASTA (📁):", text: "Abre o diretório onde os templates estão armazenados." }
-                ]
-            },
-            {
-                tabName: "INFORMAÇÕES GNEWS",
-                topics: [
-                    { title: "▶ CÓDIGO DA ARTE:", text: "Digite o código da arte GNEWS (ex: GNVZ036). As informações são carregadas automaticamente do banco de dados." },
-                    { title: "▶ NOME DA ARTE:", text: "Exibido automaticamente baseado no código informado." },
-                    { title: "▶ SERVIDOR DESTINO:", text: "Servidor de destino da arte, carregado automaticamente (ex: FTP VIZ, PAM HARDNEWS)." },
-                    { title: "▶ ÚLTIMA ATUALIZAÇÃO:", text: "Data da última modificação/processamento da arte." }
-                ]
-            },
-            {
-                tabName: "PROCESSAMENTO",
-                topics: [
-                    { title: "▶ IMPORTAR:", text: "Importa o template diretamente para o projeto e registra informações GNEWS no log." },
-                    { title: "▶ SEM ORGANIZAÇÃO AUTOMÁTICA:", text: "O projeto não é mais organizado automaticamente, mantendo a estrutura original." },
-                    { title: "▶ SEM METADADOS XMP:", text: "Metadados XMP não são mais adicionados automaticamente." },
-                    { title: "▶ SEM FILA DE RENDER:", text: "Sistema de fila de renderização foi removido para fluxo mais direto." },
-                    { title: "▶ LOG GNEWS:", text: "Registra informações específicas GNEWS incluindo código da arte, nome e servidor destino." }
-                ]
-            },
-            {
-                tabName: "ATALHOS",
-                topics: [
-                    { title: "▶ DUPLO CLIQUE:", text: "Duplo clique em um template importa diretamente sem processamento de texto, mantendo a estrutura original." }
-                ]
-            }
-        ];
+		var mainDescText = headerPanel.add("statictext", undefined, "Gerencie e preencha templates GNEWS com informações automáticas das artes.", { multiline: true });
+		mainDescText.alignment = ["fill", "fill"];
+		mainDescText.preferredSize.height = 40;
+		if (typeof normalColor1 !== 'undefined' && typeof setFgColor !== 'undefined') {
+			setFgColor(mainDescText, normalColor1);
+		} else {
+			mainDescText.graphics.foregroundColor = mainDescText.graphics.newPen(mainDescText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 1], 1);
+		}
 
-        for (var s = 0; s < allHelpTopics.length; s++) {
-            var currentTabSection = allHelpTopics[s];
-            var tab = topicsTabPanel.add("tab", undefined, currentTabSection.tabName);
-            tab.orientation = "column";
-            tab.alignChildren = ["fill", "top"];
-            tab.spacing = 10;
-            tab.margins = TOPIC_SECTION_MARGINS;
+		var topicsTabPanel = helpWin.add("tabbedpanel");
+		topicsTabPanel.alignment = ["fill", "fill"];
+		topicsTabPanel.margins = 15;
 
-            for (var i = 0; i < currentTabSection.topics.length; i++) {
-                var topic = currentTabSection.topics[i];
-                var topicGrp = tab.add("group");
-                topicGrp.orientation = "column";
-                topicGrp.alignChildren = "fill";
-                topicGrp.spacing = TOPIC_SPACING;
-                
-                if (topic.title.indexOf("▶") === 0) {
-                    topicGrp.margins.left = TOPIC_TITLE_INDENT;
-                } else {
-                    topicGrp.margins.left = SUBTOPIC_INDENT;
-                }
+		var allHelpTopics = [
+			{
+				tabName: "VISÃO GERAL",
+				topics: [
+					{ title: "▶ SELEÇÃO DE TEMPLATE:", text: "Navegue pela árvore à esquerda para selecionar um template (.aep ou .aet). O preview aumentado e informações da arte GNEWS aparecerão à direita." },
+					{ title: "▶ PREVIEW AUMENTADO:", text: "Visualização maior dos templates para melhor análise visual antes do processamento." },
+					{ title: "▶ ATUALIZAR LISTA (🔄):", text: "Recarrega a lista de templates na árvore." },
+					{ title: "▶ ABRIR PASTA (📁):", text: "Abre o diretório onde os templates estão armazenados." }
+				]
+			},
+			{
+				tabName: "INFORMAÇÕES GNEWS",
+				topics: [
+					{ title: "▶ CÓDIGO DA ARTE:", text: "Digite o código da arte GNEWS (ex: GNVZ036). As informações são carregadas automaticamente do banco de dados." },
+					{ title: "▶ NOME DA ARTE:", text: "Exibido automaticamente baseado no código informado." },
+					{ title: "▶ SERVIDOR DESTINO:", text: "Servidor de destino da arte, carregado automaticamente (ex: FTP VIZ, PAM HARDNEWS)." },
+					{ title: "▶ ÚLTIMA ATUALIZAÇÃO:", text: "Data da última modificação/processamento da arte." }
+				]
+			},
+			{
+				tabName: "PROCESSAMENTO",
+				topics: [
+					{ title: "▶ IMPORTAR:", text: "Importa o template diretamente para o projeto e registra informações GNEWS no log." },
+					{ title: "▶ SEM ORGANIZAÇÃO AUTOMÁTICA:", text: "O projeto não é mais organizado automaticamente, mantendo a estrutura original." },
+					{ title: "▶ SEM METADADOS XMP:", text: "Metadados XMP não são mais adicionados automaticamente." },
+					{ title: "▶ SEM FILA DE RENDER:", text: "Sistema de fila de renderização foi removido para fluxo mais direto." },
+					{ title: "▶ LOG GNEWS:", text: "Registra informações específicas GNEWS incluindo código da arte, nome e servidor destino." }
+				]
+			},
+			{
+				tabName: "ATALHOS",
+				topics: [
+					{ title: "▶ DUPLO CLIQUE:", text: "Duplo clique em um template importa diretamente sem processamento de texto, mantendo a estrutura original." }
+				]
+			}
+		];
 
-                var topicTitle = topicGrp.add("statictext", undefined, topic.title);
-                topicTitle.graphics.font = ScriptUI.newFont("Arial", "Bold", 12);
-                if (typeof highlightColor1 !== 'undefined' && typeof setFgColor !== 'undefined') {
-                    setFgColor(topicTitle, highlightColor1);
-                } else {
-                    topicTitle.graphics.foregroundColor = topicTitle.graphics.newPen(topicTitle.graphics.PenType.SOLID_COLOR, [0.83, 0, 0.23, 1], 1);
-                }
-                topicTitle.preferredSize.width = (TARGET_HELP_WIDTH - (MARGIN_SIZE * 2) - (topicsTabPanel.margins.left + topicsTabPanel.margins.right) - (tab.margins.left + tab.margins.right) - topicGrp.margins.left);
+		for (var s = 0; s < allHelpTopics.length; s++) {
+			var currentTabSection = allHelpTopics[s];
+			var tab = topicsTabPanel.add("tab", undefined, currentTabSection.tabName);
+			tab.orientation = "column";
+			tab.alignChildren = ["fill", "top"];
+			tab.spacing = 10;
+			tab.margins = TOPIC_SECTION_MARGINS;
 
-                if(topic.text !== ""){
-                    var topicText = topicGrp.add("statictext", undefined, topic.text, { multiline: true });
-                    topicText.graphics.font = ScriptUI.newFont("Arial", "Regular", 11);
-                    topicText.preferredSize.width = (TARGET_HELP_WIDTH - (MARGIN_SIZE * 2) - (topicsTabPanel.margins.left + topicsTabPanel.margins.right) - (tab.margins.left + tab.margins.right) - topicGrp.margins.left);
-                    topicText.preferredSize.height = 50;
-                    
-                    if (typeof normalColor1 !== 'undefined' && typeof setFgColor !== 'undefined') {
-                        setFgColor(topicText, normalColor1);
-                    } else {
-                        topicText.graphics.foregroundColor = topicText.graphics.newPen(topicText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 1], 1);
-                    }
-                }
-            }
-        }
+			for (var i = 0; i < currentTabSection.topics.length; i++) {
+				var topic = currentTabSection.topics[i];
+				var topicGrp = tab.add("group");
+				topicGrp.orientation = "column";
+				topicGrp.alignChildren = "fill";
+				topicGrp.spacing = TOPIC_SPACING;
 
-        var closeBtnGrp = helpWin.add("group");
-        closeBtnGrp.alignment = "center";
-        closeBtnGrp.margins = [0, 10, 0, 0];
-        var closeBtn = closeBtnGrp.add("button", undefined, "OK");
-        closeBtn.onClick = function() {
-            helpWin.close();
-        };
+				if (topic.title.indexOf("▶") === 0) {
+					topicGrp.margins.left = TOPIC_TITLE_INDENT;
+				} else {
+					topicGrp.margins.left = SUBTOPIC_INDENT;
+				}
 
-        helpWin.layout.layout(true);
-        helpWin.center();
-        helpWin.show();
-    };
+				var topicTitle = topicGrp.add("statictext", undefined, topic.title);
+				topicTitle.graphics.font = ScriptUI.newFont("Arial", "Bold", 12);
+				if (typeof highlightColor1 !== 'undefined' && typeof setFgColor !== 'undefined') {
+					setFgColor(topicTitle, highlightColor1);
+				} else {
+					topicTitle.graphics.foregroundColor = topicTitle.graphics.newPen(topicTitle.graphics.PenType.SOLID_COLOR, [0.83, 0, 0.23, 1], 1);
+				}
+				topicTitle.preferredSize.width = (TARGET_HELP_WIDTH - (MARGIN_SIZE * 2) - (topicsTabPanel.margins.left + topicsTabPanel.margins.right) - (tab.margins.left + tab.margins.right) - topicGrp.margins.left);
+
+				if (topic.text !== "") {
+					var topicText = topicGrp.add("statictext", undefined, topic.text, { multiline: true });
+					topicText.graphics.font = ScriptUI.newFont("Arial", "Regular", 11);
+					topicText.preferredSize.width = (TARGET_HELP_WIDTH - (MARGIN_SIZE * 2) - (topicsTabPanel.margins.left + topicsTabPanel.margins.right) - (tab.margins.left + tab.margins.right) - topicGrp.margins.left);
+					topicText.preferredSize.height = 50;
+
+					if (typeof normalColor1 !== 'undefined' && typeof setFgColor !== 'undefined') {
+						setFgColor(topicText, normalColor1);
+					} else {
+						topicText.graphics.foregroundColor = topicText.graphics.newPen(topicText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 1], 1);
+					}
+				}
+			}
+		}
+
+		var closeBtnGrp = helpWin.add("group");
+		closeBtnGrp.alignment = "center";
+		closeBtnGrp.margins = [0, 10, 0, 0];
+		var closeBtn = closeBtnGrp.add("button", undefined, "OK");
+		closeBtn.onClick = function () {
+			helpWin.close();
+		};
+
+		helpWin.layout.layout(true);
+		helpWin.center();
+		helpWin.show();
+	};
 
 	// Exibe a janela
 	D9T_TEMPLATES_w.show();

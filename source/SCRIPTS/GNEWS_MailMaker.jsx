@@ -1,18 +1,38 @@
 /***************************************************
- * GNEWS MailMaker - VERSÃO (v37.0)
+ * GNEWS MailMaker - VERSÃO (v37.6) - FIXED
  * - Implementado o método de cópia exato fornecido pelo usuário,
  * utilizando arquivo temporário com codificação UTF-16.
+ * - Adicionado sistema de salvamento e carregamento de preferências do usuário.
+ * - Corrigido o problema de gravação do JSON, revertendo o local de salvamento para a pasta de dados do usuário.
+ * - Adicionada verificação de sucesso ao tentar gravar o arquivo de configurações.
+ * - Corrigido o problema de carregamento de preferências na inicialização do script.
+ * - CORREÇÃO: Salvamento automático das preferências ao alterar qualquer dropdown
+ * - CORREÇÃO COMPLETA DE SINTAXE
  ***************************************************/
 
 (function() {
 
     // === CONFIGURAÇÕES BÁSICAS ===
     var config = {
-        windowTitle: "GNEWS MailMaker v37.0 - FINAL",
+        windowTitle: "GNEWS MailMaker v37.6 - FINAL",
+        settingsFileName: "MailMaker_settings.json"
     };
     
     // === DADOS GLOBAIS ===
-    var appData = { capturedCompNames: [], capturedEditorName: "", emailMessage: "", selectedSaudacao: "Oi", selectedDespedida: "Abs,", selectedEmoji: "🤟", selectedTemplate: "Padrão Simples", selectedDestination: null, customDestinationName: "", customDestinationPath: "" };
+    var appData = { 
+        capturedCompNames: [], 
+        capturedEditorName: "", 
+        emailMessage: "", 
+        selectedSaudacao: "Oi", 
+        selectedDespedida: "Abs,", 
+        selectedEmoji: "🤟", 
+        selectedTemplate: "Padrão Simples", 
+        selectedDestination: null, 
+        customDestinationName: "", 
+        customDestinationPath: "", 
+        showFullPath: true, 
+        showTeamData: false 
+    };
     
     // === VARIÁVEIS DE UI E DADOS EXTERNOS ===
     var ui = {};
@@ -22,7 +42,14 @@
     var destinationNames = [];
 
     // === TEMPLATES E OPÇÕES ===
-    var templates = { "Padrão Simples": "Segue arte.", "Detalhado": "Segue arte finalizada conforme briefing.\n\nQualquer dúvida, me avise!", "Revisão": "Segue arte com as correções solicitadas.\n\nPor favor, confirme se está tudo ok agora.", "Final": "Arte finalizada! 🎉\n\nArquivos prontos para produção.", "Urgente": "⚡ ARTE URGENTE ⚡\n\nSegue arte para aprovação imediata.", "Personalizado": "" };
+    var templates = { 
+        "Padrão Simples": "Segue arte.", 
+        "Detalhado": "Segue arte finalizada conforme briefing.\n\nQualquer dúvida, me avise!", 
+        "Revisão": "Segue arte com as correções solicitadas.\n\nPor favor, confirme se está tudo ok agora.", 
+        "Final": "Arte finalizada! 🎉\n\nArquivos prontos para produção.", 
+        "Urgente": "⚡ ARTE URGENTE ⚡\n\nSegue arte para aprovação imediata.", 
+        "Personalizado": "" 
+    };
     var templateNames = getObjectKeys(templates);
     var saudacoes = ["Oi", "Olá", "E aí", "Fala", "Salve", "Eae"];
     var despedidas = ["Abs,", "Abraços,", "Valeu,", "Falou,", "Até mais,", "Grande abraço,", "Att,", "Atenciosamente,"];
@@ -30,22 +57,39 @@
 
     // === CORES E TEMAS ===
     var COLORS = { 
-        success: [0.2, 0.8, 0.2], error: [0.8, 0.2, 0.2], warning: [0.9, 0.7, 0.2], info: [0.2, 0.6, 0.9], neutral: [0.9, 0.9, 0.9],
+        success: [0.2, 0.8, 0.2], 
+        error: [0.8, 0.2, 0.2], 
+        warning: [0.9, 0.7, 0.2], 
+        info: [0.2, 0.6, 0.9], 
+        neutral: [0.9, 0.9, 0.9]
     };
     var theme = {
-        bgColor: [0.05, 0.04, 0.04, 1], normalColor: [1, 1, 1, 1], highlightColor: [0.83, 0, 0.23, 1]
+        bgColor: [0.05, 0.04, 0.04, 1], 
+        normalColor: [1, 1, 1, 1], 
+        highlightColor: [0.83, 0, 0.23, 1]
     };
 
     // === FUNÇÕES UTILITÁRIAS ===
-    function getObjectKeys(obj) { var keys = []; for (var key in obj) { if (obj.hasOwnProperty(key)) keys.push(key); } return keys; }
-    function logDebug(message) { $.writeln("[MailMaker] " + message); }
+    function getObjectKeys(obj) { 
+        var keys = []; 
+        for (var key in obj) { 
+            if (obj.hasOwnProperty(key)) keys.push(key); 
+        } 
+        return keys; 
+    }
+    
+    function logDebug(message) { 
+        $.writeln("[MailMaker] " + message); 
+    }
 
     function setStatusColor(element, color) {
         try {
             if (element && element.graphics) {
                 element.graphics.foregroundColor = element.graphics.newPen(element.graphics.PenType.SOLID_COLOR, color, 1);
             }
-        } catch (e) { logDebug("Erro ao definir cor do status: " + e.toString()); }
+        } catch (e) { 
+            logDebug("Erro ao definir cor do status: " + e.toString()); 
+        }
     }
 
     function updateStatus(message, type) {
@@ -73,24 +117,53 @@
                 if (folder.exists) { return folder.fsName + "/"; }
             }
             var scriptPath = new File($.fileName).parent;
-            while (scriptPath && scriptPath.name !== "GNEWS-D9-TOOLS") { scriptPath = scriptPath.parent; }
-            if (scriptPath && scriptPath.exists) { return scriptPath.fsName + "/"; }
+            while (scriptPath && scriptPath.name !== "GNEWS-D9-TOOLS") { 
+                scriptPath = scriptPath.parent; 
+            }
+            if (scriptPath && scriptPath.exists) { 
+                return scriptPath.fsName + "/"; 
+            }
         } catch (e) {}
         return new File($.fileName).parent.fsName + "/";
     }
 
     function readJsonFile(filePath) {
         var file = new File(filePath);
-        if (!file.exists) { logDebug("Erro: Arquivo JSON não encontrado: " + filePath); return null; }
+        if (!file.exists) { 
+            logDebug("Erro: Arquivo JSON não encontrado: " + filePath); 
+            return null; 
+        }
         try {
-            file.encoding = "UTF-8"; file.open("r"); var content = file.read(); file.close();
+            file.encoding = "UTF-8"; 
+            file.open("r"); 
+            var content = file.read(); 
+            file.close();
             return content ? eval("(" + content + ")") : null;
-        } catch (e) { alert("Erro de formatação no arquivo JSON: " + filePath + "\n\n" + e.toString()); return null; }
+        } catch (e) { 
+            alert("Erro de formatação no arquivo JSON: " + filePath + "\n\n" + e.toString()); 
+            return null; 
+        }
     }
     
-    function getGreeting() { var hour = new Date().getHours(); if (hour < 12) return "bom dia"; if (hour < 18) return "boa tarde"; return "boa noite"; }
-    function toTitleCase(str) { return str.replace(/\w\S*/g, function(txt) { return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); }); }
-    function findDropdownItem(dropdown, text) { for(var i = 0; i < dropdown.items.length; i++) { if (dropdown.items[i].text === text) return i; } return -1; }
+    function getGreeting() { 
+        var hour = new Date().getHours(); 
+        if (hour < 12) return "bom dia"; 
+        if (hour < 18) return "boa tarde"; 
+        return "boa noite"; 
+    }
+    
+    function toTitleCase(str) { 
+        return str.replace(/\w\S*/g, function(txt) { 
+            return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); 
+        }); 
+    }
+    
+    function findDropdownItem(dropdown, text) { 
+        for(var i = 0; i < dropdown.items.length; i++) { 
+            if (dropdown.items[i].text === text) return i; 
+        } 
+        return -1; 
+    }
 
     function isSecurityPrefEnabled() {
         try {
@@ -101,40 +174,130 @@
         }
     }
 
+    // === LÓGICA DE PREFERÊNCIAS ===
+    function getSettingsFilePath() {
+        var settingsFolder = new Folder(Folder.userData.fsName + "/After Effects/ScriptUI Panels/GNEWS-D9-TOOLS/");
+        if (!settingsFolder.exists) settingsFolder.create();
+        return new File(settingsFolder.fsName + "/" + config.settingsFileName);
+    }
+
+    function saveSettings() {
+        try {
+            var settingsFile = getSettingsFilePath();
+            var settingsObj = {
+                saudacao: appData.selectedSaudacao,
+                despedida: appData.selectedDespedida,
+                emoji: appData.selectedEmoji,
+                template: appData.selectedTemplate,
+                emailMessage: appData.emailMessage,
+                showFullPath: appData.showFullPath,
+                showTeamData: appData.showTeamData
+            };
+
+            // Certifica-se de que a função open foi bem-sucedida antes de escrever
+            settingsFile.encoding = "UTF-8";
+            if (settingsFile.open("w")) {
+                settingsFile.write(JSON.stringify(settingsObj, null, 2));
+                settingsFile.close();
+                logDebug("Preferências salvas com sucesso: " + JSON.stringify(settingsObj));
+                updateStatus("✅ Preferências salvas", "success");
+            } else {
+                logDebug("Erro: Não foi possível abrir o arquivo de configurações para escrita.");
+                updateStatus("⚠️ Erro ao salvar preferências", "warning");
+            }
+        } catch(e) { 
+            logDebug("Erro ao salvar configurações: " + e.toString()); 
+            updateStatus("❌ Erro ao salvar preferências", "error");
+        }
+    }
+
+    function loadSettings() {
+        try {
+            var settingsFile = getSettingsFilePath();
+            if (settingsFile.exists) {
+                settingsFile.encoding = "UTF-8";
+                settingsFile.open("r");
+                var content = settingsFile.read();
+                settingsFile.close();
+                if (content) {
+                    var loaded = JSON.parse(content);
+                    appData.selectedSaudacao = loaded.saudacao || appData.selectedSaudacao;
+                    appData.selectedDespedida = loaded.despedida || appData.selectedDespedida;
+                    appData.selectedEmoji = loaded.emoji || appData.selectedEmoji;
+                    appData.selectedTemplate = loaded.template || appData.selectedTemplate;
+                    appData.emailMessage = loaded.emailMessage || templates[appData.selectedTemplate] || "";
+                    appData.showFullPath = (loaded.showFullPath !== undefined) ? loaded.showFullPath : true;
+                    appData.showTeamData = (loaded.showTeamData !== undefined) ? loaded.showTeamData : false;
+                    if (appData.selectedTemplate === "Personalizado" && !loaded.emailMessage) {
+                        appData.emailMessage = "";
+                    } else if (appData.selectedTemplate !== "Personalizado" && loaded.emailMessage !== templates[appData.selectedTemplate]) {
+                        // Se a mensagem salva não corresponde ao template, muda para Personalizado
+                        appData.selectedTemplate = "Personalizado";
+                    }
+                    logDebug("Preferências carregadas: " + JSON.stringify(loaded));
+                }
+            }
+        } catch(e) { 
+            logDebug("Erro ao carregar configurações: " + e.toString()); 
+        }
+    }
+
     // === LÓGICA PRINCIPAL ===
 
-    // *** FUNÇÃO DE CÓPIA FORNECIDA PELO USUÁRIO ***
-    function copyToClipboard(text) {
+    // *** FUNÇÃO DE CÓPIA MELHORADA ***
+    function setClipboard(str) {
+        var tempFile = new File(Folder.temp.fsName + "/temp_clipboard_mailmaker.txt");
         var isWindows = $.os.indexOf('Windows') !== -1;
-        var tempFilePath = Folder.temp.fullName + "/ae_clipboard_temp.txt";
-        var file = new File(tempFilePath);
         var cmd;
     
         try {
-            if (isWindows) {
-                file.encoding = "UTF-16"; // Clip no Windows exige UTF-16 LE
-            } else {
-                file.encoding = "UTF-8";  // Mac aceita UTF-8
+            // Remove o arquivo temporário se existir
+            if (tempFile.exists) {
+                tempFile.remove();
             }
-    
-            file.open("w");
-            file.write(text);
-            file.close();
-    
-            if (isWindows) {
-                // Usa type no arquivo pra garantir multilinhas
-                cmd = 'cmd /c type "' + file.fsName + '" | clip';
-            } else {
-                // Mac usa pbcopy
-                cmd = 'cat "' + file.fsName + '" | pbcopy';
+
+            // Abre o arquivo para escrita
+            tempFile.encoding = "UTF-8";
+            if (!tempFile.open("w")) {
+                throw new Error("Não foi possível criar arquivo temporário");
             }
-    
-            // Executa o comando
-            system.callSystem(cmd);
+
+            if (isWindows) {
+                // Windows - usa UTF-8 com BOM para compatibilidade
+                tempFile.write('\ufeff' + str);
+                tempFile.close();
+                
+                // PowerShell command para Windows
+                var psCommand = 'Get-Content -Path "' + tempFile.fsName.replace(/\\/g, '\\\\') + '" -Encoding UTF8 | Set-Clipboard';
+                cmd = 'powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "' + psCommand + '"';
+            } else {
+                // Mac/Unix - usa UTF-8 sem BOM
+                tempFile.write(str);
+                tempFile.close();
+                
+                // pbcopy command para Mac
+                cmd = 'cat "' + tempFile.fsName + '" | pbcopy';
+            }
+            
+            // Executa o comando do sistema
+            var result = system.callSystem(cmd);
+            
+            // Verifica se o comando foi executado com sucesso
+            if (result !== 0 && !isWindows) {
+                throw new Error("Comando de cópia falhou (código: " + result + ")");
+            }
+            
+        } catch (e) {
+            logDebug("Erro na função de cópia: " + e.toString());
+            throw new Error("Falha ao copiar: " + e.message);
         } finally {
-            // Garante que o arquivo temporário seja removido
-            if(file.exists) {
-                file.remove();
+            // Limpa o arquivo temporário
+            try {
+                if (tempFile.exists) {
+                    tempFile.remove();
+                }
+            } catch (cleanupError) {
+                logDebug("Aviso: Não foi possível remover arquivo temporário: " + cleanupError.toString());
             }
         }
     }
@@ -148,7 +311,8 @@
     
     function chooseEditorDialog(editorNames) {
         var dialog = new Window("dialog", "Selecionar Editor Prioritário");
-        dialog.orientation = "column"; dialog.alignChildren = "fill";
+        dialog.orientation = "column"; 
+        dialog.alignChildren = "fill";
         dialog.graphics.backgroundColor = dialog.graphics.newBrush(dialog.graphics.BrushType.SOLID_COLOR, theme.bgColor);
         var instruction = dialog.add("statictext", undefined, "Múltiplos editores detectados. Escolha um:");
         setStatusColor(instruction, theme.normalColor);
@@ -159,7 +323,7 @@
         okButton.onClick = function() {
             selectedEditor = list.selection.text;
             dialog.close();
-        }
+        };
         dialog.center();
         dialog.show();
         return selectedEditor;
@@ -180,7 +344,9 @@
             ui.destinationDropdown.selection = dropdownIndex;
             appData.selectedDestination = name;
         } else {
-            if (ui.destinationDropdown.selection) { ui.destinationDropdown.selection = null; }
+            if (ui.destinationDropdown.selection) { 
+                ui.destinationDropdown.selection = null; 
+            }
             appData.selectedDestination = null;
         }
         
@@ -202,21 +368,110 @@
         }
         return "";
     }
-    
+
+    function generateTeamData() {
+        var teamDataText = "";
+        var hasProject = false;
+        var hasRender = false;
+        
+        try {
+            // Verifica se existe um projeto salvo
+            if (app.project && app.project.file) {
+                var projectPath = app.project.file.fsName;
+                var projectName = app.project.file.name.replace(/\.(aep|aet)$/i, "");
+                hasProject = true;
+                
+                teamDataText += "Dados para equipe:\n";
+                teamDataText += "PROJETO SALVO:\n";
+                teamDataText += projectPath + "\n";
+                teamDataText += projectName + "\n";
+                
+                // Verifica se existe renderização (procura na fila de render)
+                var renderQueue = app.project.renderQueue;
+                var renderPath = "";
+                
+                if (renderQueue.numItems > 0) {
+                    for (var i = 1; i <= renderQueue.numItems; i++) {
+                        var item = renderQueue.item(i);
+                        if (item.numOutputModules > 0) {
+                            var outputModule = item.outputModule(1);
+                            var outputPath = outputModule.file;
+                            if (outputPath) {
+                                renderPath = outputPath.fsName;
+                                hasRender = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                teamDataText += "RENDER:\n";
+                if (hasRender) {
+                    teamDataText += renderPath;
+                } else {
+                    teamDataText += "[Nenhum render encontrado na fila]";
+                }
+            } else {
+                teamDataText += "Dados para equipe:\n";
+                teamDataText += "PROJETO SALVO:\n";
+                teamDataText += "[Projeto não foi salvo]";
+            }
+            
+            // Alerta sobre dados faltantes
+            if (!hasProject) {
+                updateStatus("⚠️ Projeto não foi salvo - dados da equipe incompletos", "warning");
+            } else if (!hasRender) {
+                updateStatus("⚠️ Nenhum render na fila - dados da equipe incompletos", "warning");
+            }
+            
+        } catch (e) {
+            logDebug("Erro ao gerar dados da equipe: " + e.toString());
+            teamDataText = "Dados para equipe:\n[Erro ao obter informações do projeto]";
+            updateStatus("❌ Erro ao obter dados da equipe", "error");
+        }
+        
+        return teamDataText;
+    }
+
     function updateEmailPreview() {
         if (!ui.previewText) return;
         var saudacaoCompleta = (appData.capturedEditorName) ? appData.selectedSaudacao + " " + appData.capturedEditorName + ", " + getGreeting() + "." : appData.selectedSaudacao + ", " + getGreeting() + ".";
         var finalMessage = processTemplateVariables(appData.emailMessage);
         var destinationName = appData.customDestinationName || "Nenhum Destino";
         var destinationPath = appData.customDestinationPath || "Selecione um preset ou use a detecção.";
-        var destinoFormatted = "📁 " + destinationName.toUpperCase() + "\n    " + destinationPath;
+        
+        // Formata o destino baseado na opção showFullPath
+        var destinoFormatted;
+        if (appData.showFullPath) {
+            // Exibe nome e caminho completo (comportamento atual)
+            destinoFormatted = "🗂 " + destinationName.toUpperCase() + "\n    " + destinationPath;
+        } else {
+            // Exibe apenas o nome do destino
+            destinoFormatted = "🗂 " + destinationName.toUpperCase();
+        }
+        
         var compsFormatted = (appData.capturedCompNames.length === 0) ? "❌ NENHUMA COMP CAPTURADA" : (appData.capturedCompNames.length === 1) ? appData.capturedCompNames[0] : "    " + appData.capturedCompNames.join("\n    ");
-        var emailCompleto = saudacaoCompleta + "\n\n" + finalMessage + "\n\n" + "Artes prontas no:\n" + destinoFormatted + "\n" + compsFormatted + "\n\n\n\n" + appData.selectedDespedida + " " + appData.selectedEmoji;
+        
+        // Monta o email básico
+        var emailCompleto = saudacaoCompleta + "\n\n" + finalMessage + "\n\n" + "Artes prontas no:\n" + destinoFormatted + "\n" + compsFormatted + "\n\n";
+        
+        // Adiciona dados da equipe se habilitado
+        if (appData.showTeamData) {
+            var teamData = generateTeamData();
+            emailCompleto += teamData + "\n\n";
+        }
+        
+        // Adiciona despedida
+        emailCompleto += "\n\n" + appData.selectedDespedida + " " + appData.selectedEmoji;
+        
         ui.previewText.text = emailCompleto;
     }
 
     function captureCompositions() {
-        if (!app.project) { updateStatus("❌ Nenhum projeto aberto", "error"); return false; }
+        if (!app.project) { 
+            updateStatus("❌ Nenhum projeto aberto", "error"); 
+            return false; 
+        }
         
         var selectedComps = app.project.selection;
         var compositions = [];
@@ -236,7 +491,10 @@
             if (editorFromActive && editorNames.indexOf(editorFromActive) === -1) editorNames.push(editorFromActive);
         }
         
-        if (compositions.length === 0) { updateStatus("❌ Nenhuma composição selecionada", "error"); return false; }
+        if (compositions.length === 0) { 
+            updateStatus("❌ Nenhuma composição selecionada", "error"); 
+            return false; 
+        }
         
         appData.capturedCompNames = compositions;
         
@@ -253,8 +511,14 @@
     }
     
     function runAutoDetectionAndUpdateUI() {
-        if (appData.capturedCompNames.length === 0) { updateStatus("⚠️ Capture uma comp primeiro.", "warning"); return; }
-        if (!$.global.MailMakerAutoPath) { updateStatus("❌ Erro: Lógica de detecção não foi carregada.", "error"); return; }
+        if (appData.capturedCompNames.length === 0) { 
+            updateStatus("⚠️ Capture uma comp primeiro.", "warning"); 
+            return; 
+        }
+        if (!$.global.MailMakerAutoPath) { 
+            updateStatus("❌ Erro: Lógica de detecção não foi carregada.", "error"); 
+            return; 
+        }
         
         var compName = appData.capturedCompNames[0];
         updateStatus("Analisando '" + compName + "'...", "info");
@@ -270,9 +534,15 @@
     }
 
     function renderPreviewFrame() {
-        if (!app.project) { updateStatus("❌ Nenhum projeto aberto.", "error"); return; }
+        if (!app.project) { 
+            updateStatus("❌ Nenhum projeto aberto.", "error"); 
+            return; 
+        }
         var comp = app.project.activeItem;
-        if (!(comp && comp instanceof CompItem)) { updateStatus("⚠️ Nenhuma composição ativa. Selecione uma.", "warning"); return; }
+        if (!(comp && comp instanceof CompItem)) { 
+            updateStatus("⚠️ Nenhuma composição ativa. Selecione uma.", "warning"); 
+            return; 
+        }
 
         app.beginUndoGroup("Render Preview Frame");
         try {
@@ -339,170 +609,325 @@
     function createUI() {
         ui.window = new Window("palette", config.windowTitle, undefined, { resizeable: true });
         var w = ui.window;
-        w.orientation = "column"; w.alignChildren = ["fill", "fill"]; w.spacing = 5; w.margins = 15;
+        w.orientation = "column"; 
+        w.alignChildren = ["fill", "fill"]; 
+        w.spacing = 5; 
+        w.margins = 15;
         w.graphics.backgroundColor = w.graphics.newBrush(w.graphics.BrushType.SOLID_COLOR, theme.bgColor);
         
         var mainColumnsGroup = w.add("group");
-        mainColumnsGroup.orientation = "row"; mainColumnsGroup.alignChildren = ["top", "top"]; mainColumnsGroup.spacing = 10; mainColumnsGroup.alignment = "fill";
+        mainColumnsGroup.orientation = "row"; 
+        mainColumnsGroup.alignChildren = ["top", "top"]; 
+        mainColumnsGroup.spacing = 10; 
+        mainColumnsGroup.alignment = "fill";
+        
         var leftColumn = mainColumnsGroup.add("group");
-        leftColumn.orientation = "column"; leftColumn.alignChildren = ["fill", "fill"]; leftColumn.spacing = 10;
+        leftColumn.orientation = "column"; 
+        leftColumn.alignChildren = ["fill", "fill"]; 
+        leftColumn.spacing = 10;
         leftColumn.preferredSize.width = 100;
+        
         var rightColumn = mainColumnsGroup.add("group");
-        rightColumn.orientation = "column"; rightColumn.alignChildren = ["fill", "fill"]; rightColumn.spacing = 10; rightColumn.alignment = ["fill", "fill"];
+        rightColumn.orientation = "column"; 
+        rightColumn.alignChildren = ["fill", "fill"]; 
+        rightColumn.spacing = 10; 
+        rightColumn.alignment = ["fill", "fill"];
         rightColumn.preferredSize.width = 400; 
+        
         var leftHeaderGroup = leftColumn.add("group");
-        leftHeaderGroup.orientation = "row"; leftHeaderGroup.alignChildren = ["left", "center"]; leftHeaderGroup.margins = [0, 0, 0, 10];
+        leftHeaderGroup.orientation = "row"; 
+        leftHeaderGroup.alignChildren = ["left", "center"]; 
+        leftHeaderGroup.margins = [0, 0, 0, 10];
+        
         var titleText = leftHeaderGroup.add("statictext", undefined, "GNEWS MailMaker", {truncate: 'end'});
         titleText.graphics.font = ScriptUI.newFont("Arial", "Bold", 15);
         setStatusColor(titleText, theme.highlightColor);
+        
         var rightHeaderGroup = rightColumn.add("group");
-        rightHeaderGroup.orientation = "row"; rightHeaderGroup.alignChildren = ["right", "center"]; rightHeaderGroup.alignment = "fill"; rightHeaderGroup.margins = [0, 0, 0, 10];
+        rightHeaderGroup.orientation = "row"; 
+        rightHeaderGroup.alignChildren = ["right", "center"]; 
+        rightHeaderGroup.alignment = "fill"; 
+        rightHeaderGroup.margins = [0, 0, 0, 10];
         
         var helpBtn;
         try {
             if (typeof themeIconButton !== 'undefined' && typeof D9T_INFO_ICON !== 'undefined') {
                 helpBtn = new themeIconButton(rightHeaderGroup, { icon: D9T_INFO_ICON, tips: ["Ajuda"] });
                 helpBtn.leftClick.onClick = showMailMakerHelp;
-            } else { throw new Error("Theme button not available"); }
+            } else { 
+                throw new Error("Theme button not available"); 
+            }
         } catch(e) {
             helpBtn = rightHeaderGroup.add("button", undefined, "?");
-            helpBtn.preferredSize = [25, 25]; helpBtn.helpTip = "Ajuda sobre o MailMaker";
+            helpBtn.preferredSize = [25, 25]; 
+            helpBtn.helpTip = "Ajuda sobre o MailMaker";
             helpBtn.onClick = showMailMakerHelp;
         }
 
-        var configPanel = leftColumn.add("panel", undefined, "📩 PERSONALIZAÇÃO DE EMAIL");
-        configPanel.alignChildren = "fill"; configPanel.margins = 15; configPanel.spacing = 15; configPanel.alignment = 'fill'; 
+        var configPanel = leftColumn.add("panel", undefined, "🔧 PERSONALIZAÇÃO DE EMAIL");
+        configPanel.alignChildren = "fill"; 
+        configPanel.margins = 15; 
+        configPanel.spacing = 15; 
+        configPanel.alignment = 'fill'; 
+        
         var greetingGroup = configPanel.add("group");
         var saudacaoSubGroup = greetingGroup.add("group", undefined);
         saudacaoSubGroup.add("statictext", undefined, "Saudação:");
         ui.saudacaoDropdown = saudacaoSubGroup.add("dropdownlist", undefined, saudacoes);
         ui.saudacaoDropdown.preferredSize.width = 60;
+        
         var spacer1 = greetingGroup.add("group");
         spacer1.preferredSize.width = 5;
+        
         var despedidaSubGroup = greetingGroup.add("group", undefined, {orientation: "column", alignChildren: "right"});
         despedidaSubGroup.add("statictext", undefined, "Despedida:");
         ui.despedidaDropdown = despedidaSubGroup.add("dropdownlist", undefined, despedidas);
         ui.despedidaDropdown.preferredSize.width = 80;
+        
         var emojiSubGroup = greetingGroup.add("group", undefined, {orientation: "column", alignChildren: "right"});
         emojiSubGroup.add("statictext", undefined, "Emoji:");
         ui.emojiDropdown = emojiSubGroup.add("dropdownlist", undefined, emojis);
         ui.emojiDropdown.preferredSize.width = 60;
-        var messagePanel = leftColumn.add("panel", undefined, "🔤 DESCRIÇÃO DO EMAIL");
-        messagePanel.alignChildren = "fill"; messagePanel.margins = 15; messagePanel.spacing = 8;
-        messagePanel.alignment = 'fill'; messagePanel.preferredSize.width = 30; 
+        
+        var messagePanel = leftColumn.add("panel", undefined, "💬 DESCRIÇÃO DO EMAIL");
+        messagePanel.alignChildren = "fill"; 
+        messagePanel.margins = 15; 
+        messagePanel.spacing = 8;
+        messagePanel.alignment = 'fill'; 
+        messagePanel.preferredSize.width = 30; 
+        
         var templateLine = messagePanel.add("group");
-        templateLine.orientation = "row";
+        templateLine.orientation = "row"; 
+        templateLine.spacing = 10;
         templateLine.add("statictext", undefined, "Template:");
         ui.templateDropdown = templateLine.add("dropdownlist", undefined, templateNames);
         ui.templateDropdown.alignment = "fill";
+        
+        // Adiciona checkbox para exibir caminho completo ao lado do template
+        ui.showPathCheckbox = templateLine.add("checkbox", undefined, "Caminho");
+        ui.showPathCheckbox.value = true; // Padrão: ligado
+        ui.showPathCheckbox.helpTip = "Exibe o caminho completo na pré-visualização do email";
+        
         ui.messageInput = messagePanel.add("edittext", undefined, "", { multiline: true, scrollable: true });
-        ui.messageInput.alignment = "fill"; ui.messageInput.preferredSize.height = 60;
-        var destPanel = leftColumn.add("panel", undefined, "📁 CONFIGURAÇÃO DE DESTINO");
-        destPanel.alignChildren = "left"; destPanel.margins = 15; destPanel.spacing = 8;
+        ui.messageInput.alignment = "fill"; 
+        ui.messageInput.preferredSize.height = 60;
+        
+        var destPanel = leftColumn.add("panel", undefined, "📂 CONFIGURAÇÃO DE DESTINO");
+        destPanel.alignChildren = "left"; 
+        destPanel.margins = 15; 
+        destPanel.spacing = 8;
         destPanel.alignment = 'fill';
+        
         var presetLine = destPanel.add("group");
-        presetLine.orientation = "row";
+        presetLine.orientation = "row"; 
+        presetLine.spacing = 10;
         presetLine.add("statictext", undefined, "Preset de Destino:");
         ui.destinationDropdown = presetLine.add("dropdownlist", undefined, destinationNames);
-        ui.destinationDropdown.alignment = "fill"; ui.destinationDropdown.preferredSize.width = 150;
+        ui.destinationDropdown.alignment = "fill"; 
+        ui.destinationDropdown.preferredSize.width = 150;
+        
+        // Adiciona checkbox para dados da equipe ao lado do preset
+        ui.showTeamDataCheckbox = presetLine.add("checkbox", undefined, "Dados para Equipe");
+        ui.showTeamDataCheckbox.value = false; // Padrão: desligado
+        ui.showTeamDataCheckbox.helpTip = "Inclui informações do projeto e render no email";
+        
         var manualDestLine = destPanel.add("group");
-        manualDestLine.orientation = "row"; manualDestLine.spacing = 17; 
+        manualDestLine.orientation = "row"; 
+        manualDestLine.spacing = 17; 
         manualDestLine.add("statictext", undefined, "Destino Manual:");
         ui.manualDestinoInput = manualDestLine.add("edittext", undefined, "");
-        ui.manualDestinoInput.alignment = "fill"; ui.manualDestinoInput.preferredSize.width = 298;
+        ui.manualDestinoInput.alignment = "fill"; 
+        ui.manualDestinoInput.preferredSize.width = 298;
+        
         var manualPathLine = destPanel.add("group");
         manualPathLine.orientation = "row";
         manualPathLine.add("statictext", undefined, "Caminho Manual:");
         ui.manualCaminhoInput = manualPathLine.add("edittext", undefined, "");
-        ui.manualCaminhoInput.alignment = "fill"; ui.manualCaminhoInput.preferredSize.width = 298;
+        ui.manualCaminhoInput.alignment = "fill"; 
+        ui.manualCaminhoInput.preferredSize.width = 298;
+        
         var previewPanel = rightColumn.add("panel", undefined, "👁️ Pré-Visualização do Email");
-        previewPanel.alignChildren = "fill"; previewPanel.margins = 15; previewPanel.alignment = ["fill", "fill"];
+        previewPanel.alignChildren = "fill"; 
+        previewPanel.margins = 15; 
+        previewPanel.alignment = ["fill", "fill"];
+        
         ui.previewText = previewPanel.add("edittext", undefined, "", { multiline: true, readonly: true, scrollable: true });
-        ui.previewText.alignment = "fill"; ui.previewText.preferredSize.height = 263;
+        ui.previewText.alignment = "fill"; 
+        ui.previewText.preferredSize.height = 263;
         ui.previewText.graphics.font = ScriptUI.newFont("Courier New", 10);
+        
         var buttonGroup = previewPanel.add("group");
-        buttonGroup.orientation = "row"; buttonGroup.alignChildren = ["fill", "center"]; buttonGroup.spacing = 5;
-        ui.captureBtn = buttonGroup.add("button", undefined, "🔘 Capturar");
-        ui.detectBtn = buttonGroup.add("button", undefined, "🔎 Detectar");
+        buttonGroup.orientation = "row"; 
+        buttonGroup.alignChildren = ["fill", "center"]; 
+        buttonGroup.spacing = 5;
+        
+        ui.captureBtn = buttonGroup.add("button", undefined, "📘 Capturar");
+        ui.detectBtn = buttonGroup.add("button", undefined, "🔍 Detectar");
         ui.previewBtn = buttonGroup.add("button", undefined, "🖼️ Preview");
         ui.copyBtn = buttonGroup.add("button", undefined, "📋 Copiar");
         ui.captureBtn.preferredSize.height = ui.detectBtn.preferredSize.height = ui.previewBtn.preferredSize.height = ui.copyBtn.preferredSize.height = 35;
+        
         var statusPanel = w.add("panel", undefined, "Status");
-        statusPanel.alignment = "fill"; statusPanel.margins = 10;
+        statusPanel.alignment = "fill"; 
+        statusPanel.margins = 10;
+        
         var statusGroup = statusPanel.add("group");
-        statusGroup.alignment = "fill"; statusGroup.orientation = "row";
+        statusGroup.alignment = "fill"; 
+        statusGroup.orientation = "row";
+        
         ui.statusText = statusGroup.add("statictext", undefined, "Inicializando...", {truncate: 'end'});
-        ui.statusText.alignment = ['fill', 'center']; ui.statusText.justify = 'center';
+        ui.statusText.alignment = ['fill', 'center']; 
+        ui.statusText.justify = 'center';
         setStatusColor(ui.statusText, COLORS.neutral);
 
-        ui.saudacaoDropdown.onChange = function() { if (this.selection) { appData.selectedSaudacao = this.selection.text; updateEmailPreview(); } };
-        ui.despedidaDropdown.onChange = function() { if (this.selection) { appData.selectedDespedida = this.selection.text; updateEmailPreview(); } };
-        ui.emojiDropdown.onChange = function() { if (this.selection) { appData.selectedEmoji = this.selection.text; updateEmailPreview(); } };
+        w.onClose = function() {
+            saveSettings();
+        };
+
+        // === EVENTOS DOS DROPDOWNS COM SALVAMENTO AUTOMÁTICO ===
+        ui.saudacaoDropdown.onChange = function() { 
+            if (this.selection) { 
+                appData.selectedSaudacao = this.selection.text; 
+                updateEmailPreview(); 
+                saveSettings(); // Salva automaticamente
+            } 
+        };
+        
+        ui.despedidaDropdown.onChange = function() { 
+            if (this.selection) { 
+                appData.selectedDespedida = this.selection.text; 
+                updateEmailPreview(); 
+                saveSettings(); // Salva automaticamente
+            } 
+        };
+        
+        ui.emojiDropdown.onChange = function() { 
+            if (this.selection) { 
+                appData.selectedEmoji = this.selection.text; 
+                updateEmailPreview(); 
+                saveSettings(); // Salva automaticamente
+            } 
+        };
+        
         ui.templateDropdown.onChange = function() {
             if (!this.selection) return;
             appData.selectedTemplate = this.selection.text;
-            if (appData.selectedTemplate !== "Personalizado") { appData.emailMessage = templates[appData.selectedTemplate]; ui.messageInput.text = appData.emailMessage; }
+            if (appData.selectedTemplate !== "Personalizado") { 
+                appData.emailMessage = templates[appData.selectedTemplate]; 
+                ui.messageInput.text = appData.emailMessage; 
+            }
             updateEmailPreview();
+            saveSettings(); // Salva automaticamente
         };
+        
+        // Evento para o campo de mensagem personalizada
         ui.messageInput.onChanging = function() {
             appData.emailMessage = this.text;
             if (appData.selectedTemplate !== "Personalizado" && this.text !== templates[appData.selectedTemplate]) {
                 var idx = findDropdownItem(ui.templateDropdown, "Personalizado");
-                if (idx > -1) ui.templateDropdown.selection = idx;
+                if (idx > -1) {
+                    ui.templateDropdown.selection = idx;
+                    appData.selectedTemplate = "Personalizado";
+                }
             }
             updateEmailPreview();
+            // Delay para salvar após parar de digitar
+            if (ui.messageInput.saveTimer) {
+                clearTimeout(ui.messageInput.saveTimer);
+            }
+            ui.messageInput.saveTimer = app.setTimeout(function() {
+                saveSettings();
+            }, 1000); // Salva 1 segundo após parar de digitar
         };
+
+        // Evento para o checkbox de caminho
+        ui.showPathCheckbox.onClick = function() {
+            appData.showFullPath = this.value;
+            updateEmailPreview();
+            saveSettings(); // Salva automaticamente
+        };
+
+        // Evento para o checkbox de dados da equipe
+        ui.showTeamDataCheckbox.onClick = function() {
+            appData.showTeamData = this.value;
+            updateEmailPreview();
+            saveSettings(); // Salva automaticamente
+        };
+
         ui.destinationDropdown.onChange = function() {
             if (this.selection) {
                 var selectedPreset = this.selection.text;
                 var presetPath = caminhosData[selectedPreset] || "";
                 setDestination(selectedPreset, presetPath);
-            } else { setDestination("", ""); }
+            } else { 
+                setDestination("", ""); 
+            }
         };
-        var manualInputHandler = function() { setDestination(ui.manualDestinoInput.text, ui.manualCaminhoInput.text); };
+        
+        var manualInputHandler = function() { 
+            setDestination(ui.manualDestinoInput.text, ui.manualCaminhoInput.text); 
+        };
         ui.manualDestinoInput.onChanging = manualInputHandler;
         ui.manualCaminhoInput.onChanging = manualInputHandler;
-        ui.captureBtn.onClick = function() { if (captureCompositions()) { updateEmailPreview(); } };
+        
+        ui.captureBtn.onClick = function() { 
+            if (captureCompositions()) { 
+                updateEmailPreview(); 
+            } 
+        };
+        
         ui.detectBtn.onClick = function() {
             if (captureCompositions()) {
                 runAutoDetectionAndUpdateUI();
                 updateEmailPreview();
             }
         };
+        
         ui.previewBtn.onClick = renderPreviewFrame;
         
         ui.copyBtn.onClick = function() {
             try {
+                // Verifica se a permissão de segurança está habilitada
                 if (!isSecurityPrefEnabled()) {
-                    var errorMsg = "A função de cópia automática requer uma permissão do After Effects.\n\n" + "Por favor, vá em:\n" + "1. Edit > Preferences > Scripting & Expressions...\n" + "2. Marque a opção 'Allow Scripts to Write Files and Access Network'\n" + "3. Clique OK e tente novamente.";
+                    var errorMsg = "A função de cópia automática requer uma permissão do After Effects.\n\n" + 
+                                  "Por favor, vá em:\n" + 
+                                  "1. Edit > Preferences > Scripting & Expressions...\n" + 
+                                  "2. Marque a opção 'Allow Scripts to Write Files and Access Network'\n" + 
+                                  "3. Clique OK e tente novamente.";
                     alert(errorMsg, "Permissão Necessária");
                     updateStatus("❌ Cópia desabilitada por segurança.", "error");
                     return;
                 }
                 
-                if (!ui || !ui.previewText) { throw new Error("Componente de texto não encontrado."); }
+                // Verifica se existe conteúdo para copiar
+                if (!ui || !ui.previewText) { 
+                    throw new Error("Componente de texto não encontrado."); 
+                }
 
                 var textToCopy = ui.previewText.text;
-                if (!textToCopy) {
+                if (!textToCopy || textToCopy.trim() === "") {
                     updateStatus("⚠️ Nada para copiar.", "warning");
                     return;
                 }
                 
-                // Chamando a função de cópia solicitada
-                copyToClipboard(textToCopy);
+                // Tenta copiar o texto
+                updateStatus("Copiando texto...", "info");
+                setClipboard(textToCopy);
                 
                 updateStatus("✅ Email copiado para a área de transferência!", "success");
 
             } catch (e) {
-                var detailedError = "Falha ao copiar o texto: " + e.toString();
-                alert(detailedError);
-                updateStatus("❌ Falha ao copiar.", "error");
+                var detailedError = "Falha ao copiar o texto:\n" + e.toString();
+                alert(detailedError, "Erro de Cópia");
+                updateStatus("❌ Falha ao copiar: " + e.message, "error");
+                logDebug("Erro detalhado na cópia: " + e.toString());
             }
         };
-
+        
         w.onShow = function() {
-            if (captureCompositions()) {
-                updateEmailPreview();
+            var hasComps = captureCompositions();
+            if (hasComps) {
+                runAutoDetectionAndUpdateUI();
             } else {
                 updateStatus("Pronto. Capture uma composição.", "info");
             }
@@ -511,7 +936,7 @@
 
     // === INICIALIZAÇÃO ===
     function init() {
-        logDebug("=== INICIANDO MailMaker - v36.0 ===");
+        logDebug("=== INICIANDO MailMaker - v37.6 FIXED ===");
         var mainPath = findScriptMainPath();
         try {
             var globalsFile = new File(mainPath + "source/globals.js");
@@ -520,38 +945,62 @@
             if(iconLibFile.exists) $.evalFile(iconLibFile);
             var uiFuncFile = new File(mainPath + "source/libraries/functions/UI_FUNC.js");
             if(uiFuncFile.exists) $.evalFile(uiFuncFile);
-        } catch(e) { logDebug("Libs de UI não encontradas. Erro: " + e.toString()); }
+        } catch(e) { 
+            logDebug("Libs de UI não encontradas. Erro: " + e.toString()); 
+        }
+        
         loadedCaminhosJSON = readJsonFile(mainPath + "source/libraries/dados_json/DADOS_caminhos_gnews.json");
         programacaoData = readJsonFile(mainPath + "source/libraries/dados_json/DADOS_programacao_gnews.json");
+        
         var autoPathScript = new File(mainPath + "source/libraries/functions/func_auto_path_servers.js");
-        if (autoPathScript.exists) { $.evalFile(autoPathScript); }
-        else { alert("ERRO CRÍTICO: 'func_auto_path_servers.js' não encontrado."); return; }
+        if (autoPathScript.exists) { 
+            $.evalFile(autoPathScript); 
+        } else { 
+            alert("ERRO CRÍTICO: 'func_auto_path_servers.js' não encontrado."); 
+            return; 
+        }
+        
         var getPathDayByDayScript = new File(mainPath + "source/libraries/functions/func_getPathDayByDay.js");
-        if (getPathDayByDayScript.exists) { $.evalFile(getPathDayByDayScript); } 
-        else { logDebug("AVISO: 'func_getPathDayByDay.js' não encontrado."); }
+        if (getPathDayByDayScript.exists) { 
+            $.evalFile(getPathDayByDayScript); 
+        } else { 
+            logDebug("AVISO: 'func_getPathDayByDay.js' não encontrado."); 
+        }
+        
         if (loadedCaminhosJSON) {
             for (var serverName in loadedCaminhosJSON) {
                 if (loadedCaminhosJSON.hasOwnProperty(serverName)) {
                     var paths = loadedCaminhosJSON[serverName];
                     for (var j = 0; j < paths.length; j++) {
                         var pathInfo = paths[j];
-                        if (pathInfo.nome && pathInfo.caminho) { caminhosData[pathInfo.nome] = pathInfo.caminho; }
+                        if (pathInfo.nome && pathInfo.caminho) { 
+                            caminhosData[pathInfo.nome] = pathInfo.caminho; 
+                        }
                     }
                 }
             }
             destinationNames = getObjectKeys(caminhosData).sort();
         }
+        
+        // --- CARREGA CONFIGURAÇÕES ANTES DE CRIAR A UI ---
+        loadSettings(); 
+        
         createUI();
+        
+        // --- APLICA AS CONFIGURAÇÕES CARREGADAS NA UI ---
         ui.saudacaoDropdown.selection = findDropdownItem(ui.saudacaoDropdown, appData.selectedSaudacao);
         ui.despedidaDropdown.selection = findDropdownItem(ui.despedidaDropdown, appData.selectedDespedida);
         ui.emojiDropdown.selection = findDropdownItem(ui.emojiDropdown, appData.selectedEmoji);
         ui.templateDropdown.selection = findDropdownItem(ui.templateDropdown, appData.selectedTemplate);
-        appData.emailMessage = templates[appData.selectedTemplate];
         ui.messageInput.text = appData.emailMessage;
+        ui.showPathCheckbox.value = appData.showFullPath;
+        ui.showTeamDataCheckbox.value = appData.showTeamData;
+
         if (destinationNames.length > 0) {
             ui.destinationDropdown.selection = 0;
             ui.destinationDropdown.onChange();
         }
+
         updateEmailPreview();
         ui.window.center();
         ui.window.show();

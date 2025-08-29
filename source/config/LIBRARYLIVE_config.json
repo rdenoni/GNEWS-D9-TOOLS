@@ -3,10 +3,14 @@
   "userName": "D9 User",
   "tool_settings": {
     "LibraryLive": {
-      "icon_root_path": "D:\\PROJETOS\\SCRIPTS AFTER\\GNEWS-D9-TOOLS\\icons",
-      "image_root_path": "D:\\PROJETOS\\SCRIPTS AFTER\\GNEWS-D9-TOOLS\\imagens",
       "thumbnail_size": 70,
-      "grid_columns": 7
+      "grid_columns": 7,
+      "icon_root_paths": [
+        "D:\\PROJETOS\\SCRIPTS AFTER\\files\\ICONS"
+      ],
+      "image_root_paths": [
+        "D:\\PROJETOS\\SCRIPTS AFTER\\files\\IMAGENS"
+      ]
     },
     "copylinks": {
       "default_format": "html_list",

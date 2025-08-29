@@ -1,10 +1,9 @@
 /***************************************************
  * GNEWS Renamer.jsx
- * Versão: 7.4 - Modificado
- * Última Atualização: 2025-08-15
- * Descrição: Versão com inicialização de valores padrão
- * e seleção de produção baseada em horário. Não
- * captura mais a comp ativa ao iniciar.
+ * Versão: 7.6 - Modificado
+ * Última Atualização: 2025-08-28
+ * Descrição: Campo "Editor" opcional e captura
+ * automática da comp ativa ao iniciar.
  ***************************************************/
 
 function GNEWS_Renamer_UI() {
@@ -637,7 +636,8 @@ renameBtn.leftClick.onClick = function() {
                 if (selection[i] instanceof CompItem) { selectedComps.push(selection[i]); }
             }
             if (selectedComps.length === 0) { throw new Error(lang[currentLang].noComp); }
-            if (!editorInput.text) { throw new Error(lang[currentLang].noEditor); }
+            // Campo Editor opcional
+            // if (!editorInput.text) { throw new Error(lang[currentLang].noEditor); }
             
             updatePreview();
             var finalNameTemplate = previewText.text;
@@ -799,7 +799,8 @@ renameBtn.leftClick.onClick = function() {
     };
 
 saveBtn.leftClick.onClick = function() {
-        if (!editorInput.text) { updateStatusText(lang[currentLang].noEditor); return; }
+        // Campo Editor opcional
+        // if (!editorInput.text) { updateStatusText(lang[currentLang].noEditor); return; }
         updatePreview();
         var finalTagName = tags[names[nameDrop.selection.index]] || "";
         
@@ -969,14 +970,20 @@ saveBtn.leftClick.onClick = function() {
         helpWin.center();
         helpWin.show();
     };
-    // END - FUNÇÃO DE AJUDA REVISADA PARA PADRONIZAÇÃO
+
 
     win.center();
     win.show();
     
-    // Define os valores padrão ao iniciar o script e atualiza a pré-visualização
+    // Define os valores padrão ao iniciar o script
     setDefaultValuesWithTimeLogic();
     updatePreview();
+
+
+    var activeItemOnInit = app.project.activeItem;
+    if (activeItemOnInit && activeItemOnInit instanceof CompItem) {
+        updateFieldsFromComp();
+    }
 }
 
 if (app.project) {
