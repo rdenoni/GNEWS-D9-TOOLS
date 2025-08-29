@@ -1,23 +1,10 @@
 {
-  "version": "1.0",
-  "userName": "D9 User",
-  "tool_settings": {
-    "LibraryLive": {
-      "thumbnail_size": 70,
-      "grid_columns": 7,
-      "icon_root_paths": [
-        "D:\\PROJETOS\\SCRIPTS AFTER\\files\\ICONS"
-      ],
-      "image_root_paths": [
-        "D:\\PROJETOS\\SCRIPTS AFTER\\files\\IMAGENS"
-      ]
-    },
-    "copylinks": {
-      "default_format": "html_list",
-      "include_date": true
-    },
-    "MailMaker": {
-      "default_signature": "Atenciosamente, Equipe D9"
-    }
-  }
+  "icon_root_paths": [
+    "D:\\PROJETOS\\SCRIPTS AFTER\\files\\ICONS",
+    "T:\\UTILIDADES\\ICONES"
+  ],
+  "image_root_paths": [
+    "D:\\PROJETOS\\SCRIPTS AFTER\\files\\IMAGENS",
+    "T:\\UTILIDADES\\IMAGENS E VIDEOS AUTORIZADOS"
+  ]
 }
