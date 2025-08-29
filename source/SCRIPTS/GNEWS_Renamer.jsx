@@ -1,14 +1,15 @@
 /***************************************************
  * GNEWS Renamer.jsx
- * Versão: 7.6 - Modificado
- * Última Atualização: 2025-08-28
- * Descrição: Campo "Editor" opcional e captura
- * automática da comp ativa ao iniciar.
+ * Versão: 7.6 - Modificado com Unicode Aprimorado
+ * Última Atualização: 2025-08-29
+ * Descrição: Campo "Editor" opcional, captura
+ * automática da comp ativa ao iniciar e detecção
+ * aprimorada de Unicode para AE CC 2023+.
  ***************************************************/
 
 function GNEWS_Renamer_UI() {
 
-// =======================================================================
+    // =======================================================================
     // ETAPA 1: CARREGAMENTO DE DADOS EXTERNOS (COM VERIFICAÇÕES REFORÇADAS)
     // =======================================================================
 
@@ -22,7 +23,7 @@ function GNEWS_Renamer_UI() {
             file.open("r");
             var content = file.read();
             file.close();
-            // A sua versão original do Renamer já tinha essa checagem, que é ótima.
+            
             if (typeof JSON !== 'undefined' && typeof JSON.parse === 'function') {
                 return JSON.parse(content);
             } else {
@@ -138,107 +139,249 @@ function GNEWS_Renamer_UI() {
     var programacaoData = loadedData.programacaoRaw;
 
     // =======================================================================
-    // FUNÇÃO PARA DEFINIR VALORES PADRÃO NA ABERTURA
+    // ENHANCED UNICODE SUPPORT DETECTION
     // =======================================================================
-function setDefaultValuesWithTimeLogic() {
-    // Define valores padrão para campos de texto e checkbox
-    descInput.text = "";
-    editorInput.text = "";
-    alterCheck.value = false;
-
-    // Define a seleção padrão para "NOME"
-    for (var i = 0; i < nameDrop.items.length; i++) {
-        if (nameDrop.items[i].text.toLowerCase() === "d9") {
-            nameDrop.selection = i;
-            break;
-        }
-    }
-
-    // Define a seleção padrão para "TIPO"
-    for (var i = 0; i < artDrop.items.length; i++) {
-        if (artDrop.items[i].text.toLowerCase() === "base caracter") {
-            artDrop.selection = i;
-            break;
-        }
-    }
     
-    // Define a seleção padrão para "VERSÃO"
-    versionDrop.selection = 0; // "Nenhuma"
-
-    // --- NOVA LÓGICA CORRIGIDA ---
-
-    // Função auxiliar para verificar se o dia atual corresponde à regra de exibição
-    function isDayInSchedule(scheduleString, currentDay) {
-        var s = scheduleString.toLowerCase();
+    function getAfterEffectsVersionInfo() {
+        var version = parseFloat(app.version);
+        var versionYear = null;
+        var supportsUnicode = false;
+        var recommendedFont = "Arial Unicode MS";
+        var fallbackFont = "Arial";
         
-        if (s.indexOf("diariamente") > -1 || s.indexOf("segunda a domingo") > -1) {
-            return true;
+        // Map After Effects versions to release years and Unicode capabilities
+        if (version >= 24.0) {
+            versionYear = 2024; // After Effects 2024
+            supportsUnicode = true;
+            recommendedFont = "Segoe UI Emoji"; // Best for modern versions
+        } else if (version >= 23.0) {
+            versionYear = 2023; // After Effects 2023
+            supportsUnicode = true;
+            recommendedFont = "Arial Unicode MS";
+        } else if (version >= 22.0) {
+            versionYear = 2022; // After Effects 2022
+            supportsUnicode = true;
+            recommendedFont = "Arial Unicode MS";
+        } else if (version >= 18.0) {
+            versionYear = 2021; // After Effects 2021
+            supportsUnicode = true;
+            recommendedFont = "Arial Unicode MS";
+        } else if (version >= 17.0) {
+            versionYear = 2020; // After Effects 2020
+            supportsUnicode = false; // Limited Unicode support
+            recommendedFont = "Arial";
+        } else {
+            versionYear = "Legacy";
+            supportsUnicode = false;
+            recommendedFont = "Arial";
         }
-        if (s.indexOf("segunda a sexta") > -1) {
-            return ["seg", "ter", "qua", "qui", "sex"].indexOf(currentDay) > -1;
-        }
-        if (s.indexOf("sábados e domingos") > -1) {
-            return ["sab", "dom"].indexOf(currentDay) > -1;
-        }
-        if (s.indexOf("segunda") > -1) return currentDay === "seg";
-        if (s.indexOf("terça") > -1) return currentDay === "ter";
-        if (s.indexOf("quarta") > -1) return currentDay === "qua";
-        if (s.indexOf("quinta") > -1) return currentDay === "qui";
-        if (s.indexOf("sexta") > -1) return currentDay === "sex";
-        if (s.indexOf("sábado") > -1) return currentDay === "sab";
-        if (s.indexOf("domingo") > -1) return currentDay === "dom";
+        
+        return {
+            version: version,
+            year: versionYear,
+            supportsUnicode: supportsUnicode,
+            recommendedFont: recommendedFont,
+            fallbackFont: fallbackFont
+        };
+    }
 
+    // Enhanced Unicode detection with font fallback
+    function isUnicodeSupported() {
+        var versionInfo = getAfterEffectsVersionInfo();
+        
+        // Test Unicode rendering capability
+        if (versionInfo.supportsUnicode) {
+            try {
+                // Create a test window to verify Unicode rendering
+                var testWin = new Window("dialog");
+                var testText = testWin.add("statictext", undefined, "\uD83D\uDCBE");
+                
+                // Try to set the recommended font
+                try {
+                    testText.graphics.font = ScriptUI.newFont(versionInfo.recommendedFont, "Regular", 12);
+                } catch(e) {
+                    // Fallback to Arial if recommended font fails
+                    try {
+                        testText.graphics.font = ScriptUI.newFont(versionInfo.fallbackFont, "Regular", 12);
+                    } catch(e2) {
+                        // If even Arial fails, Unicode is not properly supported
+                        testWin.close();
+                        return false;
+                    }
+                }
+                
+                testWin.close();
+                return true;
+                
+            } catch(e) {
+                $.writeln("Unicode test failed: " + e.toString());
+                return false;
+            }
+        }
+        
         return false;
     }
 
-    try {
-        var now = new Date();
-        var dayMap = ["dom", "seg", "ter", "qua", "qui", "sex", "sab"];
-        var currentDay = dayMap[now.getDay()];
-        var currentTime = pad(now.getHours()) + ":" + pad(now.getMinutes());
-        var productionFound = false;
+    // Apply proper font settings for Unicode elements
+    function setUnicodeFont(element) {
+        var versionInfo = getAfterEffectsVersionInfo();
+        
+        if (versionInfo.supportsUnicode) {
+            try {
+                // Primary font attempt
+                element.graphics.font = ScriptUI.newFont(versionInfo.recommendedFont, "Regular", 12);
+            } catch(e1) {
+                try {
+                    // Secondary font attempt
+                    if (versionInfo.recommendedFont !== "Arial Unicode MS") {
+                        element.graphics.font = ScriptUI.newFont("Arial Unicode MS", "Regular", 12);
+                    } else {
+                        element.graphics.font = ScriptUI.newFont("Segoe UI", "Regular", 12);
+                    }
+                } catch(e2) {
+                    try {
+                        // Final fallback
+                        element.graphics.font = ScriptUI.newFont(versionInfo.fallbackFont, "Regular", 12);
+                    } catch(e3) {
+                        // Use system default if all else fails
+                        $.writeln("Warning: Could not set Unicode font, using system default");
+                    }
+                }
+            }
+        }
+    }
 
-        for (var i = 0; i < programacaoData.programacao_globonews.length; i++) {
-            var programa = programacaoData.programacao_globonews[i];
+    // Updated Unicode icons with better compatibility
+    var unicodeIcons = {
+        save: "\uD83D\uDCBE",      // 💾 (Floppy disk) 
+        create: "\u2728",           // ✨ (Sparkles) 
+        capture: "\uD83D\uDD3D",    // 🔽 (Down arrow)
+        copy: "\uD83D\uDCCB",       // 📋 (Clipboard)
+        organize: "\uD83D\uDCE5"    // 📥 (Inbox tray)
+    };
+
+    // Fallback icons for older versions
+    var fallbackIcons = {
+        save: "[SAVE]",
+        create: "[NEW]", 
+        capture: "[GET]",
+        copy: "[COPY]",
+        organize: "[ORG]"
+    };
+
+    // Get appropriate icon based on version support
+    function getIcon(iconName) {
+        var versionInfo = getAfterEffectsVersionInfo();
+        
+        if (versionInfo.supportsUnicode && isUnicodeSupported()) {
+            return unicodeIcons[iconName] || fallbackIcons[iconName] || "";
+        } else {
+            return fallbackIcons[iconName] || "";
+        }
+    }
+
+    // =======================================================================
+    // FUNÇÃO PARA DEFINIR VALORES PADRÃO NA ABERTURA
+    // =======================================================================
+    function setDefaultValuesWithTimeLogic() {
+        // Define valores padrão para campos de texto e checkbox
+        descInput.text = "";
+        editorInput.text = "";
+        alterCheck.value = false;
+
+        // Define a seleção padrão para "NOME"
+        for (var i = 0; i < nameDrop.items.length; i++) {
+            if (nameDrop.items[i].text.toLowerCase() === "d9") {
+                nameDrop.selection = i;
+                break;
+            }
+        }
+
+        // Define a seleção padrão para "TIPO"
+        for (var i = 0; i < artDrop.items.length; i++) {
+            if (artDrop.items[i].text.toLowerCase() === "base caracter") {
+                artDrop.selection = i;
+                break;
+            }
+        }
+        
+        // Define a seleção padrão para "VERSÃO"
+        versionDrop.selection = 0; // "Nenhuma"
+
+        // --- NOVA LÓGICA CORRIGIDA ---
+
+        // Função auxiliar para verificar se o dia atual corresponde à regra de exibição
+        function isDayInSchedule(scheduleString, currentDay) {
+            var s = scheduleString.toLowerCase();
             
-            if (programa.horario && programa.dias_exibicao) {
-                // 1. Quebra a string de horário em início e fim
-                var timeParts = programa.horario.split(" - ");
-                var startTime = timeParts[0];
-                var endTime = timeParts[1];
+            if (s.indexOf("diariamente") > -1 || s.indexOf("segunda a domingo") > -1) {
+                return true;
+            }
+            if (s.indexOf("segunda a sexta") > -1) {
+                return ["seg", "ter", "qua", "qui", "sex"].indexOf(currentDay) > -1;
+            }
+            if (s.indexOf("sábados e domingos") > -1) {
+                return ["sab", "dom"].indexOf(currentDay) > -1;
+            }
+            if (s.indexOf("segunda") > -1) return currentDay === "seg";
+            if (s.indexOf("terça") > -1) return currentDay === "ter";
+            if (s.indexOf("quarta") > -1) return currentDay === "qua";
+            if (s.indexOf("quinta") > -1) return currentDay === "qui";
+            if (s.indexOf("sexta") > -1) return currentDay === "sex";
+            if (s.indexOf("sábado") > -1) return currentDay === "sab";
+            if (s.indexOf("domingo") > -1) return currentDay === "dom";
 
-                // 2. Verifica se o dia de hoje está na regra de exibição
-                if (isDayInSchedule(programa.dias_exibicao, currentDay)) {
-                    // 3. Verifica se a hora atual está dentro do intervalo
-                    if (currentTime >= startTime && currentTime < endTime) {
-                        var tagNameFormatted = programa.tagName.replace(/_/g, ' ').toLowerCase();
-                        var productionName = tagNameFormatted.replace(/\b\w/g, function(l){ return l.toUpperCase(); });
-                        
-                        for (var p = 0; p < prodDrop.items.length; p++) {
-                            if (prodDrop.items[p].text === productionName) {
-                                prodDrop.selection = p;
-                                productionFound = true;
-                                break;
+            return false;
+        }
+
+        try {
+            var now = new Date();
+            var dayMap = ["dom", "seg", "ter", "qua", "qui", "sex", "sab"];
+            var currentDay = dayMap[now.getDay()];
+            var currentTime = pad(now.getHours()) + ":" + pad(now.getMinutes());
+            var productionFound = false;
+
+            for (var i = 0; i < programacaoData.programacao_globonews.length; i++) {
+                var programa = programacaoData.programacao_globonews[i];
+                
+                if (programa.horario && programa.dias_exibicao) {
+                    // 1. Quebra a string de horário em início e fim
+                    var timeParts = programa.horario.split(" - ");
+                    var startTime = timeParts[0];
+                    var endTime = timeParts[1];
+
+                    // 2. Verifica se o dia de hoje está na regra de exibição
+                    if (isDayInSchedule(programa.dias_exibicao, currentDay)) {
+                        // 3. Verifica se a hora atual está dentro do intervalo
+                        if (currentTime >= startTime && currentTime < endTime) {
+                            var tagNameFormatted = programa.tagName.replace(/_/g, ' ').toLowerCase();
+                            var productionName = tagNameFormatted.replace(/\b\w/g, function(l){ return l.toUpperCase(); });
+                            
+                            for (var p = 0; p < prodDrop.items.length; p++) {
+                                if (prodDrop.items[p].text === productionName) {
+                                    prodDrop.selection = p;
+                                    productionFound = true;
+                                    break;
+                                }
                             }
                         }
                     }
                 }
+                if(productionFound) break;
             }
-            if(productionFound) break;
+            if(!productionFound) {
+                prodDrop.selection = 0; // Fallback
+            }
+        } catch(e){
+             prodDrop.selection = 0; // Fallback em caso de erro
+             $.writeln("ERRO CRÍTICO na função de horário: " + e.toString());
         }
-        if(!productionFound) {
-            prodDrop.selection = 0; // Fallback
-        }
-    } catch(e){
-         prodDrop.selection = 0; // Fallback em caso de erro
-         $.writeln("ERRO CRÍTICO na função de horário: " + e.toString());
     }
-}
-    
+        
     // =======================================================================
     // LÓGICA E UI DO SCRIPT
     // =======================================================================
-    
+        
     function copyTextToClipboard(textToCopy) {
         var cmd_win = 'cmd.exe /c cmd.exe /c "echo ' + textToCopy + ' | clip"';
         var cmd_mac = 'echo "' + textToCopy + '" | pbcopy';
@@ -255,16 +398,6 @@ function setDefaultValuesWithTimeLogic() {
         return s;
     }
 
-    function isUnicodeSupported() {
-        var majorVersion = parseFloat(app.version);
-        return majorVersion >= 23;
-    }
-
-    var unicodeIcons = {
-        save: "\uD83D\uDCBE", create: "\u2728", capture: "\uD83D\uDD3D",
-        copy: "\uD83D\uDCCB", organize: "\uD83D\uDCE5"
-    };
-
     var defaultCompSettings = {
         width: 1920, height: 1080, pixelAspect: 1.0,
         duration: 10, frameRate: 29.97
@@ -272,52 +405,52 @@ function setDefaultValuesWithTimeLogic() {
 
     // INÍCIO DO CÓDIGO DE SUBSTITUIÇÃO
 
-var lastSavedPath; // Variável para armazenar o caminho de salvamento.
+    var lastSavedPath; // Variável para armazenar o caminho de salvamento.
 
-try {
-    // Verifica se a variável global 'scriptMainPath' existe, essencial para encontrar outros scripts.
-    if (typeof scriptMainPath === 'undefined' || scriptMainPath === null) {
-        throw new Error("A variável global 'scriptMainPath' não foi definida.");
+    try {
+        // Verifica se a variável global 'scriptMainPath' existe, essencial para encontrar outros scripts.
+        if (typeof scriptMainPath === 'undefined' || scriptMainPath === null) {
+            throw new Error("A variável global 'scriptMainPath' não foi definida.");
+        }
+
+        // Constrói o caminho completo para o arquivo da função.
+        // O uso do construtor 'File' ajuda a normalizar o caminho.
+        var getPathScriptFile = new File(scriptMainPath + "source/libraries/functions/func_getPathDayByDay.js");
+
+        if (getPathScriptFile.exists) {
+            // Se o arquivo existe, lê seu conteúdo e o executa.
+            getPathScriptFile.open('r');
+            var scriptContent = getPathScriptFile.read();
+            getPathScriptFile.close();
+            eval(scriptContent); // Este comando torna a função 'getPathDayByDay' disponível no script.
+
+            // Chama a função recém-carregada para obter o caminho do dia.
+            var dynamicPath = getPathDayByDay();
+
+            // Define o caminho de salvamento padrão com o valor retornado pela função.
+            lastSavedPath = dynamicPath;
+
+            // Opcional: Verifica no console do After Effects se o caminho foi carregado.
+            $.writeln("Caminho dinâmico padrão para salvar definido como: " + lastSavedPath);
+
+        } else {
+            // Lança um erro se o arquivo da função não for encontrado no caminho especificado.
+            throw new Error("Arquivo 'func_getPathDayByDay.js' não encontrado.");
+        }
+    } catch(e) {
+        // Bloco de segurança (Fallback): Se qualquer parte do 'try' falhar,
+        // o script reverte para o comportamento original para evitar erros.
+        $.writeln("AVISO: Falha ao obter o caminho dinâmico. Usando o caminho padrão do projeto. Erro: " + e.toString());
+        lastSavedPath = app.project && app.project.file ? app.project.file.parent.fsName : Folder.desktop.fsName;
     }
 
-    // Constrói o caminho completo para o arquivo da função.
-    // O uso do construtor 'File' ajuda a normalizar o caminho.
-    var getPathScriptFile = new File(scriptMainPath + "source/libraries/functions/func_getPathDayByDay.js");
-
-    if (getPathScriptFile.exists) {
-        // Se o arquivo existe, lê seu conteúdo e o executa.
-        getPathScriptFile.open('r');
-        var scriptContent = getPathScriptFile.read();
-        getPathScriptFile.close();
-        eval(scriptContent); // Este comando torna a função 'getPathDayByDay' disponível no script.
-
-        // Chama a função recém-carregada para obter o caminho do dia.
-        var dynamicPath = getPathDayByDay();
-
-        // Define o caminho de salvamento padrão com o valor retornado pela função.
-        lastSavedPath = dynamicPath;
-
-        // Opcional: Verifica no console do After Effects se o caminho foi carregado.
-        $.writeln("Caminho dinâmico padrão para salvar definido como: " + lastSavedPath);
-
-    } else {
-        // Lança um erro se o arquivo da função não for encontrado no caminho especificado.
-        throw new Error("Arquivo 'func_getPathDayByDay.js' não encontrado.");
-    }
-} catch(e) {
-    // Bloco de segurança (Fallback): Se qualquer parte do 'try' falhar,
-    // o script reverte para o comportamento original para evitar erros.
-    $.writeln("AVISO: Falha ao obter o caminho dinâmico. Usando o caminho padrão do projeto. Erro: " + e.toString());
-    lastSavedPath = app.project && app.project.file ? app.project.file.parent.fsName : Folder.desktop.fsName;
-}
-
-// FIM DO CÓDIGO DE SUBSTITUIÇÃO
-    
+    // FIM DO CÓDIGO DE SUBSTITUIÇÃO
+        
     var lang = {
         "pt": {
-            title: "Renamer E SALVAR", name: "NOME:", prod: "PRODUÇÃO:", art: "TIPO:", alter: "CORREÇÃO:",
+            title: "GNEWS RENAMER", name: "NOME:", prod: "PRODUÇÃO:", art: "TIPO:", alter: "CORREÇÃO:",
             desc: "DESCRIÇÃO:", version: "VERSÃO:", editor: "EDITOR:", capture: "CAPTURAR", save: "SALVAR",
-            copy: "COPIAR", create: "CRIAR", rename: "Renamer",
+            copy: "COPIAR", create: "CRIAR", rename: "RENOMEAR",
             noComp: "Nenhuma composição selecionada!", noEditor: "O campo EDITOR é obrigatório!",
             renamed: "Composições renomeadas!", saved: "Projeto salvo como: ", saveCancelled: "Salvamento cancelado.",
             compNameCopied: "Nome da composição copiado!", compCreated: "Composição criada com sucesso!"
@@ -503,21 +636,70 @@ try {
     var btnWidth = 100;
     var btnHeight = 30;
 
-    var renameBtn = new themeButton(buttonRow1, { width: btnWidth, height: btnHeight, labelTxt: supportsUnicode ? (unicodeIcons.save + "  " + lang[currentLang].rename) : lang[currentLang].rename, tips: ['Renomeia as comps selecionadas.']});
-    var createBtn = new themeButton(buttonRow1, { width: btnWidth, height: btnHeight, labelTxt: supportsUnicode ? (unicodeIcons.create + "  " + lang[currentLang].create) : lang[currentLang].create, tips: ['Cria uma nova comp com este nome.']});
-    var captureBtn = new themeButton(buttonRow1, { width: btnWidth, height: btnHeight, labelTxt: supportsUnicode ? (unicodeIcons.capture + "  " + lang[currentLang].capture) : lang[currentLang].capture, tips: ['Captura dados da comp selecionada.']});
+    // Create buttons with enhanced Unicode support
+    var renameBtn = new themeButton(buttonRow1, { 
+        width: btnWidth, 
+        height: btnHeight, 
+        labelTxt: supportsUnicode ? (getIcon("save") + "  " + lang[currentLang].rename) : lang[currentLang].rename, 
+        tips: ['Renomeia as comps selecionadas.']
+    });
+
+    var createBtn = new themeButton(buttonRow1, { 
+        width: btnWidth, 
+        height: btnHeight, 
+        labelTxt: supportsUnicode ? (getIcon("create") + "  " + lang[currentLang].create) : lang[currentLang].create, 
+        tips: ['Cria uma nova comp com este nome.']
+    });
+
+    var captureBtn = new themeButton(buttonRow1, { 
+        width: btnWidth, 
+        height: btnHeight, 
+        labelTxt: supportsUnicode ? (getIcon("capture") + "  " + lang[currentLang].capture) : lang[currentLang].capture, 
+        tips: ['Captura dados da comp selecionada.']
+    });
     
-    var copyBtn = new themeButton(buttonRow2, { width: btnWidth, height: btnHeight, labelTxt: supportsUnicode ? (unicodeIcons.copy + "  " + lang[currentLang].copy) : lang[currentLang].copy, tips: ['Copia o nome da comp ativa.']});
+    var copyBtn = new themeButton(buttonRow2, { 
+        width: btnWidth, 
+        height: btnHeight, 
+        labelTxt: supportsUnicode ? (getIcon("copy") + "  " + lang[currentLang].copy) : lang[currentLang].copy, 
+        tips: ['Copia o nome da comp ativa.']
+    });
     
-    var organizeBtn = new themeButton(buttonRow2, { width: btnWidth, height: btnHeight, labelTxt: supportsUnicode ? (unicodeIcons.organize + "  ORGANIZAR") : "ORGANIZAR", tips: ['Reduz e organiza o projeto.']});
+    var organizeBtn = new themeButton(buttonRow2, { 
+        width: btnWidth, 
+        height: btnHeight, 
+        labelTxt: supportsUnicode ? (getIcon("organize") + "  ORGANIZAR") : "ORGANIZAR", 
+        tips: ['Reduz e organiza o projeto.']
+    });
     
-    var saveBtn = new themeButton(buttonRow2, { width: btnWidth, height: btnHeight, labelTxt: supportsUnicode ? (unicodeIcons.save + "  " + lang[currentLang].save) : lang[currentLang].save, tips: ['Salva uma cópia do projeto com o nome gerado.'], textColor: bgColor1, buttonColor: normalColor1});
+    var saveBtn = new themeButton(buttonRow2, { 
+        width: btnWidth, 
+        height: btnHeight, 
+        labelTxt: supportsUnicode ? (getIcon("save") + "  " + lang[currentLang].save) : lang[currentLang].save, 
+        tips: ['Salva uma cópia do projeto com o nome gerado.'], 
+        textColor: bgColor1, 
+        buttonColor: normalColor1
+    });
+
+    // Optional: Apply Unicode fonts to buttons if they support it
+    if (supportsUnicode) {
+        try {
+            setUnicodeFont(renameBtn.leftClick);
+            setUnicodeFont(createBtn.leftClick);
+            setUnicodeFont(captureBtn.leftClick);
+            setUnicodeFont(copyBtn.leftClick);
+            setUnicodeFont(organizeBtn.leftClick);
+            setUnicodeFont(saveBtn.leftClick);
+        } catch(e) {
+            $.writeln("Could not apply Unicode fonts to buttons: " + e.toString());
+        }
+    }
 
     function updateStatusText(message) {
         previewText.text = message;
     }
 
-function removeAccents(str) {
+    function removeAccents(str) {
         if (!str) return "";
         var com_acento = "áàãâäéèêëíìîïóòõôöúùûüçñÁÀÃÂÄÉÈÊËÍÌÎÏÓÒÕÔÖÚÙÛÜÇÑ";
         var sem_acento = "aaaaaeeeeiiiiooooouuuucnAAAAAEEEEIIIIOOOOOUUUUCN";
@@ -543,8 +725,7 @@ function removeAccents(str) {
         updatePreview();
     }
 
-
-function updatePreview() {
+    function updatePreview() {
         var prodText = prodDrop.selection ? prodDrop.selection.text.toUpperCase() : "";
         var artText = artDrop.selection ? artDrop.selection.text.toUpperCase() : "";
         var versionText = (versionDrop.selection && versionDrop.selection.text !== "Nenhuma") ? " " + versionDrop.selection.text.toUpperCase() : "";
@@ -607,7 +788,7 @@ function updatePreview() {
         }
     };
     
-createBtn.leftClick.onClick = function() {
+    createBtn.leftClick.onClick = function() {
         app.beginUndoGroup("Criar Nova Composição");
         try {
             updatePreview();
@@ -627,8 +808,8 @@ createBtn.leftClick.onClick = function() {
         app.endUndoGroup();
     };
 
-renameBtn.leftClick.onClick = function() {
-        app.beginUndoGroup("Renamer Composições");
+    renameBtn.leftClick.onClick = function() {
+        app.beginUndoGroup("Renomear Composições");
         try {
             var selectedComps = [];
             var selection = app.project.selection;
@@ -641,7 +822,6 @@ renameBtn.leftClick.onClick = function() {
             
             updatePreview();
             var finalNameTemplate = previewText.text;
-            // ADICIONADO: Remove a acentuação apenas no momento de Renamer
             finalNameTemplate = removeAccents(finalNameTemplate);
 
             for (var i = 0; i < selectedComps.length; i++) {
@@ -798,7 +978,7 @@ renameBtn.leftClick.onClick = function() {
         }
     };
 
-saveBtn.leftClick.onClick = function() {
+    saveBtn.leftClick.onClick = function() {
         // Campo Editor opcional
         // if (!editorInput.text) { updateStatusText(lang[currentLang].noEditor); return; }
         updatePreview();
@@ -859,7 +1039,7 @@ saveBtn.leftClick.onClick = function() {
         headerPanel.spacing = 10;
         headerPanel.margins = 15;
         
-        var titleText = headerPanel.add("statictext", undefined, "AJUDA - Renamer, SALVAR E ORGANIZAR");
+        var titleText = headerPanel.add("statictext", undefined, "AJUDA - RENOMEAR, SALVAR E ORGANIZAR");
         titleText.graphics.font = ScriptUI.newFont("Arial", "Bold", 16);
         titleText.alignment = ["center", "center"];
         if (typeof normalColor1 !== 'undefined' && typeof highlightColor1 !== 'undefined' && typeof setFgColor !== 'undefined') {
@@ -971,6 +1151,12 @@ saveBtn.leftClick.onClick = function() {
         helpWin.show();
     };
 
+    // Debug information (optional - remove in production)
+    $.writeln("=== After Effects Unicode Support ===");
+    var versionInfo = getAfterEffectsVersionInfo();
+    $.writeln("AE Version: " + versionInfo.version + " (" + versionInfo.year + ")");
+    $.writeln("Unicode Support: " + supportsUnicode);
+    $.writeln("Recommended Font: " + versionInfo.recommendedFont);
 
     win.center();
     win.show();
@@ -978,7 +1164,6 @@ saveBtn.leftClick.onClick = function() {
     // Define os valores padrão ao iniciar o script
     setDefaultValuesWithTimeLogic();
     updatePreview();
-
 
     var activeItemOnInit = app.project.activeItem;
     if (activeItemOnInit && activeItemOnInit instanceof CompItem) {
