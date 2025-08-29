@@ -1,5 +1,9 @@
 ﻿/* HISTÓRICO DE VERSÕES 
     ===================== 
+    v4.7 (29/08/2025) - SOLICITADO PELO USUÁRIO
+    - Alterado o local de salvamento e leitura do cache para a pasta 'source/cache/' dentro da estrutura do GNEWS-D9-TOOLS.
+    - Adicionada criação automática da pasta de cache se ela não existir.
+
     v4.6 (17/08/2025)
     - Corrigido o redimensionamento da janela principal ao alternar entre as visões.
     - Janela de Ajuda alterada para "palette" para não bloquear a interface principal.
@@ -43,6 +47,7 @@
     };
     var CONFIG = {
         SETTINGS_FILENAME: "libraryLive_Settings.json",
+        CACHE_FOLDER: "source/cache/", // ALTERADO: Caminho centralizado do cache
         CACHE_FILENAME_ICONS: "libraryLive_Icons_Cache.json",
         CACHE_FILENAME_IMAGES: "libraryLive_Images_Cache.json",
     };
@@ -158,9 +163,52 @@
     };
 
     Logic.stringify = function (obj) { try { return obj.toSource(); } catch (e) { return "{}"; } };
-    Logic.getCacheFilename = function () { return (State.currentView === "Icones") ? CONFIG.CACHE_FILENAME_ICONS : CONFIG.CACHE_FILENAME_IMAGES; };
-    Logic.saveCache = function () { try { var cacheFile = new File(Folder.userData.fsName + "/" + Logic.getCacheFilename()); cacheFile.encoding = "UTF-8"; cacheFile.open("w"); cacheFile.write(Logic.stringify(State.allIcons)); cacheFile.close(); } catch (e) { UI.logMessage("Não foi possível salvar o cache.", true); } };
-    Logic.loadCache = function () { var cacheFile = new File(Folder.userData.fsName + "/" + Logic.getCacheFilename()); if (!cacheFile.exists) return false; try { cacheFile.open("r"); var content = cacheFile.read(); cacheFile.close(); if (content.length < 5) return false; State.allIcons = eval("(" + content + ")"); if (typeof State.allIcons !== 'object' || State.allIcons.length === undefined) { State.allIcons = []; return false; } return true; } catch (e) { UI.logMessage("Cache corrompido ou inválido.", true); return false; } };
+    
+    // --- LÓGICA DE CACHE ATUALIZADA ---
+    Logic.getCacheFile = function () {
+        // Assume que scriptMainPath é uma variável global que termina com '/'
+        var cacheFolderPath = scriptMainPath + CONFIG.CACHE_FOLDER;
+        var cacheFolder = new Folder(cacheFolderPath);
+        if (!cacheFolder.exists) {
+            // Tenta criar a pasta de cache se ela não existir
+            cacheFolder.create();
+        }
+        var filename = (State.currentView === "Icones") ? CONFIG.CACHE_FILENAME_ICONS : CONFIG.CACHE_FILENAME_IMAGES;
+        return new File(cacheFolderPath + filename);
+    };
+
+    Logic.saveCache = function () { 
+        try { 
+            var cacheFile = Logic.getCacheFile();
+            cacheFile.encoding = "UTF-8"; 
+            cacheFile.open("w"); 
+            cacheFile.write(Logic.stringify(State.allIcons)); 
+            cacheFile.close(); 
+        } catch (e) { 
+            UI.logMessage("Não foi possível salvar o cache.", true); 
+        } 
+    };
+
+    Logic.loadCache = function () { 
+        var cacheFile = Logic.getCacheFile();
+        if (!cacheFile.exists) return false; 
+        try { 
+            cacheFile.open("r"); 
+            var content = cacheFile.read(); 
+            cacheFile.close(); 
+            if (content.length < 5) return false; 
+            State.allIcons = eval("(" + content + ")"); 
+            if (typeof State.allIcons !== 'object' || State.allIcons.length === undefined) { 
+                State.allIcons = []; 
+                return false; 
+            } 
+            return true; 
+        } catch (e) { 
+            UI.logMessage("Cache corrompido ou inválido.", true); 
+            return false; 
+        } 
+    };
+    
     Logic.scanFolder = function (folder, category) { var items = []; var extensionRegex = (State.currentView === "Imagens") ? /\.(png|jpg|jpeg)$/i : /\.png$/i; var files = folder.getFiles(); for (var i = 0; i < files.length; i++) { var file = files[i]; if (file instanceof File && extensionRegex.test(file.name)) { var modifiedDate = new Date(0); try { if (file.modified instanceof Date) { modifiedDate = file.modified; } } catch (e) { } items.push({ nome: decodeURI(file.name).replace(/\.[^.]+$/, "").replace(/[-_]/g, ' '), fullPath: file.fsName, categoria: category, modified: modifiedDate, size: file.length }); } } return items; };
     
     // ATUALIZADO: Escaneia todas as pastas válidas da lista.
