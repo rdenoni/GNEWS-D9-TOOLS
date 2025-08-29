@@ -5,9 +5,9 @@
         bgColor: '#0B0D0E',
         normalColor: '#C7C8CA'
     };
-    function hexToRgb(hex) { if(!hex) return [0,0,0]; hex = hex.replace('#', ''); return [parseInt(hex.substring(0,2), 16)/255, parseInt(hex.substring(2,4), 16)/255, parseInt(hex.substring(4,6), 16)/255]; }
-    function setBgColor(element, hexColor) { try { var color = hexToRgb(hexColor); element.graphics.backgroundColor = element.graphics.newBrush(element.graphics.BrushType.SOLID_COLOR, color); } catch (e) {} }
-    function setFgColor(element, hexColor) { try { var color = hexToRgb(hexColor); element.graphics.foregroundColor = element.graphics.newPen(element.graphics.PenType.SOLID_COLOR, color, 1); } catch (e) {} }
+    function hexToRgb(hex) { if(!hex) return [0,0,0,1]; hex = hex.replace('#', ''); return [parseInt(hex.substring(0,2), 16)/255, parseInt(hex.substring(2,4), 16)/255, parseInt(hex.substring(4,6), 16)/255, 1]; }
+    function setBgColor(element, hexColor) { try { var color = hexToRgb(hexColor); element.graphics.backgroundColor = element.graphics.newBrush(element.graphics.BrushType.SOLID_COLOR, color.slice(0,3)); } catch (e) {} }
+    function setFgColor(element, colorArray) { try { element.graphics.foregroundColor = element.graphics.newPen(element.graphics.PenType.SOLID_COLOR, colorArray, 1); } catch (e) {} }
     
     function addClickHandler(element, handler) {
         if (!element) return;
@@ -15,6 +15,127 @@
             element.leftClick.onClick = handler;
         } else {
             element.onClick = handler;
+        }
+    }
+
+    // --- PARTE 1.5: LÓGICA DE STATUS E CACHE (NOVO) ---
+    var COLORS = { success: [0.2, 0.8, 0.2], error: [0.8, 0.2, 0.2], warning: [0.9, 0.7, 0.2], info: [0.2, 0.6, 0.9], neutral: [0.9, 0.9, 0.9] };
+    var isCancelled = false;
+    var ui = {}; // Para armazenar elementos da UI
+
+    function updateStatus(message, type) {
+        if (!ui.statusText) return;
+        var color = COLORS[type] || COLORS.neutral;
+        ui.statusText.text = message;
+        setFgColor(ui.statusText, color);
+    }
+    
+    // Função de escaneamento adaptada de GNEWS_LibraryLive.jsx
+    function scanFolder(folder, category, extensionRegex) {
+        var items = [];
+        var files = folder.getFiles();
+        for (var i = 0; i < files.length; i++) {
+            if (isCancelled) break; // Permite o cancelamento
+            var file = files[i];
+            if (file instanceof File && extensionRegex.test(file.name)) {
+                var modifiedDate = new Date(0);
+                try { if (file.modified instanceof Date) { modifiedDate = file.modified; } } catch (e) {}
+                items.push({
+                    nome: decodeURI(file.name).replace(/\.[^.]+$/, "").replace(/[-_]/g, ' '),
+                    fullPath: file.fsName,
+                    categoria: category,
+                    modified: modifiedDate,
+                    size: file.length
+                });
+            }
+        }
+        return items;
+    }
+    
+    // Processo principal de geração para um tipo de asset (ícone ou imagem)
+    function runCacheProcess(pathList, cacheFile, extensionRegex, assetType) {
+        if (cacheFile.exists) {
+            updateStatus("Cache de " + assetType + " já existe. Pulando.", "info");
+            win.update();
+            return;
+        }
+    
+        var allItems = [];
+        updateStatus("Iniciando escaneamento de " + assetType + "...", "info");
+        win.update(); 
+    
+        for (var i = 0; i < pathList.length; i++) {
+            if (isCancelled) break;
+            var currentPath = pathList[i];
+            if (currentPath && currentPath.replace(/\s/g, '') !== '') {
+                var testFolder = new Folder(currentPath);
+                if (testFolder.exists) {
+                    updateStatus("Escaneando: " + testFolder.name, "info");
+                    win.update();
+    
+                    allItems = allItems.concat(scanFolder(testFolder, "Raiz", extensionRegex));
+                    var subFolders = testFolder.getFiles(function (f) { return f instanceof Folder; });
+                    
+                    for (var j = 0; j < subFolders.length; j++) {
+                        if (isCancelled) break;
+                        updateStatus("Escaneando subpasta: " + subFolders[j].name, "info");
+                        win.update();
+                        allItems = allItems.concat(scanFolder(subFolders[j], subFolders[j].name, extensionRegex));
+                    }
+                }
+            }
+        }
+    
+        if (!isCancelled && allItems.length > 0) {
+            try {
+                updateStatus("Salvando cache de " + assetType + "...", "info");
+                win.update();
+                cacheFile.encoding = "UTF-8";
+                cacheFile.open("w");
+                cacheFile.write(allItems.toSource());
+                cacheFile.close();
+            } catch (e) {
+                updateStatus("Erro ao salvar cache de " + assetType + ": " + e.toString(), "error");
+            }
+        }
+    }
+    
+    function startCacheGeneration() {
+        isCancelled = false;
+        ui.generateCacheBtn.enabled = false;
+        ui.okBtn.enabled = false;
+        ui.cancelBtn.visible = true;
+    
+        try {
+            var paths = collectPathsFromUI();
+            var rootPath = CENTRAL_CONFIG_FILE.parent.parent.parent.fsName + "/";
+            var cacheFolder = new Folder(rootPath + "source/cache/");
+            if (!cacheFolder.exists) cacheFolder.create();
+            
+            var iconCacheFile = new File(cacheFolder.fsName + "/libraryLive_Icons_Cache.json");
+            var imageCacheFile = new File(cacheFolder.fsName + "/libraryLive_Images_Cache.json");
+            
+            // Processa Ícones
+            runCacheProcess(paths.icon_root_paths, iconCacheFile, /\.png$/i, "Ícones");
+            
+            if (isCancelled) {
+                updateStatus("Geração de cache cancelada.", "warning");
+            } else {
+                // Processa Imagens
+                runCacheProcess(paths.image_root_paths, imageCacheFile, /\.(png|jpg|jpeg)$/i, "Imagens");
+            }
+    
+            if (!isCancelled) {
+                updateStatus("Geração de cache concluída.", "success");
+            }
+    
+        } catch(e) {
+            updateStatus("ERRO: " + e.toString(), "error");
+        } finally {
+            isCancelled = false;
+            ui.generateCacheBtn.enabled = true;
+            ui.okBtn.enabled = true;
+            ui.cancelBtn.visible = false;
         }
     }
 
@@ -102,7 +223,7 @@
 
     // --- Grupo de Caminhos dos Ícones ---
     var iconsPanel = win.add("panel", undefined, "Pastas de Ícones (todas as válidas serão usadas)");
-    setFgColor(iconsPanel, THEME.normalColor);
+    setFgColor(iconsPanel, THEME.normalColor.slice(0,3)); // setFgColor espera array [r,g,b]
     iconsPanel.alignChildren = ["fill", "top"];
     var iconListGroup = iconsPanel.add("group");
     iconListGroup.orientation = "column";
@@ -121,7 +242,7 @@
     
     // --- Grupo de Caminhos das Imagens ---
     var imagesPanel = win.add("panel", undefined, "Pastas de Imagens (todas as válidas serão usadas)");
-    setFgColor(imagesPanel, THEME.normalColor);
+    setFgColor(imagesPanel, THEME.normalColor.slice(0,3));
     imagesPanel.alignChildren = ["fill", "top"];
     var imageListGroup = imagesPanel.add("group");
     imageListGroup.orientation = "column";
@@ -137,23 +258,38 @@
     for (var j = 0; j < LibraryLiveConfig.image_root_paths.length; j++) {
         addPathLine(imageListGroup, LibraryLiveConfig.image_root_paths[j]);
     }
+    
+    // =============================================================================
+    // --- ALTERAÇÃO AQUI: Botões de Ação Unificados ---
+    // =============================================================================
+    var actionBtnGroup = win.add("group");
+    actionBtnGroup.orientation = "row";
+    actionBtnGroup.alignment = "fill"; // Alinha o grupo para preencher o espaço
 
-    // --- Grupo de Importar/Exportar ---
-    var ioGroup = win.add("group");
+    // Grupo para Importar/Exportar à esquerda
+    var ioGroup = actionBtnGroup.add("group");
     ioGroup.orientation = "row";
     ioGroup.alignment = "left";
     var importBtn = ioGroup.add("button", undefined, "Importar JSON");
     var exportBtn = ioGroup.add("button", undefined, "Exportar JSON");
-    
-    // --- Botões de Ação ---
-    var btnGroup = win.add("group");
-    btnGroup.alignment = "right";
-    var closeBtn = btnGroup.add("button", undefined, "Fechar");
-    var okBtn = btnGroup.add("button", undefined, "Salvar");
 
-    closeBtn.onClick = function() {
-        win.close();
-    }
+    // Grupo para outros botões à direita
+    var mainActionsGroup = actionBtnGroup.add("group");
+    mainActionsGroup.orientation = "row";
+    mainActionsGroup.alignment = "right";
+    ui.generateCacheBtn = mainActionsGroup.add("button", undefined, "Gerar Cache");
+    ui.cancelBtn = mainActionsGroup.add("button", undefined, "Cancelar");
+    ui.cancelBtn.visible = false;
+    ui.okBtn = mainActionsGroup.add("button", undefined, "Salvar");
+    // =============================================================================
+    
+    // --- Barra de Status ---
+    var statusPanel = win.add("panel", undefined, "Status");
+    statusPanel.alignment = 'fill';
+    statusPanel.margins = 10;
+    ui.statusText = statusPanel.add('statictext', undefined, 'Pronto.', { truncate: 'end' });
+    ui.statusText.alignment = 'fill';
+    updateStatus("Pronto.", "neutral");
 
     // --- Lógica dos botões ---
     function collectPathsFromUI() {
@@ -208,7 +344,7 @@
         }
     };
 
-    okBtn.onClick = function() {
+    ui.okBtn.onClick = function() {
         var paths = collectPathsFromUI();
         centralConfig.tool_settings.LibraryLive.icon_root_paths = paths.icon_root_paths;
         centralConfig.tool_settings.LibraryLive.image_root_paths = paths.image_root_paths;
@@ -216,8 +352,16 @@
         delete centralConfig.tool_settings.LibraryLive.image_root_path;
         
         if (saveCentralConfig(centralConfig)) {
-            alert("Configurações salvas com sucesso em:\n" + CENTRAL_CONFIG_FILE.fsName);
+            updateStatus("Configurações salvas. É necessário reabrir o LibraryLive.", "success");
+            win.close(); // Fecha a janela automaticamente
+        } else {
+            updateStatus("Falha ao salvar o arquivo de configuração.", "error");
         }
+    };
+    
+    ui.generateCacheBtn.onClick = startCacheGeneration;
+    ui.cancelBtn.onClick = function() {
+        isCancelled = true;
     };
     
     win.layout.layout(true);
