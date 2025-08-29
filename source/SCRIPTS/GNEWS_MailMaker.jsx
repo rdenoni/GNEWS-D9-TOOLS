@@ -17,6 +17,93 @@
         windowTitle: "GNEWS MailMaker v37.6 - FINAL",
         settingsFileName: "MailMaker_settings.json"
     };
+
+    // === DETECÇÃO DE VERSÃO DO AFTER EFFECTS ===
+    var aeVersion = parseFloat(app.version);
+    var isLegacyAE = aeVersion < 22.0; // Versões anteriores ao AE 2022
+    
+    // === CONFIGURAÇÃO DE UNICODE BASEADA NA VERSÃO ===
+    var unicodeSymbols = {
+        // Para AE 2022+ (suporte completo ao Unicode)
+        modern: {
+            folder: "🗂",
+            email: "💬",
+            config: "🔧",
+            preview: "👁️",
+            capture: "📘",
+            detect: "🔍",
+            image: "🖼️",
+            copy: "📋",
+            success: "✅",
+            warning: "⚠️",
+            error: "❌",
+            info: "ℹ️",
+            celebration: "🎉",
+            lightning: "⚡",
+            fire: "🔥",
+            sparkles: "✨",
+            target: "🎯",
+            camera: "📸",
+            thumbsUp: "👍",
+            peace: "✌️",
+            smile: "😊",
+            slightSmile: "🙂",
+            muscle: "💪",
+            rocket: "🚀",
+            metalHorn: "🤟"
+        },
+        // Para versões legadas (símbolos básicos ASCII + alguns Unicode simples)
+        legacy: {
+            folder: "[PASTA]",
+            email: "[EMAIL]",
+            config: "[CONFIG]",
+            preview: "[PREVIEW]",
+            capture: "[CAPTURAR]",
+            detect: "[DETECTAR]",
+            image: "[IMAGEM]",
+            copy: "[COPIAR]",
+            success: "[OK]",
+            warning: "[AVISO]",
+            error: "[ERRO]",
+            info: "[INFO]",
+            celebration: "*",
+            lightning: "!",
+            fire: "*",
+            sparkles: "*",
+            target: "*",
+            camera: "[CAM]",
+            thumbsUp: ":)",
+            peace: "v",
+            smile: ":)",
+            slightSmile: ":)",
+            muscle: "++",
+            rocket: ">>",
+            metalHorn: "\\m/"
+        }
+    };
+
+    // Seleciona o conjunto de símbolos baseado na versão
+    var symbols = isLegacyAE ? unicodeSymbols.legacy : unicodeSymbols.modern;
+    
+    // === CONFIGURAÇÃO DE FONTES BASEADA NA VERSÃO ===
+    var fontConfig = {
+        // Para versões modernas (AE 2022+)
+        modern: {
+            defaultFont: "Arial Unicode MS",
+            fallbackFont: "Segoe UI",
+            size: 10,
+            titleSize: 15
+        },
+        // Para versões legadas
+        legacy: {
+            defaultFont: "Arial",
+            fallbackFont: "Times New Roman", 
+            size: 9,
+            titleSize: 14
+        }
+    };
+
+    var currentFontConfig = isLegacyAE ? fontConfig.legacy : fontConfig.modern;
     
     // === DADOS GLOBAIS ===
     var appData = { 
@@ -25,7 +112,7 @@
         emailMessage: "", 
         selectedSaudacao: "Oi", 
         selectedDespedida: "Abs,", 
-        selectedEmoji: "🤟", 
+        selectedEmoji: symbols.metalHorn, 
         selectedTemplate: "Padrão Simples", 
         selectedDestination: null, 
         customDestinationName: "", 
@@ -46,14 +133,14 @@
         "Padrão Simples": "Segue arte.", 
         "Detalhado": "Segue arte finalizada conforme briefing.\n\nQualquer dúvida, me avise!", 
         "Revisão": "Segue arte com as correções solicitadas.\n\nPor favor, confirme se está tudo ok agora.", 
-        "Final": "Arte finalizada! 🎉\n\nArquivos prontos para produção.", 
-        "Urgente": "⚡ ARTE URGENTE ⚡\n\nSegue arte para aprovação imediata.", 
+        "Final": "Arte finalizada! " + symbols.celebration + "\n\nArquivos prontos para produção.", 
+        "Urgente": symbols.lightning + " ARTE URGENTE " + symbols.lightning + "\n\nSegue arte para aprovação imediata.", 
         "Personalizado": "" 
     };
     var templateNames = getObjectKeys(templates);
     var saudacoes = ["Oi", "Olá", "E aí", "Fala", "Salve", "Eae"];
     var despedidas = ["Abs,", "Abraços,", "Valeu,", "Falou,", "Até mais,", "Grande abraço,", "Att,", "Atenciosamente,"];
-    var emojis = ["🤟", "👍", "✌️", "😊", "🙂", "💪", "🚀", "⚡", "🔥", "✨", "🎯", "📸"];
+    var emojis = [symbols.metalHorn, symbols.thumbsUp, symbols.peace, symbols.smile, symbols.slightSmile, symbols.muscle, symbols.rocket, symbols.lightning, symbols.fire, symbols.sparkles, symbols.target, symbols.camera];
 
     // === CORES E TEMAS ===
     var COLORS = { 
@@ -95,12 +182,22 @@
     function updateStatus(message, type) {
         if (!ui.statusText) return;
         var color = COLORS[type] || COLORS.neutral;
-        ui.statusText.text = message;
+        
+        // Adiciona símbolo baseado no tipo e versão do AE
+        var symbolPrefix = "";
+        switch(type) {
+            case "success": symbolPrefix = symbols.success + " "; break;
+            case "error": symbolPrefix = symbols.error + " "; break;
+            case "warning": symbolPrefix = symbols.warning + " "; break;
+            case "info": symbolPrefix = symbols.info + " "; break;
+        }
+        
+        ui.statusText.text = symbolPrefix + message;
         setStatusColor(ui.statusText, color);
         
         if (type === "success" || type === "info" || type === "warning") {
             app.setTimeout(function () {
-                if (ui.statusText.text === message) { 
+                if (ui.statusText.text === symbolPrefix + message) { 
                     ui.statusText.text = "Pronto";
                     setStatusColor(ui.statusText, COLORS.neutral);
                 }
@@ -200,14 +297,14 @@
                 settingsFile.write(JSON.stringify(settingsObj, null, 2));
                 settingsFile.close();
                 logDebug("Preferências salvas com sucesso: " + JSON.stringify(settingsObj));
-                updateStatus("✅ Preferências salvas", "success");
+                updateStatus("Preferências salvas", "success");
             } else {
                 logDebug("Erro: Não foi possível abrir o arquivo de configurações para escrita.");
-                updateStatus("⚠️ Erro ao salvar preferências", "warning");
+                updateStatus("Erro ao salvar preferências", "warning");
             }
         } catch(e) { 
             logDebug("Erro ao salvar configurações: " + e.toString()); 
-            updateStatus("❌ Erro ao salvar preferências", "error");
+            updateStatus("Erro ao salvar preferências", "error");
         }
     }
 
@@ -372,7 +469,8 @@
     function generateTeamData() {
         var teamDataText = "";
         var hasProject = false;
-        var hasRender = false;
+        var hasRenderQueue = false;
+        var hasMediaEncoder = false;
         
         try {
             // Verifica se existe um projeto salvo
@@ -386,9 +484,9 @@
                 teamDataText += projectPath + "\n";
                 teamDataText += projectName + "\n";
                 
-                // Verifica se existe renderização (procura na fila de render)
+                // Verifica Render Queue do After Effects
                 var renderQueue = app.project.renderQueue;
-                var renderPath = "";
+                var renderPaths = [];
                 
                 if (renderQueue.numItems > 0) {
                     for (var i = 1; i <= renderQueue.numItems; i++) {
@@ -397,20 +495,85 @@
                             var outputModule = item.outputModule(1);
                             var outputPath = outputModule.file;
                             if (outputPath) {
-                                renderPath = outputPath.fsName;
-                                hasRender = true;
-                                break;
+                                renderPaths.push(outputPath.fsName);
                             }
                         }
                     }
                 }
                 
-                teamDataText += "RENDER:\n";
-                if (hasRender) {
-                    teamDataText += renderPath;
+                if (renderPaths.length > 0) {
+                    hasRenderQueue = true;
+                    teamDataText += "RENDER QUEUE:\n";
+                    for (var r = 0; r < renderPaths.length; r++) {
+                        teamDataText += renderPaths[r] + "\n";
+                    }
                 } else {
-                    teamDataText += "[Nenhum render encontrado na fila]";
+                    teamDataText += "RENDER QUEUE:\n";
+                    teamDataText += "[Nenhum item na fila de render]\n";
                 }
+                
+                // Verifica Adobe Media Encoder
+                try {
+                    // Tenta acessar o Adobe Media Encoder via BridgeTalk
+                    var bt = new BridgeTalk();
+                    bt.target = "ame";
+                    
+                    // Script para executar no Media Encoder
+                    var ameScript = '(function() {' +
+                        'try {' +
+                            'var encoder = app.encoder;' +
+                            'var queueItems = [];' +
+                            'for (var i = 0; i < encoder.getQueuedItemCount(); i++) {' +
+                                'var item = encoder.getQueuedItem(i);' +
+                                'if (item && item.outputPath) {' +
+                                    'queueItems.push(item.outputPath);' +
+                                '}' +
+                            '}' +
+                            'return queueItems.join("|");' +
+                        '} catch(e) {' +
+                            'return "ERROR:" + e.toString();' +
+                        '}' +
+                    '})()';
+                    
+                    bt.body = ameScript;
+                    bt.onResult = function(result) {
+                        if (result.body && result.body !== "" && !result.body.indexOf("ERROR:") === 0) {
+                            var amePaths = result.body.split("|");
+                            if (amePaths.length > 0 && amePaths[0] !== "") {
+                                hasMediaEncoder = true;
+                                teamDataText += "MEDIA ENCODER:\n";
+                                for (var a = 0; a < amePaths.length; a++) {
+                                    if (amePaths[a].trim() !== "") {
+                                        teamDataText += amePaths[a] + "\n";
+                                    }
+                                }
+                            } else {
+                                teamDataText += "MEDIA ENCODER:\n";
+                                teamDataText += "[Nenhum item na fila do Media Encoder]\n";
+                            }
+                        } else {
+                            teamDataText += "MEDIA ENCODER:\n";
+                            teamDataText += "[Não foi possível verificar o Media Encoder]\n";
+                        }
+                        updateEmailPreview();
+                    };
+                    
+                    bt.onError = function(error) {
+                        teamDataText += "MEDIA ENCODER:\n";
+                        teamDataText += "[Media Encoder não disponível ou fechado]\n";
+                        updateEmailPreview();
+                    };
+                    
+                    // Timeout para não travar a interface
+                    bt.timeout = 3000; // 3 segundos
+                    bt.send();
+                    
+                } catch (ameError) {
+                    // Se falhar ao conectar com o Media Encoder
+                    teamDataText += "MEDIA ENCODER:\n";
+                    teamDataText += "[Media Encoder não disponível]\n";
+                }
+                
             } else {
                 teamDataText += "Dados para equipe:\n";
                 teamDataText += "PROJETO SALVO:\n";
@@ -419,15 +582,17 @@
             
             // Alerta sobre dados faltantes
             if (!hasProject) {
-                updateStatus("⚠️ Projeto não foi salvo - dados da equipe incompletos", "warning");
-            } else if (!hasRender) {
-                updateStatus("⚠️ Nenhum render na fila - dados da equipe incompletos", "warning");
+                updateStatus("Projeto não foi salvo - dados da equipe incompletos", "warning");
+            } else if (!hasRenderQueue && !hasMediaEncoder) {
+                updateStatus("Nenhum render encontrado - verifique Render Queue e Media Encoder", "warning");
+            } else if (!hasRenderQueue) {
+                updateStatus("Render Queue vazio - verificando apenas Media Encoder", "info");
             }
             
         } catch (e) {
             logDebug("Erro ao gerar dados da equipe: " + e.toString());
             teamDataText = "Dados para equipe:\n[Erro ao obter informações do projeto]";
-            updateStatus("❌ Erro ao obter dados da equipe", "error");
+            updateStatus("Erro ao obter dados da equipe", "error");
         }
         
         return teamDataText;
@@ -444,13 +609,20 @@
         var destinoFormatted;
         if (appData.showFullPath) {
             // Exibe nome e caminho completo (comportamento atual)
-            destinoFormatted = "🗂 " + destinationName.toUpperCase() + "\n    " + destinationPath;
+            destinoFormatted = symbols.folder + " " + destinationName.toUpperCase() + "\n    " + destinationPath;
         } else {
             // Exibe apenas o nome do destino
-            destinoFormatted = "🗂 " + destinationName.toUpperCase();
+            destinoFormatted = symbols.folder + " " + destinationName.toUpperCase();
         }
         
-        var compsFormatted = (appData.capturedCompNames.length === 0) ? "❌ NENHUMA COMP CAPTURADA" : (appData.capturedCompNames.length === 1) ? appData.capturedCompNames[0] : "    " + appData.capturedCompNames.join("\n    ");
+        // Remove underscores dos nomes das composições
+        var cleanedCompNames = [];
+        for (var i = 0; i < appData.capturedCompNames.length; i++) {
+            var cleanName = appData.capturedCompNames[i].replace(/_/g, " ");
+            cleanedCompNames.push(cleanName);
+        }
+        
+        var compsFormatted = (cleanedCompNames.length === 0) ? symbols.error + " NENHUMA COMP CAPTURADA" : (cleanedCompNames.length === 1) ? cleanedCompNames[0] : "    " + cleanedCompNames.join("\n    ");
         
         // Monta o email básico
         var emailCompleto = saudacaoCompleta + "\n\n" + finalMessage + "\n\n" + "Artes prontas no:\n" + destinoFormatted + "\n" + compsFormatted + "\n\n";
@@ -469,7 +641,7 @@
 
     function captureCompositions() {
         if (!app.project) { 
-            updateStatus("❌ Nenhum projeto aberto", "error"); 
+            updateStatus("Nenhum projeto aberto", "error"); 
             return false; 
         }
         
@@ -492,7 +664,7 @@
         }
         
         if (compositions.length === 0) { 
-            updateStatus("❌ Nenhuma composição selecionada", "error"); 
+            updateStatus("Nenhuma composição selecionada", "error"); 
             return false; 
         }
         
@@ -512,11 +684,11 @@
     
     function runAutoDetectionAndUpdateUI() {
         if (appData.capturedCompNames.length === 0) { 
-            updateStatus("⚠️ Capture uma comp primeiro.", "warning"); 
+            updateStatus("Capture uma comp primeiro.", "warning"); 
             return; 
         }
         if (!$.global.MailMakerAutoPath) { 
-            updateStatus("❌ Erro: Lógica de detecção não foi carregada.", "error"); 
+            updateStatus("Erro: Lógica de detecção não foi carregada.", "error"); 
             return; 
         }
         
@@ -526,35 +698,62 @@
 
         if (detectionResult && detectionResult.nome) {
             setDestination(detectionResult.nome, detectionResult.caminho);
-            updateStatus("✅ Destino detectado: " + detectionResult.nome, "success");
+            updateStatus("Destino detectado: " + detectionResult.nome, "success");
         } else {
             setDestination("", "");
-            updateStatus("⚠️ Nenhum destino automático encontrado", "warning");
+            updateStatus("Nenhum destino automático encontrado", "warning");
         }
     }
 
     function renderPreviewFrame() {
         if (!app.project) { 
-            updateStatus("❌ Nenhum projeto aberto.", "error"); 
-            return; 
-        }
-        var comp = app.project.activeItem;
-        if (!(comp && comp instanceof CompItem)) { 
-            updateStatus("⚠️ Nenhuma composição ativa. Selecione uma.", "warning"); 
+            updateStatus("Nenhum projeto aberto.", "error"); 
             return; 
         }
 
-        app.beginUndoGroup("Render Preview Frame");
+        // Verifica se há composições capturadas para preview múltiplo
+        var compsToPreview = [];
+        if (appData.capturedCompNames.length > 0) {
+            // Usa as composições capturadas
+            for (var i = 0; i < appData.capturedCompNames.length; i++) {
+                var compName = appData.capturedCompNames[i];
+                for (var j = 1; j <= app.project.numItems; j++) {
+                    var item = app.project.item(j);
+                    if (item instanceof CompItem && item.name === compName) {
+                        compsToPreview.push(item);
+                        break;
+                    }
+                }
+            }
+        } else {
+            // Se não há composições capturadas, usa apenas a ativa
+            var activeComp = app.project.activeItem;
+            if (!(activeComp && activeComp instanceof CompItem)) { 
+                updateStatus("Nenhuma composição ativa. Capture composições ou selecione uma.", "warning"); 
+                return; 
+            }
+            compsToPreview.push(activeComp);
+        }
+
+        if (compsToPreview.length === 0) {
+            updateStatus("Nenhuma composição encontrada para preview.", "warning");
+            return;
+        }
+
+        app.beginUndoGroup("Render Preview Frames");
+        var successCount = 0;
+        var errorCount = 0;
+        
         try {
             if (!isSecurityPrefEnabled()) {
                 alert("A função de preview precisa de permissão para salvar arquivos.\n\nPor favor, habilite a opção 'Allow Scripts to Write Files and Access Network' nas preferências de 'Scripting & Expressions'.");
-                updateStatus("❌ Preview desabilitado por segurança.", "error");
+                updateStatus("Preview desabilitado por segurança.", "error");
                 app.endUndoGroup();
                 return;
             }
 
             if (typeof getPathDayByDay !== 'function') {
-                updateStatus("❌ Erro: 'func_getPathDayByDay.js' não foi carregado.", "error");
+                updateStatus("Erro: 'func_getPathDayByDay.js' não foi carregado.", "error");
                 app.endUndoGroup();
                 return;
             }
@@ -565,10 +764,10 @@
             var primaryFolder = new Folder(primaryPath);
 
             if (!primaryFolder.exists) {
-                updateStatus("⚠️ Caminho do dia não encontrado. Usando pasta do projeto.", "warning");
+                updateStatus("Caminho do dia não encontrado. Usando pasta do projeto.", "warning");
                 if (!app.project.file) {
                     alert("O projeto atual ainda não foi salvo. Por favor, salve o projeto para que o preview possa ser gerado na mesma pasta.");
-                    updateStatus("❌ Salve o projeto para criar um preview.", "error");
+                    updateStatus("Salve o projeto para criar um preview.", "error");
                     app.endUndoGroup();
                     return;
                 }
@@ -580,26 +779,55 @@
             var previewFolder = new Folder(basePath + "/_PREVIEWS");
             if (!previewFolder.exists) {
                 if (!previewFolder.create()) {
-                    updateStatus("❌ Não foi possível criar a pasta _PREVIEWS.", "error");
+                    updateStatus("Não foi possível criar a pasta _PREVIEWS.", "error");
                     app.endUndoGroup();
                     return;
                 }
             }
             
-            var safeName = comp.name.replace(/[^\w\.\-]/g, '_');
-            var outputFile = new File(previewFolder.fsName + "/" + safeName + "_PREVIEW.png");
-
-            updateStatus("Renderizando preview PNG...", "info");
-            comp.saveFrameToPng(comp.time, outputFile);
-            updateStatus("✅ Preview salvo: " + decodeURI(outputFile.name), "success");
+            // Processa cada composição
+            for (var c = 0; c < compsToPreview.length; c++) {
+                var comp = compsToPreview[c];
+                
+                try {
+                    updateStatus("Renderizando preview " + (c + 1) + "/" + compsToPreview.length + ": " + comp.name, "info");
+                    
+                    // Remove underscores e caracteres especiais, substitui por espaços
+                    var safeName = comp.name
+                        .replace(/_/g, ' ')                    // Underscores viram espaços
+                        .replace(/[^\w\s\.\-]/g, ' ')          // Caracteres especiais viram espaços
+                        .replace(/\s+/g, ' ')                  // Múltiplos espaços viram um só
+                        .trim();                               // Remove espaços das bordas
+                    
+                    var outputFile = new File(previewFolder.fsName + "/" + safeName + " PREVIEW.png");
+                    
+                    // Salva o frame atual da composição
+                    comp.saveFrameToPng(comp.time, outputFile);
+                    successCount++;
+                    
+                } catch (compError) {
+                    logDebug("Erro ao renderizar preview da composição '" + comp.name + "': " + compError.toString());
+                    errorCount++;
+                }
+            }
             
-            if (previewFolder.exists) {
+            // Status final baseado nos resultados
+            if (successCount > 0 && errorCount === 0) {
+                updateStatus("Todos os " + successCount + " previews salvos com sucesso!", "success");
+            } else if (successCount > 0 && errorCount > 0) {
+                updateStatus(successCount + " previews salvos, " + errorCount + " falharam", "warning");
+            } else {
+                updateStatus("Falha ao salvar todos os previews", "error");
+            }
+            
+            // Abre a pasta se houver pelo menos um sucesso
+            if (successCount > 0 && previewFolder.exists) {
                 previewFolder.execute();
             }
 
         } catch (e) {
-            updateStatus("❌ Erro ao renderizar preview: " + e.message, "error");
-            alert("Ocorreu um erro inesperado ao renderizar o preview:\n" + e.toString());
+            updateStatus("Erro ao renderizar previews: " + e.message, "error");
+            alert("Ocorreu um erro inesperado ao renderizar os previews:\n" + e.toString());
         } finally {
             app.endUndoGroup();
         }
@@ -640,7 +868,11 @@
         leftHeaderGroup.margins = [0, 0, 0, 10];
         
         var titleText = leftHeaderGroup.add("statictext", undefined, "GNEWS MailMaker", {truncate: 'end'});
-        titleText.graphics.font = ScriptUI.newFont("Arial", "Bold", 15);
+        try {
+            titleText.graphics.font = ScriptUI.newFont(currentFontConfig.defaultFont, "Bold", currentFontConfig.titleSize);
+        } catch (e) {
+            titleText.graphics.font = ScriptUI.newFont(currentFontConfig.fallbackFont, "Bold", currentFontConfig.titleSize);
+        }
         setStatusColor(titleText, theme.highlightColor);
         
         var rightHeaderGroup = rightColumn.add("group");
@@ -664,7 +896,7 @@
             helpBtn.onClick = showMailMakerHelp;
         }
 
-        var configPanel = leftColumn.add("panel", undefined, "🔧 PERSONALIZAÇÃO DE EMAIL");
+        var configPanel = leftColumn.add("panel", undefined, symbols.config + " PERSONALIZAÇÃO DE EMAIL");
         configPanel.alignChildren = "fill"; 
         configPanel.margins = 15; 
         configPanel.spacing = 15; 
@@ -689,7 +921,7 @@
         ui.emojiDropdown = emojiSubGroup.add("dropdownlist", undefined, emojis);
         ui.emojiDropdown.preferredSize.width = 60;
         
-        var messagePanel = leftColumn.add("panel", undefined, "💬 DESCRIÇÃO DO EMAIL");
+        var messagePanel = leftColumn.add("panel", undefined, symbols.email + " DESCRIÇÃO DO EMAIL");
         messagePanel.alignChildren = "fill"; 
         messagePanel.margins = 15; 
         messagePanel.spacing = 8;
@@ -712,7 +944,7 @@
         ui.messageInput.alignment = "fill"; 
         ui.messageInput.preferredSize.height = 60;
         
-        var destPanel = leftColumn.add("panel", undefined, "📂 CONFIGURAÇÃO DE DESTINO");
+        var destPanel = leftColumn.add("panel", undefined, symbols.folder + " CONFIGURAÇÃO DE DESTINO");
         destPanel.alignChildren = "left"; 
         destPanel.margins = 15; 
         destPanel.spacing = 8;
@@ -746,7 +978,7 @@
         ui.manualCaminhoInput.alignment = "fill"; 
         ui.manualCaminhoInput.preferredSize.width = 298;
         
-        var previewPanel = rightColumn.add("panel", undefined, "👁️ Pré-Visualização do Email");
+        var previewPanel = rightColumn.add("panel", undefined, symbols.preview + " Pré-Visualização do Email");
         previewPanel.alignChildren = "fill"; 
         previewPanel.margins = 15; 
         previewPanel.alignment = ["fill", "fill"];
@@ -754,17 +986,21 @@
         ui.previewText = previewPanel.add("edittext", undefined, "", { multiline: true, readonly: true, scrollable: true });
         ui.previewText.alignment = "fill"; 
         ui.previewText.preferredSize.height = 263;
-        ui.previewText.graphics.font = ScriptUI.newFont("Courier New", 10);
+        try {
+            ui.previewText.graphics.font = ScriptUI.newFont(currentFontConfig.defaultFont, currentFontConfig.size);
+        } catch (e) {
+            ui.previewText.graphics.font = ScriptUI.newFont(currentFontConfig.fallbackFont, currentFontConfig.size);
+        }
         
         var buttonGroup = previewPanel.add("group");
         buttonGroup.orientation = "row"; 
         buttonGroup.alignChildren = ["fill", "center"]; 
         buttonGroup.spacing = 5;
         
-        ui.captureBtn = buttonGroup.add("button", undefined, "📘 Capturar");
-        ui.detectBtn = buttonGroup.add("button", undefined, "🔍 Detectar");
-        ui.previewBtn = buttonGroup.add("button", undefined, "🖼️ Preview");
-        ui.copyBtn = buttonGroup.add("button", undefined, "📋 Copiar");
+        ui.captureBtn = buttonGroup.add("button", undefined, symbols.capture + " Capturar");
+        ui.detectBtn = buttonGroup.add("button", undefined, symbols.detect + " Detectar");
+        ui.previewBtn = buttonGroup.add("button", undefined, symbols.image + " Preview");
+        ui.copyBtn = buttonGroup.add("button", undefined, symbols.copy + " Copiar");
         ui.captureBtn.preferredSize.height = ui.detectBtn.preferredSize.height = ui.previewBtn.preferredSize.height = ui.copyBtn.preferredSize.height = 35;
         
         var statusPanel = w.add("panel", undefined, "Status");
@@ -895,7 +1131,7 @@
                                   "2. Marque a opção 'Allow Scripts to Write Files and Access Network'\n" + 
                                   "3. Clique OK e tente novamente.";
                     alert(errorMsg, "Permissão Necessária");
-                    updateStatus("❌ Cópia desabilitada por segurança.", "error");
+                    updateStatus("Cópia desabilitada por segurança.", "error");
                     return;
                 }
                 
@@ -906,7 +1142,7 @@
 
                 var textToCopy = ui.previewText.text;
                 if (!textToCopy || textToCopy.trim() === "") {
-                    updateStatus("⚠️ Nada para copiar.", "warning");
+                    updateStatus("Nada para copiar.", "warning");
                     return;
                 }
                 
@@ -914,12 +1150,12 @@
                 updateStatus("Copiando texto...", "info");
                 setClipboard(textToCopy);
                 
-                updateStatus("✅ Email copiado para a área de transferência!", "success");
+                updateStatus("Email copiado para a área de transferência!", "success");
 
             } catch (e) {
                 var detailedError = "Falha ao copiar o texto:\n" + e.toString();
                 alert(detailedError, "Erro de Cópia");
-                updateStatus("❌ Falha ao copiar: " + e.message, "error");
+                updateStatus("Falha ao copiar: " + e.message, "error");
                 logDebug("Erro detalhado na cópia: " + e.toString());
             }
         };
