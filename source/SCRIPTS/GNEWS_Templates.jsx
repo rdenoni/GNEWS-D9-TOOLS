@@ -13,11 +13,8 @@ function d9TemplateDialog() {
 	var projectFile, previewFile, configFile, scriptFile, templateData;
 	var newCompsArray = [], newOutputsArray = [];
 	
-    var userDataFolder = Folder.userData;
-    var cacheSubFolder = new Folder(userDataFolder.fullName + "/GND9TOOLS_Cache");
-    if (!cacheSubFolder.exists) cacheSubFolder.create();
-    var validPathsCacheFile = new File(cacheSubFolder.fullName + '/valid_paths_cache.json');
-    var templatesCacheFile;
+    var cacheFolder = new Folder(Folder.userData.fullName + "/GND9TOOLS_Cache");
+    if (!cacheFolder.exists) cacheFolder.create();
     
 	var userConfigFile = null;
 	try {
@@ -109,15 +106,14 @@ function d9TemplateDialog() {
 		if (D9T_prodArray.length === 1 && D9T_prodArray[0].pecasGraficas) {
 			var configData = D9T_prodArray[0];
 			validProductions = [
-				{ name: 'PEÇAS GRÁFICAS', icon: 'D9T_PECAS_ICON', paths: configData.pecasGraficas || [], mainPath: getValidPath(configData.pecasGraficas) },
-				{ name: 'BASE TEMÁTICA', icon: 'D9T_BASE_ICON', paths: configData.baseTematica || [], mainPath: getValidPath(configData.baseTematica) },
-				{ name: 'ILUSTRAÇÕES', icon: 'D9T_ILUS_ICON', paths: configData.ilustracoes || [], mainPath: getValidPath(configData.ilustracoes) }
+				{ name: 'PEÇAS GRÁFICAS', icon: 'D9T_PECAS_ICON', paths: configData.pecasGraficas || [] },
+				{ name: 'BASE TEMÁTICA', icon: 'D9T_BASE_ICON', paths: configData.baseTematica || [] },
+				{ name: 'ILUSTRAÇÕES', icon: 'D9T_ILUS_ICON', paths: configData.ilustracoes || [] }
 			];
 			prodDropItems = ['PEÇAS GRÁFICAS', 'BASE TEMÁTICA', 'ILUSTRAÇÕES'];
-		} else { prodDropItems = (typeof getProdNames === 'function') ? getProdNames(D9T_prodArray) : []; validProductions = D9T_prodArray; }
+		}
 	}
 	if (typeof populateMainIcons === 'function') { populateMainIcons(prodIconGrp, validProductions); }
-	function getValidPath(pathArray) { if (!pathArray || !Array.isArray(pathArray)) return ''; for (var i = 0; i < pathArray.length; i++) { var path = pathArray[i]; if (path && path.trim() !== '') { var testFolder = new Folder(path); if (testFolder.exists) return path; } } return pathArray[0] || ''; }
 	var prodDrop = prodGrp.add('dropdownlist', undefined, prodDropItems);
 	prodDrop.selection = 0;
 	prodDrop.alignment = ['fill', 'center'];
@@ -143,133 +139,40 @@ function d9TemplateDialog() {
 	var lBtnGrp1 = mainBtnGrp1.add('group');
 	lBtnGrp1.alignment = 'left';
 	lBtnGrp1.spacing = 16;
-	var refreshBtn; if (typeof themeIconButton === 'function' && typeof D9T_ATUALIZAR_ICON !== 'undefined') { refreshBtn = new themeIconButton(lBtnGrp1, { icon: D9T_ATUALIZAR_ICON, tips: [lClick + 'Forçar atualização da rede (pode travar)'] }); } else { refreshBtn = lBtnGrp1.add('button', undefined, 'Atualizar'); refreshBtn.helpTip = 'Forçar atualização da rede (pode travar)'; }
+	var refreshBtn; if (typeof themeIconButton === 'function' && typeof D9T_ATUALIZAR_ICON !== 'undefined') { refreshBtn = new themeIconButton(lBtnGrp1, { icon: D9T_ATUALIZAR_ICON, tips: [lClick + 'Recarregar templates do cache'] }); } else { refreshBtn = lBtnGrp1.add('button', undefined, 'Atualizar'); refreshBtn.helpTip = 'Recarregar templates do cache'; }
 	var openFldBtn; if (typeof themeIconButton === 'function' && typeof D9T_PASTA_ICON !== 'undefined') { openFldBtn = new themeIconButton(lBtnGrp1, { icon: D9T_PASTA_ICON, tips: [lClick + 'abrir pasta de templates'] }); } else { openFldBtn = lBtnGrp1.add('button', undefined, 'Abrir'); openFldBtn.helpTip = 'abrir pasta de templates'; }
 
-    function normalizeString(str) {
-        var from = "àáâãäåçèéêëìíîïñòóôõöøùúûüýÿ";
-        var to   = "aaaaaaceeeeiiiinoooooouuuuyy";
-        str = str.toLowerCase();
-        for (var i = 0, l = from.length; i < l; i++) {
-            str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i));
-        }
-        return str.replace(/[^a-z0-9]/gi, '_');
-    }
-
-	function loadTemplates() {
+	function loadTemplatesFromCache() {
         templateTree.removeAll();
         var selectedProduction = validProductions[prodDrop.selection.index];
-        if (!selectedProduction || !selectedProduction.paths || selectedProduction.paths.length === 0) {
-            templateTree.add('item', 'Nenhum caminho configurado para esta categoria.');
-            return;
-        }
+        var cacheFileName = selectedProduction.name.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '_cache.json';
+        var templatesCacheFile = new File(cacheFolder.fullName + '/' + cacheFileName);
 
-        var configuredPaths = selectedProduction.paths;
-        var safePaths = getSafeCache();
-        var pathToLoad = null;
-
-        for (var i = 0; i < configuredPaths.length; i++) {
-            if (safePaths.indexOf(configuredPaths[i]) > -1) {
-                pathToLoad = configuredPaths[i];
-                break;
-            }
-        }
-
-        if (pathToLoad) {
-            var cacheFileName = normalizeString(selectedProduction.name) + '_cache.json';
-            templatesCacheFile = new File(localCacheSubFolder.fullName + '/' + cacheFileName);
-            if (templatesCacheFile.exists) {
-                try {
-                    templatesCacheFile.open('r');
-                    var treeData = JSON.parse(templatesCacheFile.read());
-                    templatesCacheFile.close();
+        if (templatesCacheFile.exists) {
+            try {
+                templatesCacheFile.open('r');
+                var treeData = JSON.parse(templatesCacheFile.read());
+                templatesCacheFile.close();
+                
+                if (treeData.length > 0) {
                     populateTreeFromData(templateTree, treeData);
                     expandAllNodes(templateTree);
-                    return;
-                } catch (e) {
-                    // Cache corrompido, vai forçar a varredura abaixo
+                } else {
+                    templateTree.add('item', 'Cache vazio. Nenhum arquivo .aep/.aet foi encontrado.');
+                    templateTree.add('item', "Use 'Configurações' > 'Testar' para gerar o cache.");
                 }
+            } catch (e) {
+                templateTree.add('item', 'Erro ao ler o cache. Tente recriá-lo.');
+                templateTree.add('item', "Vá em 'Configurações' > 'Testar'.");
             }
-            forceLoadAndVerify(false, pathToLoad);
         } else {
-            templateTree.add('item', 'Nenhum caminho seguro encontrado.');
-            templateTree.add('item', "Use 'Configurações' > 'Testar', ou clique em 'Atualizar' (🔄).");
+            templateTree.add('item', 'Cache de templates não encontrado.');
+            templateTree.add('item', "Vá em 'Configurações' e use o botão");
+            templateTree.add('item', "'Testar e Gerar Cache' para criá-lo.");
         }
     }
     
-    // --- FUNÇÃO CORRIGIDA COM APP.SCHEDULETASK ---
-	function forceLoadAndVerify(showAlert, path) {
-        var selectedProduction = validProductions[prodDrop.selection.index];
-        var pathsToVerify = path ? [path] : selectedProduction.paths;
-
-        if (!pathsToVerify || pathsToVerify.length === 0) {
-            alert("Nenhum caminho configurado para esta categoria.");
-            return;
-        }
-		
-        if (showAlert && !confirm("O script irá testar os caminhos configurados em ordem.\nIsto pode travar a tarefa de busca se um caminho de rede estiver indisponível.\n\nDeseja continuar?")) {
-            return;
-        }
-        
-        templateTree.removeAll();
-        templateTree.add('item', 'Analisando caminhos... (pode levar um tempo)');
-        D9T_TEMPLATES_w.update();
-
-        app.scheduleTask(function() { // ISOLA A OPERAÇÃO DE REDE
-            try {
-                var result = getFolderStructureFromPaths(pathsToVerify, fileFilter);
-                
-                templateTree.removeAll();
-
-                if (result.status === 'success') {
-                    var validPath = result.validPath;
-                    addPathToSafeCache(validPath);
-                    
-                    var treeData = result.data;
-                    var cacheFileName = normalizeString(selectedProduction.name) + '_cache.json';
-                    templatesCacheFile = new File(localCacheSubFolder.fullName + '/' + cacheFileName);
-                    templatesCacheFile.open('w');
-                    templatesCacheFile.write(JSON.stringify(treeData));
-                    templatesCacheFile.close();
-
-                    if (treeData.length > 0) {
-                        populateTreeFromData(templateTree, treeData);
-                        expandAllNodes(templateTree);
-                    } else {
-                        templateTree.add('item', 'Nenhum arquivo .aep/.aet encontrado em:');
-                        templateTree.add('item', "'" + validPath + "'");
-                    }
-                } else {
-                    for (var i = 0; i < result.log.length; i++) {
-                        var logItem = templateTree.add('item', result.log[i]);
-                        logItem.enabled = false;
-                    }
-                }
-            } catch (e) {
-                templateTree.removeAll();
-                templateTree.add('item', 'ERRO CRÍTICO DURANTE A BUSCA:');
-                templateTree.add('item', e.message);
-            }
-        }, 20, false);
-    }
-
-    function expandAllNodes(tree) {
-        if (!tree || !tree.items) return;
-        for (var i = 0; i < tree.items.length; i++) {
-            var item = tree.items[i];
-            if (item.type === 'node') {
-                item.expanded = true;
-                if (item.items && item.items.length > 0) {
-                    expandAllNodes(item);
-                }
-            }
-        }
-    }
-
-	function getSafeCache() { var safePaths = []; if (validPathsCacheFile.exists) { try { validPathsCacheFile.open('r'); safePaths = JSON.parse(validPathsCacheFile.read()); validPathsCacheFile.close(); } catch (e) { safePaths = []; } } return safePaths; }
-	function saveSafeCache(pathsArray) { try { validPathsCacheFile.open('w'); validPathsCacheFile.write(JSON.stringify(pathsArray, null, 2)); validPathsCacheFile.close(); } catch(e) {} }
-	function addPathToSafeCache(pathStr) { var safePaths = getSafeCache(); if (safePaths.indexOf(pathStr) === -1) { safePaths.push(pathStr); saveSafeCache(safePaths); } }
-	function removePathFromSafeCache(pathStr) { var safePaths = getSafeCache(); var index = safePaths.indexOf(pathStr); if (index > -1) { safePaths.splice(index, 1); saveSafeCache(safePaths); } }
+    function expandAllNodes(tree) { if (!tree || !tree.items) return; for (var i = 0; i < tree.items.length; i++) { var item = tree.items[i]; if (item.type === 'node') { item.expanded = true; if (item.items && item.items.length > 0) { expandAllNodes(item); } } } }
 	
 	var previewHeaderGrp = vGrp2.add('group');
 	previewHeaderGrp.alignment = 'fill';
@@ -325,7 +228,7 @@ function d9TemplateDialog() {
 		var i = this.selection.index;
 		if (typeof changeIcon === 'function') { changeIcon(i, prodIconGrp); }
 		try { if (userConfigFile) { var userConfig = {}; if (userConfigFile.exists) { userConfigFile.open('r'); var configContent = userConfigFile.read(); userConfigFile.close(); if (configContent) { try { userConfig = JSON.parse(configContent); } catch (jsonError) { userConfig = {}; } } } if (!userConfig.gnews_templates) { userConfig.gnews_templates = {}; } userConfig.gnews_templates.lastProductionIndex = i; userConfigFile.open('w'); userConfigFile.write(JSON.stringify(userConfig, null, '\t')); userConfigFile.close(); } } catch (e) {}
-		loadTemplates();
+		loadTemplatesFromCache();
 	};
 	D9T_TEMPLATES_w.onShow = function () {
 		extendedWidth = D9T_TEMPLATES_w.size.width; 
@@ -342,7 +245,7 @@ function d9TemplateDialog() {
 	searchBox.onBlur = function () { if (this.text.trim() === '') { this.text = placeholderText; setFgColor(this, monoColor0); } };
 	searchBox.onEnterKey = function () { templateLab.active = true; templateTree.active = true; };
 	searchBox.onChanging = function () {
-        loadTemplates();
+        loadTemplatesFromCache();
         D9T_TEMPLATES_w.update();
         if (this.text.trim() === '' || this.text === placeholderText) {
             return;
@@ -393,7 +296,7 @@ function d9TemplateDialog() {
 	if (cancelBtn && typeof cancelBtn.leftClick !== 'undefined') { cancelBtn.leftClick.onClick = function () { D9T_TEMPLATES_w.close(); }; } else if (cancelBtn) { cancelBtn.onClick = function () { D9T_TEMPLATES_w.close(); }; }
 	D9T_TEMPLATES_w.onClose = function () { if (!scriptFile || !scriptFile.exists) return; try { scriptFile.open('r'); eval(scriptFile.read()); scriptFile.close(); } catch (err) { alert((typeof lol !== 'undefined' ? lol : '') + '#D9T_021 - ' + err.message); } };
 	templateTree.onDoubleClick = function () { if (this.selection == null || this.selection.file == null) return; if (!projectFile || !projectFile.exists) return; try { var IO = new ImportOptions(projectFile); app.project.importFile(IO); D9T_TEMPLATES_w.close(); } catch (err) { alert((typeof lol !== 'undefined' ? lol : '') + '#D9T_022 - ' + err.message); } };
-	if (refreshBtn && typeof refreshBtn.leftClick !== 'undefined') { refreshBtn.leftClick.onClick = function () { forceLoadAndVerify(true); }; } else if (refreshBtn) { refreshBtn.onClick = function () { forceLoadAndVerify(true); }; }
+	if (refreshBtn && typeof refreshBtn.leftClick !== 'undefined') { refreshBtn.leftClick.onClick = function () { loadTemplatesFromCache(); }; } else if (refreshBtn) { refreshBtn.onClick = function () { loadTemplatesFromCache(); }; }
 	if (openFldBtn && typeof openFldBtn.leftClick !== 'undefined') { openFldBtn.leftClick.onClick = function () { openTemplatesFolder(); }; } else if (openFldBtn) { openFldBtn.onClick = function () { openTemplatesFolder(); }; }
 	function openTemplatesFolder() { var folderToShow = new Folder(validProductions[prodDrop.selection.index].paths[0]); if (!folderToShow.exists) { alert("A pasta configurada ('" + folderToShow.fsName + "') não foi encontrada ou está inacessível."); return; } if (system.osName.indexOf('Windows') !== -1) { system.callSystem('explorer "' + folderToShow.fsName + '"'); } else { system.callSystem('open "' + folderToShow.fsName + '"'); } }
 	if (infoBtn && typeof infoBtn.leftClick !== 'undefined') { infoBtn.leftClick.onClick = function () { showHelpDialog(); }; } else if (infoBtn) { infoBtn.onClick = function () { showHelpDialog(); }; }
