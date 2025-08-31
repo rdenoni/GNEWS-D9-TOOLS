@@ -6,5 +6,15 @@
   "image_root_paths": [
     "D:\\PROJETOS\\SCRIPTS AFTER\\files\\IMAGENS",
     "T:\\UTILIDADES\\IMAGENS E VIDEOS AUTORIZADOS"
-  ]
+  ],
+  "tool_settings": {
+    "LibraryLive": {
+      "icon_root_paths": [
+        "D:\\PROJETOS\\SCRIPTS AFTER\\files\\ICONS"
+      ],
+      "image_root_paths": [
+        "D:\\PROJETOS\\SCRIPTS AFTER\\files\\IMAGENS"
+      ]
+    }
+  }
 }
