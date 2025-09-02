@@ -122,14 +122,14 @@ function D9T_LAYOUT(uiObj) {
       var btn = uiObj.imageButtonArray[b];
       btn.btnGroup.orientation = btnOrientation;
       btn.btnGroup.spacing = isRow ? 0 : 8;
-      btn.normalImg.size = btn.hoverImg.size = [32, 32];
+      btn.normalImg.size = btn.hoverImg.size = [42, 42];
       btn.label.justify = isRow ? "center" : "left";
       btn.label.size = [uiObj.window.size.width - 60, 18];
       if (uiObj.window.size.width < 88 || uiObj.window.size.height < 72) {
         btn.btnGroup.spacing = 0;
         btn.label.size = [0, 0];
       }
-      if (uiObj.window.size.height < 44) {
+      if (uiObj.window.size.height < 54) {
         btn.btnGroup.spacing = 0;
         btn.hoverImg.size = btn.normalImg.size = [0, 0];
         btn.label.size = btn.label.preferredSize;
@@ -145,7 +145,7 @@ function D9T_LAYOUT(uiObj) {
     uiObj.iconBtnMainGrp.spacing = 4;
     uiObj.iconBtnGrp0.spacing = 4;
     uiObj.iconBtnGrp1.spacing = 4;
-    uiObj.infoGrp.alignment = isRow ? "right" : "bottom";
+    uiObj.infoGrp.alignment = isRow ? "left" : "bottom";
     uiObj.infoGrp.spacing = 0;
     uiObj.mainLogo.size.width = uiObj.window.size.width - 10;
   } catch (err) {
@@ -221,6 +221,14 @@ function D9T_UI_EVENTS(uiObj) {
     d9TemplateDialog();
   };
 
+  uiObj.templates.rightClick.onClick = function () {
+    if (!netAccess()) {
+      alert(lol + "#D9T_003 - sem acesso a rede...");
+      return;
+    }
+    d9ProdFoldersDialog(D9T_prodArray);
+  };  
+
   uiObj.link.leftClick.onClick = function () {
     D9T_RUN_SCRIPT("GNEWS_CopyLinks.jsx");
   };
@@ -275,27 +283,38 @@ function changeIcon(imageIndex, imagesGrp) {
     imagesGrp.children[i].visible = i == imageIndex;
   }
 }
+
 // --- FUNÇÃO CORRIGIDA ---
-function populateMainIcons(imagesGrp, dropdownList) { // Aceita o dropdown como parâmetro
+function populateMainIcons(imagesGrp, prodArray, dropdownList) { // Aceita o dropdown e o array de produções como parâmetros
   while (imagesGrp.children.length > 0) {
     imagesGrp.remove(imagesGrp.children[0]);
   }
-  for (var i = 0; i < D9T_prodArray.length; i++) {
+  
+  // ALTERADO: Verifica se prodArray foi fornecido e é válido
+  if (!prodArray || prodArray.length === 0) {
+      return; // Sai da função se não houver dados para exibir
+  }
+
+  // ALTERADO: Itera sobre o array de produções recebido como parâmetro
+  for (var i = 0; i < prodArray.length; i++) {
     var newIcon = imagesGrp.add("image", undefined, undefined);
     try {
-      newIcon.image = eval(D9T_prodArray[i].icon);
+      // ALTERADO: Usa o array de produções do parâmetro
+      newIcon.image = eval(prodArray[i].icon); 
     } catch (err) {
-      newIcon.image = defaultProductionDataObj.PRODUCTIONS[0].icon;
+      // Tenta usar um ícone padrão se o eval falhar
+      if (typeof defaultProductionDataObj !== 'undefined') {
+        newIcon.image = defaultProductionDataObj.PRODUCTIONS[0].icon;
+      }
     }
     newIcon.helpTip =
-      D9T_prodArray[0].name +
+      prodArray[0].name +
       "\n\n" +
-      dClick +
+      (typeof dClick !== 'undefined' ? dClick : 'Duplo-clique') +
       " para editar a lista de produções";
     newIcon.preferredSize = [24, 24];
     newIcon.visible = i == 0;
     
-    // Evento de duplo-clique CORRIGIDO
     newIcon.addEventListener("click", function (c) {
       if (c.detail == 2) {
         d9ProdFoldersDialog(D9T_prodArray);
@@ -303,17 +322,15 @@ function populateMainIcons(imagesGrp, dropdownList) { // Aceita o dropdown como 
         // Atualiza a lista de produções a partir do arquivo
         D9T_prodArray = updateProdData(configFile);
         
-        // Se um dropdown foi passado, atualiza-o
         if (dropdownList) {
             dropdownList.removeAll();
             populateDropdownList(getProdNames(D9T_prodArray), dropdownList);
             dropdownList.selection = 0;
-            // Dispara o evento onChange manualmente para recarregar a árvore de templates
             dropdownList.onChange(); 
         }
 
-        // Repopula os ícones
-        populateMainIcons(imagesGrp, dropdownList);
+        // Repopula os ícones, passando o array de produções correto
+        populateMainIcons(imagesGrp, prodArray, dropdownList);
         imagesGrp.layout.layout(true);
       }
     });
@@ -394,7 +411,7 @@ function themeImageButton(sectionGrp, ctrlProperties) {
     ctrlProperties.labelTxt,
     { truncate: "end" }
   );
-  newBtn.label.maximumSize = [60, 18];
+  newBtn.label.maximumSize = [70, 18];
   newBtn.label.helpTip = tipTxt;
   setFgColor(newBtn.label, normalColor1);
   newBtn.btnGroup.addEventListener("mouseover", function () {
