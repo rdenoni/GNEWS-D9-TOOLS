@@ -4,7 +4,7 @@
 function GND9TOOLS_UTL(thisObj) {
     // Declaração da versão do script 'O Padeiro'
     var scriptName = 'GN D9 TOOLS';
-    var scriptVersion = 'v1'; // Versão incrementada
+    var scriptVersion = 'D9 TOOLS v1 beta'; // Versão incrementada
 
     try {
         scriptMainPath = scriptMainPath;
