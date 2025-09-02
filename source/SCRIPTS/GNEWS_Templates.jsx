@@ -13,9 +13,13 @@ function d9TemplateDialog() {
 	var projectFile, previewFile, configFile, scriptFile, templateData;
 	var newCompsArray = [], newOutputsArray = [];
 	
-    var cacheFolder = new Folder(Folder.userData.fullName + "/GND9TOOLS_Cache");
+    // --- ALTERADO: Aponta para a nova pasta de cache centralizada ---
+    var cacheFolder = new Folder(scriptMainPath + 'source/cache');
     if (!cacheFolder.exists) cacheFolder.create();
     
+    // --- NOVO: Variável para manter o cache em memória e evitar releituras do disco ---
+    var templatesCache = {};
+
 	var userConfigFile = null;
 	try {
 		var centralConfigFolder = new Folder(scriptMainPath + 'source/config');
@@ -142,33 +146,63 @@ function d9TemplateDialog() {
 	var refreshBtn; if (typeof themeIconButton === 'function' && typeof D9T_ATUALIZAR_ICON !== 'undefined') { refreshBtn = new themeIconButton(lBtnGrp1, { icon: D9T_ATUALIZAR_ICON, tips: [lClick + 'Recarregar templates do cache'] }); } else { refreshBtn = lBtnGrp1.add('button', undefined, 'Atualizar'); refreshBtn.helpTip = 'Recarregar templates do cache'; }
 	var openFldBtn; if (typeof themeIconButton === 'function' && typeof D9T_PASTA_ICON !== 'undefined') { openFldBtn = new themeIconButton(lBtnGrp1, { icon: D9T_PASTA_ICON, tips: [lClick + 'abrir pasta de templates'] }); } else { openFldBtn = lBtnGrp1.add('button', undefined, 'Abrir'); openFldBtn.helpTip = 'abrir pasta de templates'; }
 
-	function loadTemplatesFromCache() {
+	// --- FUNÇÃO DE CARREGAMENTO DE CACHE TOTALMENTE REFEITA ---
+    function loadTemplatesFromCache(forceReload) {
         templateTree.removeAll();
         var selectedProduction = validProductions[prodDrop.selection.index];
-        var cacheFileName = selectedProduction.name.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '_cache.json';
+        var prodName = selectedProduction.name;
+
+        // Se não for forçado, tenta carregar da memória primeiro
+        if (!forceReload && templatesCache[prodName]) {
+            populateTreeFromData(templateTree, templatesCache[prodName]);
+            expandAllNodes(templateTree);
+            return;
+        }
+
+        // Feedback visual de carregamento
+        var loadingItem = templateTree.add('item', 'Carregando cache...');
+        loadingItem.enabled = false;
+        D9T_TEMPLATES_w.update();
+
+        var cacheFileName = prodName.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '_cache.json';
         var templatesCacheFile = new File(cacheFolder.fullName + '/' + cacheFileName);
 
         if (templatesCacheFile.exists) {
             try {
                 templatesCacheFile.open('r');
-                var treeData = JSON.parse(templatesCacheFile.read());
+                var cacheContent = templatesCacheFile.read();
                 templatesCacheFile.close();
+                var masterCacheData = JSON.parse(cacheContent);
                 
-                if (treeData.length > 0) {
-                    populateTreeFromData(templateTree, treeData);
+                // Combina os dados de todos os caminhos cacheados em uma única estrutura
+                var combinedTreeData = [];
+                for (var path in masterCacheData) {
+                    if (masterCacheData.hasOwnProperty(path)) {
+                        combinedTreeData = combinedTreeData.concat(masterCacheData[path]);
+                    }
+                }
+                
+                // Salva no cache em memória
+                templatesCache[prodName] = combinedTreeData;
+                templateTree.removeAll(); // Remove a mensagem de "Carregando"
+
+                if (combinedTreeData.length > 0) {
+                    populateTreeFromData(templateTree, combinedTreeData);
                     expandAllNodes(templateTree);
                 } else {
-                    templateTree.add('item', 'Cache vazio. Nenhum arquivo .aep/.aet foi encontrado.');
-                    templateTree.add('item', "Use 'Configurações' > 'Testar' para gerar o cache.");
+                    templateTree.add('item', 'Cache vazio. Nenhum arquivo .aep/.aet foi encontrado.').enabled = false;
+                    templateTree.add('item', "Use 'Configurações' > 'Testar' para gerar o cache.").enabled = false;
                 }
             } catch (e) {
-                templateTree.add('item', 'Erro ao ler o cache. Tente recriá-lo.');
-                templateTree.add('item', "Vá em 'Configurações' > 'Testar'.");
+                templateTree.removeAll();
+                templateTree.add('item', 'Erro ao ler o cache. Tente recriá-lo.').enabled = false;
+                templateTree.add('item', "Vá em 'Configurações' > 'Testar'.").enabled = false;
             }
         } else {
-            templateTree.add('item', 'Cache de templates não encontrado.');
-            templateTree.add('item', "Vá em 'Configurações' e use o botão");
-            templateTree.add('item', "'Testar e Gerar Cache' para criá-lo.");
+            templateTree.removeAll();
+            templateTree.add('item', 'Cache de templates não encontrado.').enabled = false;
+            templateTree.add('item', "Vá em 'Configurações' e use o botão").enabled = false;
+            templateTree.add('item', "'Testar e Gerar Cache' para criá-lo.").enabled = false;
         }
     }
     
@@ -228,7 +262,7 @@ function d9TemplateDialog() {
 		var i = this.selection.index;
 		if (typeof changeIcon === 'function') { changeIcon(i, prodIconGrp); }
 		try { if (userConfigFile) { var userConfig = {}; if (userConfigFile.exists) { userConfigFile.open('r'); var configContent = userConfigFile.read(); userConfigFile.close(); if (configContent) { try { userConfig = JSON.parse(configContent); } catch (jsonError) { userConfig = {}; } } } if (!userConfig.gnews_templates) { userConfig.gnews_templates = {}; } userConfig.gnews_templates.lastProductionIndex = i; userConfigFile.open('w'); userConfigFile.write(JSON.stringify(userConfig, null, '\t')); userConfigFile.close(); } } catch (e) {}
-		loadTemplatesFromCache();
+		loadTemplatesFromCache(false); // --- ALTERADO: Carrega sem forçar releitura do disco
 	};
 	D9T_TEMPLATES_w.onShow = function () {
 		extendedWidth = D9T_TEMPLATES_w.size.width; 
@@ -244,8 +278,12 @@ function d9TemplateDialog() {
 	searchBox.onFocus = function () { if (this.text === placeholderText) { this.text = ''; setFgColor(this, normalColor1); } };
 	searchBox.onBlur = function () { if (this.text.trim() === '') { this.text = placeholderText; setFgColor(this, monoColor0); } };
 	searchBox.onEnterKey = function () { templateLab.active = true; templateTree.active = true; };
-	searchBox.onChanging = function () {
-        loadTemplatesFromCache();
+	
+    // --- LÓGICA DE BUSCA OTIMIZADA ---
+    // A busca agora opera no cache em memória, que é restaurado rapidamente,
+    // tornando a operação muito mais rápida.
+    searchBox.onChanging = function () {
+        loadTemplatesFromCache(false); // Restaura a árvore completa (da memória, é rápido)
         D9T_TEMPLATES_w.update();
         if (this.text.trim() === '' || this.text === placeholderText) {
             return;
@@ -253,6 +291,7 @@ function d9TemplateDialog() {
         try {
             var searchTerm = this.text.trim().toUpperCase();
             if (typeof String.prototype.replaceSpecialCharacters === 'function') { searchTerm = searchTerm.replaceSpecialCharacters(); }
+            // A função findItem agora filtra a árvore já populada
             var items = findItem(templateTree, [], searchTerm);
             if (items.length == 0) return;
             for (var n = 0; n < items.length; n++) {
@@ -266,6 +305,7 @@ function d9TemplateDialog() {
             }
         } catch (e) {}
     };
+
 	templateTree.onChange = function () {
 		if (this.selection != null && this.selection.type == 'node') this.selection = null;
 		if (this.selection == null || this.selection.file == null) return;
@@ -274,6 +314,12 @@ function d9TemplateDialog() {
 		previewFile = new File(templateBase + '_preview.png');
 		configFile = new File(templateBase + '_config.json');
 		scriptFile = new File(templateBase + '_script.js');
+		// --- NOVO: Adiciona tooltip com detalhes do arquivo ---
+        if (this.selection.size && this.selection.modDate) {
+            var fileSize = (this.selection.size / (1024*1024)).toFixed(2) + ' MB';
+            var modDate = new Date(this.selection.modDate).toLocaleString('pt-BR');
+            this.selection.helpTip = 'Arquivo: ' + this.selection.text + '\nTamanho: ' + fileSize + '\nModificado em: ' + modDate;
+        }
 		if (previewFile.exists) { previewImg.image = previewFile; } else { if (typeof no_preview !== 'undefined') { previewImg.image = no_preview; } }
 		vGrp2.visible = true;
 		if (newDiv) newDiv.visible = true;
@@ -296,7 +342,10 @@ function d9TemplateDialog() {
 	if (cancelBtn && typeof cancelBtn.leftClick !== 'undefined') { cancelBtn.leftClick.onClick = function () { D9T_TEMPLATES_w.close(); }; } else if (cancelBtn) { cancelBtn.onClick = function () { D9T_TEMPLATES_w.close(); }; }
 	D9T_TEMPLATES_w.onClose = function () { if (!scriptFile || !scriptFile.exists) return; try { scriptFile.open('r'); eval(scriptFile.read()); scriptFile.close(); } catch (err) { alert((typeof lol !== 'undefined' ? lol : '') + '#D9T_021 - ' + err.message); } };
 	templateTree.onDoubleClick = function () { if (this.selection == null || this.selection.file == null) return; if (!projectFile || !projectFile.exists) return; try { var IO = new ImportOptions(projectFile); app.project.importFile(IO); D9T_TEMPLATES_w.close(); } catch (err) { alert((typeof lol !== 'undefined' ? lol : '') + '#D9T_022 - ' + err.message); } };
-	if (refreshBtn && typeof refreshBtn.leftClick !== 'undefined') { refreshBtn.leftClick.onClick = function () { loadTemplatesFromCache(); }; } else if (refreshBtn) { refreshBtn.onClick = function () { loadTemplatesFromCache(); }; }
+    
+    // --- ALTERADO: Botão de atualizar agora força a releitura do disco ---
+	if (refreshBtn && typeof refreshBtn.leftClick !== 'undefined') { refreshBtn.leftClick.onClick = function () { loadTemplatesFromCache(true); }; } else if (refreshBtn) { refreshBtn.onClick = function () { loadTemplatesFromCache(true); }; }
+
 	if (openFldBtn && typeof openFldBtn.leftClick !== 'undefined') { openFldBtn.leftClick.onClick = function () { openTemplatesFolder(); }; } else if (openFldBtn) { openFldBtn.onClick = function () { openTemplatesFolder(); }; }
 	function openTemplatesFolder() { var folderToShow = new Folder(validProductions[prodDrop.selection.index].paths[0]); if (!folderToShow.exists) { alert("A pasta configurada ('" + folderToShow.fsName + "') não foi encontrada ou está inacessível."); return; } if (system.osName.indexOf('Windows') !== -1) { system.callSystem('explorer "' + folderToShow.fsName + '"'); } else { system.callSystem('open "' + folderToShow.fsName + '"'); } }
 	if (infoBtn && typeof infoBtn.leftClick !== 'undefined') { infoBtn.leftClick.onClick = function () { showHelpDialog(); }; } else if (infoBtn) { infoBtn.onClick = function () { showHelpDialog(); }; }
@@ -309,7 +358,7 @@ function d9TemplateDialog() {
 		var mainDescText=headerPanel.add("statictext",undefined,"Gerencie e preencha templates GNEWS com informações automáticas das artes.",{multiline:true});mainDescText.alignment=["fill","fill"];mainDescText.preferredSize.height=40;if(typeof normalColor1!=='undefined'&&typeof setFgColor!=='undefined'){setFgColor(mainDescText,normalColor1);}else{mainDescText.graphics.foregroundColor=mainDescText.graphics.newPen(mainDescText.graphics.PenType.SOLID_COLOR,[1,1,1,1],1);}
 		var topicsTabPanel=helpWin.add("tabbedpanel");topicsTabPanel.alignment=["fill","fill"];topicsTabPanel.margins=15;
 		var allHelpTopics=[{tabName:"VISÃO GERAL",topics:[{title:"▶ SELEÇÃO DE TEMPLATE:",text:"Navegue pela árvore à esquerda para selecionar um template (.aep ou .aet). O preview aumentado e informações da arte GNEWS aparecerão à direita."},{title:"▶ PREVIEW AUMENTADO:",text:"Visualização maior dos templates para melhor análise visual antes do processamento."},{title:"▶ ATUALIZAR LISTA (🔄):",text:"Recarrega a lista de templates na árvore."},{title:"▶ ABRIR PASTA (📁):",text:"Abre o diretório onde os templates estão armazenados."}]},{tabName:"INFORMAÇÕES GNEWS",topics:[{title:"▶ CÓDIGO DA ARTE:",text:"Digite o código da arte GNEWS (ex: GNVZ036). As informações são carregadas automaticamente do banco de dados."},{title:"▶ NOME DA ARTE:",text:"Exibido automaticamente baseado no código informado."},{title:"▶ SERVIDOR DESTINO:",text:"Servidor de destino da arte, carregado automaticamente (ex: FTP VIZ, PAM HARDNEWS)."},{title:"▶ ÚLTIMA ATUALIZAÇÃO:",text:"Data da última modificação/processamento da arte."}]},{tabName:"PROCESSAMENTO",topics:[{title:"▶ IMPORTAR:",text:"Importa o template diretamente para o projeto e registra informações GNEWS no log."},{title:"▶ SEM ORGANIZAÇÃO AUTOMÁTICA:",text:"O projeto não é mais organizado automaticamente, mantendo a estrutura original."},{title:"▶ SEM METADADOS XMP:",text:"Metadados XMP não são mais adicionados automaticamente."},{title:"▶ SEM FILA DE RENDER:",text:"Sistema de fila de renderização foi removido para fluxo mais direto."},{title:"▶ LOG GNEWS:",text:"Registra informações específicas GNEWS incluindo código da arte, nome e servidor destino."}]},{tabName:"ATALHOS",topics:[{title:"▶ DUPLO CLIQUE:",text:"Duplo clique em um template importa diretamente sem processamento de texto, mantendo a estrutura original."}]}];
-		for(var s=0;s<allHelpTopics.length;s++){var currentTabSection=allHelpTopics[s];var tab=topicsTabPanel.add("tab",undefined,currentTabSection.tabName);tab.orientation="column";tab.alignChildren=["fill","top"];tab.spacing=10;tab.margins=TOPIC_SECTION_MARGINS;for(var i=0;i<currentTabSection.topics.length;i++){var topic=currentTabSection.topics[i];var topicGrp=tab.add("group");topicGrp.orientation="column";topicGrp.alignChildren="fill";topicGrp.spacing=TOPIC_SPACING;if(topic.title.indexOf("▶")===0){topicGrp.margins.left=TOPIC_TITLE_INDENT;}else{topicGrp.margins.left=SUBTOPIC_INDENT;}var topicTitle=topicGrp.add("statictext",undefined,topic.title);topicTitle.graphics.font=ScriptUI.newFont("Arial","Bold",12);if(typeof highlightColor1!=='undefined'&&typeof setFgColor!=='undefined'){setFgColor(topicTitle,highlightColor1);}else{topicTitle.graphics.foregroundColor=topicTitle.graphics.newPen(topicTitle.graphics.PenType.SOLID_COLOR,[0.83,0,0.23,1],1);}topicTitle.preferredSize.width=(TARGET_HELP_WIDTH-(MARGIN_SIZE*2)-(topicsTabPanel.margins.left+topicsTabPanel.margins.right)-(tab.margins.left+tab.margins.right)-topicGrp.margins.left);if(topic.text!==""){var topicText=topicGrp.add("statictext",undefined,topic.text,{multiline:true});topicText.graphics.font=ScriptUI.newFont("Arial","Regular",11);topicText.preferredSize.width=(TARGET_HELP_WIDTH-(MARGIN_SIZE*2)-(topicsTabPanel.margins.left+topicsTabPanel.margins.right)-(tab.margins.left+tab.margins.right)-topicGrp.margins.left);topicText.preferredSize.height=50;if(typeof normalColor1!=='undefined'&&typeof setFgColor!=='undefined'){setFgColor(topicText,normalColor1);}else{topicText.graphics.foregroundColor=topicText.graphics.newPen(topicText.graphics.PenType.SOLID_COLOR,[1,1,1,1],1);}}}}
+		for(var s=0;s<allHelpTopics.length;s++){var currentTabSection=allHelpTopics[s];var tab=topicsTabPanel.add("tab",undefined,currentTabSection.tabName);tab.orientation="column";tab.alignChildren=["fill","top"];tab.spacing=10;tab.margins=TOPIC_SECTION_MARGINS;for(var i=0;i<currentTabSection.topics.length;i++){var topic=currentTabSection.topics[i];var topicGrp=tab.add("group");topicGrp.orientation="column";topicGrp.alignChildren="fill";topicGrp.spacing=TOPIC_SPACING;if(topic.title.indexOf("▶")===0){topicGrp.margins.left=TOPIC_TITLE_INDENT;}else{topicGrp.margins.left=SUBTOPIC_INDENT;}var topicTitle=topicGrp.add("statictext",undefined,topic.title);topicTitle.graphics.font=ScriptUI.newFont("Arial","Bold",12);if(typeof highlightColor1!=='undefined'&&typeof setFgColor!=='undefined'){setFgColor(topicTitle,highlightColor1);}else{topicTitle.graphics.foregroundColor=topicTitle.graphics.newPen(topicTitle.graphics.PenType.SOLID_COLOR,[0.83,0,0.23,1],1);}topicTitle.preferredSize.width=(TARGET_HELP_WIDTH-(MARGIN_SIZE*2)-(topicsTabPanel.margins.left+topicsTabPanel.margins.right)-(tab.margins.left+tab.margins.right)-topicGrp.margins.left);if(topic.text!==""){var topicText=topicGrp.add("statictext",undefined,topic.text,{multiline:true});topicText.graphics.font=ScriptUI.newFont("Arial","Regular",11);topicText.preferredSize.width=(TARGET_HELP_WIDTH-(MARGIN_SIZE*2)-(topicsTabPanel.margins.left+topicsTabSection.margins.right)-(tab.margins.left+tab.margins.right)-topicGrp.margins.left);topicText.preferredSize.height=50;if(typeof normalColor1!=='undefined'&&typeof setFgColor!=='undefined'){setFgColor(topicText,normalColor1);}else{topicText.graphics.foregroundColor=topicText.graphics.newPen(topicText.graphics.PenType.SOLID_COLOR,[1,1,1,1],1);}}}}
 		var closeBtnGrp=helpWin.add("group");closeBtnGrp.alignment="center";closeBtnGrp.margins=[0,10,0,0];var closeBtn=closeBtnGrp.add("button",undefined,"OK");closeBtn.onClick=function(){helpWin.close();};helpWin.layout.layout(true);helpWin.center();helpWin.show();
 	}
 
