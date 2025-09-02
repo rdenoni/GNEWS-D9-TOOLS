@@ -1,0 +1,520 @@
+{
+  "/t/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS/Bases caracter/_BASES_TEMATICAS": [
+    {
+      "type": "node",
+      "text": "BALANCA",
+      "items": [
+        {
+          "type": "item",
+          "text": "balanca.aet",
+          "file": {
+            
+          },
+          "size": 2688777,
+          "modDate": "Monday, 16 Jun 2025 11:05:06 GMT"
+        }
+      ]
+    },
+    {
+      "type": "node",
+      "text": "BALAO DE FALA",
+      "items": [
+        {
+          "type": "item",
+          "text": "baloes_de_fala.aet",
+          "file": {
+            
+          },
+          "size": 1937897,
+          "modDate": "Wednesday, 25 Jun 2025 11:35:05 GMT"
+        }
+      ]
+    },
+    {
+      "type": "node",
+      "text": "CELULAR",
+      "items": [
+        {
+          "type": "item",
+          "text": "Celular.aet",
+          "file": {
+            
+          },
+          "size": 566183,
+          "modDate": "Thursday, 05 Jun 2025 18:04:50 GMT"
+        }
+      ]
+    },
+    {
+      "type": "node",
+      "text": "CLIMA TEMPO",
+      "items": [
+        {
+          "type": "item",
+          "text": "Grafico_Barras_Termometro.aet",
+          "file": {
+            
+          },
+          "size": 9265708,
+          "modDate": "Friday, 06 Jun 2025 21:33:15 GMT"
+        },
+        {
+          "type": "item",
+          "text": "radar.aet",
+          "file": {
+            
+          },
+          "size": 2222259,
+          "modDate": "Tuesday, 24 Jun 2025 13:39:15 GMT"
+        },
+        {
+          "type": "item",
+          "text": "satelite.aet",
+          "file": {
+            
+          },
+          "size": 2342661,
+          "modDate": "Tuesday, 24 Jun 2025 13:43:06 GMT"
+        }
+      ]
+    },
+    {
+      "type": "node",
+      "text": "COMBUSTIVEL",
+      "items": [
+        {
+          "type": "item",
+          "text": "bomba_petroleo.aet",
+          "file": {
+            
+          },
+          "size": 861283,
+          "modDate": "Tuesday, 01 Jul 2025 12:46:58 GMT"
+        }
+      ]
+    },
+    {
+      "type": "node",
+      "text": "COMPUTADOR",
+      "items": [
+        {
+          "type": "node",
+          "text": "_OLD",
+          "items": [
+            {
+              "type": "item",
+              "text": "BASE NOTEBOOK.aep",
+              "file": {
+                
+              },
+              "size": 1851265,
+              "modDate": "Tuesday, 27 May 2025 20:21:15 GMT"
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "text": "notebook_laptop.aep",
+          "file": {
+            
+          },
+          "size": 746765,
+          "modDate": "Thursday, 05 Jun 2025 22:43:15 GMT"
+        }
+      ]
+    },
+    {
+      "type": "node",
+      "text": "COVID",
+      "items": [
+        {
+          "type": "node",
+          "text": "PARA_SCRIPT",
+          "items": [
+            {
+              "type": "item",
+              "text": "GNEWS MEDIA MOVEL ONAIR 2022 TEMPLATE 01.aep",
+              "file": {
+                
+              },
+              "size": 21960916,
+              "modDate": "Friday, 22 Jul 2022 14:01:02 GMT"
+            }
+          ]
+        },
+        {
+          "type": "node",
+          "text": "backup",
+          "items": [
+            {
+              "type": "item",
+              "text": "Media Movel - Mapa Covid Brasil AUTO 01.aet",
+              "file": {
+                
+              },
+              "size": 72377108,
+              "modDate": "Wednesday, 23 Nov 2022 17:14:40 GMT"
+            },
+            {
+              "type": "item",
+              "text": "Media Movel - Mapa Mortes v1.aep",
+              "file": {
+                
+              },
+              "size": 16925539,
+              "modDate": "Tuesday, 22 Nov 2022 14:20:09 GMT"
+            }
+          ]
+        },
+        {
+          "type": "node",
+          "text": "projetos anteriores",
+          "items": [
+            {
+              "type": "item",
+              "text": "Media Movel - Mapa Mortes v1 desatualizado.aep",
+              "file": {
+                
+              },
+              "size": 16925539,
+              "modDate": "Tuesday, 22 Nov 2022 14:20:09 GMT"
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "text": "Media Movel - Covid no Mundo v1.aep",
+          "file": {
+            
+          },
+          "size": 2289003,
+          "modDate": "Friday, 10 Jun 2022 22:07:04 GMT"
+        },
+        {
+          "type": "item",
+          "text": "Media Movel - Graficos Exemplo v1.aep",
+          "file": {
+            
+          },
+          "size": 21952255,
+          "modDate": "Thursday, 14 Jul 2022 13:00:39 GMT"
+        },
+        {
+          "type": "item",
+          "text": "Media Movel - Info Covid v1.aep",
+          "file": {
+            
+          },
+          "size": 1238571,
+          "modDate": "Friday, 10 Jun 2022 20:39:22 GMT"
+        },
+        {
+          "type": "item",
+          "text": "Media Movel - Info Vacina Brasil v1.aep",
+          "file": {
+            
+          },
+          "size": 1535293,
+          "modDate": "Saturday, 11 Jun 2022 00:07:59 GMT"
+        },
+        {
+          "type": "item",
+          "text": "Media Movel - Mapa Covid Brasil AUTO 01.aet",
+          "file": {
+            
+          },
+          "size": 72377108,
+          "modDate": "Wednesday, 23 Nov 2022 17:14:40 GMT"
+        },
+        {
+          "type": "item",
+          "text": "Media Movel - Mapa Vacina v1.aep",
+          "file": {
+            
+          },
+          "size": 17983031,
+          "modDate": "Monday, 13 Jun 2022 19:46:17 GMT"
+        },
+        {
+          "type": "item",
+          "text": "Media Movel - Vacina Criancas v1.aep",
+          "file": {
+            
+          },
+          "size": 898849,
+          "modDate": "Monday, 13 Jun 2022 19:28:13 GMT"
+        }
+      ]
+    },
+    {
+      "type": "node",
+      "text": "DISCO",
+      "items": [
+        {
+          "type": "item",
+          "text": "DISCO.aep",
+          "file": {
+            
+          },
+          "size": 2315340,
+          "modDate": "Monday, 07 Jul 2025 16:04:11 GMT"
+        }
+      ]
+    },
+    {
+      "type": "node",
+      "text": "DOCUMENTOS",
+      "items": [
+        {
+          "type": "node",
+          "text": "_backup",
+          "items": [
+            {
+              "type": "item",
+              "text": "album_fotos.aet",
+              "file": {
+                
+              },
+              "size": 573244,
+              "modDate": "Monday, 23 Jun 2025 10:52:14 GMT"
+            },
+            {
+              "type": "item",
+              "text": "ficha_arquivo_pasta_documento.aet",
+              "file": {
+                
+              },
+              "size": 2339320,
+              "modDate": "Thursday, 05 Jun 2025 18:18:03 GMT"
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "text": "album_fotos.aet",
+          "file": {
+            
+          },
+          "size": 573244,
+          "modDate": "Monday, 23 Jun 2025 10:52:14 GMT"
+        },
+        {
+          "type": "item",
+          "text": "boleto_conta.aet",
+          "file": {
+            
+          },
+          "size": 401784,
+          "modDate": "Friday, 04 Jul 2025 13:47:40 GMT"
+        },
+        {
+          "type": "item",
+          "text": "ficha_arquivo_pasta_documento.aet",
+          "file": {
+            
+          },
+          "size": 2339873,
+          "modDate": "Monday, 11 Aug 2025 17:11:26 GMT"
+        }
+      ]
+    },
+    {
+      "type": "node",
+      "text": "ECONOMIA",
+      "items": [
+        {
+          "type": "node",
+          "text": "_IMAGENS",
+          "items": [
+            {
+              "type": "node",
+              "text": "economia_internacional_paises_bandeiras_mundo folder",
+              "items": [
+                {
+                  "type": "item",
+                  "text": "economia_internacional_paises_bandeiras_mundo.aep",
+                  "file": {
+                    
+                  },
+                  "size": 5698694,
+                  "modDate": "Tuesday, 03 Jun 2025 18:08:44 GMT"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "item",
+          "text": "boletim_focus.aet",
+          "file": {
+            
+          },
+          "size": 6850444,
+          "modDate": "Tuesday, 24 Jun 2025 11:02:33 GMT"
+        },
+        {
+          "type": "item",
+          "text": "economia_internacional_paises_bandeiras_mundo.aet",
+          "file": {
+            
+          },
+          "size": 5677071,
+          "modDate": "Tuesday, 03 Jun 2025 18:10:33 GMT"
+        },
+        {
+          "type": "item",
+          "text": "grau_risco_moodys.aet",
+          "file": {
+            
+          },
+          "size": 1007772,
+          "modDate": "Tuesday, 24 Jun 2025 11:11:23 GMT"
+        },
+        {
+          "type": "item",
+          "text": "mercado_financeiro.aet",
+          "file": {
+            
+          },
+          "size": 5634586,
+          "modDate": "Tuesday, 24 Jun 2025 12:49:39 GMT"
+        },
+        {
+          "type": "item",
+          "text": "previa_inflacao.aet",
+          "file": {
+            
+          },
+          "size": 3763341,
+          "modDate": "Friday, 25 Jul 2025 13:27:09 GMT"
+        }
+      ]
+    },
+    {
+      "type": "node",
+      "text": "EDUCACAO",
+      "items": [
+        {
+          "type": "item",
+          "text": "quadro_negro_educacao_escola.aet",
+          "file": {
+            
+          },
+          "size": 1021438,
+          "modDate": "Monday, 16 Jun 2025 13:17:34 GMT"
+        }
+      ]
+    },
+    {
+      "type": "node",
+      "text": "FUTEBOL",
+      "items": [
+        {
+          "type": "item",
+          "text": "convocacao_futebol_selecao_escalacao.aet",
+          "file": {
+            
+          },
+          "size": 4231773,
+          "modDate": "Tuesday, 03 Jun 2025 17:08:47 GMT"
+        }
+      ]
+    },
+    {
+      "type": "node",
+      "text": "INTELIGENCIA ARTIFICIAL",
+      "items": [
+        {
+          "type": "item",
+          "text": "inteligencia_artificial_chat.aet",
+          "file": {
+            
+          },
+          "size": 3939869,
+          "modDate": "Wednesday, 18 Jun 2025 11:01:06 GMT"
+        }
+      ]
+    },
+    {
+      "type": "node",
+      "text": "JOGOS",
+      "items": [
+        {
+          "type": "item",
+          "text": "labirinto_caminho_tabuleiro.aet",
+          "file": {
+            
+          },
+          "size": 1284123,
+          "modDate": "Wednesday, 18 Jun 2025 11:12:49 GMT"
+        }
+      ]
+    },
+    {
+      "type": "node",
+      "text": "OSCAR",
+      "items": [
+        {
+          "type": "item",
+          "text": "oscar_estatuas.aet",
+          "file": {
+            
+          },
+          "size": 192187,
+          "modDate": "Tuesday, 24 Jun 2025 17:16:25 GMT"
+        }
+      ]
+    },
+    {
+      "type": "node",
+      "text": "POLITICA",
+      "items": [
+        {
+          "type": "item",
+          "text": "quadro_investigacao_fios_polaroid.aep",
+          "file": {
+            
+          },
+          "size": 4444974,
+          "modDate": "Wednesday, 23 Jul 2025 12:02:01 GMT"
+        },
+        {
+          "type": "item",
+          "text": "quadro_investigacao_fios_polaroid.aet",
+          "file": {
+            
+          },
+          "size": 4444759,
+          "modDate": "Wednesday, 13 Aug 2025 10:44:21 GMT"
+        },
+        {
+          "type": "item",
+          "text": "votacao_partidos_ministerios_porcentagem.aet",
+          "file": {
+            
+          },
+          "size": 4771504,
+          "modDate": "Tuesday, 17 Jun 2025 11:30:26 GMT"
+        },
+        {
+          "type": "item",
+          "text": "votacao_partidos_sim_nao.aet",
+          "file": {
+            
+          },
+          "size": 2881082,
+          "modDate": "Thursday, 26 Jun 2025 12:23:57 GMT"
+        },
+        {
+          "type": "item",
+          "text": "votacao_stf.aet",
+          "file": {
+            
+          },
+          "size": 2313462,
+          "modDate": "Tuesday, 24 Jun 2025 16:51:27 GMT"
+        }
+      ]
+    }
+  ]
+}
