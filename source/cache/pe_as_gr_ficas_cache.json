@@ -1,1 +1,54 @@
-[{"type":"node","name":"Bases caracter","children":[{"type":"item","name":"Base Titulo.aep","filePath":"D:\\PROJETOS\\SCRIPTS AFTER\\files\\templates\\Bases caracter\\Base Titulo.aep"},{"type":"item","name":"Bases Caracter ALL.aep","filePath":"D:\\PROJETOS\\SCRIPTS AFTER\\files\\templates\\Bases caracter\\Bases Caracter ALL.aep"},{"type":"item","name":"Bases Caracter ALPHA LIVE.aep","filePath":"D:\\PROJETOS\\SCRIPTS AFTER\\files\\templates\\Bases caracter\\Bases Caracter ALPHA LIVE.aep"},{"type":"item","name":"Bases Caracter DIVIDE.aep","filePath":"D:\\PROJETOS\\SCRIPTS AFTER\\files\\templates\\Bases caracter\\Bases Caracter DIVIDE.aep"},{"type":"item","name":"Bases Caracter FULL.aep","filePath":"D:\\PROJETOS\\SCRIPTS AFTER\\files\\templates\\Bases caracter\\Bases Caracter FULL.aep"},{"type":"item","name":"Bases Caracter MIX.aep","filePath":"D:\\PROJETOS\\SCRIPTS AFTER\\files\\templates\\Bases caracter\\Bases Caracter MIX.aep"}]},{"type":"node","name":"Destaques","children":[{"type":"item","name":"Destaque DUPLO.aep","filePath":"D:\\PROJETOS\\SCRIPTS AFTER\\files\\templates\\Destaques\\Destaque DUPLO.aep"},{"type":"item","name":"Destaque UNICO.aep","filePath":"D:\\PROJETOS\\SCRIPTS AFTER\\files\\templates\\Destaques\\Destaque UNICO.aep"}]}]
+[
+  {
+    "type": "node",
+    "name": "Bases caracter",
+    "children": [
+      {
+        "type": "item",
+        "name": "Base Titulo.aep",
+        "filePath": "D:\\PROJETOS\\SCRIPTS AFTER\\files\\templates\\Bases caracter\\Base Titulo.aep"
+      },
+      {
+        "type": "item",
+        "name": "Bases Caracter ALL.aep",
+        "filePath": "D:\\PROJETOS\\SCRIPTS AFTER\\files\\templates\\Bases caracter\\Bases Caracter ALL.aep"
+      },
+      {
+        "type": "item",
+        "name": "Bases Caracter ALPHA LIVE.aep",
+        "filePath": "D:\\PROJETOS\\SCRIPTS AFTER\\files\\templates\\Bases caracter\\Bases Caracter ALPHA LIVE.aep"
+      },
+      {
+        "type": "item",
+        "name": "Bases Caracter DIVIDE.aep",
+        "filePath": "D:\\PROJETOS\\SCRIPTS AFTER\\files\\templates\\Bases caracter\\Bases Caracter DIVIDE.aep"
+      },
+      {
+        "type": "item",
+        "name": "Bases Caracter FULL.aep",
+        "filePath": "D:\\PROJETOS\\SCRIPTS AFTER\\files\\templates\\Bases caracter\\Bases Caracter FULL.aep"
+      },
+      {
+        "type": "item",
+        "name": "Bases Caracter MIX.aep",
+        "filePath": "D:\\PROJETOS\\SCRIPTS AFTER\\files\\templates\\Bases caracter\\Bases Caracter MIX.aep"
+      }
+    ]
+  },
+  {
+    "type": "node",
+    "name": "Destaques",
+    "children": [
+      {
+        "type": "item",
+        "name": "Destaque DUPLO.aep",
+        "filePath": "D:\\PROJETOS\\SCRIPTS AFTER\\files\\templates\\Destaques\\Destaque DUPLO.aep"
+      },
+      {
+        "type": "item",
+        "name": "Destaque UNICO.aep",
+        "filePath": "D:\\PROJETOS\\SCRIPTS AFTER\\files\\templates\\Destaques\\Destaque UNICO.aep"
+      }
+    ]
+  }
+]

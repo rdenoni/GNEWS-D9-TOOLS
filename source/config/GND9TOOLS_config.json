@@ -1,0 +1,21 @@
+{
+	"PRODUCTIONS": [
+		{
+			"name": "Configuração de Caminhos",
+			"icon": "",
+			"templatesPath": "/t/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS",
+			"pecasGraficas": [
+				"/t/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS",
+				"/d/PROJETOS/SCRIPTS AFTER/files/templates"
+			],
+			"baseTematica": [
+				"/t/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS/Bases caracter/_BASES_TEMATICAS",
+				"/d/PROJETOS/SCRIPTS AFTER/files/BASE TEMATICAS"
+			],
+			"ilustracoes": [
+				"/t/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS/Ilustracoes",
+				"/d/PROJETOS/SCRIPTS AFTER/files/ILUSTRACAO"
+			]
+		}
+	]
+}

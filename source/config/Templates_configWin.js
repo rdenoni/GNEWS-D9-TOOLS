@@ -1,10 +1,80 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
 
+// --- NOVA FUNÇÃO OTIMIZADA PARA LER A ESTRUTURA DE PASTAS ---
+/**
+ * Scaneia recursivamente uma pasta e retorna uma estrutura de dados para o TreeView.
+ * - Pastas são listadas primeiro, depois arquivos, ambos em ordem alfabética.
+ * - Ignora pastas "Adobe After Effects Auto-Save".
+ * - Lida silenciosamente com pastas inacessíveis.
+ * - Inclui tamanho e data de modificação para arquivos.
+ * @param {Folder} rootFolder A pasta raiz para iniciar o escaneamento.
+ * @param {Array} fileFilter Uma lista de extensões de arquivo permitidas (ex: ['.aep', '.aet']).
+ * @returns {Array} Uma matriz de objetos representando a estrutura de arquivos e pastas.
+ */
+function getFolderStructureAsData(rootFolder, fileFilter) {
+    if (!rootFolder.exists) return [];
+    var allItems;
+    try {
+        allItems = rootFolder.getFiles();
+        if (allItems === null) return []; // Lida com pastas inacessíveis/vazias
+    } catch (e) {
+        return []; // Falha silenciosa para pastas sem permissão
+    }
+
+    var folders = [];
+    var files = [];
+
+    for (var i = 0; i < allItems.length; i++) {
+        var item = allItems[i];
+        if (item instanceof Folder) {
+            // Requisito: Ignorar pastas de Auto-Save
+            if (item.displayName === "Adobe After Effects Auto-Save") {
+                continue;
+            }
+            var subItems = getFolderStructureAsData(item, fileFilter);
+            if (subItems.length > 0) {
+                folders.push({
+                    type: 'node',
+                    text: item.displayName,
+                    items: subItems
+                });
+            }
+        } else if (item instanceof File) {
+            var fileExt = item.name.substr(item.name.lastIndexOf('.')).toLowerCase();
+            var isAllowed = false;
+            for (var j = 0; j < fileFilter.length; j++) {
+                if (fileExt === fileFilter[j]) {
+                    isAllowed = true;
+                    break;
+                }
+            }
+            if (isAllowed) {
+                files.push({
+                    type: 'item',
+                    text: item.displayName,
+                    file: new File(item.fsName), // Armazena como objeto File
+                    size: item.length, // Requisito: tamanho do arquivo
+                    modDate: item.modified.toUTCString() // Requisito: data de modificação
+                });
+            }
+        }
+    }
+
+    // Requisito: Ordenar pastas e arquivos alfabeticamente
+    folders.sort(function(a, b) { return a.text.localeCompare(b.text); });
+    files.sort(function(a, b) { return a.text.localeCompare(b.text); });
+
+    // Requisito: Pastas primeiro, depois arquivos
+    return folders.concat(files);
+}
+
+
 function d9ProdFoldersDialog() {
     var scriptName = 'CONFIGURAÇÃO DE CAMINHOS';
     
-    var cacheFolder = new Folder(Folder.userData.fullName + "/GND9TOOLS_Cache");
+    // --- ALTERADO: Aponta para a nova pasta de cache centralizada ---
+    var cacheFolder = new Folder(scriptMainPath + 'source/cache');
     if (!cacheFolder.exists) cacheFolder.create();
     var fileFilter = ['.aep', '.aet'];
 
@@ -117,25 +187,46 @@ function d9ProdFoldersDialog() {
             }
         });
         
+        // --- LÓGICA DE GERAR CACHE TOTALMENTE REFEITA ---
         testBtn.onClick = function() {
             var pathStr = pathLab.properties.pathValue;
             alert("Iniciando teste e criação de cache para:\n" + pathStr + "\n\nSe o After Effects travar, este caminho está inacessível. Será necessário forçar o encerramento.");
+            
+            var folder = new Folder(pathStr);
+            if (!folder.exists) {
+                 setFgColor(pathLab, '#DC143C'); // Vermelho
+                 alert("Falha! O caminho não existe ou está inacessível.");
+                 return;
+            }
+
             try {
-                var folder = new Folder(pathStr);
-                if (folder.exists && folder.getFiles() != null) {
-                    var treeData = getFolderStructureAsData(folder, fileFilter);
-                    var cacheFileName = categoryName.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '_cache.json';
-                    var cacheFile = new File(cacheFolder.fullName + '/' + cacheFileName);
-                    cacheFile.open('w');
-                    cacheFile.write(JSON.stringify(treeData));
-                    cacheFile.close();
-                    
-                    setFgColor(pathLab, '#2E8B57'); // Verde
-                    alert("Sucesso! Cache criado para '" + categoryName + "'.\n" + (treeData.length > 0 ? "Encontrados arquivos compatíveis." : "Aviso: Nenhum arquivo .aep/.aet encontrado."));
-                } else {
-                    setFgColor(pathLab, '#DC143C'); // Vermelho
-                    alert("Falha! O caminho não existe ou está inacessível.");
+                // Usa a nova função otimizada para obter a estrutura de pastas
+                var treeData = getFolderStructureAsData(folder, fileFilter);
+
+                var cacheFileName = categoryName.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '_cache.json';
+                var cacheFile = new File(cacheFolder.fullName + '/' + cacheFileName);
+
+                // Lógica de Merge: Lê o cache existente antes de sobrescrever
+                var masterCacheData = {};
+                if (cacheFile.exists) {
+                    try {
+                        cacheFile.open('r');
+                        masterCacheData = JSON.parse(cacheFile.read());
+                        cacheFile.close();
+                    } catch(e) { masterCacheData = {}; } // Se o JSON estiver corrompido, começa um novo
                 }
+
+                // Adiciona ou atualiza o cache para o caminho atual
+                masterCacheData[pathStr] = treeData;
+
+                // Salva o objeto de cache atualizado
+                cacheFile.open('w');
+                cacheFile.write(JSON.stringify(masterCacheData, null, 2)); // Usa identação para facilitar a leitura
+                cacheFile.close();
+                
+                setFgColor(pathLab, '#2E8B57'); // Verde
+                alert("Sucesso! Cache para '" + categoryName + "' foi atualizado.\n" + (treeData.length > 0 ? "Encontrados arquivos compatíveis." : "Aviso: Nenhum arquivo .aep/.aet encontrado neste caminho."));
+
             } catch (e) {
                 setFgColor(pathLab, '#DC143C'); // Vermelho
                 alert("Erro crítico ao testar o caminho:\n" + e.message);
@@ -183,13 +274,18 @@ function d9ProdFoldersDialog() {
     function collectConfigData() {
         var pecasGraficas = [], baseTematica = [], ilustracoes = [];
         var allCatGrps = mainGrp.children;
+        // Itera pelos grupos de categorias para coletar os caminhos
         for (var c = 0; c < allCatGrps.length; c++) {
-            if (allCatGrps[c] instanceof Group && allCatGrps[c].children.length > 0 && allCatGrps[c].children[0] instanceof StaticText) {
+            // Verifica se o grupo é um cabeçalho de categoria
+            if (allCatGrps[c] instanceof Group && allCatGrps[c].children.length > 0 && allCatGrps[c].children[0] instanceof StaticText && allCatGrps[c].children[0].text.indexOf(':') > -1) {
                 var catName = allCatGrps[c].children[0].text.replace(':', '');
-                var pathsGrp = allCatGrps[c+1];
+                var pathsGrp = allCatGrps[c+1]; // O próximo grupo deve ser o de caminhos
                 var caminhos = [];
-                for(var i = 0; i < pathsGrp.children.length; i++){
-                    caminhos.push(pathsGrp.children[i].children[1].properties.pathValue);
+                if (pathsGrp && pathsGrp.children) {
+                    for(var i = 0; i < pathsGrp.children.length; i++){
+                        // Acessa o caminho armazenado na propriedade do statictext
+                        caminhos.push(pathsGrp.children[i].children[1].properties.pathValue);
+                    }
                 }
                 if (catName === 'PEÇAS GRÁFICAS') pecasGraficas = caminhos;
                 else if (catName === 'BASE TEMÁTICA') baseTematica = caminhos;
