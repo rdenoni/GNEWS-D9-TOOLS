@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
 
-// --- NOVA FUNÇÃO OTIMIZADA PARA LER A ESTRUTURA DE PASTAS ---
+// --- NOVA FUNÇÃO OTIMIZADA E CORRIGIDA PARA LER A ESTRUTURA DE PASTAS ---
 /**
  * Scaneia recursivamente uma pasta e retorna uma estrutura de dados para o TreeView.
  * - Pastas são listadas primeiro, depois arquivos, ambos em ordem alfabética.
@@ -53,7 +53,9 @@ function getFolderStructureAsData(rootFolder, fileFilter) {
                 files.push({
                     type: 'item',
                     text: item.displayName,
-                    file: new File(item.fsName), // Armazena como objeto File
+                    // --- CORREÇÃO APLICADA AQUI ---
+                    // Armazena o caminho do arquivo como string (texto) em vez de um objeto.
+                    file: item.fsName,
                     size: item.length, // Requisito: tamanho do arquivo
                     modDate: item.modified.toUTCString() // Requisito: data de modificação
                 });
@@ -200,28 +202,24 @@ function d9ProdFoldersDialog() {
             }
 
             try {
-                // Usa a nova função otimizada para obter a estrutura de pastas
                 var treeData = getFolderStructureAsData(folder, fileFilter);
 
                 var cacheFileName = categoryName.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '_cache.json';
                 var cacheFile = new File(cacheFolder.fullName + '/' + cacheFileName);
 
-                // Lógica de Merge: Lê o cache existente antes de sobrescrever
                 var masterCacheData = {};
                 if (cacheFile.exists) {
                     try {
                         cacheFile.open('r');
                         masterCacheData = JSON.parse(cacheFile.read());
                         cacheFile.close();
-                    } catch(e) { masterCacheData = {}; } // Se o JSON estiver corrompido, começa um novo
+                    } catch(e) { masterCacheData = {}; }
                 }
 
-                // Adiciona ou atualiza o cache para o caminho atual
                 masterCacheData[pathStr] = treeData;
 
-                // Salva o objeto de cache atualizado
                 cacheFile.open('w');
-                cacheFile.write(JSON.stringify(masterCacheData, null, 2)); // Usa identação para facilitar a leitura
+                cacheFile.write(JSON.stringify(masterCacheData, null, 2));
                 cacheFile.close();
                 
                 setFgColor(pathLab, '#2E8B57'); // Verde
@@ -274,16 +272,13 @@ function d9ProdFoldersDialog() {
     function collectConfigData() {
         var pecasGraficas = [], baseTematica = [], ilustracoes = [];
         var allCatGrps = mainGrp.children;
-        // Itera pelos grupos de categorias para coletar os caminhos
         for (var c = 0; c < allCatGrps.length; c++) {
-            // Verifica se o grupo é um cabeçalho de categoria
             if (allCatGrps[c] instanceof Group && allCatGrps[c].children.length > 0 && allCatGrps[c].children[0] instanceof StaticText && allCatGrps[c].children[0].text.indexOf(':') > -1) {
                 var catName = allCatGrps[c].children[0].text.replace(':', '');
-                var pathsGrp = allCatGrps[c+1]; // O próximo grupo deve ser o de caminhos
+                var pathsGrp = allCatGrps[c+1];
                 var caminhos = [];
                 if (pathsGrp && pathsGrp.children) {
                     for(var i = 0; i < pathsGrp.children.length; i++){
-                        // Acessa o caminho armazenado na propriedade do statictext
                         caminhos.push(pathsGrp.children[i].children[1].properties.pathValue);
                     }
                 }

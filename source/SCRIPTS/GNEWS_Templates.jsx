@@ -154,8 +154,12 @@ function d9TemplateDialog() {
 
         // Se não for forçado, tenta carregar da memória primeiro
         if (!forceReload && templatesCache[prodName]) {
-            populateTreeFromData(templateTree, templatesCache[prodName]);
-            expandAllNodes(templateTree);
+            if (templatesCache[prodName].length > 0) {
+                populateTreeFromData(templateTree, templatesCache[prodName]);
+                expandAllNodes(templateTree);
+            } else {
+                templateTree.add('item', 'Cache vazio. Nenhum arquivo .aep/.aet foi encontrado.').enabled = false;
+            }
             return;
         }
 
@@ -174,7 +178,6 @@ function d9TemplateDialog() {
                 templatesCacheFile.close();
                 var masterCacheData = JSON.parse(cacheContent);
                 
-                // Combina os dados de todos os caminhos cacheados em uma única estrutura
                 var combinedTreeData = [];
                 for (var path in masterCacheData) {
                     if (masterCacheData.hasOwnProperty(path)) {
@@ -182,9 +185,8 @@ function d9TemplateDialog() {
                     }
                 }
                 
-                // Salva no cache em memória
                 templatesCache[prodName] = combinedTreeData;
-                templateTree.removeAll(); // Remove a mensagem de "Carregando"
+                templateTree.removeAll();
 
                 if (combinedTreeData.length > 0) {
                     populateTreeFromData(templateTree, combinedTreeData);
@@ -262,7 +264,7 @@ function d9TemplateDialog() {
 		var i = this.selection.index;
 		if (typeof changeIcon === 'function') { changeIcon(i, prodIconGrp); }
 		try { if (userConfigFile) { var userConfig = {}; if (userConfigFile.exists) { userConfigFile.open('r'); var configContent = userConfigFile.read(); userConfigFile.close(); if (configContent) { try { userConfig = JSON.parse(configContent); } catch (jsonError) { userConfig = {}; } } } if (!userConfig.gnews_templates) { userConfig.gnews_templates = {}; } userConfig.gnews_templates.lastProductionIndex = i; userConfigFile.open('w'); userConfigFile.write(JSON.stringify(userConfig, null, '\t')); userConfigFile.close(); } } catch (e) {}
-		loadTemplatesFromCache(false); // --- ALTERADO: Carrega sem forçar releitura do disco
+		loadTemplatesFromCache(false);
 	};
 	D9T_TEMPLATES_w.onShow = function () {
 		extendedWidth = D9T_TEMPLATES_w.size.width; 
@@ -279,11 +281,8 @@ function d9TemplateDialog() {
 	searchBox.onBlur = function () { if (this.text.trim() === '') { this.text = placeholderText; setFgColor(this, monoColor0); } };
 	searchBox.onEnterKey = function () { templateLab.active = true; templateTree.active = true; };
 	
-    // --- LÓGICA DE BUSCA OTIMIZADA ---
-    // A busca agora opera no cache em memória, que é restaurado rapidamente,
-    // tornando a operação muito mais rápida.
     searchBox.onChanging = function () {
-        loadTemplatesFromCache(false); // Restaura a árvore completa (da memória, é rápido)
+        loadTemplatesFromCache(false);
         D9T_TEMPLATES_w.update();
         if (this.text.trim() === '' || this.text === placeholderText) {
             return;
@@ -291,7 +290,6 @@ function d9TemplateDialog() {
         try {
             var searchTerm = this.text.trim().toUpperCase();
             if (typeof String.prototype.replaceSpecialCharacters === 'function') { searchTerm = searchTerm.replaceSpecialCharacters(); }
-            // A função findItem agora filtra a árvore já populada
             var items = findItem(templateTree, [], searchTerm);
             if (items.length == 0) return;
             for (var n = 0; n < items.length; n++) {
@@ -306,20 +304,26 @@ function d9TemplateDialog() {
         } catch (e) {}
     };
 
-	templateTree.onChange = function () {
-		if (this.selection != null && this.selection.type == 'node') this.selection = null;
-		if (this.selection == null || this.selection.file == null) return;
-		projectFile = this.selection.file;
+	// --- FUNÇÃO CORRIGIDA PARA LER O CAMINHO DO ARQUIVO CORRETAMENTE ---
+    templateTree.onChange = function () {
+		if (this.selection == null || this.selection.type == 'node' || this.selection.file == null) {
+			if(importBtn) importBtn.enabled = false;
+			return;
+		}
+		
+		projectFile = new File(this.selection.file);
+		
 		var templateBase = projectFile.path + '/' + (typeof deleteFileExt === 'function' ? deleteFileExt(projectFile.displayName) : projectFile.displayName.replace(/\.[^\.]+$/, ''));
 		previewFile = new File(templateBase + '_preview.png');
 		configFile = new File(templateBase + '_config.json');
 		scriptFile = new File(templateBase + '_script.js');
-		// --- NOVO: Adiciona tooltip com detalhes do arquivo ---
-        if (this.selection.size && this.selection.modDate) {
-            var fileSize = (this.selection.size / (1024*1024)).toFixed(2) + ' MB';
-            var modDate = new Date(this.selection.modDate).toLocaleString('pt-BR');
-            this.selection.helpTip = 'Arquivo: ' + this.selection.text + '\nTamanho: ' + fileSize + '\nModificado em: ' + modDate;
-        }
+		
+		if (this.selection.size !== undefined && this.selection.modDate !== undefined) {
+			var fileSize = (this.selection.size / (1024*1024)).toFixed(2) + ' MB';
+			var modDate = new Date(this.selection.modDate).toLocaleString('pt-BR');
+			this.selection.helpTip = 'Arquivo: ' + this.selection.text + '\nTamanho: ' + fileSize + '\nModificado em: ' + modDate;
+		}
+		
 		if (previewFile.exists) { previewImg.image = previewFile; } else { if (typeof no_preview !== 'undefined') { previewImg.image = no_preview; } }
 		vGrp2.visible = true;
 		if (newDiv) newDiv.visible = true;
@@ -327,6 +331,7 @@ function d9TemplateDialog() {
 		try { if (configFile.exists) { var JSONContent; if (typeof readFileContent === 'function') { JSONContent = readFileContent(configFile); } else { configFile.open('r'); JSONContent = configFile.read(); configFile.close(); } templateData = JSON.parse(JSONContent); if (typeof defaultTemplateConfigObj !== 'undefined') { for (var o in defaultTemplateConfigObj) { if (templateData.hasOwnProperty(o)) continue; templateData[o] = defaultTemplateConfigObj[o]; } } } } catch (err) { alert((typeof lol !== 'undefined' ? lol : '') + '#D9T_017 - config inválido!'); return; }
 		if (typeof importBtn !== 'undefined') { importBtn.enabled = true; }
 	};
+
 	templateTree.onActivate = function () { if (typeof importBtn !== 'undefined') { importBtn.enabled = true; } };
 	if (importBtn && typeof importBtn.leftClick !== 'undefined') { importBtn.leftClick.onClick = function () { executeImport(); }; } else if (importBtn) { importBtn.onClick = function () { executeImport(); }; }
 	function executeImport() {
@@ -342,11 +347,10 @@ function d9TemplateDialog() {
 	if (cancelBtn && typeof cancelBtn.leftClick !== 'undefined') { cancelBtn.leftClick.onClick = function () { D9T_TEMPLATES_w.close(); }; } else if (cancelBtn) { cancelBtn.onClick = function () { D9T_TEMPLATES_w.close(); }; }
 	D9T_TEMPLATES_w.onClose = function () { if (!scriptFile || !scriptFile.exists) return; try { scriptFile.open('r'); eval(scriptFile.read()); scriptFile.close(); } catch (err) { alert((typeof lol !== 'undefined' ? lol : '') + '#D9T_021 - ' + err.message); } };
 	templateTree.onDoubleClick = function () { if (this.selection == null || this.selection.file == null) return; if (!projectFile || !projectFile.exists) return; try { var IO = new ImportOptions(projectFile); app.project.importFile(IO); D9T_TEMPLATES_w.close(); } catch (err) { alert((typeof lol !== 'undefined' ? lol : '') + '#D9T_022 - ' + err.message); } };
-    
-    // --- ALTERADO: Botão de atualizar agora força a releitura do disco ---
-	if (refreshBtn && typeof refreshBtn.leftClick !== 'undefined') { refreshBtn.leftClick.onClick = function () { loadTemplatesFromCache(true); }; } else if (refreshBtn) { refreshBtn.onClick = function () { loadTemplatesFromCache(true); }; }
-
-	if (openFldBtn && typeof openFldBtn.leftClick !== 'undefined') { openFldBtn.leftClick.onClick = function () { openTemplatesFolder(); }; } else if (openFldBtn) { openFldBtn.onClick = function () { openTemplatesFolder(); }; }
+	
+    if (refreshBtn && typeof refreshBtn.leftClick !== 'undefined') { refreshBtn.leftClick.onClick = function () { loadTemplatesFromCache(true); }; } else if (refreshBtn) { refreshBtn.onClick = function () { loadTemplatesFromCache(true); }; }
+	
+    if (openFldBtn && typeof openFldBtn.leftClick !== 'undefined') { openFldBtn.leftClick.onClick = function () { openTemplatesFolder(); }; } else if (openFldBtn) { openFldBtn.onClick = function () { openTemplatesFolder(); }; }
 	function openTemplatesFolder() { var folderToShow = new Folder(validProductions[prodDrop.selection.index].paths[0]); if (!folderToShow.exists) { alert("A pasta configurada ('" + folderToShow.fsName + "') não foi encontrada ou está inacessível."); return; } if (system.osName.indexOf('Windows') !== -1) { system.callSystem('explorer "' + folderToShow.fsName + '"'); } else { system.callSystem('open "' + folderToShow.fsName + '"'); } }
 	if (infoBtn && typeof infoBtn.leftClick !== 'undefined') { infoBtn.leftClick.onClick = function () { showHelpDialog(); }; } else if (infoBtn) { infoBtn.onClick = function () { showHelpDialog(); }; }
 	function showHelpDialog() {
@@ -358,7 +362,7 @@ function d9TemplateDialog() {
 		var mainDescText=headerPanel.add("statictext",undefined,"Gerencie e preencha templates GNEWS com informações automáticas das artes.",{multiline:true});mainDescText.alignment=["fill","fill"];mainDescText.preferredSize.height=40;if(typeof normalColor1!=='undefined'&&typeof setFgColor!=='undefined'){setFgColor(mainDescText,normalColor1);}else{mainDescText.graphics.foregroundColor=mainDescText.graphics.newPen(mainDescText.graphics.PenType.SOLID_COLOR,[1,1,1,1],1);}
 		var topicsTabPanel=helpWin.add("tabbedpanel");topicsTabPanel.alignment=["fill","fill"];topicsTabPanel.margins=15;
 		var allHelpTopics=[{tabName:"VISÃO GERAL",topics:[{title:"▶ SELEÇÃO DE TEMPLATE:",text:"Navegue pela árvore à esquerda para selecionar um template (.aep ou .aet). O preview aumentado e informações da arte GNEWS aparecerão à direita."},{title:"▶ PREVIEW AUMENTADO:",text:"Visualização maior dos templates para melhor análise visual antes do processamento."},{title:"▶ ATUALIZAR LISTA (🔄):",text:"Recarrega a lista de templates na árvore."},{title:"▶ ABRIR PASTA (📁):",text:"Abre o diretório onde os templates estão armazenados."}]},{tabName:"INFORMAÇÕES GNEWS",topics:[{title:"▶ CÓDIGO DA ARTE:",text:"Digite o código da arte GNEWS (ex: GNVZ036). As informações são carregadas automaticamente do banco de dados."},{title:"▶ NOME DA ARTE:",text:"Exibido automaticamente baseado no código informado."},{title:"▶ SERVIDOR DESTINO:",text:"Servidor de destino da arte, carregado automaticamente (ex: FTP VIZ, PAM HARDNEWS)."},{title:"▶ ÚLTIMA ATUALIZAÇÃO:",text:"Data da última modificação/processamento da arte."}]},{tabName:"PROCESSAMENTO",topics:[{title:"▶ IMPORTAR:",text:"Importa o template diretamente para o projeto e registra informações GNEWS no log."},{title:"▶ SEM ORGANIZAÇÃO AUTOMÁTICA:",text:"O projeto não é mais organizado automaticamente, mantendo a estrutura original."},{title:"▶ SEM METADADOS XMP:",text:"Metadados XMP não são mais adicionados automaticamente."},{title:"▶ SEM FILA DE RENDER:",text:"Sistema de fila de renderização foi removido para fluxo mais direto."},{title:"▶ LOG GNEWS:",text:"Registra informações específicas GNEWS incluindo código da arte, nome e servidor destino."}]},{tabName:"ATALHOS",topics:[{title:"▶ DUPLO CLIQUE:",text:"Duplo clique em um template importa diretamente sem processamento de texto, mantendo a estrutura original."}]}];
-		for(var s=0;s<allHelpTopics.length;s++){var currentTabSection=allHelpTopics[s];var tab=topicsTabPanel.add("tab",undefined,currentTabSection.tabName);tab.orientation="column";tab.alignChildren=["fill","top"];tab.spacing=10;tab.margins=TOPIC_SECTION_MARGINS;for(var i=0;i<currentTabSection.topics.length;i++){var topic=currentTabSection.topics[i];var topicGrp=tab.add("group");topicGrp.orientation="column";topicGrp.alignChildren="fill";topicGrp.spacing=TOPIC_SPACING;if(topic.title.indexOf("▶")===0){topicGrp.margins.left=TOPIC_TITLE_INDENT;}else{topicGrp.margins.left=SUBTOPIC_INDENT;}var topicTitle=topicGrp.add("statictext",undefined,topic.title);topicTitle.graphics.font=ScriptUI.newFont("Arial","Bold",12);if(typeof highlightColor1!=='undefined'&&typeof setFgColor!=='undefined'){setFgColor(topicTitle,highlightColor1);}else{topicTitle.graphics.foregroundColor=topicTitle.graphics.newPen(topicTitle.graphics.PenType.SOLID_COLOR,[0.83,0,0.23,1],1);}topicTitle.preferredSize.width=(TARGET_HELP_WIDTH-(MARGIN_SIZE*2)-(topicsTabPanel.margins.left+topicsTabPanel.margins.right)-(tab.margins.left+tab.margins.right)-topicGrp.margins.left);if(topic.text!==""){var topicText=topicGrp.add("statictext",undefined,topic.text,{multiline:true});topicText.graphics.font=ScriptUI.newFont("Arial","Regular",11);topicText.preferredSize.width=(TARGET_HELP_WIDTH-(MARGIN_SIZE*2)-(topicsTabPanel.margins.left+topicsTabSection.margins.right)-(tab.margins.left+tab.margins.right)-topicGrp.margins.left);topicText.preferredSize.height=50;if(typeof normalColor1!=='undefined'&&typeof setFgColor!=='undefined'){setFgColor(topicText,normalColor1);}else{topicText.graphics.foregroundColor=topicText.graphics.newPen(topicText.graphics.PenType.SOLID_COLOR,[1,1,1,1],1);}}}}
+		for(var s=0;s<allHelpTopics.length;s++){var currentTabSection=allHelpTopics[s];var tab=topicsTabPanel.add("tab",undefined,currentTabSection.tabName);tab.orientation="column";tab.alignChildren=["fill","top"];tab.spacing=10;tab.margins=TOPIC_SECTION_MARGINS;for(var i=0;i<currentTabSection.topics.length;i++){var topic=currentTabSection.topics[i];var topicGrp=tab.add("group");topicGrp.orientation="column";topicGrp.alignChildren="fill";topicGrp.spacing=TOPIC_SPACING;if(topic.title.indexOf("▶")===0){topicGrp.margins.left=TOPIC_TITLE_INDENT;}else{topicGrp.margins.left=SUBTOPIC_INDENT;}var topicTitle=topicGrp.add("statictext",undefined,topic.title);topicTitle.graphics.font=ScriptUI.newFont("Arial","Bold",12);if(typeof highlightColor1!=='undefined'&&typeof setFgColor!=='undefined'){setFgColor(topicTitle,highlightColor1);}else{topicTitle.graphics.foregroundColor=topicTitle.graphics.newPen(topicTitle.graphics.PenType.SOLID_COLOR,[0.83,0,0.23,1],1);}topicTitle.preferredSize.width=(TARGET_HELP_WIDTH-(MARGIN_SIZE*2)-(topicsTabPanel.margins.left+topicsTabPanel.margins.right)-(tab.margins.left+tab.margins.right)-topicGrp.margins.left);if(topic.text!==""){var topicText=topicGrp.add("statictext",undefined,topic.text,{multiline:true});topicText.graphics.font=ScriptUI.newFont("Arial","Regular",11);topicText.preferredSize.width=(TARGET_HELP_WIDTH-(MARGIN_SIZE*2)-(topicsTabPanel.margins.left+topicsTabPanel.margins.right)-(tab.margins.left+tab.margins.right)-topicGrp.margins.left);topicText.preferredSize.height=50;if(typeof normalColor1!=='undefined'&&typeof setFgColor!=='undefined'){setFgColor(topicText,normalColor1);}else{topicText.graphics.foregroundColor=topicText.graphics.newPen(topicText.graphics.PenType.SOLID_COLOR,[1,1,1,1],1);}}}}
 		var closeBtnGrp=helpWin.add("group");closeBtnGrp.alignment="center";closeBtnGrp.margins=[0,10,0,0];var closeBtn=closeBtnGrp.add("button",undefined,"OK");closeBtn.onClick=function(){helpWin.close();};helpWin.layout.layout(true);helpWin.center();helpWin.show();
 	}
 
