@@ -30,7 +30,8 @@ function getFolderStructureAsData(rootFolder, fileFilter) {
     for (var i = 0; i < allItems.length; i++) {
         var item = allItems[i];
         if (item instanceof Folder) {
-            if (item.displayName === "Adobe After Effects Auto-Save") {
+            // REGRA ATUALIZADA: Ignorar pastas de Auto-Save e pastas temporárias do Media Encoder (_AME)
+            if (item.displayName === "Adobe After Effects Auto-Save" || item.displayName.slice(-4) === '_AME') {
                 continue;
             }
             var subItems = getFolderStructureAsData(item, fileFilter);
@@ -42,7 +43,8 @@ function getFolderStructureAsData(rootFolder, fileFilter) {
                 });
             }
         } else if (item instanceof File) {
-			if (item.displayName.toLowerCase().indexOf("auto-save") > -1) {
+            // REGRA ATUALIZADA: Ignorar arquivos de auto-save e arquivos temporários (tmpAEto)
+            if (item.displayName.toLowerCase().indexOf("auto-save") > -1 || item.displayName.slice(0, 7) === 'tmpAEto') {
                 continue;
             }
             var fileExt = item.name.substr(item.name.lastIndexOf('.')).toLowerCase();
