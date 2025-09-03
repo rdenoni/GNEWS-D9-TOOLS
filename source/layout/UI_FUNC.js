@@ -122,7 +122,7 @@ function D9T_LAYOUT(uiObj) {
       var btn = uiObj.imageButtonArray[b];
       btn.btnGroup.orientation = btnOrientation;
       btn.btnGroup.spacing = isRow ? 0 : 8;
-      btn.normalImg.size = btn.hoverImg.size = [42, 42];
+      btn.normalImg.size = btn.hoverImg.size = [32, 36];
       btn.label.justify = isRow ? "center" : "left";
       btn.label.size = [uiObj.window.size.width - 60, 18];
       if (uiObj.window.size.width < 88 || uiObj.window.size.height < 72) {
