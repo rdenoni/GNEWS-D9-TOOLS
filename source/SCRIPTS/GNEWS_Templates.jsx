@@ -655,7 +655,8 @@ function d9TemplateDialog() {
 
 	codigoTxt.onChanging = function () {
 		try {
-			updateArteInfo();
+			// Esta função pode ser expandida no futuro para re-validar o nome da arte
+			// com base em um código digitado manualmente, por exemplo.
 		} catch (e) {}
 	};
 	
