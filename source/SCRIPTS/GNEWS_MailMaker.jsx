@@ -1,36 +1,31 @@
 /***************************************************
- * GNEWS MailMaker - VERSÃO (v37.6) - FIXED
- * - Implementado o método de cópia exato fornecido pelo usuário,
- * utilizando arquivo temporário com codificação UTF-16.
- * - Adicionado sistema de salvamento e carregamento de preferências do usuário.
- * - Corrigido o problema de gravação do JSON, revertendo o local de salvamento para a pasta de dados do usuário.
- * - Adicionada verificação de sucesso ao tentar gravar o arquivo de configurações.
- * - Corrigido o problema de carregamento de preferências na inicialização do script.
- * - CORREÇÃO: Salvamento automático das preferências ao alterar qualquer dropdown
- * - CORREÇÃO COMPLETA DE SINTAXE
+ * GNEWS MailMaker - VERSÃO (v37.7) - COPY FIXED
+ * - Implementado método de cópia robusto para textos multilinhas
+ * - Suporte aprimorado para caracteres especiais e Unicode
+ * - Melhor tratamento de erros e fallbacks
+ * - Sistema de salvamento e carregamento de preferências do usuário
  ***************************************************/
 
 (function() {
 
     // === CONFIGURAÇÕES BÁSICAS ===
     var config = {
-        windowTitle: "GNEWS MailMaker v37.6 - FINAL",
+        windowTitle: "GNEWS MailMaker v37.7 - COPY FIXED",
         settingsFileName: "MailMaker_settings.json"
     };
 
     // === DETECÇÃO DE VERSÃO DO AFTER EFFECTS ===
     var aeVersion = parseFloat(app.version);
-    var isLegacyAE = aeVersion < 22.0; // Versões anteriores ao AE 2022
+    var isLegacyAE = aeVersion < 22.0;
     
     // === CONFIGURAÇÃO DE UNICODE BASEADA NA VERSÃO ===
     var unicodeSymbols = {
-        // Para AE 2022+ (suporte completo ao Unicode)
         modern: {
-            folder: "🗂",
+            folder: "📂",
             email: "💬",
             config: "🔧",
             preview: "👁️",
-            capture: "📘",
+            capture: "🔘",
             detect: "🔍",
             image: "🖼️",
             copy: "📋",
@@ -52,7 +47,6 @@
             rocket: "🚀",
             metalHorn: "🤟"
         },
-        // Para versões legadas (símbolos básicos ASCII + alguns Unicode simples)
         legacy: {
             folder: "[PASTA]",
             email: "[EMAIL]",
@@ -82,19 +76,16 @@
         }
     };
 
-    // Seleciona o conjunto de símbolos baseado na versão
     var symbols = isLegacyAE ? unicodeSymbols.legacy : unicodeSymbols.modern;
     
-    // === CONFIGURAÇÃO DE FONTES BASEADA NA VERSÃO ===
+    // === CONFIGURAÇÃO DE FONTES ===
     var fontConfig = {
-        // Para versões modernas (AE 2022+)
         modern: {
             defaultFont: "Arial Unicode MS",
             fallbackFont: "Segoe UI",
             size: 10,
             titleSize: 15
         },
-        // Para versões legadas
         legacy: {
             defaultFont: "Arial",
             fallbackFont: "Times New Roman", 
@@ -183,7 +174,6 @@
         if (!ui.statusText) return;
         var color = COLORS[type] || COLORS.neutral;
         
-        // Adiciona símbolo baseado no tipo e versão do AE
         var symbolPrefix = "";
         switch(type) {
             case "success": symbolPrefix = symbols.success + " "; break;
@@ -204,7 +194,135 @@
             }, 5000);
         }
     }
+
+    // === FUNÇÃO DE CÓPIA ROBUSTA E MELHORADA ===
+// === FUNÇÃO DE CÓPIA ROBUSTA E CORRIGIDA ===
+// === FUNÇÃO DE CÓPIA ROBUSTA E DEPURADA (LÓGICA ORIGINAL CORRIGIDA) ===
+function setClipboard(str) {
+    var isWindows = $.os.indexOf('Windows') !== -1;
+    var tempFile = new File(Folder.temp.fsName + "/aemail_" + Date.now() + ".txt");
     
+    try {
+        // Cria o arquivo temporário com o conteúdo
+        tempFile.encoding = "UTF-8";
+        if (!tempFile.open("w")) {
+            throw new Error("Não foi possível criar arquivo temporário");
+        }
+        
+        // Adiciona BOM para Windows garantir UTF-8
+        if (isWindows) {
+            tempFile.write('\ufeff' + str);
+        } else {
+            tempFile.write(str);
+        }
+        tempFile.close();
+        
+        var cmd;
+        var result; // Variável para armazenar o resultado de cada comando
+        
+        if (isWindows) {
+            // --- Método 1: PowerShell com Get-Content (Método Principal) ---
+            var psCommand = 
+                '$text = Get-Content -Path \\"' + tempFile.fsName.replace(/\\/g, '\\\\') + 
+                '\\" -Encoding UTF8 -Raw; ' +
+                '$text | Set-Clipboard';
+            
+            cmd = 'powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "' + psCommand + '"';
+            
+            logDebug("Tentando Método 1: PowerShell com Get-Content...");
+            result = system.callSystem(cmd);
+            logDebug("Resultado do Método 1: " + result);
+            
+            // CORREÇÃO: No Windows, PowerShell com sucesso retorna "" ou null.
+            if (result === "" || result === null) {
+                logDebug("Método 1 bem-sucedido!");
+                // Limpa o arquivo e encerra a função, pois a cópia funcionou.
+                try { tempFile.remove(); } catch(e) {}
+                return; // Sucesso!
+            }
+            
+            // --- Se o Método 1 falhou, tenta o Método 2 ---
+            logDebug("Método 1 falhou. Tentando Método 2: clip.exe...");
+            
+            // --- Método 2: Usando clip.exe diretamente (Fallback 1) ---
+            cmd = 'cmd.exe /c type "' + tempFile.fsName + '" | clip';
+            result = system.callSystem(cmd);
+            logDebug("Resultado do Método 2: " + result);
+
+            // Para cmd.exe, o resultado 0 indica sucesso.
+            if (result === 0) {
+                logDebug("Método 2 bem-sucedido!");
+                try { tempFile.remove(); } catch(e) {}
+                return; // Sucesso!
+            }
+
+            // --- Se o Método 2 falhou, tenta o Método 3 ---
+            logDebug("Método 2 falhou. Tentando Método 3: PowerShell com arquivo .ps1...");
+            
+            // --- Método 3: Usando PowerShell com script temporário (Fallback 2) ---
+            var psFile = new File(Folder.temp.fsName + "/copy_" + Date.now() + ".ps1");
+            psFile.encoding = "UTF-8";
+            psFile.open("w");
+            psFile.write(
+                '$content = [System.IO.File]::ReadAllText("' + 
+                tempFile.fsName.replace(/\\/g, '\\\\') + 
+                '", [System.Text.Encoding]::UTF8)\r\n' +
+                'Add-Type -Assembly System.Windows.Forms\r\n' +
+                '[System.Windows.Forms.Clipboard]::SetText($content)'
+            );
+            psFile.close();
+            
+            cmd = 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File "' + psFile.fsName + '"';
+            result = system.callSystem(cmd);
+            logDebug("Resultado do Método 3: " + result);
+            
+            try { psFile.remove(); } catch(e) {} // Remove o script .ps1
+
+            // CORREÇÃO: Mesma verificação do Método 1 para PowerShell.
+            if (result === "" || result === null) {
+                logDebug("Método 3 bem-sucedido!");
+                try { tempFile.remove(); } catch(e) {}
+                return; // Sucesso!
+            }
+
+            // Se todos os métodos falharam, lança o erro.
+            throw new Error("Todos os métodos de cópia falharam no Windows");
+
+        } else {
+            // Lógica para macOS (mantida como original)
+            cmd = 'cat "' + tempFile.fsName + '" | pbcopy';
+            logDebug("Executando comando macOS: " + cmd);
+            result = system.callSystem(cmd);
+            
+            if (result !== 0) {
+                logDebug("pbcopy direto falhou, tentando com iconv...");
+                cmd = 'iconv -f UTF-8 -t UTF-8 "' + tempFile.fsName + '" | pbcopy';
+                result = system.callSystem(cmd);
+                
+                if (result !== 0) {
+                    throw new Error("Falha ao copiar no macOS");
+                }
+            }
+        }
+        
+        logDebug("Texto copiado com sucesso!");
+        
+    } catch (e) {
+        logDebug("Erro final na função de cópia: " + e.toString());
+        throw new Error("Falha completa ao copiar: " + e.message);
+        
+    } finally {
+        // Limpa o arquivo temporário principal
+        try {
+            if (tempFile && tempFile.exists) {
+                tempFile.remove();
+            }
+        } catch (cleanupError) {
+            logDebug("Aviso: Não foi possível remover arquivo temporário: " + cleanupError.toString());
+        }
+    }
+}
+    // === FUNÇÕES AUXILIARES ===
     function findScriptMainPath() {
         try {
             var aexPath = Folder.decode(app.path);
@@ -291,7 +409,6 @@
                 showTeamData: appData.showTeamData
             };
 
-            // Certifica-se de que a função open foi bem-sucedida antes de escrever
             settingsFile.encoding = "UTF-8";
             if (settingsFile.open("w")) {
                 settingsFile.write(JSON.stringify(settingsObj, null, 2));
@@ -328,7 +445,6 @@
                     if (appData.selectedTemplate === "Personalizado" && !loaded.emailMessage) {
                         appData.emailMessage = "";
                     } else if (appData.selectedTemplate !== "Personalizado" && loaded.emailMessage !== templates[appData.selectedTemplate]) {
-                        // Se a mensagem salva não corresponde ao template, muda para Personalizado
                         appData.selectedTemplate = "Personalizado";
                     }
                     logDebug("Preferências carregadas: " + JSON.stringify(loaded));
@@ -340,65 +456,6 @@
     }
 
     // === LÓGICA PRINCIPAL ===
-
-    // *** FUNÇÃO DE CÓPIA MELHORADA ***
-    function setClipboard(str) {
-        var tempFile = new File(Folder.temp.fsName + "/temp_clipboard_mailmaker.txt");
-        var isWindows = $.os.indexOf('Windows') !== -1;
-        var cmd;
-    
-        try {
-            // Remove o arquivo temporário se existir
-            if (tempFile.exists) {
-                tempFile.remove();
-            }
-
-            // Abre o arquivo para escrita
-            tempFile.encoding = "UTF-8";
-            if (!tempFile.open("w")) {
-                throw new Error("Não foi possível criar arquivo temporário");
-            }
-
-            if (isWindows) {
-                // Windows - usa UTF-8 com BOM para compatibilidade
-                tempFile.write('\ufeff' + str);
-                tempFile.close();
-                
-                // PowerShell command para Windows
-                var psCommand = 'Get-Content -Path "' + tempFile.fsName.replace(/\\/g, '\\\\') + '" -Encoding UTF8 | Set-Clipboard';
-                cmd = 'powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "' + psCommand + '"';
-            } else {
-                // Mac/Unix - usa UTF-8 sem BOM
-                tempFile.write(str);
-                tempFile.close();
-                
-                // pbcopy command para Mac
-                cmd = 'cat "' + tempFile.fsName + '" | pbcopy';
-            }
-            
-            // Executa o comando do sistema
-            var result = system.callSystem(cmd);
-            
-            // Verifica se o comando foi executado com sucesso
-            if (result !== 0 && !isWindows) {
-                throw new Error("Comando de cópia falhou (código: " + result + ")");
-            }
-            
-        } catch (e) {
-            logDebug("Erro na função de cópia: " + e.toString());
-            throw new Error("Falha ao copiar: " + e.message);
-        } finally {
-            // Limpa o arquivo temporário
-            try {
-                if (tempFile.exists) {
-                    tempFile.remove();
-                }
-            } catch (cleanupError) {
-                logDebug("Aviso: Não foi possível remover arquivo temporário: " + cleanupError.toString());
-            }
-        }
-    }
-    
     function showMailMakerHelp() {
         var helpWin = new Window("dialog", "Ajuda - GNEWS MailMaker");
         helpWin.add("statictext", undefined, "Esta ferramenta automatiza a criação de e-mails para envio de artes.");
@@ -473,7 +530,6 @@
         var hasMediaEncoder = false;
         
         try {
-            // Verifica se existe um projeto salvo
             if (app.project && app.project.file) {
                 var projectPath = app.project.file.fsName;
                 var projectName = app.project.file.name.replace(/\.(aep|aet)$/i, "");
@@ -484,7 +540,6 @@
                 teamDataText += projectPath + "\n";
                 teamDataText += projectName + "\n";
                 
-                // Verifica Render Queue do After Effects
                 var renderQueue = app.project.renderQueue;
                 var renderPaths = [];
                 
@@ -512,13 +567,10 @@
                     teamDataText += "[Nenhum item na fila de render]\n";
                 }
                 
-                // Verifica Adobe Media Encoder
                 try {
-                    // Tenta acessar o Adobe Media Encoder via BridgeTalk
                     var bt = new BridgeTalk();
                     bt.target = "ame";
                     
-                    // Script para executar no Media Encoder
                     var ameScript = '(function() {' +
                         'try {' +
                             'var encoder = app.encoder;' +
@@ -564,12 +616,10 @@
                         updateEmailPreview();
                     };
                     
-                    // Timeout para não travar a interface
-                    bt.timeout = 3000; // 3 segundos
+                    bt.timeout = 3000;
                     bt.send();
                     
                 } catch (ameError) {
-                    // Se falhar ao conectar com o Media Encoder
                     teamDataText += "MEDIA ENCODER:\n";
                     teamDataText += "[Media Encoder não disponível]\n";
                 }
@@ -580,7 +630,6 @@
                 teamDataText += "[Projeto não foi salvo]";
             }
             
-            // Alerta sobre dados faltantes
             if (!hasProject) {
                 updateStatus("Projeto não foi salvo - dados da equipe incompletos", "warning");
             } else if (!hasRenderQueue && !hasMediaEncoder) {
@@ -605,17 +654,13 @@
         var destinationName = appData.customDestinationName || "Nenhum Destino";
         var destinationPath = appData.customDestinationPath || "Selecione um preset ou use a detecção.";
         
-        // Formata o destino baseado na opção showFullPath
         var destinoFormatted;
         if (appData.showFullPath) {
-            // Exibe nome e caminho completo (comportamento atual)
             destinoFormatted = symbols.folder + " " + destinationName.toUpperCase() + "\n    " + destinationPath;
         } else {
-            // Exibe apenas o nome do destino
             destinoFormatted = symbols.folder + " " + destinationName.toUpperCase();
         }
         
-        // Remove underscores dos nomes das composições
         var cleanedCompNames = [];
         for (var i = 0; i < appData.capturedCompNames.length; i++) {
             var cleanName = appData.capturedCompNames[i].replace(/_/g, " ");
@@ -624,16 +669,13 @@
         
         var compsFormatted = (cleanedCompNames.length === 0) ? symbols.error + " NENHUMA COMP CAPTURADA" : (cleanedCompNames.length === 1) ? cleanedCompNames[0] : "    " + cleanedCompNames.join("\n    ");
         
-        // Monta o email básico
         var emailCompleto = saudacaoCompleta + "\n\n" + finalMessage + "\n\n" + "Artes prontas no:\n" + destinoFormatted + "\n" + compsFormatted + "\n\n";
         
-        // Adiciona dados da equipe se habilitado
         if (appData.showTeamData) {
             var teamData = generateTeamData();
             emailCompleto += teamData + "\n\n";
         }
         
-        // Adiciona despedida
         emailCompleto += "\n\n" + appData.selectedDespedida + " " + appData.selectedEmoji;
         
         ui.previewText.text = emailCompleto;
