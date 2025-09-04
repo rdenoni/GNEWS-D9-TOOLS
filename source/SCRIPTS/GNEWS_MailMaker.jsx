@@ -195,21 +195,18 @@
         }
     }
 
-    // === FUNÇÃO DE CÓPIA ROBUSTA E MELHORADA ===
-// === FUNÇÃO DE CÓPIA ROBUSTA E CORRIGIDA ===
-// === FUNÇÃO DE CÓPIA ROBUSTA E DEPURADA (LÓGICA ORIGINAL CORRIGIDA) ===
 function setClipboard(str) {
     var isWindows = $.os.indexOf('Windows') !== -1;
     var tempFile = new File(Folder.temp.fsName + "/aemail_" + Date.now() + ".txt");
-    
+
     try {
-        // Cria o arquivo temporário com o conteúdo
+        // 1. Cria o arquivo temporário com o conteúdo do e-mail
         tempFile.encoding = "UTF-8";
         if (!tempFile.open("w")) {
-            throw new Error("Não foi possível criar arquivo temporário");
+            throw new Error("Não foi possível criar o arquivo temporário.");
         }
         
-        // Adiciona BOM para Windows garantir UTF-8
+        // Adiciona BOM (Byte Order Mark) no Windows para garantir a leitura correta de UTF-8
         if (isWindows) {
             tempFile.write('\ufeff' + str);
         } else {
@@ -218,107 +215,50 @@ function setClipboard(str) {
         tempFile.close();
         
         var cmd;
-        var result; // Variável para armazenar o resultado de cada comando
+        var result;
         
         if (isWindows) {
-            // --- Método 1: PowerShell com Get-Content (Método Principal) ---
-            var psCommand = 
-                '$text = Get-Content -Path \\"' + tempFile.fsName.replace(/\\/g, '\\\\') + 
-                '\\" -Encoding UTF8 -Raw; ' +
-                '$text | Set-Clipboard';
+            // 2. Utiliza exclusivamente o método PowerShell com .NET Framework.
+            logDebug("Usando método de cópia dedicado via PowerShell + .NET");
             
-            cmd = 'powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "' + psCommand + '"';
+            // Escapa as barras invertidas do caminho para o comando PowerShell
+            var tempFilePath = tempFile.fsName.replace(/\\/g, '\\\\');
             
-            logDebug("Tentando Método 1: PowerShell com Get-Content...");
+            // Comando único que carrega a biblioteca .NET e usa a área de transferência nativa do Windows
+            cmd = 'powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.Clipboard]::SetText([System.IO.File]::ReadAllText(\'' + tempFilePath + '\', [System.Text.Encoding]::UTF8))"';
+            
             result = system.callSystem(cmd);
-            logDebug("Resultado do Método 1: " + result);
             
-            // CORREÇÃO: No Windows, PowerShell com sucesso retorna "" ou null.
-            if (result === "" || result === null) {
-                logDebug("Método 1 bem-sucedido!");
-                // Limpa o arquivo e encerra a função, pois a cópia funcionou.
-                try { tempFile.remove(); } catch(e) {}
-                return; // Sucesso!
+            // No Windows, um retorno vazio ("") ou nulo significa sucesso. Qualquer outra coisa é erro.
+            if (result !== "" && result !== null) {
+                 throw new Error("O comando PowerShell falhou. Causa provável: antivírus ou permissões de segurança do sistema.");
             }
-            
-            // --- Se o Método 1 falhou, tenta o Método 2 ---
-            logDebug("Método 1 falhou. Tentando Método 2: clip.exe...");
-            
-            // --- Método 2: Usando clip.exe diretamente (Fallback 1) ---
-            cmd = 'cmd.exe /c type "' + tempFile.fsName + '" | clip';
-            result = system.callSystem(cmd);
-            logDebug("Resultado do Método 2: " + result);
-
-            // Para cmd.exe, o resultado 0 indica sucesso.
-            if (result === 0) {
-                logDebug("Método 2 bem-sucedido!");
-                try { tempFile.remove(); } catch(e) {}
-                return; // Sucesso!
-            }
-
-            // --- Se o Método 2 falhou, tenta o Método 3 ---
-            logDebug("Método 2 falhou. Tentando Método 3: PowerShell com arquivo .ps1...");
-            
-            // --- Método 3: Usando PowerShell com script temporário (Fallback 2) ---
-            var psFile = new File(Folder.temp.fsName + "/copy_" + Date.now() + ".ps1");
-            psFile.encoding = "UTF-8";
-            psFile.open("w");
-            psFile.write(
-                '$content = [System.IO.File]::ReadAllText("' + 
-                tempFile.fsName.replace(/\\/g, '\\\\') + 
-                '", [System.Text.Encoding]::UTF8)\r\n' +
-                'Add-Type -Assembly System.Windows.Forms\r\n' +
-                '[System.Windows.Forms.Clipboard]::SetText($content)'
-            );
-            psFile.close();
-            
-            cmd = 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File "' + psFile.fsName + '"';
-            result = system.callSystem(cmd);
-            logDebug("Resultado do Método 3: " + result);
-            
-            try { psFile.remove(); } catch(e) {} // Remove o script .ps1
-
-            // CORREÇÃO: Mesma verificação do Método 1 para PowerShell.
-            if (result === "" || result === null) {
-                logDebug("Método 3 bem-sucedido!");
-                try { tempFile.remove(); } catch(e) {}
-                return; // Sucesso!
-            }
-
-            // Se todos os métodos falharam, lança o erro.
-            throw new Error("Todos os métodos de cópia falharam no Windows");
 
         } else {
-            // Lógica para macOS (mantida como original)
+            // Método padrão para macOS é mantido
+            logDebug("Usando método de cópia via pbcopy para macOS");
             cmd = 'cat "' + tempFile.fsName + '" | pbcopy';
-            logDebug("Executando comando macOS: " + cmd);
             result = system.callSystem(cmd);
             
             if (result !== 0) {
-                logDebug("pbcopy direto falhou, tentando com iconv...");
-                cmd = 'iconv -f UTF-8 -t UTF-8 "' + tempFile.fsName + '" | pbcopy';
-                result = system.callSystem(cmd);
-                
-                if (result !== 0) {
-                    throw new Error("Falha ao copiar no macOS");
-                }
+                throw new Error("O comando 'pbcopy' falhou no macOS.");
             }
         }
         
         logDebug("Texto copiado com sucesso!");
         
     } catch (e) {
-        logDebug("Erro final na função de cópia: " + e.toString());
-        throw new Error("Falha completa ao copiar: " + e.message);
+        logDebug("ERRO em setClipboard: " + e.toString());
+        throw e; // Propaga o erro para ser exibido na UI
         
     } finally {
-        // Limpa o arquivo temporário principal
+        // 3. Garante que o arquivo temporário seja sempre removido
         try {
             if (tempFile && tempFile.exists) {
                 tempFile.remove();
             }
         } catch (cleanupError) {
-            logDebug("Aviso: Não foi possível remover arquivo temporário: " + cleanupError.toString());
+            logDebug("Aviso: Não foi possível remover o arquivo temporário: " + cleanupError.toString());
         }
     }
 }

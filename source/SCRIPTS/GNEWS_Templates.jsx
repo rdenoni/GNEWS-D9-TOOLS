@@ -79,81 +79,62 @@ function d9TemplateDialog() {
 		} catch (e) {}
 	}
 
-	// === FUNÇÃO DE BUSCA MELHORADA ===
+	// === FUNÇÃO DE BUSCA OTIMIZADA E CORRIGIDA ===
 	function performSearch(searchTerm) {
-		// Recarregar templates do cache
-		loadTemplatesFromCache(false);
-		
+		var prodName = validProductions[prodDrop.selection.index].name;
+		var masterData = templatesCache[prodName];
+
+		if (!masterData) return;
+
 		if (searchTerm === '') {
+			templateTree.removeAll();
+			populateTreeFromData(templateTree, masterData);
+			expandAllNodes(templateTree);
 			updateItemCounter();
 			return;
 		}
-		
-		try {
-			var searchTermUpper = searchTerm.toUpperCase();
-			var cleanSearchTerm = searchTermUpper;
-			
-			// Aplicar normalização se disponível
-			if (typeof String.prototype.replaceSpecialCharacters === 'function') {
-				cleanSearchTerm = searchTermUpper.replaceSpecialCharacters();
-			}
-			
-			// Função recursiva para filtrar itens
-			function filterTreeItems(parentNode) {
-				var keptChildren = [];
-				
-				for (var i = 0; i < parentNode.items.length; i++) {
-					var item = parentNode.items[i];
-					var shouldKeep = false;
-					
-					if (item.type === 'item') {
-						// Para itens, verificar se o nome contém o termo de busca
-						var itemText = item.text.toUpperCase();
-						if (typeof String.prototype.replaceSpecialCharacters === 'function') {
-							itemText = itemText.replaceSpecialCharacters();
-						}
-						
-						if (itemText.indexOf(cleanSearchTerm) !== -1) {
-							shouldKeep = true;
-						}
-					} else if (item.type === 'node') {
-						// Para nós, primeiro verificar filhos recursivamente
-						var childrenKept = filterTreeItems(item);
-						
-						// Se manteve filhos OU se o nome do nó contém o termo, manter o nó
-						var nodeText = item.text.toUpperCase();
-						if (typeof String.prototype.replaceSpecialCharacters === 'function') {
-							nodeText = nodeText.replaceSpecialCharacters();
-						}
-						
-						if (childrenKept > 0 || nodeText.indexOf(cleanSearchTerm) !== -1) {
-							shouldKeep = true;
-						}
+
+		var searchTermUpper = searchTerm.toUpperCase();
+		var cleanSearchTerm = searchTermUpper;
+		if (typeof String.prototype.replaceSpecialCharacters === 'function') {
+			cleanSearchTerm = searchTermUpper.replaceSpecialCharacters();
+		}
+
+		function filterData(data) {
+			var filteredList = [];
+			for (var i = 0; i < data.length; i++) {
+				var item = data[i];
+
+				if (item.type === 'item') {
+					var itemText = item.text.toUpperCase();
+					if (typeof String.prototype.replaceSpecialCharacters === 'function') {
+						itemText = itemText.replaceSpecialCharacters();
 					}
-					
-					if (shouldKeep) {
-						keptChildren.push(item);
-					} else {
-						parentNode.remove(item);
-						i--; // Ajustar índice após remoção
+					if (itemText.indexOf(cleanSearchTerm) !== -1) {
+						filteredList.push(item);
+					}
+				} else if (item.type === 'node') {
+					var nodeText = item.text.toUpperCase();
+					if (typeof String.prototype.replaceSpecialCharacters === 'function') {
+						nodeText = nodeText.replaceSpecialCharacters();
+					}
+					var filteredChildren = filterData(item.children);
+					if (nodeText.indexOf(cleanSearchTerm) !== -1 || filteredChildren.length > 0) {
+						var nodeCopy = JSON.parse(JSON.stringify(item));
+						nodeCopy.children = filteredChildren;
+						filteredList.push(nodeCopy);
 					}
 				}
-				
-				return keptChildren.length;
 			}
-			
-			// Aplicar filtro na árvore
-			filterTreeItems(templateTree);
-			
-			// Expandir todos os nós para mostrar resultados
-			expandAllNodes(templateTree);
-			
-			updateItemCounter();
-			
-		} catch (e) {
-			// Em caso de erro, apenas atualizar contador
-			updateItemCounter();
+			return filteredList;
 		}
+
+		var filteredTreeData = filterData(masterData);
+
+		templateTree.removeAll();
+		populateTreeFromData(templateTree, filteredTreeData);
+		expandAllNodes(templateTree);
+		updateItemCounter();
 	}
 
 	// === FUNÇÃO findItem MELHORADA ===
@@ -165,28 +146,22 @@ function d9TemplateDialog() {
 			var branch = branches[i];
 			
 			if (branch.type === 'node') {
-				// Recursivamente buscar em nós filhos
 				findItem(branch, list, searchTxt);
 			}
 			
 			try {
-				// Normalizar textos para comparação
 				var itemText = branch.text.trim().toUpperCase();
 				var searchText = searchTxt.trim().toUpperCase();
 				
-				// Aplicar normalização se disponível
 				if (typeof String.prototype.replaceSpecialCharacters === 'function') {
 					itemText = itemText.replaceSpecialCharacters();
 					searchText = searchText.replaceSpecialCharacters();
 				}
 				
-				// Busca mais precisa usando indexOf
 				if (itemText.indexOf(searchText) !== -1) {
 					list.push(branch);
 				}
-			} catch(e) {
-				// Ignorar erros de texto
-			}
+			} catch(e) {}
 		}
 		
 		return list;
@@ -378,9 +353,27 @@ function d9TemplateDialog() {
 		itemCounterLab.text = count + (count === 1 ? ' item' : ' itens');
 	}
 
+	function showSearchingFeedback(isSearching) {
+		if (isSearching) {
+			loadingGrp.children[0].text = 'Pesquisando...';
+			loadingGrp.visible = true;
+			templateTree.visible = false;
+		} else {
+			loadingGrp.visible = false;
+			templateTree.visible = true;
+		}
+	}
+
 	function setLoadingState(isLoading) {
-		loadingGrp.visible = isLoading;
-		templateTree.visible = !isLoading;
+		if (isLoading) {
+			loadingGrp.children[0].text = 'Carregando, por favor aguarde...';
+			loadingGrp.visible = true;
+			templateTree.visible = false;
+		} else {
+			loadingGrp.visible = false;
+			templateTree.visible = true;
+		}
+
 		searchBox.enabled = !isLoading;
 		prodDrop.enabled = !isLoading;
 		try {
@@ -513,6 +506,7 @@ function d9TemplateDialog() {
 	setFgColor(codigoLab, monoColor0);
 	var codigoTxt = codigoGrp.add('edittext', [0, 0, 120, 24], 'GNVZ036');
 	codigoTxt.helpTip = 'Digite o codigo da arte (ex: GNVZ036)';
+	
 	var infoRows = [{
 		label: 'Nome da Arte:',
 		value: '---'
@@ -521,8 +515,12 @@ function d9TemplateDialog() {
 		value: '---'
 	}, {
 		label: 'Ultima Atualizacao:',
-		value: new Date().toLocaleDateString('pt-BR')
+		value: '---'
+	}, {
+		label: 'Versão:',
+		value: '---'
 	}];
+
 	var infoLabels = [],
 		infoValues = [];
 	for (var r = 0; r < infoRows.length; r++) {
@@ -541,33 +539,55 @@ function d9TemplateDialog() {
 		infoValues.push(value);
 	}
 
+	// FUNÇÃO FINAL, CORRIGIDA E MAIS ROBUSTA
+	function getAepVersion(aepFile) {
+		if (!aepFile || !aepFile.exists) {
+			return "N/A";
+		}
+		try {
+			aepFile.encoding = "BINARY";
+			aepFile.open('r');
+			var fileContent = aepFile.read(200000);
+			aepFile.close();
+	
+			// MÉTODO DE BUSCA ALTERNATIVO E MAIS SEGURO: regex.exec(string)
+			var regex1 = /<xmp:CreatorTool>Adobe After Effects ([\d\.]+)/i;
+			var match = regex1.exec(fileContent);
+			if (match && match[1]) {
+				return match[1];
+			}
+	
+			var regex2 = /<stEvt:softwareAgent>Adobe After Effects ([\d\.]+)/i;
+			match = regex2.exec(fileContent);
+			if (match && match[1]) {
+				return match[1];
+			}
+	
+			return "Desconhecida";
+	
+		} catch (e) {
+			return "Erro de leitura";
+		}
+	}
+
 	function generateCodigoFromTemplate(templateName) {
 		try {
-			// Remove a extensão do arquivo e normaliza para maiúsculas
 			var name = (typeof deleteFileExt === 'function' ? deleteFileExt(templateName) : templateName.replace(/\.[^\.]+$/, '')).toUpperCase();
 			var currentYear = new Date().getFullYear().toString();
-
-			// Limpa o nome para contar palavras corretamente (remove múltiplos espaços, caracteres especiais)
 			var cleanName = name.replace(/[^A-Z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
 			var words = cleanName.split(' ');
-			
-			// String contendo apenas letras para extrair os prefixos
 			var lettersOnly = cleanName.replace(/[^A-Z]/g, '');
 			var codigo = '';
-
 			if (words.length >= 3) {
-				// Regra para 2 ou mais espaços: [2 primeiras letras] + [letra da 2ª palavra] + [letra da 3ª palavra] + [ano]
 				var firstTwoLetters = lettersOnly.substring(0, 2);
 				var letterAfterFirstSpace = words[1].charAt(0);
 				var letterAfterSecondSpace = words[2].charAt(0);
 				codigo = firstTwoLetters + letterAfterFirstSpace + letterAfterSecondSpace + currentYear;
 			} else if (words.length === 2) {
-				// Regra para 1 espaço: [3 primeiras letras] + [letra da 2ª palavra] + [ano]
 				var firstThreeLetters = lettersOnly.substring(0, 3);
 				var letterAfterSpace = words[1].charAt(0);
 				codigo = firstThreeLetters + letterAfterSpace + currentYear;
 			} else {
-				// Fallback para nomes com uma só palavra: [4 primeiras letras] + [ano]
 				codigo = lettersOnly.substring(0, 4) + currentYear;
 			}
 			return codigo.toUpperCase();
@@ -581,37 +601,19 @@ function d9TemplateDialog() {
 			var name = templateName.toUpperCase();
 			var path = templatePath ? templatePath.toUpperCase() : '';
 			var fullText = name + ' ' + path;
-
-			// Verificar PARA ILHA
 			var ilhaTerms = ['PESQUISA', 'DATAFOLHA', 'QUAEST', 'IPEC', 'CREDITO', 'INSERT', 'ALPHA'];
 			for (var i = 0; i < ilhaTerms.length; i++) {
-				if (fullText.indexOf(ilhaTerms[i]) !== -1) {
-					return 'PARA ILHA';
-				}
+				if (fullText.indexOf(ilhaTerms[i]) !== -1) return 'PARA ILHA';
 			}
-
-			// Verificar VIZ
 			var vizTerms = ['CABECALHO', 'QR CODE', 'VIRTUAL', 'TOTEM'];
 			for (var i = 0; i < vizTerms.length; i++) {
-				if (fullText.indexOf(vizTerms[i]) !== -1) {
-					return 'VIZ';
-				}
+				if (fullText.indexOf(vizTerms[i]) !== -1) return 'VIZ';
 			}
-
-			// Verificar PAM MAGAZINE
-			var magazineTerms = [
-				'ESTUDIO I', 'ESTÚDIO I', 'STUDIO I', 'STÚDIO I',
-				'GLOBONEWS INTERNACIONAL', 'BALAIO'
-			];
+			var magazineTerms = ['ESTUDIO I', 'ESTÚDIO I', 'STUDIO I', 'STÚDIO I', 'GLOBONEWS INTERNACIONAL', 'BALAIO'];
 			for (var i = 0; i < magazineTerms.length; i++) {
-				if (fullText.indexOf(magazineTerms[i]) !== -1) {
-					return 'PAM MAGAZINE';
-				}
+				if (fullText.indexOf(magazineTerms[i]) !== -1) return 'PAM MAGAZINE';
 			}
-
-			// Retorno padrão caso nenhum termo seja encontrado
 			return 'PAM HARDNEWS';
-
 		} catch (e) {
 			return 'ERRO';
 		}
@@ -620,43 +622,36 @@ function d9TemplateDialog() {
 	function updateArteInfo() {
 		try {
 			var selectedTemplate = templateTree.selection;
-
 			if (selectedTemplate && selectedTemplate.type === 'item' && selectedTemplate.filePath) {
 				var templateNameWithExt = selectedTemplate.text;
-				
-				// 1. Nome da Arte: Nome do arquivo em maiúsculas e sem a extensão.
 				var nomeDaArte = (typeof deleteFileExt === 'function' ? deleteFileExt(templateNameWithExt) : templateNameWithExt.replace(/\.[^\.]+$/, '')).toUpperCase();
 				infoValues[0].text = nomeDaArte;
-				
-				// 2. Geração de Código: Chama a nova função com lógica aprimorada.
 				var generatedCodigo = generateCodigoFromTemplate(templateNameWithExt);
 				codigoTxt.text = generatedCodigo;
-
-				// 3. Detecção de Servidor: Chama a função com o novo padrão.
 				var templatePath = selectedTemplate.filePath;
 				var servidorDestino = determineServidorDestino(templateNameWithExt, templatePath);
 				infoValues[1].text = servidorDestino;
-
-				// 4. Última Atualização: Data já estava correta em português (pt-BR).
 				infoValues[2].text = new Date().toLocaleDateString('pt-BR');
-
+				var aepFile = new File(selectedTemplate.filePath);
+				var aepVersion = getAepVersion(aepFile);
+				infoValues[3].text = aepVersion;
 			} else {
-				// Limpa os campos se nada estiver selecionado
 				codigoTxt.text = '';
 				infoValues[0].text = '---';
 				infoValues[1].text = '---';
-				infoValues[2].text = new Date().toLocaleDateString('pt-BR');
+				infoValues[2].text = '---';
+				infoValues[3].text = '---';
 			}
 		} catch (e) {
 			infoValues[0].text = 'Erro ao atualizar';
 			infoValues[1].text = 'Erro';
+			infoValues[2].text = 'Erro';
+			infoValues[3].text = 'Erro';
 		}
 	}
 
 	codigoTxt.onChanging = function () {
 		try {
-			// Esta função pode ser expandida no futuro para re-validar o nome da arte
-			// com base em um código digitado manualmente, por exemplo.
 		} catch (e) {}
 	};
 	
@@ -666,6 +661,19 @@ function d9TemplateDialog() {
 	var rBtnGrp2 = mainBtnGrp2.add('group');
 	rBtnGrp2.alignment = 'right';
 	rBtnGrp2.spacing = 16;
+	var openBtn;
+	if (typeof themeButton === 'function') {
+		openBtn = new themeButton(rBtnGrp2, {
+			width: 120,
+			height: 32,
+			labelTxt: 'abrir',
+			tips: [lClick + 'abrir o projeto selecionado']
+		});
+	} else {
+		openBtn = rBtnGrp2.add('button', undefined, 'Abrir');
+		openBtn.helpTip = 'abrir o projeto selecionado';
+		openBtn.preferredSize = [120, 32];
+	}
 	var importBtn;
 	if (typeof themeButton === 'function') {
 		importBtn = new themeButton(rBtnGrp2, {
@@ -681,6 +689,7 @@ function d9TemplateDialog() {
 		importBtn.helpTip = 'importar o template selecionado';
 		importBtn.preferredSize = [120, 32];
 	}
+
 	setBgColor(D9T_TEMPLATES_w, bgColor1);
 	prodDrop.onChange = function () {
 		var i = this.selection.index;
@@ -740,7 +749,6 @@ function d9TemplateDialog() {
 		updateArteInfo();
 	};
 
-	// === EVENTOS DO SEARCHBOX CORRIGIDOS ===
 	searchBox.onActivate = function () {
 		if (this.isPlaceholderActive) {
 			this.text = '';
@@ -754,19 +762,23 @@ function d9TemplateDialog() {
 			this.text = placeholderText;
 			setFgColor(this, monoColor0);
 			this.isPlaceholderActive = true;
+			performSearch('');
 		}
 	};
 
 	searchBox.onChanging = function () {
-		// Se estava como placeholder e agora tem texto, desativar placeholder
 		if (this.isPlaceholderActive && this.text !== placeholderText) {
 			this.isPlaceholderActive = false;
 			setFgColor(this, normalColor1);
 		}
-		
-		// Se não é placeholder, realizar busca
 		if (!this.isPlaceholderActive) {
-			performSearch(this.text.trim());
+			showSearchingFeedback(true);
+			D9T_TEMPLATES_w.update();
+			try {
+				performSearch(this.text.trim());
+			} catch (e) {} finally {
+				showSearchingFeedback(false);
+			}
 		}
 	};
 
@@ -780,17 +792,17 @@ function d9TemplateDialog() {
 			this.selection = null;
 			return;
 		}
-		
-		// Atualizar informações da arte automaticamente quando selecionar template
 		updateArteInfo();
-
-		if (this.selection == null || this.selection.filePath == null) return;
+		if (this.selection == null || this.selection.filePath == null) {
+            openBtn.enabled = false;
+            importBtn.enabled = false;
+            return;
+        }
 		projectFile = new File(this.selection.filePath);
 		var templateBase = projectFile.path + '/' + (typeof deleteFileExt === 'function' ? deleteFileExt(projectFile.displayName) : projectFile.displayName.replace(/\.[^\.]+$/, ''));
 		previewFile = new File(templateBase + '_preview.png');
 		configFile = new File(templateBase + '_config.json');
 		scriptFile = new File(templateBase + '_script.js');
-		
 		if (this.selection.size && this.selection.modDate) {
 			var fileSize = (this.selection.size / (1024 * 1024)).toFixed(2) + ' MB';
 			var modDate = new Date(this.selection.modDate).toLocaleString('pt-BR');
@@ -828,16 +840,31 @@ function d9TemplateDialog() {
 			alert((typeof lol !== 'undefined' ? lol : '') + '#D9T_017 - config inválido!');
 			return;
 		}
-		if (typeof importBtn !== 'undefined') {
-			importBtn.enabled = true;
-		}
+		if (typeof importBtn !== 'undefined') importBtn.enabled = true;
+        if (typeof openBtn !== 'undefined') openBtn.enabled = true;
 	};
 
 	templateTree.onActivate = function () {
-		if (typeof importBtn !== 'undefined') {
-			importBtn.enabled = true;
-		}
+		if (typeof importBtn !== 'undefined') importBtn.enabled = true;
+        if (typeof openBtn !== 'undefined') openBtn.enabled = true;
 	};
+
+    function executeOpen() {
+        if (projectFile && projectFile.exists) {
+            D9T_TEMPLATES_w.close();
+            app.open(projectFile);
+        }
+    }
+
+    if (openBtn && typeof openBtn.leftClick !== 'undefined') {
+		openBtn.leftClick.onClick = function () {
+			executeOpen();
+		};
+	} else if (openBtn) {
+		openBtn.onClick = function () {
+			executeOpen();
+		};
+	}
 
 	if (importBtn && typeof importBtn.leftClick !== 'undefined') {
 		importBtn.leftClick.onClick = function () {
@@ -850,80 +877,73 @@ function d9TemplateDialog() {
 	}
 
 	function executeImport() {
-		if (!projectFile || !projectFile.exists) return;
-		templatesMainGrp.visible = false;
-		optionsMainGrp.visible = true;
-		D9T_TEMPLATES_w.size = [compactWidth, 60];
-		D9T_TEMPLATES_w.text = 'IMPORTANDO TEMPLATE...';
-		infoHeaderLab.text = 'projeto:  ' + projectFile.displayName;
-		D9T_TEMPLATES_w.update();
-		D9T_TEMPLATES_w.center();
-		app.project.bitsPerChannel = 8;
-		app.project.expressionEngine = 'javascript-1.0';
-		app.project.linearBlending = true;
-		app.project.timeDisplayType = TimeDisplayType.TIMECODE;
-		try {
-			var IO = new ImportOptions(projectFile);
-			app.project.importFile(IO);
-		} catch (err) {
-			alert((typeof lol !== 'undefined' ? lol : '') + '#D9T_018 - ' + err.message);
-			templatesMainGrp.visible = true;
-			optionsMainGrp.visible = false;
-			D9T_TEMPLATES_w.size.width = extendedWidth;
-			D9T_TEMPLATES_w.text = scriptName + ' ' + scriptVersion;
-			return;
-		}
-		D9T_TEMPLATES_w.text = 'REGISTRANDO LOG...';
-		infoHeaderLab.text = 'TEMPLATE IMPORTADO COM SUCESSO!';
-		progressBar.value = 0;
-		D9T_TEMPLATES_w.update();
-		try {
-			var logFolder = new Folder(validProductions[prodDrop.selection.index].paths[0]);
-			var logPath = logFolder.exists ? logFolder.fsName : projectFile.path;
-			var logFile = new File(logPath + '/log padeiro.csv');
-			var dt = new Date();
-			var y = dt.getFullYear();
-			var m = dt.getMonth() + 1;
-			var d = dt.getDate();
-			var hr = dt.getHours();
-			var mi = dt.getMinutes();
-			if (m < 10) m = '0' + m;
-			if (d < 10) d = '0' + d;
-			if (hr < 10) hr = '0' + hr;
-			if (mi < 10) mi = '0' + mi;
-			var dateStr = [d, m, y].join('/');
-			var timeStr = hr + ':' + mi;
-			var templateName = projectFile.displayName.replace(/\.[^\.]+$/, '');
-			var logData = [templateName, '1', system.userName, dateStr, timeStr, codigoTxt.text.trim().toUpperCase(), infoValues[0].text, infoValues[1].text].join(',');
-			if (typeof saveLogData === 'function') {
-				saveLogData(logFile, logData);
-			} else {
-				if (!logFile.exists) {
-					logFile.open('w');
-					logFile.writeln('Template,Quantidade,Designer,Data,Hora,Codigo_Arte,Nome_Arte,Servidor_Destino');
-					logFile.close();
-				}
-				logFile.open('a');
-				logFile.writeln(logData);
-				logFile.close();
-			}
-			if (typeof sendToWebhookWithCurl === 'function') {
-				var webhookURL = "";
-				var webData = {
-					template: templateName,
-					quantidade: 1,
-					designer: system.userName,
-					codigo_arte: codigoTxt.text.trim().toUpperCase(),
-					nome_arte: infoValues[0].text,
-					servidor_destino: infoValues[1].text
-				};
-				sendToWebhookWithCurl(webData, webhookURL);
-			}
-		} catch (err) {}
-		D9T_TEMPLATES_w.text = 'IMPORTAÇÃO CONCLUÍDA';
-		infoHeaderLab.text = 'TEMPLATE IMPORTADO COM SUCESSO!';
-		D9T_TEMPLATES_w.size = [compactWidth, 100];
-		optBtnMainGrp.visible = true;
+        if (!projectFile || !projectFile.exists) return;
+        templatesMainGrp.visible = false;
+        optionsMainGrp.visible = true;
+        D9T_TEMPLATES_w.size = [compactWidth, 60];
+        D9T_TEMPLATES_w.text = 'IMPORTANDO E REGISTRANDO...';
+        infoHeaderLab.text = 'Projeto: ' + projectFile.displayName;
+        D9T_TEMPLATES_w.update();
+        D9T_TEMPLATES_w.center();
+        app.project.bitsPerChannel = 8;
+        app.project.expressionEngine = 'javascript-1.0';
+        app.project.linearBlending = true;
+        app.project.timeDisplayType = TimeDisplayType.TIMECODE;
+        try {
+            var IO = new ImportOptions(projectFile);
+            app.project.importFile(IO);
+        } catch (err) {
+            alert((typeof lol !== 'undefined' ? lol : '') + '#D9T_018 - ' + err.message);
+            templatesMainGrp.visible = true;
+            optionsMainGrp.visible = false;
+            D9T_TEMPLATES_w.size.width = extendedWidth;
+            D9T_TEMPLATES_w.text = scriptName + ' ' + scriptVersion;
+            return;
+        }
+        try {
+            var logFolder = new Folder(validProductions[prodDrop.selection.index].paths[0]);
+            var logPath = logFolder.exists ? logFolder.fsName : projectFile.path;
+            var logFile = new File(logPath + '/log padeiro.csv');
+            var dt = new Date();
+            var y = dt.getFullYear();
+            var m = dt.getMonth() + 1;
+            var d = dt.getDate();
+            var hr = dt.getHours();
+            var mi = dt.getMinutes();
+            if (m < 10) m = '0' + m;
+            if (d < 10) d = '0' + d;
+            if (hr < 10) hr = '0' + hr;
+            if (mi < 10) mi = '0' + mi;
+            var dateStr = [d, m, y].join('/');
+            var timeStr = hr + ':' + mi;
+            var templateName = projectFile.displayName.replace(/\.[^\.]+$/, '');
+            var logData = [templateName, '1', system.userName, dateStr, timeStr, codigoTxt.text.trim().toUpperCase(), infoValues[0].text, infoValues[1].text].join(',');
+            if (typeof saveLogData === 'function') {
+                saveLogData(logFile, logData);
+            } else {
+                if (!logFile.exists) {
+                    logFile.open('w');
+                    logFile.writeln('Template,Quantidade,Designer,Data,Hora,Codigo_Arte,Nome_Arte,Servidor_Destino');
+                    logFile.close();
+                }
+                logFile.open('a');
+                logFile.writeln(logData);
+                logFile.close();
+            }
+            if (typeof sendToWebhookWithCurl === 'function') {
+                var webhookURL = "";
+                var webData = {
+                    template: templateName,
+                    quantidade: 1,
+                    designer: system.userName,
+                    codigo_arte: codigoTxt.text.trim().toUpperCase(),
+                    nome_arte: infoValues[0].text,
+                    servidor_destino: infoValues[1].text
+                };
+                sendToWebhookWithCurl(webData, webhookURL);
+            }
+        } catch (err) {}
+        D9T_TEMPLATES_w.close();
 	}
 
 	if (nextBtn && typeof nextBtn.leftClick !== 'undefined') {
@@ -958,16 +978,9 @@ function d9TemplateDialog() {
 	};
 
 	templateTree.onDoubleClick = function () {
-		if (this.selection == null || this.selection.filePath == null) return;
-		var fileToImport = new File(this.selection.filePath);
-		if (!fileToImport.exists) return;
-		try {
-			var IO = new ImportOptions(fileToImport);
-			app.project.importFile(IO);
-			D9T_TEMPLATES_w.close();
-		} catch (err) {
-			alert((typeof lol !== 'undefined' ? lol : '') + '#D9T_022 - ' + err.message);
-		}
+		if (this.selection != null && this.selection.filePath) {
+            executeOpen();
+        }
 	};
 
 	if (refreshBtn && typeof refreshBtn.leftClick !== 'undefined') {
@@ -1001,7 +1014,6 @@ function d9TemplateDialog() {
 			alert("Nenhum caminho configurado para a produção '" + selectedProduction.name + "'.");
 			return;
 		}
-
 		function openPath(pathString) {
 			var folderToShow = new Folder(pathString);
 			if (!folderToShow.exists) {
@@ -1010,7 +1022,6 @@ function d9TemplateDialog() {
 			}
 			folderToShow.execute();
 		}
-		
 		if (availablePaths.length === 1) {
 			openPath(availablePaths[0]);
 		} else {
@@ -1026,12 +1037,8 @@ function d9TemplateDialog() {
 			var btnGrp = pathSelectionWin.add('group');
 			btnGrp.orientation = 'row';
 			btnGrp.alignment = ['right', 'center'];
-			btnGrp.add('button', undefined, 'Cancelar', {
-				name: 'cancel'
-			});
-			var okBtn = btnGrp.add('button', undefined, 'Abrir', {
-				name: 'ok'
-			});
+			btnGrp.add('button', undefined, 'Cancelar', { name: 'cancel' });
+			var okBtn = btnGrp.add('button', undefined, 'Abrir', { name: 'ok' });
 			okBtn.onClick = function () {
 				if (list.selection) {
 					openPath(list.selection.text);
@@ -1061,9 +1068,7 @@ function d9TemplateDialog() {
 			TOPIC_SPACING = 5,
 			TOPIC_TITLE_INDENT = 0,
 			SUBTOPIC_INDENT = 25;
-		var helpWin = new Window("dialog", scriptName + " - Ajuda", undefined, {
-			closeButton: true
-		});
+		var helpWin = new Window("dialog", scriptName + " - Ajuda", undefined, { closeButton: true });
 		helpWin.orientation = "column";
 		helpWin.alignChildren = ["fill", "fill"];
 		helpWin.spacing = 10;
@@ -1088,9 +1093,7 @@ function d9TemplateDialog() {
 		} else {
 			titleText.graphics.foregroundColor = titleText.graphics.newPen(titleText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 1], 1);
 		}
-		var mainDescText = headerPanel.add("statictext", undefined, "Gerencie e preencha templates GNEWS com informações automáticas das artes.", {
-			multiline: true
-		});
+		var mainDescText = headerPanel.add("statictext", undefined, "Gerencie e preencha templates GNEWS com informações automáticas das artes.", { multiline: true });
 		mainDescText.alignment = ["fill", "fill"];
 		mainDescText.preferredSize.height = 40;
 		if (typeof normalColor1 !== 'undefined' && typeof setFgColor !== 'undefined') {
