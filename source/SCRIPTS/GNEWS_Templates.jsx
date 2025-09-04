@@ -79,7 +79,6 @@ function d9TemplateDialog() {
 		} catch (e) {}
 	}
 
-	// === FUNÇÃO DE BUSCA OTIMIZADA E CORRIGIDA ===
 	function performSearch(searchTerm) {
 		var prodName = validProductions[prodDrop.selection.index].name;
 		var masterData = templatesCache[prodName];
@@ -137,7 +136,6 @@ function d9TemplateDialog() {
 		updateItemCounter();
 	}
 
-	// === FUNÇÃO findItem MELHORADA ===
 	function findItem(nodeTree, list, searchTxt) {
 		if (!nodeTree || !nodeTree.items) return list;
 		
@@ -364,16 +362,10 @@ function d9TemplateDialog() {
 		}
 	}
 
-	function setLoadingState(isLoading) {
-		if (isLoading) {
-			loadingGrp.children[0].text = 'Carregando, por favor aguarde...';
-			loadingGrp.visible = true;
-			templateTree.visible = false;
-		} else {
-			loadingGrp.visible = false;
-			templateTree.visible = true;
-		}
-
+	function setLoadingState(isLoading, message) {
+		loadingGrp.children[0].text = message || 'Carregando, por favor aguarde...';
+		loadingGrp.visible = isLoading;
+		templateTree.visible = !isLoading;
 		searchBox.enabled = !isLoading;
 		prodDrop.enabled = !isLoading;
 		try {
@@ -385,21 +377,9 @@ function d9TemplateDialog() {
 		}
 	}
 
-	function loadTemplatesFromCache(forceReload) {
-		if (forceReload || !templatesCache[prodDrop.selection.text]) {
-			setLoadingState(true);
-			D9T_TEMPLATES_w.update();
-		}
-		templateTree.removeAll();
-		var selectedProduction = validProductions[prodDrop.selection.index];
-		var prodName = selectedProduction.name;
-		if (!forceReload && templatesCache[prodName]) {
-			populateTreeFromData(templateTree, templatesCache[prodName]);
-			expandAllNodes(templateTree);
-			updateItemCounter();
-			setLoadingState(false);
-			return;
-		}
+	function loadCacheInBackground(prodName) {
+		if (templatesCache[prodName]) return;
+
 		var cacheFileName;
 		switch (prodName) {
 			case 'PEÇAS GRÁFICAS':
@@ -429,23 +409,32 @@ function d9TemplateDialog() {
 					}
 				}
 				templatesCache[prodName] = combinedTreeData;
-				templateTree.removeAll();
-				if (combinedTreeData.length > 0) {
-					populateTreeFromData(templateTree, combinedTreeData);
-					expandAllNodes(templateTree);
-				} else {
-					templateTree.add('item', 'Cache vazio. Nenhum arquivo .aep/.aet foi encontrado.').enabled = false;
-				}
 			} catch (e) {
-				templateTree.removeAll();
-				templateTree.add('item', 'Erro ao ler o cache. Tente recriá-lo.').enabled = false;
+				templatesCache[prodName] = [{ type: 'item', text: 'Erro ao ler o cache.' }];
 			}
 		} else {
-			templateTree.removeAll();
-			templateTree.add('item', 'Cache de templates não encontrado.').enabled = false;
+			templatesCache[prodName] = [{ type: 'item', text: 'Cache não encontrado.' }];
 		}
-		setLoadingState(false);
+	}
+	
+	function loadTemplatesFromCache() {
+		var prodName = validProductions[prodDrop.selection.index].name;
+		
+		setLoadingState(true, 'Carregando ' + prodName + '...');
+		D9T_TEMPLATES_w.update();
+
+		templateTree.removeAll();
+		var data = templatesCache[prodName];
+
+		if (data && data.length > 0) {
+			populateTreeFromData(templateTree, data);
+			expandAllNodes(templateTree);
+		} else {
+			templateTree.add('item', 'Nenhum item encontrado para esta categoria.');
+		}
+
 		updateItemCounter();
+		setLoadingState(false);
 	}
 
 	function expandAllNodes(tree) {
@@ -501,10 +490,10 @@ function d9TemplateDialog() {
 	codigoGrp.alignChildren = ['left', 'center'];
 	codigoGrp.spacing = 8;
 	codigoGrp.margins = [0, 8, 0, 0];
-	var codigoLab = codigoGrp.add('statictext', undefined, 'Codigo:');
+	var codigoLab = codigoGrp.add('statictext', undefined, 'Código:');
 	codigoLab.preferredSize.width = 60;
 	setFgColor(codigoLab, monoColor0);
-	var codigoTxt = codigoGrp.add('edittext', [0, 0, 120, 24], 'GNVZ036');
+	var codigoTxt = codigoGrp.add('edittext', [0, 0, 120, 24], '');
 	codigoTxt.helpTip = 'Digite o codigo da arte (ex: GNVZ036)';
 	
 	var infoRows = [{
@@ -514,7 +503,7 @@ function d9TemplateDialog() {
 		label: 'Servidor Destino:',
 		value: '---'
 	}, {
-		label: 'Ultima Atualizacao:',
+		label: 'Última Atualização:',
 		value: '---'
 	}, {
 		label: 'Versão:',
@@ -538,8 +527,7 @@ function d9TemplateDialog() {
 		setFgColor(value, normalColor2);
 		infoValues.push(value);
 	}
-
-	// FUNÇÃO FINAL, CORRIGIDA E MAIS ROBUSTA
+    
 	function getAepVersion(aepFile) {
 		if (!aepFile || !aepFile.exists) {
 			return "N/A";
@@ -547,23 +535,41 @@ function d9TemplateDialog() {
 		try {
 			aepFile.encoding = "BINARY";
 			aepFile.open('r');
-			var fileContent = aepFile.read(200000);
+			var fileContent = aepFile.read(4000000);
 			aepFile.close();
 	
-			// MÉTODO DE BUSCA ALTERNATIVO E MAIS SEGURO: regex.exec(string)
-			var regex1 = /<xmp:CreatorTool>Adobe After Effects ([\d\.]+)/i;
-			var match = regex1.exec(fileContent);
-			if (match && match[1]) {
-				return match[1];
+			var version = "Adobe After Effects 2020";
+	
+			var lastCreatorToolIndex = fileContent.lastIndexOf("<xmp:CreatorTool>");
+			var lastAgentIndex = fileContent.lastIndexOf("<stEvt:softwareAgent>");
+	
+			var searchIndex = -1;
+			var regexToUse = null;
+	
+			if (lastCreatorToolIndex > lastAgentIndex) {
+				searchIndex = lastCreatorToolIndex;
+				regexToUse = /<xmp:CreatorTool>(.*?)<\/xmp:CreatorTool>/i;
+			} else if (lastAgentIndex > -1) {
+				searchIndex = lastAgentIndex;
+				regexToUse = /<stEvt:softwareAgent>(.*?)<\/stEvt:softwareAgent>/i;
 			}
 	
-			var regex2 = /<stEvt:softwareAgent>Adobe After Effects ([\d\.]+)/i;
-			match = regex2.exec(fileContent);
-			if (match && match[1]) {
-				return match[1];
+			if (searchIndex > -1) {
+				var match = regexToUse.exec(fileContent.substring(searchIndex));
+				if (match && match[1]) {
+					version = match[1].replace(/^\s+|\s+$/g, '');
+				}
 			}
-	
-			return "Desconhecida";
+			
+			if (version.indexOf("Photoshop") > -1) {
+				version = version.replace("Photoshop", "After Effects");
+			}
+
+			if (version.indexOf("23.2") > -1) {
+                version = "Adobe After Effects 2023";
+            }
+			
+			return version;
 	
 		} catch (e) {
 			return "Erro de leitura";
@@ -631,7 +637,16 @@ function d9TemplateDialog() {
 				var templatePath = selectedTemplate.filePath;
 				var servidorDestino = determineServidorDestino(templateNameWithExt, templatePath);
 				infoValues[1].text = servidorDestino;
-				infoValues[2].text = new Date().toLocaleDateString('pt-BR');
+
+				var modDate = new Date(selectedTemplate.modDate);
+                var day = modDate.getDate();
+                var month = modDate.getMonth() + 1;
+                var year = modDate.getFullYear();
+                if (day < 10) { day = '0' + day; }
+                if (month < 10) { month = '0' + month; }
+                var formattedDate = day + '/' + month + '/' + year;
+				infoValues[2].text = formattedDate;
+                
 				var aepFile = new File(selectedTemplate.filePath);
 				var aepVersion = getAepVersion(aepFile);
 				infoValues[3].text = aepVersion;
@@ -720,14 +735,25 @@ function d9TemplateDialog() {
 				userConfigFile.close();
 			}
 		} catch (e) {}
-		loadTemplatesFromCache(false);
+		loadTemplatesFromCache();
 	};
+
 	D9T_TEMPLATES_w.onShow = function () {
 		extendedWidth = D9T_TEMPLATES_w.size.width;
 		compactWidth = extendedWidth - 680;
 		vGrp2.visible = true;
 		if (newDiv) newDiv.visible = true;
 		D9T_TEMPLATES_w.size.width = extendedWidth;
+
+		setLoadingState(true, 'Carregando todos os caches...');
+		D9T_TEMPLATES_w.update();
+		
+		for (var i = 0; i < validProductions.length; i++) {
+			loadCacheInBackground(validProductions[i].name);
+		}
+		
+		setLoadingState(false);
+		
 		try {
 			if (userConfigFile && userConfigFile.exists) {
 				userConfigFile.open('r');
@@ -744,6 +770,7 @@ function d9TemplateDialog() {
 				}
 			}
 		} catch (e) {}
+		
 		prodDrop.onChange();
 		searchBox.active = true;
 		updateArteInfo();
@@ -803,11 +830,19 @@ function d9TemplateDialog() {
 		previewFile = new File(templateBase + '_preview.png');
 		configFile = new File(templateBase + '_config.json');
 		scriptFile = new File(templateBase + '_script.js');
-		if (this.selection.size && this.selection.modDate) {
+		
+		if (typeof this.selection.modDate !== 'undefined' && this.selection.modDate !== null) {
 			var fileSize = (this.selection.size / (1024 * 1024)).toFixed(2) + ' MB';
-			var modDate = new Date(this.selection.modDate).toLocaleString('pt-BR');
-			this.selection.helpTip = 'Arquivo: ' + this.selection.text + '\nTamanho: ' + fileSize + '\nModificado em: ' + modDate;
+			var modDate = new Date(this.selection.modDate);
+			var day = modDate.getDate();
+			var month = modDate.getMonth() + 1;
+			var year = modDate.getFullYear();
+			if (day < 10) { day = '0' + day; }
+			if (month < 10) { month = '0' + month; }
+			var formattedDate = day + '/' + month + '/' + year;
+			this.selection.helpTip = 'Arquivo: ' + this.selection.text + '\nTamanho: ' + fileSize + '\nModificado em: ' + formattedDate;
 		}
+
 		if (previewFile.exists) {
 			previewImg.image = previewFile;
 		} else {
@@ -1182,7 +1217,7 @@ function d9TemplateDialog() {
 				if (typeof highlightColor1 !== 'undefined' && typeof setFgColor !== 'undefined') {
 					setFgColor(topicTitle, highlightColor1);
 				} else {
-					topicTitle.graphics.foregroundColor = topicTitle.graphics.newPen(topicTitle.graphics.PenType.SOLID_COLOR, [0.83, 0, 0.23, 1], 1);
+					titleText.graphics.foregroundColor = titleText.graphics.newPen(titleText.graphics.PenType.SOLID_COLOR, [0.83, 0, 0.23, 1], 1);
 				}
 				topicTitle.preferredSize.width = (TARGET_HELP_WIDTH - (MARGIN_SIZE * 2) - (topicsTabPanel.margins.left + topicsTabPanel.margins.right) - (tab.margins.left + tab.margins.right) - topicGrp.margins.left);
 				if (topic.text !== "") {
@@ -1195,7 +1230,7 @@ function d9TemplateDialog() {
 					if (typeof normalColor1 !== 'undefined' && typeof setFgColor !== 'undefined') {
 						setFgColor(topicText, normalColor1);
 					} else {
-						topicText.graphics.foregroundColor = topicText.graphics.newPen(topicText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 1], 1);
+						topicText.graphics.foregroundColor = mainDescText.graphics.newPen(mainDescText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 1], 1);
 					}
 				}
 			}
