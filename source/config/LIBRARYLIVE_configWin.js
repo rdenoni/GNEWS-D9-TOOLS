@@ -1,4 +1,5 @@
-(function() {
+
+function launchLibraryLiveConfigWinUI() {
 
     // --- PARTE 1: TEMA E FUNÇÕES AUXILIARES ---
     var THEME = {
@@ -368,4 +369,4 @@
     win.center();
     win.show();
 
-})();
+}
