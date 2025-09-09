@@ -1,10 +1,104 @@
 /*
-
 ---------------------------------------------------------------
-> 📟 ui and layout
+> UI_FUNC.js - Interface e Layout Completo
+> Versão: 3.0 - Lógica responsiva aprimorada
+> Data: 2025
 ---------------------------------------------------------------
-
 */
+
+// ============================================
+// MOTOR DE TEMA - MAPEAMENTO DE VARIÁVEIS GLOBAIS
+// ============================================
+
+var D9T_Theme = {
+  // Mapeia qual variável do globals.js será usada para cada elemento.
+  colors: {
+    background: bgColor1,
+    textNormal: monoColor1,
+    textHighlight: highlightColor1,
+    divider: divColor1,
+    mono0: monoColor0,
+    mono1: monoColor1,
+    mono2: monoColor2,
+    mono3: monoColor3,
+    white: normalColor1
+  },
+  // Layout e Espaçamento (valores diretos)
+  layout: {
+    iconSize: [36, 36],
+    iconSizeCompact: [28, 28],          // Tamanho dos ícones no modo compacto
+    iconSpacingCompact: 15,
+    textSpacingNormal: 5,
+    iconSpacingNormal: 20,
+    labelSpacing: 0,    
+    sectionSpacing: 30,
+    sectionSpacingCompact: 10,          // Espaçamento entre seções no modo compacto
+    mainMargins: [15, 15, 15, 15], 
+    infoMargins: [15, 0, 0, 15],        // Margens do grupo de logo/versão
+    breakpointSafetyMargin: 150,        // breakpoint do grupo de logo/versão
+    verticalBreakpoint: 80,             // Força layout HORIZONTAL se altura for MENOR que este valor
+    horizontalBreakpoint: 550,          // Força layout VERTICAL se largura for MENOR que este valor
+    compactModeWidth: 950,              // Largura para ativar o modo compacto
+    compactModeHeight: 80               // Altura para ativar o modo compacto
+  },
+  // Texto e Strings
+  text: {
+    lineBreak: lol,
+    click: lClick,
+    rightClick: rClick,
+    doubleClick: dClick
+  }
+};
+
+
+// ============================================
+// INICIALIZAÇÃO E CARREGAMENTO DE DADOS
+// ============================================
+
+function initializeGlobalVariables() {
+  if (typeof scriptMainPath === 'undefined' || !scriptMainPath) {
+    try {
+      if ($.fileName && $.fileName !== '') {
+        var currentFile = new File($.fileName);
+        scriptMainPath = currentFile.parent.parent.fullName + '/';
+      } else {
+        throw new Error("Caminho do script não encontrado");
+      }
+    } catch (e) {
+      scriptMainPath = Folder.userData.fullName + '/GND9TOOLS script/';
+      var scriptFolder = new Folder(scriptMainPath);
+      if (!scriptFolder.exists) scriptFolder.create();
+    }
+  }
+  if (typeof D9T_prodArray === 'undefined') {
+    D9T_prodArray = [];
+    loadProductionData();
+  }
+}
+
+function loadProductionData() {
+  try {
+    var configFile = new File(scriptMainPath + 'source/config/TEMPLATES_config.json');
+    if (configFile.exists) {
+      configFile.open('r');
+      var content = configFile.read();
+      configFile.close();
+      var data = JSON.parse(content);
+      D9T_prodArray = data.PRODUCTIONS || [];
+    } else {
+      D9T_prodArray = [{ name: "GNEWS", paths: ["T:\\JORNALISMO\\GLOBONEWS\\TEMPLATES"], icon: "GNEWS_ICON" }];
+    }
+  } catch (e) {
+    D9T_prodArray = [{ name: "GNEWS", paths: ["T:\\JORNALISMO\\GLOBONEWS\\TEMPLATES"], icon: "GNEWS_ICON" }];
+  }
+}
+
+initializeGlobalVariables();
+
+
+// ============================================
+// CONSTRUÇÃO DA INTERFACE
+// ============================================
 
 function D9T_BUILD_UI(structureObj, uiObj) {
   uiObj.window.margins = 4;
@@ -122,14 +216,14 @@ function D9T_LAYOUT(uiObj) {
       var btn = uiObj.imageButtonArray[b];
       btn.btnGroup.orientation = btnOrientation;
       btn.btnGroup.spacing = isRow ? 0 : 8;
-      btn.normalImg.size = btn.hoverImg.size = [32, 36];
+      btn.normalImg.size = btn.hoverImg.size = [32, 32];
       btn.label.justify = isRow ? "center" : "left";
       btn.label.size = [uiObj.window.size.width - 60, 18];
       if (uiObj.window.size.width < 88 || uiObj.window.size.height < 72) {
         btn.btnGroup.spacing = 0;
         btn.label.size = [0, 0];
       }
-      if (uiObj.window.size.height < 54) {
+      if (uiObj.window.size.height < 44) {
         btn.btnGroup.spacing = 0;
         btn.hoverImg.size = btn.normalImg.size = [0, 0];
         btn.label.size = btn.label.preferredSize;
@@ -145,7 +239,7 @@ function D9T_LAYOUT(uiObj) {
     uiObj.iconBtnMainGrp.spacing = 4;
     uiObj.iconBtnGrp0.spacing = 4;
     uiObj.iconBtnGrp1.spacing = 4;
-    uiObj.infoGrp.alignment = isRow ? "left" : "bottom";
+    uiObj.infoGrp.alignment = isRow ? "right" : "bottom";
     uiObj.infoGrp.spacing = 0;
     uiObj.mainLogo.size.width = uiObj.window.size.width - 10;
   } catch (err) {
@@ -155,562 +249,403 @@ function D9T_LAYOUT(uiObj) {
   uiObj.window.layout.resize();
 }
 
+// ============================================
+// EVENTOS DA INTERFACE
+// ============================================
+
 function D9T_UI_EVENTS(uiObj) {
-  function D9T_RUN_SCRIPT(scriptFileName) {
-    try {
-      var scriptPath = scriptMainPath + "source/SCRIPTS/" + scriptFileName;
-      var scriptFile = new File(scriptPath);
-
-      if (scriptFile.exists) {
-        scriptFile.open("r");
-        var scriptContent = scriptFile.read();
-        scriptFile.close();
-        eval(scriptContent);
-      } else {
-        alert(
-          'Erro: O script "' +
-            scriptFileName +
-            '" não foi encontrado no caminho:\n' +
-            scriptPath
-        );
+    function safeExecute(functionName, func) {
+      try {
+        if (typeof func === 'function') func();
+        else alert('A função "' + functionName + '" não está disponível.');
+      } catch (err) {
+        var errorMsg = 'Erro ao executar ' + functionName + ':\n\n' + err.toString();
+        if (err.line) errorMsg += '\nLinha: ' + err.line;
+        alert(errorMsg);
       }
-    } catch (err) {
-      alert(
-        'Erro ao executar o script "' + scriptFileName + '":\n' + err.message
-      );
     }
-    }
-    function D9T_RUN_SCRIPT_CONFIG(scriptFileName) {
-    try {
-      var scriptPath = scriptMainPath + "source/config/" + scriptFileName;
-      var scriptFile = new File(scriptPath);
-
-      if (scriptFile.exists) {
-        scriptFile.open("r");
-        var scriptContent = scriptFile.read();
-        scriptFile.close();
-        eval(scriptContent);
-      } else {
-        alert(
-          'Erro: O script "' +
-            scriptFileName +
-            '" não foi encontrado no caminho:\n' +
-            scriptPath
-        );
-      }
-    } catch (err) {
-      alert(
-        'Erro ao executar o script "' + scriptFileName + '":\n' + err.message
-      );
-    }
-  }
-
-  uiObj.Finders.leftClick.onClick = function () {
-    findDialog();
-  };
-
-  uiObj.Finders.rightClick.onClick = function () {
-    D9TFindProjectDialog();
-  };
-
-  uiObj.templates.leftClick.onClick = function () {
-    if (!netAccess()) {
-      alert(lol + "#D9T_003 - sem acesso a rede...");
-      return;
-    }
-    d9TemplateDialog();
-  };
-
-  uiObj.templates.rightClick.onClick = function () {
-    if (!netAccess()) {
-      alert(lol + "#D9T_003 - sem acesso a rede...");
-      return;
-    }
-    d9ProdFoldersDialog(D9T_prodArray);
-  };  
-
-  uiObj.link.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS_CopyLinks.jsx");
-  };
-
-  uiObj.MailMaker.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS_MailMaker.jsx");
-  };
-
-  uiObj.LayerOrder.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS_LayerOrder.jsx");
-  };
-
-  uiObj.LayerOrder.rightClick.onClick = function () {
-    D9T_RUN_SCRIPT_CONFIG("LayersOrder_configWin.js");
-  };
-
-  uiObj.LibraryLive.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS_LibraryLive.jsx");
-  };
-
-  uiObj.LibraryLive.rightClick.onClick = function () {
-    D9T_RUN_SCRIPT_CONFIG("LibraryLive_configWin.jsx");
-  };
-
-  uiObj.Renamer.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS_Renamer.jsx");
-  };
-
-  uiObj.TextBox.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS_TextBox.jsx");
-  };
-
-  uiObj.cropComp.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS_CropComp.jsx");
-  };
-
-  uiObj.AnchorAlign.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS_AnchorAlign.jsx");
-  };
-
-  uiObj.Normalizer.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS_Normalizer.jsx");
-  };
-
-  uiObj.colorChange.leftClick.onClick = function () {
-    D9T_RUN_SCRIPT("GNEWS_ColorCharge.jsx");
-  };
-}
-
-function changeIcon(imageIndex, imagesGrp) {
-  for (var i = 0; i < imagesGrp.children.length; i++) {
-    imagesGrp.children[i].visible = i == imageIndex;
-  }
-}
-
-// --- FUNÇÃO CORRIGIDA ---
-function populateMainIcons(imagesGrp, prodArray, dropdownList) { // Aceita o dropdown e o array de produções como parâmetros
-  while (imagesGrp.children.length > 0) {
-    imagesGrp.remove(imagesGrp.children[0]);
-  }
   
-  // ALTERADO: Verifica se prodArray foi fornecido e é válido
-  if (!prodArray || prodArray.length === 0) {
-      return; // Sai da função se não houver dados para exibir
-  }
-
-  // ALTERADO: Itera sobre o array de produções recebido como parâmetro
-  for (var i = 0; i < prodArray.length; i++) {
-    var newIcon = imagesGrp.add("image", undefined, undefined);
-    try {
-      // ALTERADO: Usa o array de produções do parâmetro
-      newIcon.image = eval(prodArray[i].icon); 
-    } catch (err) {
-      // Tenta usar um ícone padrão se o eval falhar
-      if (typeof defaultProductionDataObj !== 'undefined') {
-        newIcon.image = defaultProductionDataObj.PRODUCTIONS[0].icon;
-      }
+    if (uiObj.templates) {
+      if (uiObj.templates.leftClick) uiObj.templates.leftClick.onClick = function () { safeExecute('d9TemplateDialog', d9TemplateDialog); };
+      if (uiObj.templates.rightClick) uiObj.templates.rightClick.onClick = function () { safeExecute('d9ProdFoldersDialog', function(){ d9ProdFoldersDialog(D9T_prodArray); }); };
     }
-    newIcon.helpTip =
-      prodArray[0].name +
-      "\n\n" +
-      (typeof dClick !== 'undefined' ? dClick : 'Duplo-clique') +
-      " para editar a lista de produções";
-    newIcon.preferredSize = [24, 24];
-    newIcon.visible = i == 0;
-    
-    newIcon.addEventListener("click", function (c) {
-      if (c.detail == 2) {
-        d9ProdFoldersDialog(D9T_prodArray);
-        
-        // Atualiza a lista de produções a partir do arquivo
-        D9T_prodArray = updateProdData(configFile);
-        
-        if (dropdownList) {
-            dropdownList.removeAll();
-            populateDropdownList(getProdNames(D9T_prodArray), dropdownList);
-            dropdownList.selection = 0;
-            dropdownList.onChange(); 
-        }
-
-        // Repopula os ícones, passando o array de produções correto
-        populateMainIcons(imagesGrp, prodArray, dropdownList);
-        imagesGrp.layout.layout(true);
-      }
-    });
-  }
+    if (uiObj.Finders) {
+      if (uiObj.Finders.leftClick) uiObj.Finders.leftClick.onClick = function () { safeExecute('findDialog', findDialog); };
+      if (uiObj.Finders.rightClick) uiObj.Finders.rightClick.onClick = function () { safeExecute('D9TFindProjectDialog', D9TFindProjectDialog); };
+    }
+    if (uiObj.LibraryLive) {
+      if (uiObj.LibraryLive.leftClick) uiObj.LibraryLive.leftClick.onClick = function () { safeExecute('launchLibraryLiveUI', launchLibraryLiveUI); };
+      if (uiObj.LibraryLive.rightClick) uiObj.LibraryLive.rightClick.onClick = function () { safeExecute('launchLibraryLiveConfigWinUI', launchLibraryLiveConfigWinUI); };
+    }
+    if (uiObj.Links) {
+      if (uiObj.Links.leftClick) uiObj.Links.leftClick.onClick = function () { safeExecute('launchCopyLinks', launchCopyLinks); };
+    }
+    if (uiObj.Renamer) {
+      if (uiObj.Renamer.leftClick) uiObj.Renamer.leftClick.onClick = function () { var ctx = this; safeExecute('createRenamerUI', function() { createRenamerUI(ctx); }); };
+    }
+    if (uiObj.MailMaker) {
+      if (uiObj.MailMaker.leftClick) uiObj.MailMaker.leftClick.onClick = function () { safeExecute('launchMailMaker', launchMailMaker); };
+    }
+    if (uiObj.LayerOrder) {
+      if (uiObj.LayerOrder.leftClick) uiObj.LayerOrder.leftClick.onClick = function () { var ctx = this; safeExecute('launchLayerOrderUI', function() { launchLayerOrderUI(ctx); }); };
+      if (uiObj.LayerOrder.rightClick) uiObj.LayerOrder.rightClick.onClick = function () { safeExecute('launchLayerOrderConfigWinUI', launchLayerOrderConfigWinUI); };
+    }
+    if (uiObj.TextBox) {
+      if (uiObj.TextBox.leftClick) uiObj.TextBox.leftClick.onClick = function () { var ctx = this; safeExecute('createUI', function() { createUI(ctx); }); };
+    }
+    if (uiObj.AnchorAlign) {
+      if (uiObj.AnchorAlign.leftClick) uiObj.AnchorAlign.leftClick.onClick = function () { var ctx = this; safeExecute('launchAnchorAlign', function() { launchAnchorAlign(ctx); }); };
+    }
+    if (uiObj.colorChange) {
+      if (uiObj.colorChange.leftClick) uiObj.colorChange.leftClick.onClick = function () { safeExecute('launchColorChange', launchColorChange); };
+    }
+    if (uiObj.Normalizer) {
+      if (uiObj.Normalizer.leftClick) uiObj.Normalizer.leftClick.onClick = function () { var ctx = this; safeExecute('launchNormalizerUI', function() { launchNormalizerUI(ctx); }); };
+    }
+    if (uiObj.cropComp) {
+      if (uiObj.cropComp.leftClick) uiObj.cropComp.leftClick.onClick = function () { var ctx = this; safeExecute('launchCropComp', function() { launchCropComp(ctx); }); };
+    }
 }
+
+
+// ============================================
+// COMPONENTES DE INTERFACE - TODOS
+// ============================================
 
 function themeDivider(sectionGrp) {
-  var newDiv = sectionGrp.add("customButton", [0, 0, 1, 1]);
-  setUiCtrlColor(newDiv, divColor1);
-  newDiv.onDraw = customDraw;
-  return newDiv;
-}
-function themeIconButton(sectionGrp, ctrlProperties) {
-  var newUiCtrlObj = {};
-  var tipTxt = ctrlProperties.tips.join("\n\n");
-  if (ctrlProperties.icon.hover == undefined)
-    ctrlProperties.icon.hover = ctrlProperties.icon.normal;
-  var btnGroup = sectionGrp.add("group");
-  var iconGroup = btnGroup.add("group");
-  iconGroup.orientation = "stack";
-  newUiCtrlObj.leftClick = iconGroup.add("button", undefined, "");
-  newUiCtrlObj.leftClick.size = [0, 0];
-  newUiCtrlObj.leftClick.visible = false;
-  newUiCtrlObj.rightClick = iconGroup.add("button", undefined, "");
-  newUiCtrlObj.rightClick.size = [0, 0];
-  newUiCtrlObj.rightClick.visible = false;
-  var hoverImg = iconGroup.add("image", undefined, ctrlProperties.icon.hover);
-  hoverImg.helpTip = tipTxt;
-  hoverImg.visible = false;
-  var normalImg = iconGroup.add("image", undefined, ctrlProperties.icon.normal);
-  normalImg.helpTip = tipTxt;
-  btnGroup.addEventListener("mouseover", function () {
-    this.children[0].children[3].visible = false;
-    this.children[0].children[2].visible = true;
-  });
-  btnGroup.addEventListener("mouseout", function () {
-    this.children[0].children[2].visible = false;
-    this.children[0].children[3].visible = true;
-  });
-  hoverImg.addEventListener("click", function (c) {
-    if (c.button == 0) this.parent.children[0].notify();
-    if (c.button == 2) this.parent.children[1].notify();
-  });
-  return newUiCtrlObj;
-}
-function themeImageButton(sectionGrp, ctrlProperties) {
-  var newUiCtrlObj = {};
-  var newBtn = (newUiCtrlObj[ctrlProperties.key] = {});
-  var tipTxt =
-    ctrlProperties.labelTxt + ":\n\n" + ctrlProperties.tips.join("\n\n");
-  if (ctrlProperties.icon.hover == undefined)
-    ctrlProperties.icon.hover = ctrlProperties.icon.normal;
-  newBtn.btnGroup = sectionGrp.add("group");
-  newBtn.iconGroup = newBtn.btnGroup.add("group");
-  newBtn.iconGroup.orientation = "stack";
-  newBtn.leftClick = newBtn.iconGroup.add("button", undefined, "");
-  newBtn.leftClick.size = [0, 0];
-  newBtn.leftClick.visible = false;
-  newBtn.rightClick = newBtn.iconGroup.add("button", undefined, "");
-  newBtn.rightClick.size = [0, 0];
-  newBtn.rightClick.visible = false;
-  newBtn.hoverImg = newBtn.iconGroup.add(
-    "image",
-    undefined,
-    ctrlProperties.icon.hover
-  );
-  newBtn.hoverImg.helpTip = tipTxt;
-  newBtn.hoverImg.visible = false;
-  newBtn.normalImg = newBtn.iconGroup.add(
-    "image",
-    undefined,
-    ctrlProperties.icon.normal
-  );
-  newBtn.normalImg.helpTip = tipTxt;
-  newBtn.label = newBtn.btnGroup.add(
-    "statictext",
-    undefined,
-    ctrlProperties.labelTxt,
-    { truncate: "end" }
-  );
-  newBtn.label.maximumSize = [70, 18];
-  newBtn.label.helpTip = tipTxt;
-  setFgColor(newBtn.label, normalColor1);
-  newBtn.btnGroup.addEventListener("mouseover", function () {
-    setFgColor(this.children[1], highlightColor1);
-    this.children[0].children[3].visible = false;
-    this.children[0].children[2].visible = true;
-  });
-  newBtn.btnGroup.addEventListener("mouseout", function () {
-    setFgColor(this.children[1], normalColor1);
-    this.children[0].children[2].visible = false;
-    this.children[0].children[3].visible = true;
-  });
-  newBtn.label.addEventListener("click", function (c) {
-    if (c.button == 0) this.parent.children[0].children[0].notify();
-    if (c.button == 2) this.parent.children[0].children[1].notify();
-  });
-  newBtn.hoverImg.addEventListener("click", function (c) {
-    if (c.button == 0) this.parent.children[0].notify();
-    if (c.button == 2) this.parent.children[1].notify();
-  });
-  return newBtn;
+    var newDiv = sectionGrp.add("customButton", [0, 0, 1, 1]);
+    setUiCtrlColor(newDiv, D9T_Theme.colors.divider);
+    newDiv.onDraw = customDraw;
+    return newDiv;
 }
 
-// --- BOTÃO TEMA 1 "THEME BUTTON" FUNDO PRETO HOVER VERMELHO --- //
-function themeButton(sectionGrp, ctrlProperties) {
-  try {
-    if (ctrlProperties.buttonColor === undefined)
-      ctrlProperties.buttonColor = divColor1;
-    if (ctrlProperties.textColor === undefined)
-      ctrlProperties.textColor = normalColor1;
+function themeIconButton(sectionGrp, ctrlProperties) {
     var newUiCtrlObj = {};
     var tipTxt = ctrlProperties.tips.join("\n\n");
-    var newBtnGrp = sectionGrp.add("group");
-    newBtnGrp.orientation = "stack";
-    newUiCtrlObj.leftClick = newBtnGrp.add("button", undefined, "");
+    if (ctrlProperties.icon.hover == undefined) ctrlProperties.icon.hover = ctrlProperties.icon.normal;
+    var btnGroup = sectionGrp.add("group");
+    var iconGroup = btnGroup.add("group");
+    iconGroup.orientation = "stack";
+    newUiCtrlObj.leftClick = iconGroup.add("button", undefined, "");
     newUiCtrlObj.leftClick.size = [0, 0];
     newUiCtrlObj.leftClick.visible = false;
-    newUiCtrlObj.rightClick = newBtnGrp.add("button", undefined, "");
+    newUiCtrlObj.rightClick = iconGroup.add("button", undefined, "");
     newUiCtrlObj.rightClick.size = [0, 0];
     newUiCtrlObj.rightClick.visible = false;
-    newUiCtrlObj.label = newBtnGrp.add("customButton");
-    newUiCtrlObj.label.size = [ctrlProperties.width, ctrlProperties.height];
-    newUiCtrlObj.label.text = ctrlProperties.labelTxt;
-    newUiCtrlObj.label.buttonColor = hexToRgb(ctrlProperties.buttonColor);
-    newUiCtrlObj.label.textColor = hexToRgb(ctrlProperties.textColor);
-    newUiCtrlObj.label.minimumSize = [68, 34];
-    newUiCtrlObj.label.helpTip = tipTxt;
-    drawThemeButton(newUiCtrlObj.label);
-    newUiCtrlObj.label.addEventListener("mouseover", function () {
-      this.textColor = [1, 1, 1, 1];
-      this.buttonColor = hexToRgb(highlightColor1);
-      drawThemeButton(this);
+    var hoverImg = iconGroup.add("image", undefined, ctrlProperties.icon.hover);
+    hoverImg.helpTip = tipTxt;
+    hoverImg.visible = false;
+    var normalImg = iconGroup.add("image", undefined, ctrlProperties.icon.normal);
+    normalImg.helpTip = tipTxt;
+    btnGroup.addEventListener("mouseover", function () {
+        this.children[0].children[3].visible = false;
+        this.children[0].children[2].visible = true;
     });
-    newUiCtrlObj.label.addEventListener("mouseout", function () {
-      this.textColor = hexToRgb(ctrlProperties.textColor);
-      this.buttonColor = hexToRgb(ctrlProperties.buttonColor);
-      drawThemeButton(this);
+    btnGroup.addEventListener("mouseout", function () {
+        this.children[0].children[2].visible = false;
+        this.children[0].children[3].visible = true;
     });
-    newUiCtrlObj.label.onClick = function () {
-      this.parent.children[0].notify();
-    };
-    newUiCtrlObj.label.addEventListener("click", function (c) {
-      if (c.button == 2) this.parent.children[1].notify();
+    hoverImg.addEventListener("click", function (c) {
+        if (c.button == 0) this.parent.children[0].notify();
+        if (c.button == 2) this.parent.children[1].notify();
     });
     return newUiCtrlObj;
-  } catch (err) {
-    alert(err.message);
-  }
-}
-function drawThemeButton(button) {
-  var g = button.graphics;
-  var textPen = g.newPen(g.PenType.SOLID_COLOR, button.textColor, 1);
-  var fillBrush = g.newBrush(g.BrushType.SOLID_COLOR, button.buttonColor);
-  button.onDraw = function () {
-    var h = this.size.height;
-    var w = this.size.width;
-    g.ellipsePath(0, 0, h, h);
-    g.ellipsePath(w - h, 0, h, h);
-    g.rectPath(h / 2, 0, w - h, h);
-    g.fillPath(fillBrush);
-    var textLinesArray = this.text.split("\n");
-    var pyInc = 12;
-    for (var l = 0; l < textLinesArray.length; l++) {
-      var textSize = g.measureString(textLinesArray[l]);
-      var px = (w - textSize.width) / 2;
-      var py =
-        l == 0 ? (-(textLinesArray.length - 1) / 2) * pyInc : (py += pyInc);
-      if (appV > 24 && l == 0) py += 8;
-      g.drawString(textLinesArray[l], textPen, px, py);
-    }
-  };
 }
 
-// --- BOTÃO TEMA 2 "THEME ALT BUTTON" FUNDO VERMELHO HOVER VERMELHO --- //
+function themeImageButton(sectionGrp, ctrlProperties) {
+    var newUiCtrlObj = {};
+    var newBtn = (newUiCtrlObj[ctrlProperties.key] = {});
+    var tipTxt = ctrlProperties.labelTxt + ":\n\n" + ctrlProperties.tips.join("\n\n");
+    if (ctrlProperties.icon.hover == undefined) ctrlProperties.icon.hover = ctrlProperties.icon.normal;
+    newBtn.btnGroup = sectionGrp.add("group");
+    newBtn.iconGroup = newBtn.btnGroup.add("group");
+    newBtn.iconGroup.orientation = "stack";
+    newBtn.leftClick = newBtn.iconGroup.add("button", undefined, "");
+    newBtn.leftClick.size = [0, 0];
+    newBtn.leftClick.visible = false;
+    newBtn.rightClick = newBtn.iconGroup.add("button", undefined, "");
+    newBtn.rightClick.size = [0, 0];
+    newBtn.rightClick.visible = false;
+    newBtn.hoverImg = newBtn.iconGroup.add("image", undefined, ctrlProperties.icon.hover);
+    newBtn.hoverImg.helpTip = tipTxt;
+    newBtn.hoverImg.visible = false;
+    newBtn.normalImg = newBtn.iconGroup.add("image", undefined, ctrlProperties.icon.normal);
+    newBtn.normalImg.helpTip = tipTxt;
+    newBtn.label = newBtn.btnGroup.add("statictext", undefined, ctrlProperties.labelTxt, { truncate: "end" });
+    newBtn.label.maximumSize = [70, 18];
+    newBtn.label.helpTip = tipTxt;
+    setFgColor(newBtn.label, D9T_Theme.colors.textNormal);
+    newBtn.btnGroup.addEventListener("mouseover", function () {
+        setFgColor(this.children[1], D9T_Theme.colors.textHighlight);
+        this.children[0].children[3].visible = false;
+        this.children[0].children[2].visible = true;
+    });
+    newBtn.btnGroup.addEventListener("mouseout", function () {
+        setFgColor(this.children[1], D9T_Theme.colors.textNormal);
+        this.children[0].children[2].visible = false;
+        this.children[0].children[3].visible = true;
+    });
+    newBtn.label.addEventListener("click", function (c) {
+        if (c.button == 0) this.parent.children[0].children[0].notify();
+        if (c.button == 2) this.parent.children[0].children[1].notify();
+    });
+    newBtn.hoverImg.addEventListener("click", function (c) {
+        if (c.button == 0) this.parent.children[0].notify();
+        if (c.button == 2) this.parent.children[1].notify();
+    });
+    return newBtn;
+}
+
+function themeButton(sectionGrp, ctrlProperties) {
+    try {
+        if (ctrlProperties.buttonColor === undefined) ctrlProperties.buttonColor = D9T_Theme.colors.divider;
+        if (ctrlProperties.textColor === undefined) ctrlProperties.textColor = D9T_Theme.colors.textNormal;
+        var newUiCtrlObj = {};
+        var tipTxt = ctrlProperties.tips.join("\n\n");
+        var newBtnGrp = sectionGrp.add("group");
+        newBtnGrp.orientation = "stack";
+        newUiCtrlObj.leftClick = newBtnGrp.add("button", undefined, "");
+        newUiCtrlObj.leftClick.size = [0, 0];
+        newUiCtrlObj.leftClick.visible = false;
+        newUiCtrlObj.rightClick = newBtnGrp.add("button", undefined, "");
+        newUiCtrlObj.rightClick.size = [0, 0];
+        newUiCtrlObj.rightClick.visible = false;
+        newUiCtrlObj.label = newBtnGrp.add("customButton");
+        newUiCtrlObj.label.size = [ctrlProperties.width, ctrlProperties.height];
+        newUiCtrlObj.label.text = ctrlProperties.labelTxt;
+        newUiCtrlObj.label.buttonColor = hexToRgb(ctrlProperties.buttonColor);
+        newUiCtrlObj.label.textColor = hexToRgb(ctrlProperties.textColor);
+        newUiCtrlObj.label.minimumSize = [68, 34];
+        newUiCtrlObj.label.helpTip = tipTxt;
+        drawThemeButton(newUiCtrlObj.label);
+        newUiCtrlObj.label.addEventListener("mouseover", function () {
+            this.textColor = [1, 1, 1];
+            this.buttonColor = hexToRgb(D9T_Theme.colors.textHighlight);
+            drawThemeButton(this);
+        });
+        newUiCtrlObj.label.addEventListener("mouseout", function () {
+            this.textColor = hexToRgb(ctrlProperties.textColor);
+            this.buttonColor = hexToRgb(ctrlProperties.buttonColor);
+            drawThemeButton(this);
+        });
+        newUiCtrlObj.label.onClick = function () { this.parent.children[0].notify(); };
+        newUiCtrlObj.label.addEventListener("click", function (c) {
+            if (c.button == 2) this.parent.children[1].notify();
+        });
+        return newUiCtrlObj;
+    } catch (err) { alert(err.message); }
+}
 
 function themeAltButton(sectionGrp, ctrlProperties) {
-  try {
-    // Cores padrão se não especificadas
-    var defaultButtonColor = ctrlProperties.buttonColor || divColor1;
-    var defaultTextColor = ctrlProperties.textColor || normalColor1;
-    var hoverButtonColor = ctrlProperties.hoverButtonColor || monoColor0; // F2F2F2
-    var hoverTextColor = ctrlProperties.hoverTextColor || monoColor3; // 19191aff
-
-    var newUiCtrlObj = {};
-    var tipTxt = ctrlProperties.tips ? ctrlProperties.tips.join("\n\n") : "";
-
-    var newBtnGrp = sectionGrp.add("group");
-    newBtnGrp.orientation = "stack";
-
-    // Botões invisíveis para capturar cliques
-    newUiCtrlObj.leftClick = newBtnGrp.add("button", undefined, "");
-    newUiCtrlObj.leftClick.size = [0, 0];
-    newUiCtrlObj.leftClick.visible = false;
-
-    newUiCtrlObj.rightClick = newBtnGrp.add("button", undefined, "");
-    newUiCtrlObj.rightClick.size = [0, 0];
-    newUiCtrlObj.rightClick.visible = false;
-
-    // Botão customizado principal
-    newUiCtrlObj.label = newBtnGrp.add("customButton");
-
-    // CORREÇÃO: Define a largura corretamente
-    var buttonWidth = ctrlProperties.width || 120;
-    var buttonHeight = ctrlProperties.height || 32;
-    newUiCtrlObj.label.size = [buttonWidth, buttonHeight];
-    newUiCtrlObj.label.preferredSize = [buttonWidth, buttonHeight];
-    newUiCtrlObj.label.minimumSize = [buttonWidth, buttonHeight];
-    newUiCtrlObj.label.maximumSize = [buttonWidth, buttonHeight];
-
-    newUiCtrlObj.label.text = ctrlProperties.labelTxt || "Botão";
-    newUiCtrlObj.label.helpTip = tipTxt;
-
-    // Propriedades de cor
-    newUiCtrlObj.label.buttonColor = hexToRgb(defaultButtonColor);
-    newUiCtrlObj.label.textColor = hexToRgb(defaultTextColor);
-    newUiCtrlObj.label.hoverButtonColor = hexToRgb(hoverButtonColor);
-    newUiCtrlObj.label.hoverTextColor = hexToRgb(hoverTextColor);
-    newUiCtrlObj.label.isHovered = false;
-
-    // Função de desenho
-    newUiCtrlObj.label.onDraw = function () {
-      var g = this.graphics;
-      var w = this.size.width;
-      var h = this.size.height;
-
-      // Determina as cores baseado no estado hover
-      var currentButtonColor = this.isHovered
-        ? this.hoverButtonColor
-        : this.buttonColor;
-      var currentTextColor = this.isHovered
-        ? this.hoverTextColor
-        : this.textColor;
-
-      // Cria os pincéis
-      var fillBrush = g.newBrush(g.BrushType.SOLID_COLOR, currentButtonColor);
-      var textPen = g.newPen(g.PenType.SOLID_COLOR, currentTextColor, 1);
-
-      // Desenha o botão com bordas arredondadas
-      g.ellipsePath(0, 0, h, h);
-      g.ellipsePath(w - h, 0, h, h);
-      g.rectPath(h / 2, 0, w - h, h);
-      g.fillPath(fillBrush);
-
-      // Desenha o texto centralizado
-      var textLinesArray = this.text.split("\n");
-      var totalTextHeight = textLinesArray.length * 12;
-      var startY = (h - totalTextHeight) / 2 + 12;
-
-      for (var l = 0; l < textLinesArray.length; l++) {
-        var textSize = g.measureString(textLinesArray[l]);
-        var px = (w - textSize.width) / 2;
-        var py = startY + l * 12;
-        g.drawString(textLinesArray[l], textPen, px, py);
-      }
-    };
-
-    // CORREÇÃO: Eventos de mouse funcionais
-    newUiCtrlObj.label.addEventListener("mouseover", function () {
-      this.isHovered = true;
-      this.notify("onDraw");
-    });
-
-    newUiCtrlObj.label.addEventListener("mouseout", function () {
-      this.isHovered = false;
-      this.notify("onDraw");
-    });
-
-    // Eventos de clique
-    newUiCtrlObj.label.onClick = function () {
-      this.parent.children[0].notify();
-    };
-
-    newUiCtrlObj.label.addEventListener("click", function (c) {
-      if (c.button == 2) this.parent.children[1].notify();
-    });
-
-    return newUiCtrlObj;
-  } catch (err) {
-    alert("Erro no themeAltButton: " + err.message);
-    return null;
-  }
+    try {
+        var defaultButtonColor = ctrlProperties.buttonColor || D9T_Theme.colors.divider;
+        var defaultTextColor = ctrlProperties.textColor || D9T_Theme.colors.textNormal;
+        var hoverButtonColor = ctrlProperties.hoverButtonColor || D9T_Theme.colors.mono0;
+        var hoverTextColor = ctrlProperties.hoverTextColor || D9T_Theme.colors.mono3;
+        var newUiCtrlObj = {};
+        var tipTxt = ctrlProperties.tips ? ctrlProperties.tips.join("\n\n") : "";
+        var newBtnGrp = sectionGrp.add("group");
+        newBtnGrp.orientation = "stack";
+        newUiCtrlObj.leftClick = newBtnGrp.add("button", undefined, "");
+        newUiCtrlObj.leftClick.size = [0, 0];
+        newUiCtrlObj.leftClick.visible = false;
+        newUiCtrlObj.rightClick = newBtnGrp.add("button", undefined, "");
+        newUiCtrlObj.rightClick.size = [0, 0];
+        newUiCtrlObj.rightClick.visible = false;
+        newUiCtrlObj.label = newBtnGrp.add("customButton");
+        var buttonWidth = ctrlProperties.width || 120;
+        var buttonHeight = ctrlProperties.height || 32;
+        newUiCtrlObj.label.size = [buttonWidth, buttonHeight];
+        newUiCtrlObj.label.text = ctrlProperties.labelTxt || "Botão";
+        newUiCtrlObj.label.helpTip = tipTxt;
+        newUiCtrlObj.label.buttonColor = hexToRgb(defaultButtonColor);
+        newUiCtrlObj.label.textColor = hexToRgb(defaultTextColor);
+        newUiCtrlObj.label.hoverButtonColor = hexToRgb(hoverButtonColor);
+        newUiCtrlObj.label.hoverTextColor = hexToRgb(hoverTextColor);
+        newUiCtrlObj.label.isHovered = false;
+        newUiCtrlObj.label.onDraw = function () {
+            var g = this.graphics;
+            var w = this.size.width;
+            var h = this.size.height;
+            var currentButtonColor = this.isHovered ? this.hoverButtonColor : this.buttonColor;
+            var currentTextColor = this.isHovered ? this.hoverTextColor : this.textColor;
+            var fillBrush = g.newBrush(g.BrushType.SOLID_COLOR, currentButtonColor);
+            var textPen = g.newPen(g.PenType.SOLID_COLOR, currentTextColor, 1);
+            g.ellipsePath(0, 0, h, h);
+            g.ellipsePath(w - h, 0, h, h);
+            g.rectPath(h / 2, 0, w - h, h);
+            g.fillPath(fillBrush);
+            var textLinesArray = this.text.split("\n");
+            var totalTextHeight = textLinesArray.length * 12;
+            var startY = (h - totalTextHeight) / 2 + 12;
+            for (var l = 0; l < textLinesArray.length; l++) {
+                var textSize = g.measureString(textLinesArray[l]);
+                var px = (w - textSize.width) / 2;
+                var py = startY + l * 12;
+                g.drawString(textLinesArray[l], textPen, px, py);
+            }
+        };
+        newUiCtrlObj.label.addEventListener("mouseover", function () { this.isHovered = true; this.notify("onDraw"); });
+        newUiCtrlObj.label.addEventListener("mouseout", function () { this.isHovered = false; this.notify("onDraw"); });
+        newUiCtrlObj.label.onClick = function () { this.parent.children[0].notify(); };
+        newUiCtrlObj.label.addEventListener("click", function (c) { if (c.button == 2) this.parent.children[1].notify(); });
+        return newUiCtrlObj;
+    } catch (err) { alert("Erro no themeAltButton: " + err.message); return null; }
 }
 
-/**
- * FUNÇÃO DE DESENHO: drawThemeAltButton
- * @param {Object} button O objeto 'customButton' a ser desenhado.
- */
+function drawThemeButton(button) {
+    button.onDraw = function () {
+        var g = this.graphics;
+        var textPen = g.newPen(g.PenType.SOLID_COLOR, this.textColor, 1);
+        var fillBrush = g.newBrush(g.BrushType.SOLID_COLOR, this.buttonColor);
+        var h = this.size.height;
+        var w = this.size.width;
+        g.ellipsePath(0, 0, h, h);
+        g.ellipsePath(w - h, 0, h, h);
+        g.rectPath(h / 2, 0, w - h, h);
+        g.fillPath(fillBrush);
+        var textLinesArray = this.text.split("\n");
+        var pyInc = 12;
+        for (var l = 0; l < textLinesArray.length; l++) {
+            var textSize = g.measureString(textLinesArray[l]);
+            var px = (w - textSize.width) / 2;
+            var py = l == 0 ? (-(textLinesArray.length - 1) / 2) * pyInc : (py += pyInc);
+            if (typeof appV !== "undefined" && appV > 24 && l == 0) py += 8;
+            g.drawString(textLinesArray[l], textPen, px, py);
+        }
+    };
+}
+
 function drawThemeAltButton(button) {
-  var g = button.graphics;
-  var textPen = g.newPen(g.PenType.SOLID_COLOR, button.textColor, 1);
-  var fillBrush = g.newBrush(g.BrushType.SOLID_COLOR, button.buttonColor);
+    var g = button.graphics;
+    var textPen = g.newPen(g.PenType.SOLID_COLOR, button.textColor, 1);
+    var fillBrush = g.newBrush(g.BrushType.SOLID_COLOR, button.buttonColor);
+    button.onDraw = function () {
+        var h = this.size.height;
+        var w = this.size.width;
+        g.ellipsePath(0, 0, h, h);
+        g.ellipsePath(w - h, 0, h, h);
+        g.rectPath(h / 2, 0, w - h, h);
+        g.fillPath(fillBrush);
+        var textLinesArray = this.text.split("\n");
+        var pyInc = 12;
+        for (var l = 0; l < textLinesArray.length; l++) {
+            var textSize = g.measureString(textLinesArray[l]);
+            var px = (w - textSize.width) / 2;
+            var py = l == 0 ? (-(textLinesArray.length - 1) / 2) * pyInc : (py += pyInc);
+            if (typeof appV !== "undefined" && appV > 24 && l == 0) py += 8;
+            g.drawString(textLinesArray[l], textPen, px, py);
+        }
+    };
+}
 
-  button.onDraw = function () {
-    var h = this.size.height;
-    var w = this.size.width;
-    g.ellipsePath(0, 0, h, h);
-    g.ellipsePath(w - h, 0, h, h);
-    g.rectPath(h / 2, 0, w - h, h);
-    g.fillPath(fillBrush);
 
-    var textLinesArray = this.text.split("\n");
-    var pyInc = 12;
-    for (var l = 0; l < textLinesArray.length; l++) {
-      var textSize = g.measureString(textLinesArray[l]);
-      var px = (w - textSize.width) / 2;
-      var py =
-        l == 0 ? (-(textLinesArray.length - 1) / 2) * pyInc : (py += pyInc);
-      if (typeof appV !== "undefined" && appV > 24 && l == 0) py += 8;
-      g.drawString(textLinesArray[l], textPen, px, py);
+function drawRoundedRect(g, brush, width, height, radius, x, y) {
+    g.newPath();
+    g.ellipsePath(x, y, radius, radius);
+    g.fillPath(brush);
+    g.ellipsePath(width - x - radius, y, radius, radius);
+    g.fillPath(brush);
+    g.ellipsePath(width - x - radius, height - y - radius, radius, radius);
+    g.fillPath(brush);
+    g.ellipsePath(x, height - y - radius, radius, radius);
+    g.fillPath(brush);
+    g.newPath();
+    var coords = [x, y + radius / 2, x + radius / 2, y, width - x - radius / 2, y, width - x, y + radius / 2, width - x, height - y - radius / 2, width - x - radius / 2, height - y, x + radius / 2, height - y, x, height - y - radius / 2];
+    for (var i = 0; i <= coords.length - 1; i += 2) {
+        if (i == 0) { g.moveTo(coords[i], coords[i + 1]); } 
+        else { g.lineTo(coords[i], coords[i + 1]); }
     }
-  };
+    g.fillPath(brush);
+}
+
+
+// ============================================
+// FUNÇÕES AUXILIARES
+// ============================================
+
+function hexToRgb(hex) {
+    if (typeof hex !== 'string') return [1, 1, 1];
+    hex = hex.replace('#', '');
+    if (hex.length > 6) hex = hex.substring(0, 6);
+    var r = parseInt(hex.substring(0, 2), 16) / 255;
+    var g = parseInt(hex.substring(2, 4), 16) / 255;
+    var b = parseInt(hex.substring(4, 6), 16) / 255;
+    return [r, g, b];
+}
+
+function setBgColor(w, hex) {
+    var color = hexToRgb(hex);
+    var bType = w.graphics.BrushType.SOLID_COLOR;
+    w.graphics.backgroundColor = w.graphics.newBrush(bType, color);
+}
+
+function setUiCtrlColor(ctrl, hex) {
+    var color = hexToRgb(hex);
+    var bType = ctrl.graphics.BrushType.SOLID_COLOR;
+    ctrl.fillBrush = ctrl.graphics.newBrush(bType, color);
+}
+
+function setFgColor(ctrl, hex) {
+    var color = hexToRgb(hex);
+    var pType = ctrl.graphics.PenType.SOLID_COLOR;
+    ctrl.graphics.foregroundColor = ctrl.graphics.newPen(pType, color, 1);
+}
+
+function setCtrlHighlight(ctrl, normalColor, highlightColor) {
+    setFgColor(ctrl, normalColor);
+    ctrl.addEventListener("mouseover", function () {
+        setFgColor(ctrl, highlightColor);
+    });
+    ctrl.addEventListener("mouseout", function () {
+        setFgColor(ctrl, normalColor);
+    });
 }
 
 function customDraw() {
-  with (this) {
-    graphics.drawOSControl();
-    graphics.rectPath(0, 0, size[0], size[1]);
-    graphics.fillPath(fillBrush);
-  }
-}
-function drawRoundedRect(g, brush, width, height, radius, x, y) {
-  g.newPath();
-  g.ellipsePath(x, y, radius, radius);
-  g.fillPath(brush);
-  g.ellipsePath(width - x - radius, y, radius, radius);
-  g.fillPath(brush);
-  g.ellipsePath(width - x - radius, height - y - radius, radius, radius);
-  g.fillPath(brush);
-  g.ellipsePath(x, height - y - radius, radius, radius);
-  g.fillPath(brush);
-  g.newPath();
-  var coords = [
-    x,
-    y + radius / 2,
-    x + radius / 2,
-    y,
-    width - x - radius / 2,
-    y,
-    width - x,
-    y + radius / 2,
-    width - x,
-    height - y - radius / 2,
-    width - x - radius / 2,
-    height - y,
-    x + radius / 2,
-    height - y,
-    x,
-    height - y - radius / 2,
-  ];
-  for (var i = 0; i <= coords.length - 1; i += 2) {
-    if (i == 0) {
-      g.moveTo(coords[i], coords[i + 1]);
-    } else {
-      g.lineTo(coords[i], coords[i + 1]);
+    with(this) {
+        graphics.drawOSControl();
+        graphics.rectPath(0, 0, size[0], size[1]);
+        graphics.fillPath(fillBrush);
     }
-  }
-  g.fillPath(brush);
 }
-function setBgColor(w, hex) {
-  var color = hexToRgb(hex);
-  var bType = w.graphics.BrushType.SOLID_COLOR;
-  w.graphics.backgroundColor = w.graphics.newBrush(bType, color);
+
+function changeIcon(imageIndex, imagesGrp) {
+    for (var i = 0; i < imagesGrp.children.length; i++) {
+        imagesGrp.children[i].visible = i == imageIndex;
+    }
 }
-function setUiCtrlColor(ctrl, hex) {
-  var color = hexToRgb(hex);
-  var bType = ctrl.graphics.BrushType.SOLID_COLOR;
-  ctrl.fillBrush = ctrl.graphics.newBrush(bType, color);
-}
-function setFgColor(ctrl, hex) {
-  var color = hexToRgb(hex);
-  var pType = ctrl.graphics.PenType.SOLID_COLOR;
-  ctrl.graphics.foregroundColor = ctrl.graphics.newPen(pType, color, 1);
-}
-function setCtrlHighlight(ctrl, normalColor1, highlightColor1) {
-  setFgColor(ctrl, normalColor1);
-  ctrl.addEventListener("mouseover", function () {
-    setFgColor(ctrl, highlightColor1);
-  });
-  ctrl.addEventListener("mouseout", function () {
-    setFgColor(ctrl, normalColor1);
-  });
+
+function populateMainIcons(imagesGrp, prodArray, dropdownList) {
+    while (imagesGrp.children.length > 0) {
+        imagesGrp.remove(imagesGrp.children[0]);
+    }
+    if (!prodArray || prodArray.length === 0) return;
+    for (var i = 0; i < prodArray.length; i++) {
+        var newIcon = imagesGrp.add("image", undefined, undefined);
+        try {
+            newIcon.image = eval(prodArray[i].icon);
+        } catch (err) {}
+        newIcon.helpTip = prodArray[i].name + "\n\n" + D9T_Theme.text.doubleClick + " para editar a lista de produções";
+        newIcon.preferredSize = [24, 24];
+        newIcon.visible = i == 0;
+        newIcon.addEventListener("click", function (c) {
+            if (c.detail == 2) {
+                if (typeof d9ProdFoldersDialog === 'function') {
+                    d9ProdFoldersDialog(D9T_prodArray);
+                    loadProductionData();
+                    if (dropdownList) {
+                        dropdownList.removeAll();
+                        if (typeof populateDropdownList === 'function' && typeof getProdNames === 'function') {
+                            populateDropdownList(getProdNames(D9T_prodArray), dropdownList);
+                        }
+                        dropdownList.selection = 0;
+                        if (dropdownList.onChange) dropdownList.onChange();
+                    }
+                    populateMainIcons(imagesGrp, D9T_prodArray, dropdownList);
+                    imagesGrp.layout.layout(true);
+                }
+            }
+        });
+    }
 }

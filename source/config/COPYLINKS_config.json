@@ -1,11 +1,11 @@
 {
   "configuracao": {
     "layout_geral": {
-      "btn_width": 40,
-      "name_btn_height": 45,
+      "btn_width": 0,
+      "name_btn_height": 0,
       "name_btn_width": 590,
-      "bottom_row_height": 25,
-      "text_width_normal": 501,
+      "bottom_row_height": 32,
+      "text_width_normal": 532,
       "text_width_catalogos": 590
     },
 
@@ -86,6 +86,20 @@
           { "tipo": "folder", "nome": "FANT SERIES", "caminho": "T:/JORNALISMO/TVGLOBO/SEMANAIS_REDE/FANTASTICO/RJ/SERIES/" }
         ]
       },
+      {
+        "titulo": "GRUPO IPS MAQUINAS",
+        "links": [
+          { "tipo": "folder", "nome": "PABBB", "caminho": "10.228.93.91" },
+          { "tipo": "folder", "nome": "MÃO PELUDA", "caminho": "10.228.93.92" },
+          { "tipo": "folder", "nome": "ZAMBA", "caminho": "10.228.93.93" },
+          { "tipo": "folder", "nome": "PISADEIRA", "caminho": "10.228.93.100" },
+          { "tipo": "folder", "nome": "DROPBOX", "caminho": "10.228.93.86" },
+          { "tipo": "folder", "nome": "GRALHA AZUL", "caminho": "10.197.11.26" },
+          { "tipo": "folder", "nome": "PAPA FIGO", "caminho": "10.197.11.5" },
+          { "tipo": "folder", "nome": "CHIBAMBA", "caminho": "10.228.93.80" },
+          { "tipo": "folder", "nome": "DROPBOX", "caminho": "10.228.93.86" }
+        ]
+      },      
       {
         "titulo": "GRUPO CATÁLOGOS E GUIAS",
         "links": [

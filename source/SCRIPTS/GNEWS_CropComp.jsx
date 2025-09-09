@@ -12,7 +12,7 @@
  * - VERIFICAÇÃO: Garantido que todas as funções (populatePresets, etc.) e lógicas das 3 abas estão completas.
  */
 
-(function (thisObj) {
+function launchCropComp(thisObj) {
     if (typeof this.CropComp === 'undefined') { this.CropComp = {}; }
     var CropComp = this.CropComp;
 
@@ -305,4 +305,4 @@
     if (CropComp.autoUpdateTask === null) {
         CropComp.autoUpdateTask = app.scheduleTask("if(typeof CropComp !== 'undefined' && CropComp && CropComp.updateCropName) { try { CropComp.updateCropName(); } catch(e) {} }", 500, true);
     }
-})(this);
+}

@@ -1,13 +1,9 @@
 /***************************************************
  * GNEWS Renamer.jsx
- * Versão: 7.6 - Modificado com Unicode Aprimorado
- * Última Atualização: 2025-08-29
- * Descrição: Campo "Editor" opcional, captura
- * automática da comp ativa ao iniciar e detecção
- * aprimorada de Unicode para AE CC 2023+.
+ * Versão: 7.6 - CORRIGIDO PARA PAINEL GND9TOOLS
  ***************************************************/
 
-function GNEWS_Renamer_UI() {
+function createRenamerUI(thisObj) {
 
     // =======================================================================
     // ETAPA 1: CARREGAMENTO DE DADOS EXTERNOS (COM VERIFICAÇÕES REFORÇADAS)
@@ -35,21 +31,19 @@ function GNEWS_Renamer_UI() {
         }
     }
 
-    // Função principal de carregamento com validação passo a passo
     function loadAllData() {
         try {
             if (typeof scriptMainPath === 'undefined' || scriptMainPath === null) {
                 throw new Error("Variável global 'scriptMainPath' não encontrada. Execute a partir do painel 'GND9 TOOLS'.");
             }
 
-            var configFilePath = new File(scriptMainPath + "source\\config\\MORNING_config.json");
+            var configFilePath = new File(scriptMainPath + "source/config/MORNING_config.json");
             var configData = readJsonFile(configFilePath.fsName);
             if (!configData) throw new Error("Não foi possível carregar ou ler o MORNING_config.json.");
             if (!configData.data_paths) throw new Error("A chave 'data_paths' não foi encontrada no MORNING_config.json.");
 
             var sourceFolder = new Folder(scriptMainPath + "source/");
 
-            // Carregar Dados da Equipe
             if (!configData.data_paths.names) throw new Error("'data_paths.names' não definido no config.");
             var equipeDataPath = new File(sourceFolder.fsName + "/" + configData.data_paths.names.replace("../", ""));
             var equipeData = readJsonFile(equipeDataPath.fsName);
@@ -63,7 +57,6 @@ function GNEWS_Renamer_UI() {
                 tagsMap[membro.apelido] = membro.tag;
             }
 
-            // Carregar Dados de Programação
             if (!configData.data_paths.productions) throw new Error("'data_paths.productions' não definido no config.");
             var programacaoDataPath = new File(sourceFolder.fsName + "/" + configData.data_paths.productions.replace("../", ""));
             var programacaoData = readJsonFile(programacaoDataPath.fsName);
@@ -78,7 +71,6 @@ function GNEWS_Renamer_UI() {
                 }
             }
 
-            // Carregar Dados de Artes (LÓGICA ATUALIZADA)
             if (!configData.data_paths.arts) throw new Error("'data_paths.arts' não definido no config.");
             var artesDataPath = new File(sourceFolder.fsName + "/" + configData.data_paths.arts.replace("../", ""));
             var artesData = readJsonFile(artesDataPath.fsName);
@@ -96,41 +88,36 @@ function GNEWS_Renamer_UI() {
                 }
                 artsList.sort();
             } else if (artesData.Artes) {
-                artsList = artesData.Artes; // Fallback para o formato antigo
+                artsList = artesData.Artes;
             } else {
                  throw new Error("Nenhuma chave válida ('artes_codificadas' ou 'Artes') encontrada no DADOS_artes_gnews.json.");
             }
             
-            // Carregar Versões
             if (!configData.inline_data || !configData.inline_data.versions) throw new Error("'inline_data.versions' não definido no config.");
             var versionsList = configData.inline_data.versions;
 
-            // Se tudo correu bem, retorna um objeto com todos os dados
             return {
                 names: namesList,
                 tags: tagsMap,
                 productions: productionsList,
                 arts: artsList,
                 versions: versionsList,
-                programacaoRaw: programacaoData // ADICIONADO: Retorna os dados brutos de programação
+                programacaoRaw: programacaoData
             };
 
         } catch (e) {
-            // Este catch agora lida com os erros de forma mais segura
             var errorMessage = "Ocorreu um erro crítico durante o carregamento dos dados:\n" + e.toString();
-            $.writeln(errorMessage); // Escreve no console para debug
-            alert(errorMessage); // Mostra o alerta para o usuário
-            return null; // Retorna nulo para indicar falha
+            $.writeln(errorMessage);
+            alert(errorMessage);
+            return null;
         }
     }
 
     var loadedData = loadAllData();
-    // Se o carregamento falhar, o script para aqui.
     if (!loadedData) {
         return;
     }
 
-    // Atribui os dados carregados às variáveis do escopo principal
     var names = loadedData.names;
     var tags = loadedData.tags;
     var productions = loadedData.productions;
@@ -149,26 +136,25 @@ function GNEWS_Renamer_UI() {
         var recommendedFont = "Arial Unicode MS";
         var fallbackFont = "Arial";
         
-        // Map After Effects versions to release years and Unicode capabilities
         if (version >= 24.0) {
-            versionYear = 2024; // After Effects 2024
+            versionYear = 2024;
             supportsUnicode = true;
-            recommendedFont = "Segoe UI Emoji"; // Best for modern versions
+            recommendedFont = "Segoe UI Emoji";
         } else if (version >= 23.0) {
-            versionYear = 2023; // After Effects 2023
+            versionYear = 2023;
             supportsUnicode = true;
             recommendedFont = "Arial Unicode MS";
         } else if (version >= 22.0) {
-            versionYear = 2022; // After Effects 2022
+            versionYear = 2022;
             supportsUnicode = true;
             recommendedFont = "Arial Unicode MS";
         } else if (version >= 18.0) {
-            versionYear = 2021; // After Effects 2021
+            versionYear = 2021;
             supportsUnicode = true;
             recommendedFont = "Arial Unicode MS";
         } else if (version >= 17.0) {
-            versionYear = 2020; // After Effects 2020
-            supportsUnicode = false; // Limited Unicode support
+            versionYear = 2020;
+            supportsUnicode = false;
             recommendedFont = "Arial";
         } else {
             versionYear = "Legacy";
@@ -185,26 +171,20 @@ function GNEWS_Renamer_UI() {
         };
     }
 
-    // Enhanced Unicode detection with font fallback
     function isUnicodeSupported() {
         var versionInfo = getAfterEffectsVersionInfo();
         
-        // Test Unicode rendering capability
         if (versionInfo.supportsUnicode) {
             try {
-                // Create a test window to verify Unicode rendering
                 var testWin = new Window("dialog");
                 var testText = testWin.add("statictext", undefined, "\uD83D\uDCBE");
                 
-                // Try to set the recommended font
                 try {
                     testText.graphics.font = ScriptUI.newFont(versionInfo.recommendedFont, "Regular", 12);
                 } catch(e) {
-                    // Fallback to Arial if recommended font fails
                     try {
                         testText.graphics.font = ScriptUI.newFont(versionInfo.fallbackFont, "Regular", 12);
                     } catch(e2) {
-                        // If even Arial fails, Unicode is not properly supported
                         testWin.close();
                         return false;
                     }
@@ -222,17 +202,14 @@ function GNEWS_Renamer_UI() {
         return false;
     }
 
-    // Apply proper font settings for Unicode elements
     function setUnicodeFont(element) {
         var versionInfo = getAfterEffectsVersionInfo();
         
         if (versionInfo.supportsUnicode) {
             try {
-                // Primary font attempt
                 element.graphics.font = ScriptUI.newFont(versionInfo.recommendedFont, "Regular", 12);
             } catch(e1) {
                 try {
-                    // Secondary font attempt
                     if (versionInfo.recommendedFont !== "Arial Unicode MS") {
                         element.graphics.font = ScriptUI.newFont("Arial Unicode MS", "Regular", 12);
                     } else {
@@ -240,10 +217,8 @@ function GNEWS_Renamer_UI() {
                     }
                 } catch(e2) {
                     try {
-                        // Final fallback
                         element.graphics.font = ScriptUI.newFont(versionInfo.fallbackFont, "Regular", 12);
                     } catch(e3) {
-                        // Use system default if all else fails
                         $.writeln("Warning: Could not set Unicode font, using system default");
                     }
                 }
@@ -251,16 +226,14 @@ function GNEWS_Renamer_UI() {
         }
     }
 
-    // Updated Unicode icons with better compatibility
     var unicodeIcons = {
-        save: "\uD83D\uDCBE",      // 💾 (Floppy disk) 
-        create: "\u2728",           // ✨ (Sparkles) 
-        capture: "\uD83D\uDD3D",    // 🔽 (Down arrow)
-        copy: "\uD83D\uDCCB",       // 📋 (Clipboard)
-        organize: "\uD83D\uDCE5"    // 📥 (Inbox tray)
+        save: "\uD83D\uDCBE",
+        create: "\u2728",
+        capture: "\uD83D\uDD3D",
+        copy: "\uD83D\uDCCB",
+        organize: "\uD83D\uDCE5"
     };
 
-    // Fallback icons for older versions
     var fallbackIcons = {
         save: "[SAVE]",
         create: "[NEW]", 
@@ -269,7 +242,6 @@ function GNEWS_Renamer_UI() {
         organize: "[ORG]"
     };
 
-    // Get appropriate icon based on version support
     function getIcon(iconName) {
         var versionInfo = getAfterEffectsVersionInfo();
         
@@ -284,12 +256,10 @@ function GNEWS_Renamer_UI() {
     // FUNÇÃO PARA DEFINIR VALORES PADRÃO NA ABERTURA
     // =======================================================================
     function setDefaultValuesWithTimeLogic() {
-        // Define valores padrão para campos de texto e checkbox
         descInput.text = "";
         editorInput.text = "";
         alterCheck.value = false;
 
-        // Define a seleção padrão para "NOME"
         for (var i = 0; i < nameDrop.items.length; i++) {
             if (nameDrop.items[i].text.toLowerCase() === "d9") {
                 nameDrop.selection = i;
@@ -297,7 +267,6 @@ function GNEWS_Renamer_UI() {
             }
         }
 
-        // Define a seleção padrão para "TIPO"
         for (var i = 0; i < artDrop.items.length; i++) {
             if (artDrop.items[i].text.toLowerCase() === "base caracter") {
                 artDrop.selection = i;
@@ -305,12 +274,8 @@ function GNEWS_Renamer_UI() {
             }
         }
         
-        // Define a seleção padrão para "VERSÃO"
-        versionDrop.selection = 0; // "Nenhuma"
+        versionDrop.selection = 0;
 
-        // --- NOVA LÓGICA CORRIGIDA ---
-
-        // Função auxiliar para verificar se o dia atual corresponde à regra de exibição
         function isDayInSchedule(scheduleString, currentDay) {
             var s = scheduleString.toLowerCase();
             
@@ -345,14 +310,11 @@ function GNEWS_Renamer_UI() {
                 var programa = programacaoData.programacao_globonews[i];
                 
                 if (programa.horario && programa.dias_exibicao) {
-                    // 1. Quebra a string de horário em início e fim
                     var timeParts = programa.horario.split(" - ");
                     var startTime = timeParts[0];
                     var endTime = timeParts[1];
 
-                    // 2. Verifica se o dia de hoje está na regra de exibição
                     if (isDayInSchedule(programa.dias_exibicao, currentDay)) {
-                        // 3. Verifica se a hora atual está dentro do intervalo
                         if (currentTime >= startTime && currentTime < endTime) {
                             var tagNameFormatted = programa.tagName.replace(/_/g, ' ').toLowerCase();
                             var productionName = tagNameFormatted.replace(/\b\w/g, function(l){ return l.toUpperCase(); });
@@ -370,10 +332,10 @@ function GNEWS_Renamer_UI() {
                 if(productionFound) break;
             }
             if(!productionFound) {
-                prodDrop.selection = 0; // Fallback
+                prodDrop.selection = 0;
             }
         } catch(e){
-             prodDrop.selection = 0; // Fallback em caso de erro
+             prodDrop.selection = 0;
              $.writeln("ERRO CRÍTICO na função de horário: " + e.toString());
         }
     }
@@ -403,48 +365,31 @@ function GNEWS_Renamer_UI() {
         duration: 10, frameRate: 29.97
     };
 
-    // INÍCIO DO CÓDIGO DE SUBSTITUIÇÃO
-
-    var lastSavedPath; // Variável para armazenar o caminho de salvamento.
+    var lastSavedPath;
 
     try {
-        // Verifica se a variável global 'scriptMainPath' existe, essencial para encontrar outros scripts.
         if (typeof scriptMainPath === 'undefined' || scriptMainPath === null) {
             throw new Error("A variável global 'scriptMainPath' não foi definida.");
         }
-
-        // Constrói o caminho completo para o arquivo da função.
-        // O uso do construtor 'File' ajuda a normalizar o caminho.
         var getPathScriptFile = new File(scriptMainPath + "source/libraries/functions/func_getPathDayByDay.js");
 
         if (getPathScriptFile.exists) {
-            // Se o arquivo existe, lê seu conteúdo e o executa.
             getPathScriptFile.open('r');
             var scriptContent = getPathScriptFile.read();
             getPathScriptFile.close();
-            eval(scriptContent); // Este comando torna a função 'getPathDayByDay' disponível no script.
+            eval(scriptContent);
 
-            // Chama a função recém-carregada para obter o caminho do dia.
             var dynamicPath = getPathDayByDay();
-
-            // Define o caminho de salvamento padrão com o valor retornado pela função.
             lastSavedPath = dynamicPath;
-
-            // Opcional: Verifica no console do After Effects se o caminho foi carregado.
             $.writeln("Caminho dinâmico padrão para salvar definido como: " + lastSavedPath);
 
         } else {
-            // Lança um erro se o arquivo da função não for encontrado no caminho especificado.
             throw new Error("Arquivo 'func_getPathDayByDay.js' não encontrado.");
         }
     } catch(e) {
-        // Bloco de segurança (Fallback): Se qualquer parte do 'try' falhar,
-        // o script reverte para o comportamento original para evitar erros.
         $.writeln("AVISO: Falha ao obter o caminho dinâmico. Usando o caminho padrão do projeto. Erro: " + e.toString());
         lastSavedPath = app.project && app.project.file ? app.project.file.parent.fsName : Folder.desktop.fsName;
     }
-
-    // FIM DO CÓDIGO DE SUBSTITUIÇÃO
         
     var lang = {
         "pt": {
@@ -545,23 +490,26 @@ function GNEWS_Renamer_UI() {
         return text.replace(/[\/\\:*?"<>|]/g, "");
     }
 
-    var win = new Window("palette", lang[currentLang].title, undefined, { resizeable: false });
+    var win = (thisObj instanceof Panel) ? thisObj : new Window("palette", lang[currentLang].title, undefined, { resizeable: false });
     win.orientation = "column";
     win.alignChildren = ["fill", "top"];
     win.spacing = 5;
     win.margins = 15;
     
-    setBgColor(win, bgColor1);
+    // As funções de tema foram removidas para garantir a compatibilidade,
+    // já que elas dependem de outras bibliotecas.
+    // setBgColor(win, bgColor1);
 
     var headerGrp = win.add('group');
     headerGrp.alignment = 'fill';
     headerGrp.orientation = 'stack';
     var title = headerGrp.add('statictext', undefined, 'Construtor de Nomes:');
     title.alignment = 'left';
-    setFgColor(title, normalColor1);
+    // setFgColor(title, normalColor1);
     var helpGrp = headerGrp.add('group');
     helpGrp.alignment = 'right';
-    var helpBtn = new themeIconButton(helpGrp, { icon: D9T_INFO_ICON, tips: [lClick + 'Ajuda'] });
+    var helpBtn = helpGrp.add('button', undefined, '?');
+    helpBtn.preferredSize = [25, 25];
 
     var fieldsPanel = win.add("panel");
     fieldsPanel.orientation = "column";
@@ -569,12 +517,12 @@ function GNEWS_Renamer_UI() {
     fieldsPanel.alignment = 'center';
     fieldsPanel.spacing = 12;
     fieldsPanel.margins = 12;
-    setFgColor(fieldsPanel, monoColor1);
+    // setFgColor(fieldsPanel, monoColor1);
 
     function createDropdown(parent, labelText, items, width) {
         var grp = parent.add("group");
         var label = grp.add("statictext", undefined, labelText);
-        setFgColor(label, monoColor1);
+        // setFgColor(label, monoColor1);
         var ctrl = grp.add("dropdownlist", undefined, items);
         if (items && items.length > 0) ctrl.selection = 0;
         ctrl.preferredSize.width = width;
@@ -594,7 +542,7 @@ function GNEWS_Renamer_UI() {
     var descGroup = fieldsPanel.add("group");
     descGroup.alignment = "fill";
     var descLabel = descGroup.add("statictext", undefined, lang[currentLang].desc);
-    setFgColor(descLabel, monoColor1);
+    // setFgColor(descLabel, monoColor1);
     var descInput = descGroup.add("edittext", undefined, "");
     descInput.alignment = "fill";
     descInput.preferredSize.width = 218;
@@ -602,14 +550,14 @@ function GNEWS_Renamer_UI() {
     var editorGroup = fieldsPanel.add("group");
     editorGroup.alignment = "fill";
     var editorLabel = editorGroup.add("statictext", undefined, lang[currentLang].editor);
-    setFgColor(editorLabel, monoColor1);
+    // setFgColor(editorLabel, monoColor1);
     var editorInput = editorGroup.add("edittext", undefined, "");
     editorInput.alignment = "fill";
     editorInput.preferredSize.width = 238;
 
     var alterGroup = fieldsPanel.add("group");
     var alterLabel = alterGroup.add("statictext", undefined, lang[currentLang].alter);
-    setFgColor(alterLabel, monoColor1);
+    // setFgColor(alterLabel, monoColor1);
     var alterCheck = alterGroup.add("checkbox", undefined, "");
 
     var previewContainerGroup = win.add("group");
@@ -619,10 +567,10 @@ function GNEWS_Renamer_UI() {
     previewPanel.preferredSize.height = 40;
     previewPanel.alignChildren = ["center", "center"];
     previewPanel.margins = 2;
-    setFgColor(previewPanel, monoColor1);
+    // setFgColor(previewPanel, monoColor1);
     var previewText = previewPanel.add("statictext", undefined, "");
     previewText.preferredSize.width = 309;
-    setFgColor(previewText, normalColor1);
+    // setFgColor(previewText, normalColor1);
     
     var mainBtnPanel = win.add("group");
     mainBtnPanel.orientation = "column";
@@ -636,64 +584,19 @@ function GNEWS_Renamer_UI() {
     var btnWidth = 100;
     var btnHeight = 30;
 
-    // Create buttons with enhanced Unicode support
-    var renameBtn = new themeButton(buttonRow1, { 
-        width: btnWidth, 
-        height: btnHeight, 
-        labelTxt: supportsUnicode ? (getIcon("save") + "  " + lang[currentLang].rename) : lang[currentLang].rename, 
-        tips: ['Renomeia as comps selecionadas.']
-    });
-
-    var createBtn = new themeButton(buttonRow1, { 
-        width: btnWidth, 
-        height: btnHeight, 
-        labelTxt: supportsUnicode ? (getIcon("create") + "  " + lang[currentLang].create) : lang[currentLang].create, 
-        tips: ['Cria uma nova comp com este nome.']
-    });
-
-    var captureBtn = new themeButton(buttonRow1, { 
-        width: btnWidth, 
-        height: btnHeight, 
-        labelTxt: supportsUnicode ? (getIcon("capture") + "  " + lang[currentLang].capture) : lang[currentLang].capture, 
-        tips: ['Captura dados da comp selecionada.']
-    });
+    var renameBtn = buttonRow1.add('button', undefined, (supportsUnicode ? getIcon("save") + "  " : "") + lang[currentLang].rename);
+    renameBtn.size = [btnWidth, btnHeight];
+    var createBtn = buttonRow1.add('button', undefined, (supportsUnicode ? getIcon("create") + "  " : "") + lang[currentLang].create);
+    createBtn.size = [btnWidth, btnHeight];
+    var captureBtn = buttonRow1.add('button', undefined, (supportsUnicode ? getIcon("capture") + "  " : "") + lang[currentLang].capture);
+    captureBtn.size = [btnWidth, btnHeight];
     
-    var copyBtn = new themeButton(buttonRow2, { 
-        width: btnWidth, 
-        height: btnHeight, 
-        labelTxt: supportsUnicode ? (getIcon("copy") + "  " + lang[currentLang].copy) : lang[currentLang].copy, 
-        tips: ['Copia o nome da comp ativa.']
-    });
-    
-    var organizeBtn = new themeButton(buttonRow2, { 
-        width: btnWidth, 
-        height: btnHeight, 
-        labelTxt: supportsUnicode ? (getIcon("organize") + "  ORGANIZAR") : "ORGANIZAR", 
-        tips: ['Reduz e organiza o projeto.']
-    });
-    
-    var saveBtn = new themeButton(buttonRow2, { 
-        width: btnWidth, 
-        height: btnHeight, 
-        labelTxt: supportsUnicode ? (getIcon("save") + "  " + lang[currentLang].save) : lang[currentLang].save, 
-        tips: ['Salva uma cópia do projeto com o nome gerado.'], 
-        textColor: bgColor1, 
-        buttonColor: normalColor1
-    });
-
-    // Optional: Apply Unicode fonts to buttons if they support it
-    if (supportsUnicode) {
-        try {
-            setUnicodeFont(renameBtn.leftClick);
-            setUnicodeFont(createBtn.leftClick);
-            setUnicodeFont(captureBtn.leftClick);
-            setUnicodeFont(copyBtn.leftClick);
-            setUnicodeFont(organizeBtn.leftClick);
-            setUnicodeFont(saveBtn.leftClick);
-        } catch(e) {
-            $.writeln("Could not apply Unicode fonts to buttons: " + e.toString());
-        }
-    }
+    var copyBtn = buttonRow2.add('button', undefined, (supportsUnicode ? getIcon("copy") + "  " : "") + lang[currentLang].copy);
+    copyBtn.size = [btnWidth, btnHeight];
+    var organizeBtn = buttonRow2.add('button', undefined, (supportsUnicode ? getIcon("organize") + "  " : "") + "ORGANIZAR");
+    organizeBtn.size = [btnWidth, btnHeight];
+    var saveBtn = buttonRow2.add('button', undefined, (supportsUnicode ? getIcon("save") + "  " : "") + lang[currentLang].save);
+    saveBtn.size = [btnWidth, btnHeight];
 
     function updateStatusText(message) {
         previewText.text = message;
@@ -704,9 +607,9 @@ function GNEWS_Renamer_UI() {
         var com_acento = "áàãâäéèêëíìîïóòõôöúùûüçñÁÀÃÂÄÉÈÊËÍÌÎÏÓÒÕÔÖÚÙÛÜÇÑ";
         var sem_acento = "aaaaaeeeeiiiiooooouuuucnAAAAAEEEEIIIIOOOOOUUUUCN";
         var novastr="";
-        for(i=0; i<str.length; i++) {
-            troca=false;
-            for (j=0; j<com_acento.length; j++) {
+        for(var i=0; i<str.length; i++) {
+            var troca=false;
+            for (var j=0; j<com_acento.length; j++) {
                 if (str.substr(i,1)==com_acento.substr(j,1)) {
                     novastr+=sem_acento.substr(j,1);
                     troca=true;
@@ -769,12 +672,12 @@ function GNEWS_Renamer_UI() {
         }
     }
     
-    captureBtn.leftClick.onClick = function() {
+    captureBtn.onClick = function() {
         if (!(app.project.activeItem instanceof CompItem)) { updateStatusText(lang[currentLang].noComp); return; }
         updateFieldsFromComp();
     };
 
-    copyBtn.leftClick.onClick = function() {
+    copyBtn.onClick = function() {
         var activeItem = app.project.activeItem;
         if (activeItem && activeItem instanceof CompItem) {
             try {
@@ -788,7 +691,7 @@ function GNEWS_Renamer_UI() {
         }
     };
     
-    createBtn.leftClick.onClick = function() {
+    createBtn.onClick = function() {
         app.beginUndoGroup("Criar Nova Composição");
         try {
             updatePreview();
@@ -797,7 +700,6 @@ function GNEWS_Renamer_UI() {
                 updateStatusText("Gere um nome válido antes de criar a composição."); return;
             }
             
-            // ADICIONADO: Remove a acentuação apenas no momento de criar
             compName = removeAccents(compName);
 
             app.project.items.addComp(compName, defaultCompSettings.width, defaultCompSettings.height, defaultCompSettings.pixelAspect, defaultCompSettings.duration, defaultCompSettings.frameRate);
@@ -808,7 +710,7 @@ function GNEWS_Renamer_UI() {
         app.endUndoGroup();
     };
 
-    renameBtn.leftClick.onClick = function() {
+    renameBtn.onClick = function() {
         app.beginUndoGroup("Renomear Composições");
         try {
             var selectedComps = [];
@@ -817,8 +719,6 @@ function GNEWS_Renamer_UI() {
                 if (selection[i] instanceof CompItem) { selectedComps.push(selection[i]); }
             }
             if (selectedComps.length === 0) { throw new Error(lang[currentLang].noComp); }
-            // Campo Editor opcional
-            // if (!editorInput.text) { throw new Error(lang[currentLang].noEditor); }
             
             updatePreview();
             var finalNameTemplate = previewText.text;
@@ -842,7 +742,7 @@ function GNEWS_Renamer_UI() {
         app.endUndoGroup();
     };
     
-    organizeBtn.leftClick.onClick = function() {
+    organizeBtn.onClick = function() {
         if (!app.project) {
             updateStatusText("Por favor, abra um projeto.");
             return;
@@ -852,13 +752,11 @@ function GNEWS_Renamer_UI() {
         try {
             updateStatusText("Analisando o projeto...");
             
-            // Função interna para identificar composições com nome "GNEWS"
             function isGnewsNamedComp(comp) {
                 if (!(comp instanceof CompItem)) return false;
                 return (comp.name.toUpperCase().indexOf("GNEWS ") === 0);
             }
 
-            // 1. Identifica as comps a serem protegidas (movidas para a raiz)
             var compsToProtect_ids = {};
             var selection = app.project.selection;
             if (selection.length > 0) {
@@ -876,7 +774,6 @@ function GNEWS_Renamer_UI() {
                 }
             }
     
-            // Função para obter ou criar uma pasta
             function getOrCreateFolder(name, parent) {
                 if (parent === undefined) { parent = app.project.rootFolder; }
                 for (var i = 1; i <= parent.numItems; i++) {
@@ -887,34 +784,28 @@ function GNEWS_Renamer_UI() {
                 return parent.items.addFolder(name);
             }
             
-            // 2. Reduz o projeto antes de organizar
             updateStatusText("Reduzindo projeto...");
             app.executeCommand(app.findMenuCommandId("Reduce Project"));
             
-            // Prepara a estrutura de pastas
             var folders = {};
             var arquivosFolder = getOrCreateFolder('03 ARQUIVOS');
             
             var itemsMovedCount = 0;
             var imageExtensions = [".png", ".jpg", ".jpeg", ".psd", ".ai", ".eps", ".tiff", "tga", ".exr"];
     
-            // 3. Itera por todos os itens para organizar
             updateStatusText("Organizando itens...");
             for (var i = 1; i <= app.project.numItems; i++) {
                 var item = app.project.item(i);
                 
-                // Pula pastas na primeira passada
                 if (item instanceof FolderItem) continue;
                 
-                // REGRA 1: Move as comps protegidas para a raiz do projeto
                 if (compsToProtect_ids[item.id]) {
                     if (item.parentFolder !== app.project.rootFolder) {
                         item.parentFolder = app.project.rootFolder;
                     }
-                    continue; // Pula para o próximo item
+                    continue;
                 }
                 
-                // Organiza os itens restantes
                 var moved = false;
                 if (item instanceof CompItem) {
                     if (item.usedIn.length > 0) {
@@ -956,7 +847,6 @@ function GNEWS_Renamer_UI() {
                 if (moved) itemsMovedCount++;
             }
 
-            // 4. REGRA 2: Remove TODAS as pastas que estiverem vazias
             updateStatusText("Limpando pastas vazias...");
             for(var i = app.project.numItems; i >= 1; i--) {
                 var item = app.project.item(i);
@@ -978,13 +868,10 @@ function GNEWS_Renamer_UI() {
         }
     };
 
-    saveBtn.leftClick.onClick = function() {
-        // Campo Editor opcional
-        // if (!editorInput.text) { updateStatusText(lang[currentLang].noEditor); return; }
+    saveBtn.onClick = function() {
         updatePreview();
         var finalTagName = tags[names[nameDrop.selection.index]] || "";
         
-        // ADICIONADO: Remove a acentuação apenas no momento de gerar o nome do arquivo
         var cleanPreviewText = removeAccents(previewText.text);
         
         var projectName = (finalTagName ? finalTagName + " " : "") + cleanPreviewText + ".aep";
@@ -1004,35 +891,29 @@ function GNEWS_Renamer_UI() {
         }
     };
     
-    // START - FUNÇÃO DE AJUDA REVISADA PARA PADRONIZAÇÃO
-    helpBtn.leftClick.onClick = function() {
-        var TARGET_HELP_WIDTH = 450; // Largura desejada para a janela de ajuda
-        var MARGIN_SIZE = 15; // Tamanho das margens internas da janela principal
-        var TOPIC_SECTION_MARGINS = [10, 5, 10, 5]; // Margens para cada seção de tópico dentro da aba
-        var TOPIC_SPACING = 5; // Espaçamento entre o título do tópico e o texto explicativo
-        var TOPIC_TITLE_INDENT = 0; // Recuo para os títulos dos tópicos (ex: "▶ TÍTULO")
-        var SUBTOPIC_INDENT = 25; // Recuo para os subtópicos (ex: "   - Subtópico")
+    helpBtn.onClick = function() {
+        var TARGET_HELP_WIDTH = 450;
+        var MARGIN_SIZE = 15;
+        var TOPIC_SECTION_MARGINS = [10, 5, 10, 5];
+        var TOPIC_SPACING = 5;
+        var TOPIC_TITLE_INDENT = 0;
+        var SUBTOPIC_INDENT = 25;
 
         var helpWin = new Window("palette", "Ajuda - GNEWS Tools", undefined, { closeButton: true });
         helpWin.orientation = "column";
         helpWin.alignChildren = ["fill", "fill"];
-        helpWin.spacing = 10; // Espaçamento entre os elementos principais da janela
-        helpWin.margins = MARGIN_SIZE; // Define as margens aqui para que sejam acessíveis
+        helpWin.spacing = 10;
+        helpWin.margins = MARGIN_SIZE;
         
-        // Forçar a largura e altura preferencial da janela. O layout interno se ajustará.
-        helpWin.preferredSize = [TARGET_HELP_WIDTH, 600]; // Altura ajustada para acomodar o tabbedpanel
+        helpWin.preferredSize = [TARGET_HELP_WIDTH, 600];
 
-        // Define o fundo da janela
         if (typeof bgColor1 !== 'undefined' && typeof setBgColor !== 'undefined') {
             setBgColor(helpWin, bgColor1);
         } else {
-            helpWin.graphics.backgroundColor = helpWin.graphics.newBrush(helpWin.graphics.BrushType.SOLID_COLOR, [0.05, 0.04, 0.04, 1]); // Padrão escuro
+            helpWin.graphics.backgroundColor = helpWin.graphics.newBrush(helpWin.graphics.BrushType.SOLID_COLOR, [0.05, 0.04, 0.04, 1]);
         }
 
-        // =======================================
-        // PAINEL PARA TÍTULO E DESCRIÇÃO PRINCIPAL
-        // =======================================
-        var headerPanel = helpWin.add("panel", undefined, ""); // Painel vazio para o título e descrição
+        var headerPanel = helpWin.add("panel", undefined, "");
         headerPanel.orientation = "column";
         headerPanel.alignChildren = ["fill", "top"];
         headerPanel.alignment = ["fill", "top"];
@@ -1057,14 +938,10 @@ function GNEWS_Renamer_UI() {
             mainDescText.graphics.foregroundColor = mainDescText.graphics.newPen(mainDescText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 1], 1);
         }
 
-        // =======================================
-        // TABBEDPANEL PARA MÚLTIPLAS PÁGINAS DE TÓPICOS
-        // =======================================
         var topicsTabPanel = helpWin.add("tabbedpanel");
         topicsTabPanel.alignment = ["fill", "fill"];
         topicsTabPanel.margins = 15;
 
-        // Definição dos tópicos para as abas
         var allHelpTopics = [
             {
                 tabName: "CONSTRUTOR E AÇÕES",
@@ -1087,7 +964,6 @@ function GNEWS_Renamer_UI() {
             }
         ];
 
-        // Cria as abas e preenche com os tópicos
         for (var s = 0; s < allHelpTopics.length; s++) {
             var currentTabSection = allHelpTopics[s];
             var tab = topicsTabPanel.add("tab", undefined, currentTabSection.tabName);
@@ -1103,7 +979,6 @@ function GNEWS_Renamer_UI() {
                 topicGrp.alignChildren = "fill";
                 topicGrp.spacing = TOPIC_SPACING;
                 
-                // Define o recuo do tópico
                 if (topic.title.indexOf("▶") === 0) {
                     topicGrp.margins.left = TOPIC_TITLE_INDENT;
                 } else {
@@ -1117,16 +992,13 @@ function GNEWS_Renamer_UI() {
                 } else {
                     topicTitle.graphics.foregroundColor = topicTitle.graphics.newPen(topicTitle.graphics.PenType.SOLID_COLOR, [0.83, 0, 0.23, 1], 1);
                 }
-                // Ajusta a largura do título
                 topicTitle.preferredSize.width = (TARGET_HELP_WIDTH - (MARGIN_SIZE * 2) - (topicsTabPanel.margins.left + topicsTabPanel.margins.right) - (tab.margins.left + tab.margins.right) - topicGrp.margins.left);
-
 
                 if(topic.text !== ""){
                     var topicText = topicGrp.add("statictext", undefined, topic.text, { multiline: true });
                     topicText.graphics.font = ScriptUI.newFont("Arial", "Regular", 11);
-                    // Ajusta a largura do texto explicativo
                     topicText.preferredSize.width = (TARGET_HELP_WIDTH - (MARGIN_SIZE * 2) - (topicsTabPanel.margins.left + topicsTabPanel.margins.right) - (tab.margins.left + tab.margins.right) - topicGrp.margins.left);
-                    topicText.preferredSize.height = 50; // Altura preferencial para 3-4 linhas
+                    topicText.preferredSize.height = 50;
                     
                     if (typeof normalColor1 !== 'undefined' && typeof setFgColor !== 'undefined') {
                         setFgColor(topicText, normalColor1);
@@ -1137,7 +1009,6 @@ function GNEWS_Renamer_UI() {
             }
         }
 
-        // Botão de fechar (fora do tabbedpanel)
         var closeBtnGrp = helpWin.add("group");
         closeBtnGrp.alignment = "center";
         closeBtnGrp.margins = [0, 10, 0, 0];
@@ -1150,29 +1021,27 @@ function GNEWS_Renamer_UI() {
         helpWin.center();
         helpWin.show();
     };
-
-    // Debug information (optional - remove in production)
-    $.writeln("=== After Effects Unicode Support ===");
-    var versionInfo = getAfterEffectsVersionInfo();
-    $.writeln("AE Version: " + versionInfo.version + " (" + versionInfo.year + ")");
-    $.writeln("Unicode Support: " + supportsUnicode);
-    $.writeln("Recommended Font: " + versionInfo.recommendedFont);
-
-    win.center();
-    win.show();
     
-    // Define os valores padrão ao iniciar o script
-    setDefaultValuesWithTimeLogic();
-    updatePreview();
+    // Simplificando as chamadas de botão para evitar erros com a biblioteca de tema
+    renameBtn.onClick = renameBtn.onClick || function() {}; // Prevenção de erro
+    createBtn.onClick = createBtn.onClick || function() {};
+    captureBtn.onClick = captureBtn.onClick || function() {};
+    copyBtn.onClick = copyBtn.onClick || function() {};
+    organizeBtn.onClick = organizeBtn.onClick || function() {};
+    saveBtn.onClick = saveBtn.onClick || function() {};
 
-    var activeItemOnInit = app.project.activeItem;
-    if (activeItemOnInit && activeItemOnInit instanceof CompItem) {
-        updateFieldsFromComp();
+    if (win instanceof Window) {
+        win.center();
+        win.show();
     }
-}
-
-if (app.project) {
-    GNEWS_Renamer_UI();
-} else {
-    alert("Por favor, abra um projeto no After Effects primeiro.");
+    
+    // O código de inicialização só roda se a janela for autônoma
+    if (!(thisObj instanceof Panel)) {
+        setDefaultValuesWithTimeLogic();
+        updatePreview();
+        var activeItemOnInit = app.project.activeItem;
+        if (activeItemOnInit && activeItemOnInit instanceof CompItem) {
+            updateFieldsFromComp();
+        }
+    }
 }

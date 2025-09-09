@@ -10,7 +10,7 @@
       ancoragem em relação a todas as propriedades de transformação.
 */
 
-(function(thisObj) {
+function launchAnchorAlign(thisObj) {
     var AnchorMaster = {
         // --- Configurações ---
         ui: {},
@@ -499,4 +499,4 @@
     };
 
     AnchorMaster.run(thisObj);
-})(this);
+}

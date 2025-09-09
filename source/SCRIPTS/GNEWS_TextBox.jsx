@@ -8,7 +8,7 @@ CORREÇÕES CRÍTICAS:
 - Todos os modos respeitam quebras de linha automáticas
 */
 
-function GNEWS_TextBox_UI() {
+function createUI(thisObj) {
 
     var progressWin = null, progressBar = null;
 
@@ -59,7 +59,7 @@ function GNEWS_TextBox_UI() {
         // ESPAÇAMENTOS AJUSTADOS PELA ESCALA
         var baseFontSize = textDoc.fontSize * scaleDimensions.scaleY;
         var letterSpacing = baseFontSize * 0.05; // 5% para letras
-        var spaceSpacing = baseFontSize * 0.10;   // 10% para espaços
+        var spaceSpacing = baseFontSize * 0.10;  // 10% para espaços
         
         // Quebra o texto em linhas primeiro para processar linha por linha
         var lines = getLinesFromLayer(textLayer);
@@ -231,7 +231,7 @@ function GNEWS_TextBox_UI() {
         layer.remove();
     }
     
-    // NOVA FUNÇÃO: Detecta formatação predominante de uma linha
+    // Detecta formatação predominante de uma linha
     function detectLineFormatting(textLayer, startIndex, endIndex) {
         try {
             // Pega o primeiro caractere não-espaço da linha para detectar formatação
@@ -379,7 +379,7 @@ function GNEWS_TextBox_UI() {
                 var newTextProp = newLayer.property("Source Text");
                 var newTextDoc = newTextProp.value;
                 
-                // NOVO: Usa formatação específica do caractere se disponível
+                // Usa formatação específica do caractere se disponível
                 if (data.font && data.charIndex !== undefined) {
                     copyTextPropertiesWithFormatting(layer, newTextDoc, data.charIndex);
                     // Força a fonte específica detectada
@@ -529,7 +529,7 @@ function GNEWS_TextBox_UI() {
         }
     }
     
-    // NOVA FUNÇÃO: Calcula dimensões considerando escala
+    // Calcula dimensões considerando escala
     function getScaledDimensions(layer) {
         var scale = layer.transform.scale.value;
         var scaleX = scale[0] / 100;
@@ -542,7 +542,7 @@ function GNEWS_TextBox_UI() {
         };
     }
     
-    // NOVA FUNÇÃO: Ajusta propriedades de texto considerando escala
+    // Ajusta propriedades de texto considerando escala
     function adjustTextPropertiesForScale(textDoc, scaleDimensions) {
         // Cria uma cópia das propriedades do texto
         var adjustedDoc = textDoc;
@@ -571,7 +571,7 @@ function GNEWS_TextBox_UI() {
         return adjustedDoc;
     }
     
-    // NOVA FUNÇÃO: Copia propriedades com compensação de escala
+    // Copia propriedades com compensação de escala
     function copyTextPropertiesWithScale(sourceLayer, targetDoc) {
         var sourceTextProp = sourceLayer.property("Source Text");
         var sourceDoc = sourceTextProp.value;
@@ -722,7 +722,7 @@ function GNEWS_TextBox_UI() {
         }
     }
     
-    // NOVA FUNÇÃO: Extrai propriedades específicas de um caractere
+    // Extrai propriedades específicas de um caractere
     function getCharacterProperties(textLayer, charIndex) {
         try {
             var textProp = textLayer.property("Source Text");
@@ -782,7 +782,7 @@ function GNEWS_TextBox_UI() {
         }
     }
     
-    // NOVA FUNÇÃO: Valida e corrige nome de fonte
+    // Valida e corrige nome de fonte
     function validateFontName(fontName) {
         if (!fontName || typeof fontName !== 'string') {
             return null;
@@ -801,7 +801,7 @@ function GNEWS_TextBox_UI() {
         return cleanedFont;
     }
     
-    // ATUALIZADA: Detecta variações de peso da fonte com validação
+    // Detecta variações de peso da fonte com validação
     function detectBoldFont(fontName) {
         var validatedFont = validateFontName(fontName);
         if (!validatedFont) return fontName;
@@ -868,9 +868,8 @@ function GNEWS_TextBox_UI() {
     }
 
     // --- INTERFACE GRÁFICA ---
-    
     var SCRIPT_NAME = "GNEWS TextBox", SCRIPT_VERSION = "v7.6";
-    var win = new Window("palette", SCRIPT_NAME + " " + SCRIPT_VERSION);
+    var win = (thisObj instanceof Panel) ? thisObj : new Window("palette", SCRIPT_NAME + " " + SCRIPT_VERSION);
     win.orientation = "column";
     win.alignChildren = ["fill", "top"];
     win.spacing = 10;
@@ -885,7 +884,7 @@ function GNEWS_TextBox_UI() {
     headerGrp.alignment = 'fill';
     headerGrp.orientation = 'stack';
     
-    var title = headerGrp.add('statictext', undefined, 'Converter Texto em Camadas');
+    var title = headerGrp.add('statictext', undefined, 'Converte Boxtext em LayerText');
     title.alignment = 'left';
     if (typeof setFgColor === 'function' && typeof normalColor1 !== 'undefined') {
         setFgColor(title, normalColor1);
@@ -896,7 +895,7 @@ function GNEWS_TextBox_UI() {
     
     // Botão de ajuda
     var helpBtn;
-    if (typeof themeIconButton === 'function') {
+    if (typeof themeIconButton === 'function' && typeof D9T_INFO_ICON !== 'undefined') {
         helpBtn = new themeIconButton(helpGrp, { 
             icon: D9T_INFO_ICON, 
             tips: ['Clique para ajuda'] 
@@ -1032,14 +1031,8 @@ function GNEWS_TextBox_UI() {
         helpBtn.onClick = showHelp;
     }
 
-    win.center();
-    win.show();
-}
-
-// Execução
-try {
-    GNEWS_TextBox_UI();
-} catch(e) {
-    alert("Erro ao iniciar GNEWS TextBox v7.6:\n" + e.toString() + 
-          (e.line ? "\nLinha: " + e.line : ""));
+    if (win instanceof Window) {
+        win.center();
+        win.show();
+    }
 }

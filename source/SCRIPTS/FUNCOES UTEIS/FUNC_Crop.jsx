@@ -17,7 +17,7 @@
  * - 2 ou mais Precomps selecionadas: Agrupa sem redução de borda.
  */
 
-(function() {
+function launchCropComp(thisObj) {
     // Função principal
     function createCroppedPrecomp() {
         var comp = app.project.activeItem;
@@ -314,4 +314,4 @@
 
     createCroppedPrecomp();
 
-})();
+}

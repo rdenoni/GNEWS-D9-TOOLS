@@ -3,7 +3,7 @@
 		{
 			"name": "Configuração de Caminhos",
 			"icon": "",
-			"templatesPath": "/d/PROJETOS/SCRIPTS AFTER/files/templates",
+			"templatesPath": "/t/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS",
 			"pecasGraficas": [
 				"/t/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS",
 				"/d/PROJETOS/SCRIPTS AFTER/files/templates"
@@ -19,6 +19,6 @@
 		}
 	],
 	"gnews_templates": {
-		"lastProductionIndex": 0
+		"lastProductionIndex": 2
 	}
 }

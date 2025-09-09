@@ -6,7 +6,7 @@
  * - Sistema de salvamento e carregamento de preferências do usuário
  ***************************************************/
 
-(function() {
+function launchMailMaker() {
 
     // === CONFIGURAÇÕES BÁSICAS ===
     var config = {
@@ -1226,4 +1226,4 @@ function setClipboard(str) {
     }
 
     init();
-})();
+}

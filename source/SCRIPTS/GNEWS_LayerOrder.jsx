@@ -3,7 +3,7 @@
 // Este script lê as configurações de um arquivo JSON externo.
 // Execute o script AutoLayerOrder_Settings.jsx para alterar as configurações.
 
-(function() {
+function launchLayerOrderUI() {
     // START - FUNÇÕES DE CONFIGURAÇÃO E AUXILIARES
     var DEBUG_MODE = true;
     
@@ -979,4 +979,4 @@
     };
 
     LayersOrganizer.buildUI(this);
-})();
+}

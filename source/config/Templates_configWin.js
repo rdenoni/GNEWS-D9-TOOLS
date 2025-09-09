@@ -74,7 +74,7 @@ function getFolderStructureAsData(rootFolder, fileFilter) {
 }
 
 
-function d9ProdFoldersDialog() {
+function d9ProdFoldersDialog(prodArray) {
     var scriptName = 'CONFIGURAÇÃO DE CAMINHOS';
     
     var cacheFolder = new Folder(scriptMainPath + 'source/cache');
@@ -88,8 +88,8 @@ function d9ProdFoldersDialog() {
     ];
     
     try {
-        if (typeof D9T_prodArray !== 'undefined' && D9T_prodArray.length > 0) {
-            var prodData = D9T_prodArray[0];
+if (typeof prodArray !== 'undefined' && prodArray.length > 0) {
+    var prodData = prodArray[0];
             categorias[0].caminhos = prodData.pecasGraficas || [prodData.templatesPath || Folder.desktop.fullName];
             categorias[1].caminhos = prodData.baseTematica || [Folder.desktop.fullName];
             categorias[2].caminhos = prodData.ilustracoes || [Folder.desktop.fullName];

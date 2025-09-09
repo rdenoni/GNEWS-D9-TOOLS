@@ -5,6 +5,9 @@
   Função para gerar um caminho de diretório dinâmico baseado na data atual,
   para ser usada dentro do Adobe After Effects.
 */
+
+
+
 function getPathDayByDay() {
     var caminhoFixo = "T:\\JORNALISMO\\GLOBONEWS\\DIARIOS\\RJ\\2025";
     var mapaMeses = {
@@ -115,19 +118,19 @@ function D9TFindProjectDialog() {
     
     var defaultPath = getPathDayByDay(); 
     var folderPathTxt = folderGrp.add('edittext', undefined, defaultPath);
-    folderPathTxt.preferredSize.width = 374;
+    folderPathTxt.preferredSize.width = 380;
     folderPathTxt.helpTip = defaultPath;
     presetDropdown.selection = 0; 
 
     var searchGrp = win.add('group');
     searchGrp.alignment = 'left';
     
-    var searchBtn = new themeIconButton(searchGrp, { icon: D9T_LENS_ICON || undefined, tips: [(lClick || 'Clique') + ' Buscar projetos'] });
-    var spacer1 = searchGrp.add('group'); spacer1.preferredSize.width = 1;
-    var searchInput = searchGrp.add('edittext'); 
-    searchInput.preferredSize.width = 372;
 
-    var placeholderText = 'Digite para Buscar...';
+    var searchInput = searchGrp.add('edittext'); 
+    searchInput.preferredSize.width = 410;
+    searchInput.preferredSize.height = 32;
+
+    var placeholderText = '⌕  Digite para Buscar...';
     searchInput.text = placeholderText;
     searchInput.active = false; 
     searchInput.onActivate = function() {
@@ -335,7 +338,7 @@ function D9TFindProjectDialog() {
     function endSearch() {
         win.text = scriptName;
         cancelBtn.visible = false;
-        searchBtn.enabled = true;
+        
         selectFolderBtn.enabled = true;
         if (searchResults.length === 0) {
             sortHeaderGrp.visible = false;
@@ -344,7 +347,7 @@ function D9TFindProjectDialog() {
         win.update();
     }
 
-    searchBtn.leftClick.onClick = searchInput.onEnterKey = doSearch;
+    searchInput.onEnterKey = doSearch;
     resultTree.onDoubleClick = function() {
         if (resultTree.selection && resultTree.selection.type === 'item') {
             try {
@@ -387,4 +390,3 @@ function D9TFindProjectDialog() {
     }
 }
 
-//D9TFindProjectDialog();

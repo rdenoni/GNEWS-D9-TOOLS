@@ -3,7 +3,7 @@
 // Execute este script para alterar as configurações de prefixos, cores e idioma.
 // As configurações serão salvas e usadas pelo script principal.
 
-(function() {
+function launchLayerOrderConfigWinUI() {
 
     // --- LÓGICA DE TEMA ADICIONADA ---
     var bgColor1 = '#0B0D0E';
@@ -184,4 +184,4 @@
     var currentConfig = loadConfig();
     createSettingsWindow(currentConfig);
 
-})();
+}

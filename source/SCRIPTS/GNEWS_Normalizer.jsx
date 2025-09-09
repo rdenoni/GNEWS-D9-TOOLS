@@ -14,7 +14,8 @@
  *
  **********************************************************************************/
 
-(function createNormalizersToolkit(thisObj) {
+function launchNormalizerUI(thisObj) { // O 'thisObj' foi movido para a função principal
+
     var pal = (thisObj instanceof Panel) ? thisObj : new Window("palette", "Kit de Ferramentas - Normalizadores v15.6", undefined, { resizeable: true });
     if (pal === null) return;
     pal.orientation = "column";
@@ -26,62 +27,62 @@
 
     // --- FUNÇÃO DE AJUDA ---
     function showHelp() {
-        var LARGURA_JANELA = 550; 
-        var ALTURA_JANELA = 500;  
+        var LARGURA_JANELA = 550;
+        var ALTURA_JANELA = 500;
         var helpWin = new Window("palette", "Ajuda - Normalizadores", undefined, { closeButton: true });
         helpWin.orientation = "column"; helpWin.alignChildren = ["fill", "fill"]; helpWin.spacing = 10; helpWin.margins = 15;
         helpWin.preferredSize = [LARGURA_JANELA, ALTURA_JANELA];
-        
+
         helpWin.graphics.backgroundColor = helpWin.graphics.newBrush(helpWin.graphics.BrushType.SOLID_COLOR, [0.05, 0.04, 0.04, 1]);
         var titleText = helpWin.add("statictext", undefined, "AJUDA - NORMALIZADORES");
         titleText.graphics.font = ScriptUI.newFont("Arial", "Bold", 16); titleText.alignment = ["center", "center"];
-        var mainDescText = helpWin.add("statictext", undefined, "Esta ferramenta oferece um conjunto de funções para Escala as propriedades de transformação das camadas.", {multiline: true});
-        mainDescText.margins = [15,0,15,15];
+        var mainDescText = helpWin.add("statictext", undefined, "Esta ferramenta oferece um conjunto de funções para Escala as propriedades de transformação das camadas.", { multiline: true });
+        mainDescText.margins = [15, 0, 15, 15];
         var topics = [
-         {
-             title: "▶ Escala 100%:",
-             text: "Ajusta a escala de camadas para 100%. Para Textos/Shapes, a escala é incorporada nos atributos. Para outras camadas, cria uma pré-composição.",
-         },
-         {
-             title: "▶ Centralizar Âncora:",
-             text: "Move o Ponto de Âncora para o centro geométrico da camada, mantendo a posição visual.",
-         },
-         {
-             title: "▶ Âncora [0,0]:",
-             text: "Move o ponto de âncora para a posição [0,0] da camada, mantendo a posição visual.",
-         },
-         {
-             title: "▶ Centralizar Objeto:",
-             text: "Move as camadas selecionadas para o centro exato da composição.",
-         },
-         {
-             title: "▶ Posição [0,0] (via Âncora):",
-             text: "Move a posição da camada para as coordenadas [0,0], compensando o deslocamento no Ponto de Âncora. AVISO: Isso quebra o comportamento de Rotação e Escala.",
-         },
-         {
-             title: "▶ Resetar Rotação:",
-             text: "Define a Rotação (e Orientação em 3D) da camada para 0.",
-         },
-         {
-             title: "▶ Normalizar Rotação:",
-             text: "Função universal. Para Shape Layers, transfere a rotação para os grupos internos. Para outras camadas, pré-compõe com crop inteligente.",
-         },
-         {
-             title: "▶ Resetar Transformações:",
-             text: "Função universal. Para Shape Layers, reseta as transformações internas. Para outras camadas, reseta as transformações principais, remove Layer Styles e desativa o Stroke de Texto.",
-         },
+            {
+                title: "▶ Escala 100%:",
+                text: "Ajusta a escala de camadas para 100%. Para Textos/Shapes, a escala é incorporada nos atributos. Para outras camadas, cria uma pré-composição.",
+            },
+            {
+                title: "▶ Centralizar Âncora:",
+                text: "Move o Ponto de Âncora para o centro geométrico da camada, mantendo a posição visual.",
+            },
+            {
+                title: "▶ Âncora [0,0]:",
+                text: "Move o ponto de âncora para a posição [0,0] da camada, mantendo a posição visual.",
+            },
+            {
+                title: "▶ Centralizar Objeto:",
+                text: "Move as camadas selecionadas para o centro exato da composição.",
+            },
+            {
+                title: "▶ Posição [0,0] (via Âncora):",
+                text: "Move a posição da camada para as coordenadas [0,0], compensando o deslocamento no Ponto de Âncora. AVISO: Isso quebra o comportamento de Rotação e Escala.",
+            },
+            {
+                title: "▶ Resetar Rotação:",
+                text: "Define a Rotação (e Orientação em 3D) da camada para 0.",
+            },
+            {
+                title: "▶ Normalizar Rotação:",
+                text: "Função universal. Para Shape Layers, transfere a rotação para os grupos internos. Para outras camadas, pré-compõe com crop inteligente.",
+            },
+            {
+                title: "▶ Resetar Transformações:",
+                text: "Função universal. Para Shape Layers, reseta as transformações internas. Para outras camadas, reseta as transformações principais, remove Layer Styles e desativa o Stroke de Texto.",
+            },
         ];
         for (var i = 0; i < topics.length; i++) {
             var topic = topics[i];
-            var topicGrp = helpWin.add("group"); topicGrp.margins = [15,0,15,0]; topicGrp.orientation = "column"; topicGrp.alignChildren = "fill"; topicGrp.spacing = 4;
+            var topicGrp = helpWin.add("group"); topicGrp.margins = [15, 0, 15, 0]; topicGrp.orientation = "column"; topicGrp.alignChildren = "fill"; topicGrp.spacing = 4;
             var topicTitle = topicGrp.add("statictext", undefined, topic.title);
             topicTitle.graphics.font = ScriptUI.newFont("Arial", "Bold", 12); topicTitle.graphics.foregroundColor = topicTitle.graphics.newPen(topicTitle.graphics.PenType.SOLID_COLOR, [0.83, 0, 0.23, 1], 1);
             var topicText = topicGrp.add("statictext", undefined, topic.text, { multiline: true });
             topicText.preferredSize.height = 40;
         }
         var closeBtn = helpWin.add("button", undefined, "Fechar");
-        closeBtn.alignment = "center"; closeBtn.margins = [0,15,0,0];
-        closeBtn.onClick = function() { helpWin.close(); };
+        closeBtn.alignment = "center"; closeBtn.margins = [0, 15, 0, 0];
+        closeBtn.onClick = function () { helpWin.close(); };
         helpWin.center(); helpWin.show();
     }
 
@@ -97,8 +98,8 @@
             var helpBtnGroup = headerGroup.add('group'); helpBtnGroup.alignment = ['right', 'center'];
             helpBtn = new themeIconButton(helpBtnGroup, { icon: D9T_INFO_ICON, tips: [lClick + 'Ajuda'] });
             helpBtn.leftClick.onClick = showHelp;
-        } catch(e) {
-             helpBtn = headerGroup.add("button", undefined, "?"); helpBtn.preferredSize = [25, 25]; helpBtn.alignment = ['right', 'center']; helpBtn.onClick = showHelp;
+        } catch (e) {
+            helpBtn = headerGroup.add("button", undefined, "?"); helpBtn.preferredSize = [25, 25]; helpBtn.alignment = ['right', 'center']; helpBtn.onClick = showHelp;
         }
     } else {
         helpBtn = headerGroup.add("button", undefined, "?"); helpBtn.preferredSize = [25, 25]; helpBtn.alignment = ['right', 'center']; helpBtn.onClick = showHelp;
@@ -108,25 +109,25 @@
     scalePanel.alignChildren = 'fill';
     var cbIncludeStrokeScale = scalePanel.add("checkbox", undefined, "Ajustar Largura do Stroke"); cbIncludeStrokeScale.value = true;
     var normalizeScaleBtn = scalePanel.add("button", undefined, "\u21F2 Normalizar Escala 100%");
-    
+
     var anchorPanel = pal.add("panel", undefined, "Âncora");
     anchorPanel.alignChildren = 'fill';
     var anchorBtnsGroup = anchorPanel.add("group"); anchorBtnsGroup.orientation = "row";
-        var normalizeAnchorBtn = anchorBtnsGroup.add("button", undefined, "\u2295 Normalizar Ancora");
+    var normalizeAnchorBtn = anchorBtnsGroup.add("button", undefined, "\u2295 Normalizar Ancora");
     var AnchorAlignBtn = anchorBtnsGroup.add("button", undefined, "\u29BF Centralizar Ancora");
 
 
     var posPanel = pal.add("panel", undefined, "Posição");
     posPanel.alignChildren = 'fill';
     var posGroup = posPanel.add("group"); posGroup.orientation = "row";
-        var positionZeroBtn = posGroup.add("button", undefined, "\u2295 Posição [0,0] via Âncora");
+    var positionZeroBtn = posGroup.add("button", undefined, "\u2295 Posição [0,0] via Âncora");
     var centerObjectBtn = posGroup.add("button", undefined, "\u25CE Centralizar Objeto");
 
 
     var rotPanel = pal.add("panel", undefined, "Rotação");
     rotPanel.alignChildren = 'fill';
     var rotBtnsGroup = rotPanel.add("group"); rotBtnsGroup.orientation = "row";
-        var normalizeRotBtn = rotBtnsGroup.add("button", undefined, "\u21BB Normalizar Rotação");
+    var normalizeRotBtn = rotBtnsGroup.add("button", undefined, "\u21BB Normalizar Rotação");
     var zeroRotationBtn = rotBtnsGroup.add("button", undefined, "\u21BB Resetar Rotação");
 
 
@@ -136,33 +137,33 @@
 
     var statusPanel = pal.add('panel', undefined, "Status");
     statusPanel.alignment = 'fill';
-    var feedbackTxt = statusPanel.add("statictext", undefined, "Pronto.", {multiline: true});
+    var feedbackTxt = statusPanel.add("statictext", undefined, "Pronto.", { multiline: true });
     feedbackTxt.alignment = ['fill', 'center'];
     feedbackTxt.preferredSize.height = 30;
 
     pal.layout.layout(true);
-    pal.onResizing = pal.onResize = function() { this.layout.resize(); }
+    pal.onResizing = pal.onResize = function () { this.layout.resize(); }
 
     // =================================================================================
     // --- FUNÇÕES HELPER ---
     // =================================================================================
-    
+
     function getLayers(needsSelection) {
         var comp = app.project.activeItem;
         if (!comp || !(comp instanceof CompItem)) { feedbackTxt.text = "ERRO: Nenhuma composição ativa."; return null; }
         var layers = []; var sel = comp.selectedLayers;
-        if (sel.length > 0) { for (var i = 0; i < sel.length; i++) layers.push(sel[i]); } 
-        else if (!needsSelection) { for (var i = 1; i <= comp.numLayers; i++) layers.push(comp.layer(i)); } 
+        if (sel.length > 0) { for (var i = 0; i < sel.length; i++) layers.push(sel[i]); }
+        else if (!needsSelection) { for (var i = 1; i <= comp.numLayers; i++) layers.push(comp.layer(i)); }
         else { feedbackTxt.text = "ERRO: Selecione pelo menos uma camada."; return null; }
         return layers;
     }
-    
+
     function deselectAllLayers(comp) { for (var i = 1; i <= comp.numLayers; i++) { comp.layer(i).selected = false; } }
-    
+
     function runAnchorAlignCommand() {
         var commandID = 0;
-        try { commandID = app.findMenuCommandId("Center Anchor Point in Layer Content"); } catch(e) {}
-        if (commandID === 0) { try { commandID = app.findMenuCommandId("Centralizar ponto de ancoragem no conteúdo da camada"); } catch(e) {} }
+        try { commandID = app.findMenuCommandId("Center Anchor Point in Layer Content"); } catch (e) { }
+        if (commandID === 0) { try { commandID = app.findMenuCommandId("Centralizar ponto de ancoragem no conteúdo da camada"); } catch (e) { } }
         if (commandID !== 0) { app.executeCommand(commandID); return true; }
         return false;
     }
@@ -177,7 +178,7 @@
             rect = { top: 0, left: 0, width: 0, height: 0 };
         }
         if (rect.width <= 0 || rect.height <= 0) return null;
-        var corners = [ [rect.left, rect.top], [rect.left + rect.width, rect.top], [rect.left + rect.width, rect.top + rect.height], [rect.left, rect.top + rect.height] ];
+        var corners = [[rect.left, rect.top], [rect.left + rect.width, rect.top], [rect.left + rect.width, rect.top + rect.height], [rect.left, rect.top + rect.height]];
         var position = layer.transform.position.valueAtTime(time, false);
         var anchorPoint = layer.transform.anchorPoint.valueAtTime(time, false);
         var scale = layer.transform.scale.valueAtTime(time, false);
@@ -216,13 +217,13 @@
                     maxY = Math.max(maxY, layerBounds.bottom);
                     hasValidBounds = true;
                 }
-            } catch (e) {}
+            } catch (e) { }
         }
         if (!hasValidBounds) return null;
         return { left: minX, top: minY, width: maxX - minX, height: maxY - minY };
     }
 
-    // <<< FUNÇÃO HELPER CORRIGIDA/SUBSTITUÍDA >>>
+
     function getToWorldVec(layer, vec) {
         var tempEffect = layer.Effects.addProperty("ADBE 3D Point Control");
         var tempPoint = tempEffect.property(1);
@@ -232,12 +233,12 @@
         tempEffect.remove();
         return worldVec;
     }
-    
+
     // =================================================================================
     // --- LÓGICA DOS BOTÕES ---
     // =================================================================================
-    
-    normalizeScaleBtn.onClick = function() {
+
+    normalizeScaleBtn.onClick = function () {
         var layers = getLayers(true); if (!layers) return;
         var comp = app.project.activeItem;
         app.beginUndoGroup("Normalizar Escala 100%");
@@ -274,7 +275,7 @@
                     comp.layers.precompose([layerIndex], layer.name + " (Escala Normalizada)", true);
                     c++;
                 }
-            } catch(e) { }
+            } catch (e) { }
         }
         app.endUndoGroup();
         feedbackTxt.text = "Escala normalizada em " + c + " camada(s).";
@@ -289,8 +290,8 @@
         }
         feedbackTxt.text = c + " camada(s) centralizada(s)."; app.endUndoGroup();
     };
-    
-    positionZeroBtn.onClick = function() {
+
+    positionZeroBtn.onClick = function () {
         var layers = getLayers(true);
         if (!layers) return;
 
@@ -307,29 +308,29 @@
                     originalAnchorPoint[0] - originalPosition[0],
                     originalAnchorPoint[1] - originalPosition[1]
                 ];
-                
+
                 if (originalPosition.length > 2) {
                     var originalAnchorZ = (originalAnchorPoint.length > 2) ? originalAnchorPoint[2] : 0;
                     newAnchorPoint.push(originalAnchorZ - originalPosition[2]);
                 }
-                
+
                 targetLayer.transform.position.setValue([0, 0, 0]);
                 targetLayer.transform.anchorPoint.setValue(newAnchorPoint);
                 c++;
-            } catch(e) {}
+            } catch (e) { }
         }
-        
+
         app.endUndoGroup();
         feedbackTxt.text = "Posição de " + c + " camada(s) zerada via Âncora.";
     };
 
-    normalizeRotBtn.onClick = function() {
+    normalizeRotBtn.onClick = function () {
         var comp = app.project.activeItem;
         var layers = getLayers(true);
         if (!layers) return;
 
         app.beginUndoGroup("Normalizar Rotação");
-        
+
         var shapeLayers = [];
         var otherLayers = [];
         var otherLayerIndices = [];
@@ -342,7 +343,7 @@
                 var hasRotation = false;
                 if (layer.transform.rotation && layer.transform.rotation.value !== 0) hasRotation = true;
                 if (layer.threeDLayer) {
-                   if (layer.transform.xRotation.value !== 0 || layer.transform.yRotation.value !== 0 || layer.transform.orientation.value.toString() !== "0,0,0") hasRotation = true;
+                    if (layer.transform.xRotation.value !== 0 || layer.transform.yRotation.value !== 0 || layer.transform.orientation.value.toString() !== "0,0,0") hasRotation = true;
                 }
                 if (hasRotation) {
                     otherLayers.push(layer);
@@ -357,7 +358,7 @@
                 for (var i = 1; i <= propGroup.numProperties; i++) {
                     var prop = propGroup.property(i);
                     if (prop.matchName === "ADBE Vector Group") {
-                        try { prop.property("Transform").rotation.setValue(prop.property("Transform").rotation.value + r); } catch(e){}
+                        try { prop.property("Transform").rotation.setValue(prop.property("Transform").rotation.value + r); } catch (e) { }
                         traverse(prop.property("Contents"), r);
                     }
                 }
@@ -371,19 +372,19 @@
                         r.setValue(0);
                         processedShapes++;
                     }
-                } catch (e) {}
+                } catch (e) { }
             }
         }
-        
+
         var processedOthers = 0;
         if (otherLayerIndices.length > 0) {
             try {
                 var bounds = calculateBounds(comp, otherLayers);
                 if (!bounds) throw new Error("Não foi possível calcular os limites das camadas.");
-                
+
                 var newComp = comp.layers.precompose(otherLayerIndices, "Rot-Norm_Crop", true);
                 var newCompLayer = comp.layer(otherLayerIndices[0]);
-                
+
                 newComp.width = Math.max(1, Math.ceil(bounds.width));
                 newComp.height = Math.max(1, Math.ceil(bounds.height));
                 var internalOffset = [-bounds.left, -bounds.top];
@@ -393,7 +394,7 @@
                     var oldVal = prop.value;
                     prop.setValue([oldVal[0] + internalOffset[0], oldVal[1] + internalOffset[1], oldVal[2] || 0]);
                 }
-                
+
                 var finalPosition = [bounds.left + bounds.width / 2, bounds.top + bounds.height / 2];
                 if (newCompLayer.transform.position.value.length > 2) {
                     finalPosition.push(newCompLayer.transform.position.value[2]);
@@ -411,25 +412,25 @@
         } else {
             feedbackTxt.text = "Nenhuma camada com rotação selecionada.";
         }
-        
+
         app.endUndoGroup();
     };
 
-    zeroRotationBtn.onClick = function() {
+    zeroRotationBtn.onClick = function () {
         app.beginUndoGroup("Zerar Rotação"); var layers = getLayers(true); if (!layers) { app.endUndoGroup(); return; }
         var processedCount = 0;
         for (var i = 0; i < layers.length; i++) {
             var layer = layers[i];
             try {
                 if (layer.threeDLayer) {
-                    layer.transform.xRotation.setValue(0); layer.transform.yRotation.setValue(0); layer.transform.zRotation.setValue(0); layer.transform.orientation.setValue([0,0,0]);
+                    layer.transform.xRotation.setValue(0); layer.transform.yRotation.setValue(0); layer.transform.zRotation.setValue(0); layer.transform.orientation.setValue([0, 0, 0]);
                 } else { layer.transform.rotation.setValue(0); }
                 processedCount++;
-            } catch(e) {}
+            } catch (e) { }
         }
         app.endUndoGroup(); feedbackTxt.text = "Rotação zerada em " + processedCount + " camada(s).";
     };
-    
+
     normalizeAnchorBtn.onClick = function () {
         app.beginUndoGroup("Zerar Anchor Point e Compensar Posição");
         var layers = getLayers(true);
@@ -454,7 +455,7 @@
                         layer.transform.position.setValue(newPosition);
                     }
                     processedCount++;
-                } catch (e) {}
+                } catch (e) { }
             }
         }
         feedbackTxt.text = "Âncora de " + processedCount + " camada(s) zerada e compensada.";
@@ -465,7 +466,7 @@
         app.beginUndoGroup("Centralizar Âncora");
         var layers = getLayers(true); if (!layers) { app.endUndoGroup(); return; }
         var comp = app.project.activeItem; var processedCount = 0;
-        var originalSelection = []; for(var i=0; i<layers.length; i++){ originalSelection.push(layers[i]); }
+        var originalSelection = []; for (var i = 0; i < layers.length; i++) { originalSelection.push(layers[i]); }
         deselectAllLayers(comp);
         for (var i = 0; i < originalSelection.length; i++) {
             var layer = originalSelection[i];
@@ -477,7 +478,7 @@
                 } catch (e) { }
             }
         }
-        for(var i=0; i<originalSelection.length; i++){ originalSelection[i].selected = true; }
+        for (var i = 0; i < originalSelection.length; i++) { originalSelection[i].selected = true; }
         feedbackTxt.text = "Âncora de " + processedCount + " camada(s) centralizada.";
         app.endUndoGroup();
     };
@@ -496,21 +497,21 @@
                 try {
                     if (matchName === "ADBE Vector Group") {
                         var transform = prop.property("Transform");
-                        transform.property("Anchor Point").setValue([0,0]);
-                        transform.property("Position").setValue([0,0]);
-                        transform.property("Scale").setValue([100,100]);
+                        transform.property("Anchor Point").setValue([0, 0]);
+                        transform.property("Position").setValue([0, 0]);
+                        transform.property("Scale").setValue([100, 100]);
                         transform.property("Rotation").setValue(0);
                         transform.property("Opacity").setValue(100);
                         resetTransformRecursive(prop.property("Contents"));
                     } else if (matchName === "ADBE Vector Shape - Rect") {
-                        prop.property("Size").setValue([100,100]);
-                        prop.property("Position").setValue([0,0]);
+                        prop.property("Size").setValue([100, 100]);
+                        prop.property("Position").setValue([0, 0]);
                         prop.property("Roundness").setValue(0);
                     } else if (matchName === "ADBE Vector Shape - Ellipse") {
-                        prop.property("Size").setValue([100,100]);
-                        prop.property("Position").setValue([0,0]);
+                        prop.property("Size").setValue([100, 100]);
+                        prop.property("Position").setValue([0, 0]);
                     }
-                } catch (e) {}
+                } catch (e) { }
             }
         }
 
@@ -521,35 +522,35 @@
                     resetTransformRecursive(layer.property("Contents"));
                 } else if (layer.property("transform")) {
                     var transform = layer.transform;
-                    transform.anchorPoint.setValue([0,0]);
-                    transform.position.setValue([comp.width/2, comp.height/2]);
-                    transform.scale.setValue([100,100]);
+                    transform.anchorPoint.setValue([0, 0]);
+                    transform.position.setValue([comp.width / 2, comp.height / 2]);
+                    transform.scale.setValue([100, 100]);
                     transform.opacity.setValue(100);
-                    if(transform.property("Rotation")) transform.rotation.setValue(0);
-                    if(layer.threeDLayer){
-                         transform.xRotation.setValue(0);
-                         transform.yRotation.setValue(0);
-                         transform.orientation.setValue([0,0,0]);
+                    if (transform.property("Rotation")) transform.rotation.setValue(0);
+                    if (layer.threeDLayer) {
+                        transform.xRotation.setValue(0);
+                        transform.yRotation.setValue(0);
+                        transform.orientation.setValue([0, 0, 0]);
                     }
-                    if(layer.property("Layer Styles")){
+                    if (layer.property("Layer Styles")) {
                         var layerStyles = layer.property("Layer Styles");
-                        while(layerStyles.numProperties > 0){
+                        while (layerStyles.numProperties > 0) {
                             layerStyles.property(1).remove();
                         }
                     }
-                    if(layer.property("Source Text")){
-                          var textProp = layer.property("Source Text");
-                          var textDoc = textProp.value;
-                          textDoc.applyStroke = false;
-                          textProp.setValue(textDoc);
+                    if (layer.property("Source Text")) {
+                        var textProp = layer.property("Source Text");
+                        var textDoc = textProp.value;
+                        textDoc.applyStroke = false;
+                        textProp.setValue(textDoc);
                     }
                 }
                 processedCount++;
-            } catch(e) {}
+            } catch (e) { }
         }
         feedbackTxt.text = "Propriedades resetadas em " + processedCount + " camada(s).";
         app.endUndoGroup();
     };
-    
+
     if (pal instanceof Window) { pal.center(); pal.show(); }
-})(this);
+}

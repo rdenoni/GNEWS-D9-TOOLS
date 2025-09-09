@@ -14,7 +14,7 @@
     - Removido o bloqueio de tela (win.enabled) da janela de Ajuda.
 */
 
-(function () {
+function launchLibraryLiveUI() {
 
     // =================================================================================
     // CONFIGURAÇÕES RÁPIDAS DE LAYOUT (EASY_CONFIG)
@@ -460,4 +460,4 @@
 
     App.run();
 
-})();
+}

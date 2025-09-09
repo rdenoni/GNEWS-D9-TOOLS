@@ -1,18 +1,14 @@
-/*
-
----------------------------------------------------------------
-> 🪟 UI dialogs
----------------------------------------------------------------
-
-*/
-
 function d9TemplateDialog() {
 	var scriptName = 'GNEWS TEMPLATES';
+	var scriptVersion = '2.6'; // CORREÇÃO: Adicionar esta linha
 	var compactWidth, extendedWidth;
 	var fileFilter = ['.aep', '.aet'];
 	var projectFile, previewFile, configFile, scriptFile, templateData;
 	var newCompsArray = [],
 		newOutputsArray = [];
+
+	// Verificação de segurança para variáveis que podem não estar definidas
+	var lClick = (typeof lClick !== 'undefined') ? lClick : 'Clique: ';
 
 	var cacheFolder = new Folder(scriptMainPath + 'source/cache');
 	if (!cacheFolder.exists) cacheFolder.create();
@@ -68,6 +64,14 @@ function d9TemplateDialog() {
 			var color = hexToRgb(hexColor);
 			var bType = element.graphics.BrushType.SOLID_COLOR;
 			element.graphics.backgroundColor = element.graphics.newBrush(bType, color);
+		} catch (e) {}
+	}
+
+	function setFgColor(element, hexColor) {
+		try {
+			var color = hexToRgb(hexColor);
+			var pType = element.graphics.PenType.SOLID_COLOR;
+			element.graphics.foregroundColor = element.graphics.newPen(pType, color, 1);
 		} catch (e) {}
 	}
 
@@ -165,10 +169,7 @@ function d9TemplateDialog() {
 		return list;
 	}
 
-	var D9T_TEMPLATES_w = new Window('palette', scriptName + ' ' + scriptVersion);
-	D9T_TEMPLATES_w.orientation = 'column';
-	D9T_TEMPLATES_w.alignChildren = ['fill', 'top'];
-	D9T_TEMPLATES_w.spacing = 0;
+var D9T_TEMPLATES_w = new Window('palette', scriptName + ' ' + scriptVersion);
 	var topHeaderGrp = D9T_TEMPLATES_w.add('group');
 	topHeaderGrp.orientation = 'row';
 	topHeaderGrp.alignment = ['fill', 'top'];
@@ -251,28 +252,28 @@ function d9TemplateDialog() {
 	if (typeof D9T_prodArray !== 'undefined' && D9T_prodArray && D9T_prodArray.length > 0) {
 		if (D9T_prodArray.length === 1 && D9T_prodArray[0].pecasGraficas) {
 			var configData = D9T_prodArray[0];
-			validProductions = [{
-				name: 'PEÇAS GRÁFICAS',
-				icon: 'D9T_PECAS_ICON',
-				paths: configData.pecasGraficas || []
-			}, {
-				name: 'BASE TEMÁTICA',
-				icon: 'D9T_BASE_ICON',
-				paths: configData.baseTematica || []
-			}, {
-				name: 'ILUSTRAÇÕES',
-				icon: 'D9T_ILUS_ICON',
-				paths: configData.ilustracoes || []
-			}, ];
-			prodDropItems = ['PEÇAS GRÁFICAS', 'BASE TEMÁTICA', 'ILUSTRAÇÕES'];
+
+validProductions = [{
+    name: 'PEÇAS GRÁFICAS',
+    icon: 'D9T_TEMPPECAS_ICON',
+    paths: configData.pecasGraficas || []
+}, {
+    name: 'BASE TEMÁTICA',
+    icon: 'D9T_TBASE_ICON',
+    paths: configData.baseTematica || []
+}, {
+    name: 'ILUSTRAÇÕES',
+    icon: 'D9T_TILUSTRA_ICON',
+    paths: configData.ilustracoes || []
+}]; // Apenas feche o array diretamente
+prodDropItems = ['PEÇAS GRÁFICAS', 'BASE TEMÁTICA', 'ILUSTRAÇÕES'];
 		}
 	}
 	if (typeof populateMainIcons === 'function') {
 		populateMainIcons(prodIconGrp, validProductions);
 	}
-	var prodDrop = prodGrp.add('dropdownlist', undefined, prodDropItems);
+var prodDrop = prodGrp.add('dropdownlist', undefined, prodDropItems, { alignment: ['fill', 'center'] });
 	prodDrop.selection = 0;
-	prodDrop.alignment = ['fill', 'center'];
 	prodDrop.helpTip = "PRODUÇÃO SELECIONADA";
 	var divProd;
 	if (typeof themeDivider === 'function') {
@@ -417,6 +418,32 @@ function d9TemplateDialog() {
 		}
 	}
 	
+	// >>>>> FUNÇÃO ADICIONADA <<<<<
+	function populateTreeFromData(treeNode, dataArray) {
+		for (var i = 0; i < dataArray.length; i++) {
+			var itemData = dataArray[i];
+			if (itemData.type === 'node') {
+				var node = treeNode.add('node', itemData.text);
+				if (typeof D9T_FOLDER_AE_ICON !== 'undefined') {
+					node.image = D9T_FOLDER_AE_ICON;
+				}
+				if (itemData.children && itemData.children.length > 0) {
+					populateTreeFromData(node, itemData.children);
+				}
+			} else if (itemData.type === 'item') {
+				var item = treeNode.add('item', itemData.text);
+				if (typeof D9T_AE_ICON !== 'undefined') {
+					item.image = D9T_AE_ICON;
+				}
+				// Copia outras propriedades importantes do cache para o item da árvore
+				item.filePath = itemData.filePath;
+				item.modDate = itemData.modDate;
+				item.size = itemData.size;
+			}
+		}
+	}
+
+
 	function loadTemplatesFromCache() {
 		var prodName = validProductions[prodDrop.selection.index].name;
 		
@@ -1157,7 +1184,7 @@ function d9TemplateDialog() {
 		}, {
 			tabName: "INFORMAÇÕES GNEWS",
 			topics: [{
-				title: "▶ CÓDIGO DA ARTE:",
+				title: "▶ CÓDIG",
 				text: "Digite o código da arte GNEWS (ex: GNVZ036). As informações são carregadas automaticamente do banco de dados."
 			}, {
 				title: "▶ NOME DA ARTE:",

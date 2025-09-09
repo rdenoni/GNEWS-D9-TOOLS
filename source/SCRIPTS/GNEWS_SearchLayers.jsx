@@ -74,9 +74,21 @@ function findDialog() {
 	var findEdTxt = inputGrp.add('edittext', [0, 0, 240, 32]);
 
 	var findBtn = new themeIconButton(inputGrp, {
-		icon: D9T_FINDERS_ICON,
+		icon: D9T_LENS_ICON,
 		tips: [lClick + 'Finders']
 	});
+	
+	// --- INÍCIO DA CORREÇÃO DEFINITIVA ---
+	// A função themeIconButton retorna um objeto que tem os botões de clique.
+	// O 'parent' do botão de clique é o grupo que contém o ícone.
+	// É este grupo que precisa ser redimensionado.
+	try {
+		findBtn.leftClick.parent.preferredSize = [32, 32];
+	} catch(e) {
+		// Ignora se a estrutura do botão for diferente e falhar.
+	}
+	// --- FIM DA CORREÇÃO DEFINITIVA ---
+
 
 	//---------------------------------------------------------
 
@@ -150,7 +162,7 @@ function findDialog() {
 
 		var sKey = findEdTxt.text;
 		if (sKey == '' || app.project.numItems == 0) {
-			findW.text = 'Buscar...';
+			findW.text = 'BUSCAR...';
 			return;
 		}
 		var optObj = {
