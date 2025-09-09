@@ -10,10 +10,12 @@
   "tool_settings": {
     "LibraryLive": {
       "icon_root_paths": [
-        "D:\\PROJETOS\\SCRIPTS AFTER\\files\\ICONS"
+        "D:\\PROJETOS\\SCRIPTS AFTER\\files\\ICONS",
+        "T:\\UTILIDADES\\ICONES"
       ],
       "image_root_paths": [
-        "D:\\PROJETOS\\SCRIPTS AFTER\\files\\IMAGENS"
+        "D:\\PROJETOS\\SCRIPTS AFTER\\files\\IMAGENS",
+        "T:\\UTILIDADES\\IMAGENS E VIDEOS AUTORIZADOS"
       ]
     }
   }

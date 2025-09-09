@@ -75,14 +75,6 @@ function d9TemplateDialog() {
 		} catch (e) {}
 	}
 
-	function setFgColor(element, hexColor) {
-		try {
-			var color = hexToRgb(hexColor);
-			var pType = element.graphics.PenType.SOLID_COLOR;
-			element.graphics.foregroundColor = element.graphics.newPen(pType, color, 1);
-		} catch (e) {}
-	}
-
 	function performSearch(searchTerm) {
 		var prodName = validProductions[prodDrop.selection.index].name;
 		var masterData = templatesCache[prodName];
@@ -253,26 +245,26 @@ var D9T_TEMPLATES_w = new Window('palette', scriptName + ' ' + scriptVersion);
 		if (D9T_prodArray.length === 1 && D9T_prodArray[0].pecasGraficas) {
 			var configData = D9T_prodArray[0];
 
-validProductions = [{
-    name: 'PEÇAS GRÁFICAS',
-    icon: 'D9T_TEMPPECAS_ICON',
-    paths: configData.pecasGraficas || []
-}, {
-    name: 'BASE TEMÁTICA',
-    icon: 'D9T_TBASE_ICON',
-    paths: configData.baseTematica || []
-}, {
-    name: 'ILUSTRAÇÕES',
-    icon: 'D9T_TILUSTRA_ICON',
-    paths: configData.ilustracoes || []
-}]; // Apenas feche o array diretamente
-prodDropItems = ['PEÇAS GRÁFICAS', 'BASE TEMÁTICA', 'ILUSTRAÇÕES'];
+            validProductions = [{
+                name: 'PEÇAS GRÁFICAS',
+                icon: 'D9T_TEMPPECAS_ICON',
+                paths: configData.pecasGraficas || []
+            }, {
+                name: 'BASE TEMÁTICA',
+                icon: 'D9T_TBASE_ICON',
+                paths: configData.baseTematica || []
+            }, {
+                name: 'ILUSTRAÇÕES',
+                icon: 'D9T_TILUSTRA_ICON',
+                paths: configData.ilustracoes || []
+            }];
+            prodDropItems = ['PEÇAS GRÁFICAS', 'BASE TEMÁTICA', 'ILUSTRAÇÕES'];
 		}
 	}
 	if (typeof populateMainIcons === 'function') {
 		populateMainIcons(prodIconGrp, validProductions);
 	}
-var prodDrop = prodGrp.add('dropdownlist', undefined, prodDropItems, { alignment: ['fill', 'center'] });
+    var prodDrop = prodGrp.add('dropdownlist', undefined, prodDropItems, { alignment: ['fill', 'center'] });
 	prodDrop.selection = 0;
 	prodDrop.helpTip = "PRODUÇÃO SELECIONADA";
 	var divProd;
@@ -418,7 +410,6 @@ var prodDrop = prodGrp.add('dropdownlist', undefined, prodDropItems, { alignment
 		}
 	}
 	
-	// >>>>> FUNÇÃO ADICIONADA <<<<<
 	function populateTreeFromData(treeNode, dataArray) {
 		for (var i = 0; i < dataArray.length; i++) {
 			var itemData = dataArray[i];
@@ -435,14 +426,12 @@ var prodDrop = prodGrp.add('dropdownlist', undefined, prodDropItems, { alignment
 				if (typeof D9T_AE_ICON !== 'undefined') {
 					item.image = D9T_AE_ICON;
 				}
-				// Copia outras propriedades importantes do cache para o item da árvore
 				item.filePath = itemData.filePath;
 				item.modDate = itemData.modDate;
 				item.size = itemData.size;
 			}
 		}
 	}
-
 
 	function loadTemplatesFromCache() {
 		var prodName = validProductions[prodDrop.selection.index].name;
@@ -766,42 +755,42 @@ var prodDrop = prodGrp.add('dropdownlist', undefined, prodDropItems, { alignment
 	};
 
 	D9T_TEMPLATES_w.onShow = function () {
-		extendedWidth = D9T_TEMPLATES_w.size.width;
-		compactWidth = extendedWidth - 680;
-		vGrp2.visible = true;
-		if (newDiv) newDiv.visible = true;
-		D9T_TEMPLATES_w.size.width = extendedWidth;
-
-		setLoadingState(true, 'Carregando todos os caches...');
-		D9T_TEMPLATES_w.update();
-		
-		for (var i = 0; i < validProductions.length; i++) {
-			loadCacheInBackground(validProductions[i].name);
-		}
-		
-		setLoadingState(false);
-		
-		try {
-			if (userConfigFile && userConfigFile.exists) {
-				userConfigFile.open('r');
-				var configContent = userConfigFile.read();
-				userConfigFile.close();
-				if (configContent && configContent.trim() !== '') {
-					var centralConfig = JSON.parse(configContent);
-					if (centralConfig.gnews_templates && typeof centralConfig.gnews_templates.lastProductionIndex !== 'undefined') {
-						var lastIndex = parseInt(centralConfig.gnews_templates.lastProductionIndex);
-						if (!isNaN(lastIndex) && lastIndex >= 0 && lastIndex < prodDrop.items.length) {
-							prodDrop.selection = lastIndex;
-						}
-					}
-				}
-			}
-		} catch (e) {}
-		
-		prodDrop.onChange();
-		searchBox.active = true;
-		updateArteInfo();
-	};
+        extendedWidth = D9T_TEMPLATES_w.size.width;
+        compactWidth = extendedWidth - 680;
+        vGrp2.visible = true;
+        if (newDiv) newDiv.visible = true;
+        D9T_TEMPLATES_w.size.width = extendedWidth;
+    
+        setLoadingState(true, 'Carregando todos os caches e interface...');
+        D9T_TEMPLATES_w.update();
+        
+        for (var i = 0; i < validProductions.length; i++) {
+            loadCacheInBackground(validProductions[i].name);
+        }
+        
+        try {
+            if (userConfigFile && userConfigFile.exists) {
+                userConfigFile.open('r');
+                var configContent = userConfigFile.read();
+                userConfigFile.close();
+                if (configContent && configContent.trim() !== '') {
+                    var centralConfig = JSON.parse(configContent);
+                    if (centralConfig.gnews_templates && typeof centralConfig.gnews_templates.lastProductionIndex !== 'undefined') {
+                        var lastIndex = parseInt(centralConfig.gnews_templates.lastProductionIndex);
+                        if (!isNaN(lastIndex) && lastIndex >= 0 && lastIndex < prodDrop.items.length) {
+                            prodDrop.selection = lastIndex;
+                        }
+                    }
+                }
+            }
+        } catch (e) {}
+        
+        prodDrop.onChange();
+        searchBox.active = true;
+        updateArteInfo();
+    
+        setLoadingState(false);
+    };
 
 	searchBox.onActivate = function () {
 		if (this.isPlaceholderActive) {
@@ -842,69 +831,73 @@ var prodDrop = prodGrp.add('dropdownlist', undefined, prodDropItems, { alignment
 	};
 
 	templateTree.onChange = function () {
-		if (this.selection != null && this.selection.type == 'node') {
-			this.selection = null;
-			return;
-		}
-		updateArteInfo();
-		if (this.selection == null || this.selection.filePath == null) {
+        if (this.selection != null && this.selection.type == 'node') {
+            this.selection = null;
+            return;
+        }
+        updateArteInfo();
+        if (this.selection == null || this.selection.filePath == null) {
             openBtn.enabled = false;
             importBtn.enabled = false;
             return;
         }
-		projectFile = new File(this.selection.filePath);
-		var templateBase = projectFile.path + '/' + (typeof deleteFileExt === 'function' ? deleteFileExt(projectFile.displayName) : projectFile.displayName.replace(/\.[^\.]+$/, ''));
-		previewFile = new File(templateBase + '_preview.png');
-		configFile = new File(templateBase + '_config.json');
-		scriptFile = new File(templateBase + '_script.js');
-		
-		if (typeof this.selection.modDate !== 'undefined' && this.selection.modDate !== null) {
-			var fileSize = (this.selection.size / (1024 * 1024)).toFixed(2) + ' MB';
-			var modDate = new Date(this.selection.modDate);
-			var day = modDate.getDate();
-			var month = modDate.getMonth() + 1;
-			var year = modDate.getFullYear();
-			if (day < 10) { day = '0' + day; }
-			if (month < 10) { month = '0' + month; }
-			var formattedDate = day + '/' + month + '/' + year;
-			this.selection.helpTip = 'Arquivo: ' + this.selection.text + '\nTamanho: ' + fileSize + '\nModificado em: ' + formattedDate;
-		}
-
-		if (previewFile.exists) {
-			previewImg.image = previewFile;
-		} else {
-			if (typeof no_preview !== 'undefined') {
-				previewImg.image = no_preview;
-			}
-		}
-		vGrp2.visible = true;
-		if (newDiv) newDiv.visible = true;
-		D9T_TEMPLATES_w.size.width = extendedWidth;
-		try {
-			if (configFile.exists) {
-				var JSONContent;
-				if (typeof readFileContent === 'function') {
-					JSONContent = readFileContent(configFile);
-				} else {
-					configFile.open('r');
-					JSONContent = configFile.read();
-					configFile.close();
-				}
-				templateData = JSON.parse(JSONContent);
-				if (typeof defaultTemplateConfigObj !== 'undefined') {
-					for (var o in defaultTemplateConfigObj) {
-						if (templateData.hasOwnProperty(o)) continue;
-						templateData[o] = defaultTemplateConfigObj[o];
-					}
-				}
-			}
-		} catch (err) {
-			alert((typeof lol !== 'undefined' ? lol : '') + '#D9T_017 - config inválido!');
-			return;
-		}
-		if (typeof importBtn !== 'undefined') importBtn.enabled = true;
+        projectFile = new File(this.selection.filePath);
+        var templateBase = projectFile.path + '/' + (typeof deleteFileExt === 'function' ? deleteFileExt(projectFile.displayName) : projectFile.displayName.replace(/\.[^\.]+$/, ''));
+        previewFile = new File(templateBase + '_preview.png');
+        configFile = new File(templateBase + '_config.json');
+        scriptFile = new File(templateBase + '_script.js');
+        
+        if (typeof this.selection.modDate !== 'undefined' && this.selection.modDate !== null) {
+            var fileSize = (this.selection.size / (1024 * 1024)).toFixed(2) + ' MB';
+            var modDate = new Date(this.selection.modDate);
+            var day = modDate.getDate();
+            var month = modDate.getMonth() + 1;
+            var year = modDate.getFullYear();
+            if (day < 10) { day = '0' + day; }
+            if (month < 10) { month = '0' + month; }
+            var formattedDate = day + '/' + month + '/' + year;
+            this.selection.helpTip = 'Arquivo: ' + this.selection.text + '\nTamanho: ' + fileSize + '\nModificado em: ' + formattedDate;
+        }
+    
+        if (previewFile.exists) {
+            previewImg.image = previewFile;
+        } else {
+            if (typeof no_preview !== 'undefined') {
+                previewImg.image = no_preview;
+            }
+        }
+    
+        if (vGrp2.visible === false) {
+            vGrp2.visible = true;
+            if (newDiv) newDiv.visible = true;
+            D9T_TEMPLATES_w.size.width = extendedWidth;
+        }
+    
+        try {
+            if (configFile.exists) {
+                var JSONContent;
+                if (typeof readFileContent === 'function') {
+                    JSONContent = readFileContent(configFile);
+                } else {
+                    configFile.open('r');
+                    JSONContent = configFile.read();
+                    configFile.close();
+                }
+                templateData = JSON.parse(JSONContent);
+                if (typeof defaultTemplateConfigObj !== 'undefined') {
+                    for (var o in defaultTemplateConfigObj) {
+                        if (templateData.hasOwnProperty(o)) continue;
+                        templateData[o] = defaultTemplateConfigObj[o];
+                    }
+                }
+            }
+        } catch (err) {
+            alert((typeof lol !== 'undefined' ? lol : '') + '#D9T_017 - config inválido!');
+            return;
+        }
+        if (typeof importBtn !== 'undefined') importBtn.enabled = true;
         if (typeof openBtn !== 'undefined') openBtn.enabled = true;
-	};
+    };
 
 	templateTree.onActivate = function () {
 		if (typeof importBtn !== 'undefined') importBtn.enabled = true;
