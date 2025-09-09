@@ -1814,6 +1814,19 @@
                       "modDate": "Friday, 27 Jun 2025 18:30:55 GMT"
                     }
                   ]
+                },
+                {
+                  "type": "node",
+                  "text": "_Apresentacao",
+                  "children": [
+                    {
+                      "type": "item",
+                      "text": "Nao fazer.aep",
+                      "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Colagens\\Estudos\\Colagens 2025\\_Apresentacao\\Nao fazer.aep",
+                      "size": 6869705,
+                      "modDate": "Tuesday, 09 Sep 2025 14:54:18 GMT"
+                    }
+                  ]
                 }
               ]
             },
@@ -2043,6 +2056,13 @@
           "children": [
             {
               "type": "item",
+              "text": "Colagem 2025_Acordos Comerciais.aep",
+              "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Colagens2025\\Colagem2025_Templates\\Colagem 2025_Acordos Comerciais.aep",
+              "size": 10251916,
+              "modDate": "Tuesday, 09 Sep 2025 14:15:41 GMT"
+            },
+            {
+              "type": "item",
               "text": "Colagem 2025_Balao de Fala.aep",
               "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Colagens2025\\Colagem2025_Templates\\Colagem 2025_Balao de Fala.aep",
               "size": 7889415,
@@ -2097,11 +2117,17 @@
           "text": "Manual",
           "children": [
             {
-              "type": "item",
-              "text": "Manual_Colagem 2025.aep",
-              "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Colagens2025\\Manual\\Manual_Colagem 2025.aep",
-              "size": 7265333,
-              "modDate": "Tuesday, 02 Sep 2025 18:23:53 GMT"
+              "type": "node",
+              "text": "PREVIEWS",
+              "children": [
+                {
+                  "type": "item",
+                  "text": "COLAGEM.aep",
+                  "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Colagens2025\\Manual\\PREVIEWS\\COLAGEM.aep",
+                  "size": 159821,
+                  "modDate": "Tuesday, 09 Sep 2025 14:53:13 GMT"
+                }
+              ]
             }
           ]
         },
