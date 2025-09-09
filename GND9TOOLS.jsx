@@ -65,6 +65,7 @@ o script funcionará normalmente, mas você não terá:\n\
         #include 'source/config/TEMPLATES_configWin.js';
         #include 'source/config/LIBRARYLIVE_configWin.js'; 
         #include 'source/config/LIBRARYLIVE_configWin.js';
+        #include 'source/config/LAYERSORDER_configWin.js';
         
 
     // === ESTRUTURA DA INTERFACE ===
