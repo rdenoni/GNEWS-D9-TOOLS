@@ -225,6 +225,24 @@ function d9TemplateDialog() {
 		}
 	}
 	
+	// FALLBACK: Se não há configuração, cria padrão
+	if (validProductions.length === 0) {
+		validProductions = [{
+			name: 'PEÇAS GRÁFICAS',
+			icon: 'D9T_TEMPPECAS_ICON',
+			paths: []
+		}, {
+			name: 'BASE TEMÁTICA',
+			icon: 'D9T_TBASE_ICON',
+			paths: []
+		}, {
+			name: 'ILUSTRAÇÕES',
+			icon: 'D9T_TILUSTRA_ICON',
+			paths: []
+		}];
+		prodDropItems = ['PEÇAS GRÁFICAS', 'BASE TEMÁTICA', 'ILUSTRAÇÕES'];
+	}
+	
 	// FUNÇÃO ORIGINAL PARA ÍCONES
 	if (typeof populateMainIcons === 'function') {
 		populateMainIcons(prodIconGrp, validProductions);
