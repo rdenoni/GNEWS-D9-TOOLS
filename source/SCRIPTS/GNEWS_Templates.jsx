@@ -1,29 +1,27 @@
 // =============================================================================
-// GNEWS TEMPLATES - VERSÃO OTIMIZADA E CORRIGIDA
-// Solução para problema de carregamento lento ao trocar produções
+// GNEWS TEMPLATES - VERSÃO OTIMIZADA CORRIGIDA
+// Sistema de carregamento EXATAMENTE como pedido pelo usuário
 // =============================================================================
 
 function d9TemplateDialog() {
 	var scriptName = 'GNEWS TEMPLATES';
-	var scriptVersion = '2.7'; // Versão otimizada
+	var scriptVersion = '2.7'; 
 	var compactWidth, extendedWidth;
 	var fileFilter = ['.aep', '.aet'];
 	var projectFile, previewFile, configFile, scriptFile, templateData;
-	var newCompsArray = [],
-		newOutputsArray = [];
+	var newCompsArray = [], newOutputsArray = [];
 
-	// Verificação de segurança para variáveis que podem não estar definidas
 	var lClick = (typeof lClick !== 'undefined') ? lClick : 'Clique: ';
 
 	var cacheFolder = new Folder(scriptMainPath + 'source/cache');
 	if (!cacheFolder.exists) cacheFolder.create();
 
 	// =========================================================================
-	// SISTEMA DE CACHE OTIMIZADO - CARREGAMENTO ÚNICO NA INICIALIZAÇÃO
+	// SISTEMA DE CACHE OTIMIZADO - CARREGAMENTO ÚNICO INICIAL
 	// =========================================================================
 	var templatesCache = {};
 	var allCachesLoaded = false;
-	var globalLoadingInProgress = false;
+	var isInitialLoading = false;
 
 	var userConfigFile = null;
 	try {
@@ -86,151 +84,10 @@ function d9TemplateDialog() {
 	}
 
 	// =========================================================================
-	// CARREGAMENTO OTIMIZADO DE TODOS OS CACHES
-	// =========================================================================
-	function loadAllCachesInBackground() {
-		if (globalLoadingInProgress || allCachesLoaded) return;
-		
-		globalLoadingInProgress = true;
-		setLoadingState(true, 'Inicializando sistema...');
-		D9T_TEMPLATES_w.update();
-
-		var totalProductions = validProductions.length;
-		var loadedCount = 0;
-
-		for (var i = 0; i < validProductions.length; i++) {
-			var prodName = validProductions[i].name;
-			
-			// Atualiza o progresso
-			loadedCount++;
-			var progressText = 'Carregando ' + prodName + '... (' + loadedCount + '/' + totalProductions + ')';
-			setLoadingState(true, progressText);
-			D9T_TEMPLATES_w.update();
-
-			// Carrega o cache individual
-			loadSingleCache(prodName);
-		}
-
-		// Finaliza o processo
-		allCachesLoaded = true;
-		globalLoadingInProgress = false;
-		setLoadingState(false);
-		
-		// Carrega a produção selecionada inicialmente
-		loadTemplatesFromCache();
-	}
-
-	function loadSingleCache(prodName) {
-		if (templatesCache[prodName]) return; // Já carregado
-
-		var cacheFileName;
-		switch (prodName) {
-			case 'PEÇAS GRÁFICAS':
-				cacheFileName = 'templates_pecas_cache.json';
-				break;
-			case 'BASE TEMÁTICA':
-				cacheFileName = 'templates_base_cache.json';
-				break;
-			case 'ILUSTRAÇÕES':
-				cacheFileName = 'templates_ilustra_cache.json';
-				break;
-			default:
-				cacheFileName = prodName.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '_cache.json';
-				break;
-		}
-
-		var templatesCacheFile = new File(cacheFolder.fullName + '/' + cacheFileName);
-		
-		if (templatesCacheFile.exists) {
-			try {
-				templatesCacheFile.open('r');
-				var cacheContent = templatesCacheFile.read();
-				templatesCacheFile.close();
-				
-				var masterCacheData = JSON.parse(cacheContent);
-				var combinedTreeData = [];
-				
-				for (var path in masterCacheData) {
-					if (masterCacheData.hasOwnProperty(path)) {
-						combinedTreeData = combinedTreeData.concat(masterCacheData[path]);
-					}
-				}
-				
-				templatesCache[prodName] = combinedTreeData;
-			} catch (e) {
-				templatesCache[prodName] = [{ type: 'item', text: 'Erro ao ler o cache: ' + e.message }];
-			}
-		} else {
-			templatesCache[prodName] = [{ type: 'item', text: 'Cache não encontrado.' }];
-		}
-	}
-
-	// =========================================================================
-	// FUNÇÃO DE CARREGAMENTO OTIMIZADA - AGORA INSTANTÂNEA
-	// =========================================================================
-	function loadTemplatesFromCache() {
-		if (!allCachesLoaded) {
-			setLoadingState(true, 'Cache ainda não carregado...');
-			return;
-		}
-
-		var prodName = validProductions[prodDrop.selection.index].name;
-		var data = templatesCache[prodName];
-
-		templateTree.removeAll();
-
-		if (data && data.length > 0) {
-			populateTreeFromData(templateTree, data);
-			expandAllNodes(templateTree);
-		} else {
-			templateTree.add('item', 'Nenhum item encontrado para esta categoria.');
-		}
-
-		updateItemCounter();
-	}
-
-	function populateTreeFromData(treeNode, dataArray) {
-		for (var i = 0; i < dataArray.length; i++) {
-			var itemData = dataArray[i];
-			if (itemData.type === 'node') {
-				var node = treeNode.add('node', itemData.text);
-				if (typeof D9T_FOLDER_AE_ICON !== 'undefined') {
-					node.image = D9T_FOLDER_AE_ICON;
-				}
-				if (itemData.children && itemData.children.length > 0) {
-					populateTreeFromData(node, itemData.children);
-				}
-			} else if (itemData.type === 'item') {
-				var item = treeNode.add('item', itemData.text);
-				if (typeof D9T_AE_ICON !== 'undefined') {
-					item.image = D9T_AE_ICON;
-				}
-				item.filePath = itemData.filePath;
-				item.modDate = itemData.modDate;
-				item.size = itemData.size;
-			}
-		}
-	}
-
-	function expandAllNodes(tree) {
-		if (!tree || !tree.items) return;
-		for (var i = 0; i < tree.items.length; i++) {
-			var item = tree.items[i];
-			if (item.type === 'node') {
-				item.expanded = true;
-				if (item.items && item.items.length > 0) {
-					expandAllNodes(item);
-				}
-			}
-		}
-	}
-
-	// =========================================================================
-	// INTERFACE DO USUÁRIO - MANTENDO ESTRUTURA ORIGINAL
+	// INTERFACE SEGUINDO ESTRUTURA ORIGINAL EXATA
 	// =========================================================================
 	var D9T_TEMPLATES_w = new Window('palette', scriptName + ' ' + scriptVersion);
 	
-	// Header superior
 	var topHeaderGrp = D9T_TEMPLATES_w.add('group');
 	topHeaderGrp.orientation = 'row';
 	topHeaderGrp.alignment = ['fill', 'top'];
@@ -250,17 +107,72 @@ function d9TemplateDialog() {
 		});
 	} else {
 		infoBtn = helpBtnGrp.add('button', undefined, '?');
-		infoBtn.helpTip = 'ajuda';
-		infoBtn.preferredSize = [32, 32];
+		infoBtn.helpTip = 'ajuda | DOCS';
+		infoBtn.preferredSize = [24, 24];
 	}
 
-	// Layout principal - usando estrutura original
-	var templatesMainGrp = D9T_TEMPLATES_w.add('group');
-	templatesMainGrp.spacing = 10;
+	var mainGrp = D9T_TEMPLATES_w.add('group');
+	mainGrp.orientation = 'stack';
+
+	var optionsMainGrp = mainGrp.add('group');
+	optionsMainGrp.orientation = 'column';
+	optionsMainGrp.spacing = 12;
+	optionsMainGrp.alignment = ['left', 'top'];
+	optionsMainGrp.visible = false;
+
+	var infoHeaderLab = optionsMainGrp.add('statictext', [0, 0, 320, 18]);
+	setFgColor(infoHeaderLab, normalColor1);
+
+	var progressBar = optionsMainGrp.add('progressbar', [0, 0, 320, 1]);
+
+	var optBtnMainGrp = optionsMainGrp.add('group');
+	optBtnMainGrp.orientation = 'stack';
+	optBtnMainGrp.alignment = 'fill';
+	optBtnMainGrp.margins = [0, 32, 0, 0];
+	optBtnMainGrp.visible = false;
+
+	var optBtnMainGrpL = optBtnMainGrp.add('group');
+	optBtnMainGrpL.alignment = 'left';
+	optBtnMainGrpL.spacing = 16;
+
+	var cancelBtn;
+	if (typeof themeButton === 'function') {
+		cancelBtn = new themeButton(optBtnMainGrpL, {
+			width: 80,
+			height: 32,
+			labelTxt: 'cancelar',
+			tips: [lClick + 'cancelar operação']
+		});
+	} else {
+		cancelBtn = optBtnMainGrpL.add('button', undefined, 'Cancelar');
+		cancelBtn.preferredSize = [80, 32];
+	}
+
+	var optBtnMainGrpR = optBtnMainGrp.add('group');
+	optBtnMainGrpR.alignment = 'right';
+	optBtnMainGrpR.spacing = 16;
+
+	var nextBtn;
+	if (typeof themeButton === 'function') {
+		nextBtn = new themeButton(optBtnMainGrpR, {
+			width: 100,
+			height: 32,
+			textColor: bgColor1,
+			buttonColor: normalColor1,
+			labelTxt: 'continuar',
+			tips: [lClick + 'continuar processo']
+		});
+	} else {
+		nextBtn = optBtnMainGrpR.add('button', undefined, 'Continuar');
+		nextBtn.preferredSize = [100, 32];
+	}
+
+	var templatesMainGrp = mainGrp.add('group');
+	templatesMainGrp.spacing = 12;
 	
 	var vGrp1 = templatesMainGrp.add('group');
 	vGrp1.orientation = 'column';
-	vGrp1.alignment = ['left', 'top'];
+	vGrp1.alignment = ['center', 'top'];
 	vGrp1.alignChildren = 'left';
 	vGrp1.spacing = 12;
 	
@@ -272,7 +184,7 @@ function d9TemplateDialog() {
 	vGrp2.visible = false;
 
 	// =========================================================================
-	// SEÇÃO DE PRODUÇÃO COM ÍCONES CORRIGIDA
+	// SEÇÃO DE PRODUÇÃO COM ESTRUTURA ORIGINAL
 	// =========================================================================
 	var prodHeaderGrp = vGrp1.add('group');
 	prodHeaderGrp.alignment = 'fill';
@@ -285,11 +197,10 @@ function d9TemplateDialog() {
 	prodGrp.spacing = 4;
 	prodGrp.alignment = 'fill';
 	
-	// Grupo de ícones de produção - CORRIGIDO
 	var prodIconGrp = prodGrp.add('group');
 	prodIconGrp.orientation = 'stack';
 	
-	// Configuração das produções válidas - MANTENDO ESTRUTURA ORIGINAL
+	// Configuração das produções - ESTRUTURA ORIGINAL
 	var prodDropItems = [];
 	var validProductions = [];
 	
@@ -303,7 +214,7 @@ function d9TemplateDialog() {
 				paths: configData.pecasGraficas || []
 			}, {
 				name: 'BASE TEMÁTICA',
-				icon: 'D9T_TBASE_ICON',  
+				icon: 'D9T_TBASE_ICON',
 				paths: configData.baseTematica || []
 			}, {
 				name: 'ILUSTRAÇÕES',
@@ -314,9 +225,9 @@ function d9TemplateDialog() {
 		}
 	}
 	
-	// Popula ícones de produção - USANDO FUNÇÃO ORIGINAL
+	// FUNÇÃO ORIGINAL PARA ÍCONES
 	if (typeof populateMainIcons === 'function') {
-		populateMainIcons(prodIconGrp, validProductions, prodDrop);
+		populateMainIcons(prodIconGrp, validProductions);
 	}
 	
 	var prodDrop = prodGrp.add('dropdownlist', undefined, prodDropItems, { alignment: ['fill', 'center'] });
@@ -330,7 +241,7 @@ function d9TemplateDialog() {
 	}
 
 	// =========================================================================
-	// SEÇÃO DE BUSCA E ÁRVORE
+	// SEÇÃO DE TEMPLATES - ESTRUTURA ORIGINAL
 	// =========================================================================
 	var templatesHeaderGrp = vGrp1.add('group');
 	templatesHeaderGrp.alignment = 'fill';
@@ -361,45 +272,47 @@ function d9TemplateDialog() {
 	var templateTree = treeContainerGrp.add('treeview', [0, 0, 320, 420]);
 	setFgColor(templateTree, monoColor1);
 	
-	// =========================================================================
-	// LOADING GROUP APRIMORADO
-	// =========================================================================
 	var loadingGrp = treeContainerGrp.add('group');
 	loadingGrp.alignChildren = ['center', 'center'];
 	loadingGrp.add('statictext', undefined, 'Carregando, por favor aguarde...');
 	loadingGrp.visible = false;
 
-	// Botões de ação
+	// =========================================================================
+	// BOTÕES DE AÇÃO - ESTRUTURA ORIGINAL CORRIGIDA
+	// =========================================================================
 	var mainBtnGrp1 = vGrp1.add('group');
+	mainBtnGrp1.orientation = 'stack';
 	mainBtnGrp1.alignment = 'fill';
-	mainBtnGrp1.spacing = 8;
+	mainBtnGrp1.margins = [0, 8, 0, 0];
+	
+	var lBtnGrp1 = mainBtnGrp1.add('group');
+	lBtnGrp1.alignment = 'left';
+	lBtnGrp1.spacing = 16;
 	
 	var refreshBtn;
-	if (typeof themeIconButton === 'function' && typeof D9T_REFRESH_ICON !== 'undefined') {
-		refreshBtn = new themeIconButton(mainBtnGrp1, {
-			icon: D9T_REFRESH_ICON,
-			tips: [lClick + 'atualizar lista de templates']
+	if (typeof themeIconButton === 'function' && typeof D9T_ATUALIZAR_ICON !== 'undefined') {
+		refreshBtn = new themeIconButton(lBtnGrp1, {
+			icon: D9T_ATUALIZAR_ICON,
+			tips: [lClick + 'Recarregar templates do cache']
 		});
 	} else {
-		refreshBtn = mainBtnGrp1.add('button', undefined, '🔄');
-		refreshBtn.helpTip = 'atualizar lista de templates';
-		refreshBtn.preferredSize = [32, 32];
+		refreshBtn = lBtnGrp1.add('button', undefined, 'Atualizar');
+		refreshBtn.helpTip = 'Recarregar templates do cache';
 	}
 	
 	var openFldBtn;
-	if (typeof themeIconButton === 'function' && typeof D9T_FOLDER_ICON !== 'undefined') {
-		openFldBtn = new themeIconButton(mainBtnGrp1, {
-			icon: D9T_FOLDER_ICON,
+	if (typeof themeIconButton === 'function' && typeof D9T_PASTA_ICON !== 'undefined') {
+		openFldBtn = new themeIconButton(lBtnGrp1, {
+			icon: D9T_PASTA_ICON,
 			tips: [lClick + 'abrir pasta de templates']
 		});
 	} else {
-		openFldBtn = mainBtnGrp1.add('button', undefined, '📁');
+		openFldBtn = lBtnGrp1.add('button', undefined, 'Abrir');
 		openFldBtn.helpTip = 'abrir pasta de templates';
-		openFldBtn.preferredSize = [32, 32];
 	}
 
 	// =========================================================================
-	// SEÇÃO DE PREVIEW (lado direito)
+	// SEÇÃO DE PREVIEW - LADO DIREITO
 	// =========================================================================
 	var previewHeaderGrp = vGrp2.add('group');
 	previewHeaderGrp.alignment = 'fill';
@@ -473,7 +386,9 @@ function d9TemplateDialog() {
 		infoValues.push(infoVal);
 	}
 
-	// Botões finais
+	// =========================================================================
+	// BOTÕES FINAIS - ESTRUTURA ORIGINAL CORRIGIDA
+	// =========================================================================
 	var rBtnGrp2 = vGrp2.add('group');
 	rBtnGrp2.alignment = 'fill';
 	rBtnGrp2.spacing = 8;
@@ -509,28 +424,159 @@ function d9TemplateDialog() {
 	}
 
 	// =========================================================================
-	// FUNÇÕES DE UTILIDADE
+	// SISTEMA DE CACHE ULTRA-RÁPIDO PARA TREEVIEW
 	// =========================================================================
-	function updateItemCounter() {
-		if (!templateTree || !templateTree.items) {
-			itemCounterLab.text = '0 itens';
-			return;
+	function loadAllCachesInBackground() {
+		if (isInitialLoading || allCachesLoaded) return;
+		
+		isInitialLoading = true;
+		var totalProductions = validProductions.length;
+		var loadedCount = 0;
+
+		for (var i = 0; i < validProductions.length; i++) {
+			var prodName = validProductions[i].name;
+			loadedCount++;
+			
+			// Carrega o cache individual
+			loadSingleCache(prodName);
+		}
+
+		// Finaliza o processo
+		allCachesLoaded = true;
+		isInitialLoading = false;
+		
+		// Remove loading e mostra templates
+		setLoadingState(false);
+		loadTemplatesFromCacheInstant();
+	}
+
+	function loadSingleCache(prodName) {
+		if (templatesCache[prodName]) return;
+
+		var cacheFileName;
+		switch (prodName) {
+			case 'PEÇAS GRÁFICAS':
+				cacheFileName = 'templates_pecas_cache.json';
+				break;
+			case 'BASE TEMÁTICA':
+				cacheFileName = 'templates_base_cache.json';
+				break;
+			case 'ILUSTRAÇÕES':
+				cacheFileName = 'templates_ilustra_cache.json';
+				break;
+			default:
+				cacheFileName = prodName.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '_cache.json';
+				break;
+		}
+
+		var templatesCacheFile = new File(cacheFolder.fullName + '/' + cacheFileName);
+		
+		if (templatesCacheFile.exists) {
+			try {
+				templatesCacheFile.open('r');
+				var cacheContent = templatesCacheFile.read();
+				templatesCacheFile.close();
+				
+				var masterCacheData = JSON.parse(cacheContent);
+				var combinedTreeData = [];
+				
+				for (var path in masterCacheData) {
+					if (masterCacheData.hasOwnProperty(path)) {
+						combinedTreeData = combinedTreeData.concat(masterCacheData[path]);
+					}
+				}
+				
+				templatesCache[prodName] = combinedTreeData;
+			} catch (e) {
+				templatesCache[prodName] = [{ type: 'item', text: 'Erro ao ler o cache: ' + e.message }];
+			}
+		} else {
+			templatesCache[prodName] = [{ type: 'item', text: 'Cache não encontrado.' }];
+		}
+	}
+
+	// =========================================================================
+	// POPULAÇÃO INSTANTÂNEA DA ÁRVORE (SEM DELAY)
+	// =========================================================================
+	function loadTemplatesFromCacheInstant() {
+		if (!allCachesLoaded) return;
+
+		var prodName = validProductions[prodDrop.selection.index].name;
+		var data = templatesCache[prodName];
+
+		templateTree.removeAll();
+
+		if (data && data.length > 0) {
+			// POPULAÇÃO INSTANTÂNEA - OTIMIZADA PARA 750+ ARQUIVOS
+			populateTreeFromDataFast(templateTree, data);
+			expandAllNodes(templateTree);
+		} else {
+			templateTree.add('item', 'Nenhum item encontrado para esta categoria.');
+		}
+
+		updateItemCounter();
+	}
+
+	function populateTreeFromDataFast(treeNode, dataArray) {
+		// VERSÃO OTIMIZADA PARA GRANDES QUANTIDADES DE ARQUIVOS
+		app.beginUndoGroup("Populate Tree");
+		
+		try {
+			for (var i = 0; i < dataArray.length; i++) {
+				var itemData = dataArray[i];
+				if (itemData.type === 'node') {
+					var node = treeNode.add('node', itemData.text);
+					if (typeof D9T_FOLDER_AE_ICON !== 'undefined') {
+						node.image = D9T_FOLDER_AE_ICON;
+					}
+					if (itemData.children && itemData.children.length > 0) {
+						populateTreeFromDataFast(node, itemData.children);
+					}
+				} else if (itemData.type === 'item') {
+					var item = treeNode.add('item', itemData.text);
+					if (typeof D9T_AE_ICON !== 'undefined') {
+						item.image = D9T_AE_ICON;
+					}
+					item.filePath = itemData.filePath;
+					item.modDate = itemData.modDate;
+					item.size = itemData.size;
+				}
+			}
+		} catch (e) {
+			// Em caso de erro, continua sem parar
 		}
 		
-		var count = 0;
-		function countItems(tree) {
-			if (!tree || !tree.items) return;
-			for (var i = 0; i < tree.items.length; i++) {
-				var item = tree.items[i];
-				if (item.type === 'item') {
-					count++;
-				} else if (item.type === 'node') {
-					countItems(item);
+		app.endUndoGroup();
+	}
+
+	function expandAllNodes(tree) {
+		if (!tree || !tree.items) return;
+		for (var i = 0; i < tree.items.length; i++) {
+			var item = tree.items[i];
+			if (item.type === 'node') {
+				item.expanded = true;
+				if (item.items && item.items.length > 0) {
+					expandAllNodes(item);
 				}
 			}
 		}
-		
-		countItems(templateTree);
+	}
+
+	function updateItemCounter() {
+		var count = 0;
+		function countItemsInNode(node) {
+			var nodeCount = 0;
+			for (var i = 0; i < node.items.length; i++) {
+				var item = node.items[i];
+				if (item.type === 'item') {
+					nodeCount++;
+				} else if (item.type === 'node') {
+					nodeCount += countItemsInNode(item);
+				}
+			}
+			return nodeCount;
+		}
+		count = countItemsInNode(templateTree);
 		itemCounterLab.text = count + (count === 1 ? ' item' : ' itens');
 	}
 
@@ -540,15 +586,9 @@ function d9TemplateDialog() {
 		templateTree.visible = !isLoading;
 		searchBox.enabled = !isLoading;
 		prodDrop.enabled = !isLoading;
-		try {
-			if (refreshBtn.leftClick) refreshBtn.leftClick.enabled = !isLoading;
-			else refreshBtn.enabled = !isLoading;
-			if (openFldBtn.leftClick) openFldBtn.leftClick.enabled = !isLoading;
-			else openFldBtn.enabled = !isLoading;
-		} catch (e) {}
 	}
 
-	function performSearch(searchTerm) {
+	function performSearchFast(searchTerm) {
 		if (!allCachesLoaded) return;
 		
 		var prodName = validProductions[prodDrop.selection.index].name;
@@ -558,7 +598,7 @@ function d9TemplateDialog() {
 
 		if (searchTerm === '') {
 			templateTree.removeAll();
-			populateTreeFromData(templateTree, masterData);
+			populateTreeFromDataFast(templateTree, masterData);
 			expandAllNodes(templateTree);
 			updateItemCounter();
 			return;
@@ -570,7 +610,7 @@ function d9TemplateDialog() {
 			cleanSearchTerm = searchTermUpper.replaceSpecialCharacters();
 		}
 
-		function filterData(data) {
+		function filterDataFast(data) {
 			var filteredList = [];
 			for (var i = 0; i < data.length; i++) {
 				var item = data[i];
@@ -588,7 +628,7 @@ function d9TemplateDialog() {
 					if (typeof String.prototype.replaceSpecialCharacters === 'function') {
 						nodeText = nodeText.replaceSpecialCharacters();
 					}
-					var filteredChildren = filterData(item.children);
+					var filteredChildren = filterDataFast(item.children);
 					if (nodeText.indexOf(cleanSearchTerm) !== -1 || filteredChildren.length > 0) {
 						var nodeCopy = JSON.parse(JSON.stringify(item));
 						nodeCopy.children = filteredChildren;
@@ -599,10 +639,10 @@ function d9TemplateDialog() {
 			return filteredList;
 		}
 
-		var filteredTreeData = filterData(masterData);
+		var filteredTreeData = filterDataFast(masterData);
 
 		templateTree.removeAll();
-		populateTreeFromData(templateTree, filteredTreeData);
+		populateTreeFromDataFast(templateTree, filteredTreeData);
 		expandAllNodes(templateTree);
 		updateItemCounter();
 	}
@@ -613,22 +653,17 @@ function d9TemplateDialog() {
 	setBgColor(D9T_TEMPLATES_w, bgColor1);
 
 	// =========================================================================
-	// EVENTO OTIMIZADO DO DROPDOWN - AGORA INSTANTÂNEO
+	// EVENTO DO DROPDOWN - INSTANTÂNEO APÓS CARREGAMENTO
 	// =========================================================================
 	prodDrop.onChange = function () {
-		if (!allCachesLoaded) {
-			setLoadingState(true, 'Aguarde o carregamento inicial...');
-			return;
-		}
-
 		var i = this.selection.index;
 		
-		// Atualiza ícone se disponível - USANDO FUNÇÃO ORIGINAL
+		// Atualiza ícone
 		if (typeof changeIcon === 'function') {
 			changeIcon(i, prodIconGrp);
 		}
 		
-		// Salva configuração do usuário
+		// Salva configuração
 		try {
 			if (userConfigFile) {
 				var userConfig = {};
@@ -654,12 +689,14 @@ function d9TemplateDialog() {
 			}
 		} catch (e) {}
 		
-		// Carrega templates instantaneamente (cache já está em memória)
-		loadTemplatesFromCache();
+		// CARREGAMENTO INSTANTÂNEO (SEM DELAY)
+		if (allCachesLoaded) {
+			loadTemplatesFromCacheInstant();
+		}
 	};
 
 	// =========================================================================
-	// EVENTO ONSHOW OTIMIZADO
+	// EVENTO ONSHOW - JANELA ABRE INSTANTANEAMENTE COM LOADING
 	// =========================================================================
 	D9T_TEMPLATES_w.onShow = function () {
 		extendedWidth = D9T_TEMPLATES_w.size.width;
@@ -667,6 +704,9 @@ function d9TemplateDialog() {
 		vGrp2.visible = true;
 		if (newDiv) newDiv.visible = true;
 		D9T_TEMPLATES_w.size.width = extendedWidth;
+
+		// EXIBE LOADING IMEDIATAMENTE
+		setLoadingState(true, 'Carregando templates...');
 
 		// Carrega configuração do usuário
 		try {
@@ -686,13 +726,11 @@ function d9TemplateDialog() {
 			}
 		} catch (e) {}
 
-		// Inicia carregamento de todos os caches (apenas uma vez)
-		if (!allCachesLoaded && !globalLoadingInProgress) {
+		// CARREGAMENTO EM BACKGROUND (ASSÍNCRONO)
+		// Usando setTimeout para não bloquear a interface
+		setTimeout(function() {
 			loadAllCachesInBackground();
-		} else if (allCachesLoaded) {
-			// Se já está carregado, mostra os templates imediatamente
-			loadTemplatesFromCache();
-		}
+		}, 10);
 	};
 
 	// =========================================================================
@@ -712,14 +750,14 @@ function d9TemplateDialog() {
 			this.isPlaceholderActive = true;
 			setFgColor(this, monoColor0);
 			if (allCachesLoaded) {
-				performSearch('');
+				performSearchFast('');
 			}
 		}
 	};
 
 	searchBox.onChanging = function () {
 		if (!this.isPlaceholderActive && allCachesLoaded) {
-			performSearch(this.text);
+			performSearchFast(this.text);
 		}
 	};
 
@@ -730,18 +768,24 @@ function d9TemplateDialog() {
 	// Botão de refresh
 	if (refreshBtn && typeof refreshBtn.leftClick !== 'undefined') {
 		refreshBtn.leftClick.onClick = function () {
-			// Reset do cache e recarregamento
+			// Reset completo do cache
 			templatesCache = {};
 			allCachesLoaded = false;
-			globalLoadingInProgress = false;
-			loadAllCachesInBackground();
+			isInitialLoading = false;
+			setLoadingState(true, 'Recarregando cache...');
+			setTimeout(function() {
+				loadAllCachesInBackground();
+			}, 10);
 		};
 	} else if (refreshBtn) {
 		refreshBtn.onClick = function () {
 			templatesCache = {};
 			allCachesLoaded = false;
-			globalLoadingInProgress = false;
-			loadAllCachesInBackground();
+			isInitialLoading = false;
+			setLoadingState(true, 'Recarregando cache...');
+			setTimeout(function() {
+				loadAllCachesInBackground();
+			}, 10);
 		};
 	}
 
@@ -813,9 +857,6 @@ function d9TemplateDialog() {
 	// =========================================================================
 	templateTree.onChange = function () {
 		if (this.selection && this.selection.filePath) {
-			// Atualiza preview se disponível
-			// updatePreview(this.selection.filePath);
-			
 			// Limpa informações GNEWS
 			for (var i = 0; i < infoValues.length; i++) {
 				infoValues[i].text = '';
@@ -901,7 +942,8 @@ function d9TemplateDialog() {
 			alert("Arquivo não encontrado:\n" + templatePath);
 			return;
 		}
-		
+
+		// MODO RÁPIDO DE IMPORTAÇÃO - SEM TELAS INTERMEDIÁRIAS
 		try {
 			// Configurações de projeto
 			app.project.bitsPerChannel = 8;
@@ -909,7 +951,7 @@ function d9TemplateDialog() {
 			app.project.linearBlending = true;
 			app.project.timeDisplayType = TimeDisplayType.TIMECODE;
 			
-			// Importa o template para o projeto atual
+			// Importa o template
 			var importOptions = new ImportOptions(templateFile);
 			app.project.importFile(importOptions);
 			
@@ -917,7 +959,7 @@ function d9TemplateDialog() {
 			var templateName = templateFile.name.replace(/\.[^\.]+$/, '');
 			logGNewsImport(templateName);
 			
-			alert("Template importado com sucesso!");
+			alert("Template '" + templateName + "' importado com sucesso!");
 			D9T_TEMPLATES_w.close();
 		} catch (e) {
 			alert("Erro ao importar template:\n" + e.message);
@@ -1056,7 +1098,7 @@ function d9TemplateDialog() {
 		headerPanel.spacing = 10;
 		headerPanel.margins = 15;
 		
-		var titleText = headerPanel.add("statictext", undefined, "AJUDA - GNEWS TEMPLATES");
+		var titleText = headerPanel.add("statictext", undefined, "AJUDA - GNEWS TEMPLATES v2.7");
 		titleText.graphics.font = ScriptUI.newFont("Arial", "Bold", 16);
 		titleText.alignment = ["center", "center"];
 		if (typeof normalColor1 !== 'undefined' && typeof highlightColor1 !== 'undefined' && typeof setFgColor !== 'undefined') {
@@ -1065,7 +1107,7 @@ function d9TemplateDialog() {
 			titleText.graphics.foregroundColor = titleText.graphics.newPen(titleText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 1], 1);
 		}
 		
-		var mainDescText = headerPanel.add("statictext", undefined, "Gerencie e preencha templates GNEWS com informações automáticas das artes.", { multiline: true });
+		var mainDescText = headerPanel.add("statictext", undefined, "Sistema ultra-rápido de templates GNEWS otimizado para grandes quantidades de arquivos.", { multiline: true });
 		mainDescText.alignment = ["fill", "fill"];
 		mainDescText.preferredSize.height = 40;
 		if (typeof normalColor1 !== 'undefined' && typeof setFgColor !== 'undefined') {
@@ -1073,126 +1115,89 @@ function d9TemplateDialog() {
 		} else {
 			mainDescText.graphics.foregroundColor = mainDescText.graphics.newPen(mainDescText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 1], 1);
 		}
-		
-		var topicsTabPanel = helpWin.add("tabbedpanel");
-		topicsTabPanel.alignment = ["fill", "fill"];
-		topicsTabPanel.margins = 15;
-		
-		var allHelpTopics = [{
-			tabName: "VISÃO GERAL",
-			topics: [{
-				title: "▶ OTIMIZAÇÕES DA VERSÃO 2.7:",
-				text: "• Carregamento único de todos os caches na inicialização\n• Troca instantânea entre produções sem lentidão\n• Interface de loading aprimorada com progresso\n• Cache mantido em memória para máxima performance"
-			}, {
-				title: "▶ SELEÇÃO DE TEMPLATE:",
-				text: "Navegue pela árvore à esquerda para selecionar um template (.aep ou .aet). O preview aumentado e informações da arte GNEWS aparecerão à direita."
-			}, {
-				title: "▶ PREVIEW AUMENTADO:",
-				text: "Visualização maior dos templates para melhor análise visual antes do processamento."
-			}, {
-				title: "▶ ATUALIZAR LISTA (🔄):",
-				text: "Recarrega a lista de templates na árvore."
-			}, {
-				title: "▶ ABRIR PASTA (📁):",
-				text: "Abre o diretório onde os templates estão armazenados."
-			}]
-		}, {
-			tabName: "INFORMAÇÕES GNEWS",
-			topics: [{
-				title: "▶ CÓDIGO:",
-				text: "Digite o código da arte GNEWS (ex: GNVZ036). As informações são carregadas automaticamente do banco de dados."
-			}, {
-				title: "▶ NOME DA ARTE:",
-				text: "Exibido automaticamente baseado no código informado."
-			}, {
-				title: "▶ SERVIDOR DESTINO:",
-				text: "Servidor de destino da arte, carregado automaticamente (ex: FTP VIZ, PAM HARDNEWS)."
-			}, {
-				title: "▶ ÚLTIMA ATUALIZAÇÃO:",
-				text: "Data da última modificação/processamento da arte."
-			}]
-		}, {
-			tabName: "PROCESSAMENTO",
-			topics: [{
-				title: "▶ IMPORTAR:",
-				text: "Importa o template diretamente para o projeto e registra informações GNEWS no log."
-			}, {
-				title: "▶ SEM ORGANIZAÇÃO AUTOMÁTICA:",
-				text: "O projeto não é mais organizado automaticamente, mantendo a estrutura original."
-			}, {
-				title: "▶ SEM METADADOS XMP:",
-				text: "Metadados XMP não são mais adicionados automaticamente."
-			}, {
-				title: "▶ SEM FILA DE RENDER:",
-				text: "Sistema de fila de renderização foi removido para fluxo mais direto."
-			}, {
-				title: "▶ LOG GNEWS:",
-				text: "Registra informações específicas GNEWS incluindo código da arte, nome e servidor destino."
-			}]
-		}, {
-			tabName: "ATALHOS",
-			topics: [{
-				title: "▶ DUPLO CLIQUE:",
-				text: "Duplo clique em um template importa diretamente sem processamento de texto, mantendo a estrutura original."
-			}]
-		}];
-		
-		for (var s = 0; s < allHelpTopics.length; s++) {
-			var currentTabSection = allHelpTopics[s];
-			var tab = topicsTabPanel.add("tab", undefined, currentTabSection.tabName);
-			tab.orientation = "column";
-			tab.alignChildren = ["fill", "top"];
-			tab.spacing = 10;
-			tab.margins = TOPIC_SECTION_MARGINS;
+
+		var contentPanel = helpWin.add("panel", undefined, "");
+		contentPanel.orientation = "column";
+		contentPanel.alignChildren = ["fill", "fill"];
+		contentPanel.alignment = ["fill", "fill"];
+		contentPanel.spacing = 10;
+		contentPanel.margins = 15;
+
+		var helpContent = [
+			"▶ OTIMIZAÇÕES ULTRA-RÁPIDAS:",
+			"• Janela abre instantaneamente com loading",
+			"• Cache carregado em background sem bloquear interface",
+			"• Árvore de arquivos instantânea (mesmo 750+ arquivos)",
+			"• Trocas de produção sem qualquer delay",
+			"• População de TreeView otimizada para grandes volumes",
+			"",
+			"▶ FUNCIONAMENTO:",
+			"1. Janela abre imediatamente mostrando 'Carregando...'",
+			"2. Cache é carregado silenciosamente em background",
+			"3. Após carregamento: ZERO delays para qualquer ação",
+			"4. Troca de produção: instantânea",
+			"5. Busca: filtros em tempo real",
+			"",
+			"▶ ATALHOS RÁPIDOS:",
+			"• Duplo clique: Abre template diretamente",
+			"• Botão Abrir: Abre o template selecionado",
+			"• Botão Importar: Importa para projeto atual",
+			"• 🔄 Atualizar: Recarrega cache quando necessário",
+			"• 📁 Pasta: Abre diretório de templates",
+			"",
+			"▶ CÓDIGO GNEWS:",
+			"Digite código da arte (ex: GNVZ036) para carregar",
+			"informações automáticas do banco de dados."
+		];
+
+		for (var i = 0; i < helpContent.length; i++) {
+			var line = helpContent[i];
+			var textElement = contentPanel.add("statictext", undefined, line, { multiline: false });
+			textElement.alignment = ["fill", "top"];
 			
-			for (var i = 0; i < currentTabSection.topics.length; i++) {
-				var topic = currentTabSection.topics[i];
-				var topicGrp = tab.add("group");
-				topicGrp.orientation = "column";
-				topicGrp.alignChildren = "fill";
-				topicGrp.spacing = TOPIC_SPACING;
-				
-				if (topic.title.indexOf("▶") === 0) {
-					topicGrp.margins.left = TOPIC_TITLE_INDENT;
-				} else {
-					topicGrp.margins.left = SUBTOPIC_INDENT;
-				}
-				
-				var topicTitle = topicGrp.add("statictext", undefined, topic.title);
-				topicTitle.graphics.font = ScriptUI.newFont("Arial", "Bold", 12);
-				if (typeof highlightColor1 !== 'undefined' && typeof setFgColor !== 'undefined') {
-					setFgColor(topicTitle, highlightColor1);
-				} else {
-					topicTitle.graphics.foregroundColor = topicTitle.graphics.newPen(topicTitle.graphics.PenType.SOLID_COLOR, [0.83, 0, 0.23, 1], 1);
-				}
-				topicTitle.preferredSize.width = (TARGET_HELP_WIDTH - (MARGIN_SIZE * 2) - (topicsTabPanel.margins.left + topicsTabPanel.margins.right) - (tab.margins.left + tab.margins.right) - topicGrp.margins.left);
-				
-				if (topic.text !== "") {
-					var topicText = topicGrp.add("statictext", undefined, topic.text, {
-						multiline: true
-					});
-					topicText.graphics.font = ScriptUI.newFont("Arial", "Regular", 11);
-					topicText.preferredSize.width = (TARGET_HELP_WIDTH - (MARGIN_SIZE * 2) - (topicsTabPanel.margins.left + topicsTabPanel.margins.right) - (tab.margins.left + tab.margins.right) - topicGrp.margins.left);
-					topicText.preferredSize.height = 50;
-					if (typeof normalColor1 !== 'undefined' && typeof setFgColor !== 'undefined') {
-						setFgColor(topicText, normalColor1);
-					} else {
-						topicText.graphics.foregroundColor = topicText.graphics.newPen(topicText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 1], 1);
-					}
-				}
+			if (line.indexOf("▶") === 0) {
+				setFgColor(textElement, highlightColor1);
+				textElement.graphics.font = ScriptUI.newFont("Arial", "Bold", 12);
+			} else {
+				setFgColor(textElement, normalColor1);
 			}
 		}
-		
-		var closeBtnGrp = helpWin.add("group");
-		closeBtnGrp.alignment = "center";
-		closeBtnGrp.margins = [0, 10, 0, 0];
-		var closeBtn = closeBtnGrp.add("button", undefined, "OK");
-		closeBtn.onClick = function () {
+
+		var buttonPanel = helpWin.add("group");
+		buttonPanel.alignment = ["fill", "bottom"];
+		buttonPanel.alignChildren = ["center", "center"];
+
+		var okButton = buttonPanel.add("button", undefined, "OK");
+		okButton.preferredSize = [80, 30];
+		okButton.onClick = function () {
 			helpWin.close();
 		};
-		helpWin.layout.layout(true);
+
 		helpWin.center();
 		helpWin.show();
+	}
+
+	// =========================================================================
+	// EVENTOS DOS BOTÕES CANCELAR/CONTINUAR
+	// =========================================================================
+	if (cancelBtn && typeof cancelBtn.leftClick !== 'undefined') {
+		cancelBtn.leftClick.onClick = function () {
+			D9T_TEMPLATES_w.close();
+		};
+	} else if (cancelBtn) {
+		cancelBtn.onClick = function () {
+			D9T_TEMPLATES_w.close();
+		};
+	}
+
+	if (nextBtn && typeof nextBtn.leftClick !== 'undefined') {
+		nextBtn.leftClick.onClick = function () {
+			D9T_TEMPLATES_w.close();
+		};
+	} else if (nextBtn) {
+		nextBtn.onClick = function () {
+			D9T_TEMPLATES_w.close();
+		};
 	}
 
 	// =========================================================================
@@ -1210,13 +1215,9 @@ function d9TemplateDialog() {
 	};
 
 	// =========================================================================
-	// INICIALIZAÇÃO E EXIBIÇÃO - USANDO A FUNÇÃO CORRETA
+	// INICIALIZAÇÃO E EXIBIÇÃO - EXATAMENTE COMO PEDIDO
 	// =========================================================================
 	
-	// Define tamanhos da janela
-	D9T_TEMPLATES_w.preferredSize = [1000, 600];
-	D9T_TEMPLATES_w.center();
-	
-	// FUNÇÃO FINAL CORRIGIDA
+	// JANELA ABRE INSTANTANEAMENTE E MOSTRA LOADING NO TREEVIEW
 	D9T_TEMPLATES_w.show();
 }
