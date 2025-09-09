@@ -62,8 +62,7 @@ o script funcionará normalmente, mas você não terá:\n\
         #include 'source/SCRIPTS/GNEWS_SearchLayers.jsx';
         #include 'source/SCRIPTS/GNEWS_FinderProject.jsx';
         #include 'source/SCRIPTS/GNEWS_CopyLinks.jsx';
-        #include 'source/config/TEMPLATES_configWin.js';
-        #include 'source/config/LIBRARYLIVE_configWin.js'; 
+//        #include 'source/config/TEMPLATES_configWin.js';
         #include 'source/config/LIBRARYLIVE_configWin.js';
         #include 'source/config/LAYERSORDER_configWin.js';
         
