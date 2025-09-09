@@ -1,9 +1,10 @@
 // ===========================================================================================
-// GNEWS CopyLinks.jsx - v2.3 | 2024-06-10
+// GNEWS CopyLinks.jsx - v3.0 | VERSÃO FINAL COM TODAS AS ALTERAÇÕES APLICADAS
 // ===========================================================================================
 
 function launchCopyLinks() {
-
+    // Presume que as funções e variáveis do tema (themeIconButton, D9T_PASTA_ICON, D9T_PIN_ICON, etc.)
+    // e as variáveis de cor (bgColor1, monoColor1, etc.) do globals.js já estão no escopo global.
     var config = null;
     var isWindows = ($.os.indexOf("Windows") !== -1);
     var GNEWS_D9_TOOLS_ROOT = new File($.fileName).parent.parent.parent;
@@ -41,12 +42,10 @@ function launchCopyLinks() {
     win.orientation = "column"; win.spacing = 10; win.margins = 15;
     setBgColor(win, bgColor1);
 
-    // *** CABEÇALHO REESTRUTURADO PARA ALINHAMENTO CORRETO ***
-
     // --- LINHA 1: Contém o subtítulo (esquerda) e o botão de ajuda (direita) ---
     var line1Grp = win.add("group");
     line1Grp.orientation = 'stack';
-    line1Grp.alignment = 'fill'; // Faz o grupo ocupar toda a largura para o 'stack' funcionar
+    line1Grp.alignment = 'fill'; 
 
     var subtitleGrp = line1Grp.add('group');
     subtitleGrp.alignment = 'left';
@@ -71,8 +70,6 @@ function launchCopyLinks() {
     dropdown.preferredSize.width = 300;
     dropdown.selection = 0;
 
-    // *** FIM DA REESTRUTURAÇÃO ***
-
     helpBtn.leftClick.onClick = function() {
         if (typeof showCopyLinksHelp === 'function') {
             showCopyLinksHelp();
@@ -84,31 +81,31 @@ function launchCopyLinks() {
     var content = win.add("group");
     content.orientation = "column"; content.spacing = 15;
 
-    function updateContent(groupIndex) {
-        while (content.children.length > 0) { content.remove(content.children[0]); }
-        var layout = config.configuracao.layout_geral;
-        var NAME_BTN_HEIGHT = layout.name_btn_height || 30;
-        var NAME_BTN_WIDTH = layout.name_btn_width || 450;
-        var BOTTOM_ROW_HEIGHT = layout.bottom_row_height || 25;
-        var TEXT_WIDTH_NORMAL = layout.text_width_normal || 300;
-        var TEXT_WIDTH_CATALOGOS = layout.text_width_catalogos || 590;
-        
-        var group = grupos[groupIndex];
-        var isCatalogos = (group.titulo === "GRUPO CATÁLOGOS E GUIAS");
+function updateContent(groupIndex) {
+    while (content.children.length > 0) { content.remove(content.children[0]); }
+    var layout = config.configuracao.layout_geral;
+    var NAME_BTN_HEIGHT = layout.name_btn_height || 30;
+    var NAME_BTN_WIDTH = layout.name_btn_width || 450;
+    var BOTTOM_ROW_HEIGHT = layout.bottom_row_height || 25;
+    var TEXT_WIDTH_NORMAL = layout.text_width_normal || 300;
+    var TEXT_WIDTH_CATALOGOS = layout.text_width_catalogos || 590;
+    
+    var group = grupos[groupIndex];
+    var isCatalogos = (group.titulo === "GRUPO CATÁLOGOS E GUIAS");
 
-        for (var i = 0; i < group.links.length; i++) {
-            var linkGroup = content.add("group");
-            linkGroup.orientation = "column"; linkGroup.spacing = 5; linkGroup.alignChildren = "left";
-            var link = group.links[i];
-            var fileIcon = getFileIcon(link.caminho);
+    for (var i = 0; i < group.links.length; i++) {
+        var linkGroup = content.add("group");
+        linkGroup.orientation = "column"; linkGroup.spacing = 5; linkGroup.alignChildren = "left";
+        var link = group.links[i];
 
-            var mainBtn = linkGroup.add("button", undefined, "  " + fileIcon + " " + link.nome);
-            mainBtn.preferredSize.width = NAME_BTN_WIDTH; 
-            mainBtn.preferredSize.height = NAME_BTN_HEIGHT;
+        var mainBtn = linkGroup.add("button", undefined, "  " + link.nome);
+        mainBtn.preferredSize.width = NAME_BTN_WIDTH; 
+        mainBtn.preferredSize.height = NAME_BTN_HEIGHT;
 
-            var controls = linkGroup.add("group");
-            controls.orientation = "row"; controls.spacing = 5;
+        var controls = linkGroup.add("group");
+        controls.orientation = "row"; controls.spacing = 5;
 
+        // 1. A variável é GARANTIDAMENTE inicializada como null.
             var pinBtnIcon = null;
             if (!isCatalogos && isWindows && link.tipo === "folder" && link.caminho.indexOf("http") !== 0) {
                  pinBtnIcon = new themeIconButton(controls, {
@@ -140,40 +137,37 @@ function launchCopyLinks() {
                     
                 });
             }
+        
+        // 3. A variável 'pinBtnIcon' (que pode ser o objeto do ícone ou null) é passada aqui.
+        (function(data, main, copyIcon, pinIcon, pathField) {
+            main.onClick = function() { openPath(pathField.text); };
             
-            (function(data, main, copyIcon, pinIcon, pathField) {
-                main.onClick = function() { openPath(pathField.text); };
-                
-                if (copyIcon) {
-                    copyIcon.leftClick.onClick = function() {
-                        if (!hasWriteAccess()) { alert("ERRO: Ação de copiar requer permissão."); return; }
-                        if (copyText(pathField.text)) {
-                            main.text = "✓ Copiado!";
-                            app.setTimeout(function() { main.text = "  " + getFileIcon(data.caminho) + " " + data.nome; }, 1500);
-                        }
-                    };
-                }
-                
-                if (pinIcon) {
-                    pinIcon.leftClick.onClick = function() {
-                        if (addPin(pathField.text)) {
-                            main.text = "✓ Adicionado!";
-                            app.setTimeout(function() { main.text = "  " + getFileIcon(data.caminho) + " " + data.nome; }, 1500);
-                        }
-                    };
-                }
-
-                pathField.onChanging = function() {
-                    var newIcon = getFileIcon(this.text);
-                    main.text = "  " + newIcon + " " + data.nome;
+            if (copyIcon) {
+                copyIcon.leftClick.onClick = function() {
+                    if (!hasWriteAccess()) { alert("ERRO: Ação de copiar requer permissão."); return; }
+                    if (copyText(pathField.text)) {
+                        main.text = "✓ Copiado!";
+                        app.setTimeout(function() { main.text = "  " + data.nome; }, 1500);
+                    }
                 };
-            })(link, mainBtn, copyBtnIcon, pinBtnIcon, field);
-        }
-        win.layout.layout(true);
-        var groupLayout = config.configuracao.layout_grupos[group.titulo];
-        if (groupLayout && groupLayout.altura) { win.size.height = groupLayout.altura; }
-        else { win.size.height = 200 + (group.links.length * 85); }
+            }
+            
+            // 4. O código aqui dentro SÓ executa se 'pinIcon' não for null (nem undefined).
+            if (pinIcon) {
+                pinIcon.leftClick.onClick = function() {
+                    if (addPin(pathField.text)) {
+                        main.text = "✓ Adicionado!";
+                        app.setTimeout(function() { main.text = "  " + data.nome; }, 1500);
+                    }
+                };
+            }
+        })(link, mainBtn, copyBtnIcon, pinBtnIcon, field);
     }
+    win.layout.layout(true);
+    var groupLayout = config.configuracao.layout_grupos[group.titulo];
+    if (groupLayout && groupLayout.altura) { win.size.height = groupLayout.altura; }
+    else { win.size.height = 200 + (group.links.length * 85); }
+}
     dropdown.onChange = function() { if (this.selection) { updateContent(this.selection.index); } };
     updateContent(0);
     var layout = config.configuracao.layout_geral;
