@@ -1,12 +1,13 @@
 function d9TemplateDialog() {
 	var scriptName = 'GNEWS TEMPLATES';
-	var scriptVersion = '2.6';
+	var scriptVersion = '2.6'; // CORREÇÃO: Adicionar esta linha
 	var compactWidth, extendedWidth;
 	var fileFilter = ['.aep', '.aet'];
 	var projectFile, previewFile, configFile, scriptFile, templateData;
 	var newCompsArray = [],
 		newOutputsArray = [];
 
+	// Verificação de segurança para variáveis que podem não estar definidas
 	var lClick = (typeof lClick !== 'undefined') ? lClick : 'Clique: ';
 
 	var cacheFolder = new Folder(scriptMainPath + 'source/cache');
@@ -74,46 +75,31 @@ function d9TemplateDialog() {
 		} catch (e) {}
 	}
 
-	// >>>>> FUNÇÃO NOVA ADICIONADA <<<<<
-	// Conta os itens diretamente do array de dados do cache, o que é muito mais rápido.
-	function countItemsInCacheData(dataArray) {
-		var count = 0;
-		for (var i = 0; i < dataArray.length; i++) {
-			var item = dataArray[i];
-			if (item.type === 'item') {
-				count++;
-			} else if (item.type === 'node' && item.children) {
-				count += countItemsInCacheData(item.children);
-			}
-		}
-		return count;
-	}
-
 	function performSearch(searchTerm) {
 		var prodName = validProductions[prodDrop.selection.index].name;
 		var masterData = templatesCache[prodName];
-	
+
 		if (!masterData) return;
-	
+
 		if (searchTerm === '') {
 			templateTree.removeAll();
 			populateTreeFromData(templateTree, masterData);
-			var totalItems = countItemsInCacheData(masterData); // CONTAGEM RÁPIDA
-			itemCounterLab.text = totalItems + (totalItems === 1 ? ' item' : ' itens'); // CONTAGEM RÁPIDA
+			expandAllNodes(templateTree);
+			updateItemCounter();
 			return;
 		}
-	
+
 		var searchTermUpper = searchTerm.toUpperCase();
 		var cleanSearchTerm = searchTermUpper;
 		if (typeof String.prototype.replaceSpecialCharacters === 'function') {
 			cleanSearchTerm = searchTermUpper.replaceSpecialCharacters();
 		}
-	
+
 		function filterData(data) {
 			var filteredList = [];
 			for (var i = 0; i < data.length; i++) {
 				var item = data[i];
-	
+
 				if (item.type === 'item') {
 					var itemText = item.text.toUpperCase();
 					if (typeof String.prototype.replaceSpecialCharacters === 'function') {
@@ -137,18 +123,45 @@ function d9TemplateDialog() {
 			}
 			return filteredList;
 		}
-	
+
 		var filteredTreeData = filterData(masterData);
-	
+
 		templateTree.removeAll();
 		populateTreeFromData(templateTree, filteredTreeData);
-		expandAllNodes(templateTree); // MANTIDO AQUI: para mostrar os resultados da busca.
-		
-		var totalItemsFiltered = countItemsInCacheData(filteredTreeData); // CONTAGEM RÁPIDA
-		itemCounterLab.text = totalItemsFiltered + (totalItemsFiltered === 1 ? ' item' : ' itens'); // CONTAGEM RÁPIDA
+		expandAllNodes(templateTree);
+		updateItemCounter();
 	}
 
-	var D9T_TEMPLATES_w = new Window('palette', scriptName + ' ' + scriptVersion);
+	function findItem(nodeTree, list, searchTxt) {
+		if (!nodeTree || !nodeTree.items) return list;
+		
+		var branches = nodeTree.items;
+		for (var i = 0; i < branches.length; i++) {
+			var branch = branches[i];
+			
+			if (branch.type === 'node') {
+				findItem(branch, list, searchTxt);
+			}
+			
+			try {
+				var itemText = branch.text.trim().toUpperCase();
+				var searchText = searchTxt.trim().toUpperCase();
+				
+				if (typeof String.prototype.replaceSpecialCharacters === 'function') {
+					itemText = itemText.replaceSpecialCharacters();
+					searchText = searchText.replaceSpecialCharacters();
+				}
+				
+				if (itemText.indexOf(searchText) !== -1) {
+					list.push(branch);
+				}
+			} catch(e) {}
+		}
+		
+		return list;
+	}
+
+var D9T_TEMPLATES_w = new Window('palette', scriptName + ' ' + scriptVersion);
 	var topHeaderGrp = D9T_TEMPLATES_w.add('group');
 	topHeaderGrp.orientation = 'row';
 	topHeaderGrp.alignment = ['fill', 'top'];
@@ -313,6 +326,24 @@ function d9TemplateDialog() {
 		openFldBtn.helpTip = 'abrir pasta de templates';
 	}
 
+	function updateItemCounter() {
+        var count = 0;
+        function countItemsInNode(node) {
+            var nodeCount = 0;
+            for (var i = 0; i < node.items.length; i++) {
+                var item = node.items[i];
+                if (item.type === 'item') {
+                    nodeCount++;
+                } else if (item.type === 'node') {
+                    nodeCount += countItemsInNode(item);
+                }
+            }
+            return nodeCount;
+        }
+        count = countItemsInNode(templateTree);
+		itemCounterLab.text = count + (count === 1 ? ' item' : ' itens');
+	}
+
 	function showSearchingFeedback(isSearching) {
 		if (isSearching) {
 			loadingGrp.children[0].text = 'Pesquisando...';
@@ -387,12 +418,6 @@ function d9TemplateDialog() {
 				if (typeof D9T_FOLDER_AE_ICON !== 'undefined') {
 					node.image = D9T_FOLDER_AE_ICON;
 				}
-	
-				// ADICIONADO: Expande apenas os nós do primeiro nível.
-				if (treeNode === templateTree) {
-					node.expanded = true;
-				}
-	
 				if (itemData.children && itemData.children.length > 0) {
 					populateTreeFromData(node, itemData.children);
 				}
@@ -408,30 +433,23 @@ function d9TemplateDialog() {
 		}
 	}
 
-
 	function loadTemplatesFromCache() {
 		var prodName = validProductions[prodDrop.selection.index].name;
 		
 		setLoadingState(true, 'Carregando ' + prodName + '...');
 		D9T_TEMPLATES_w.update();
-	
+
 		templateTree.removeAll();
 		var data = templatesCache[prodName];
-	
+
 		if (data && data.length > 0) {
-			// CONTAGEM RÁPIDA: Conta os itens a partir dos dados antes de criar a UI.
-			var totalItems = countItemsInCacheData(data);
-			itemCounterLab.text = totalItems + (totalItems === 1 ? ' item' : ' itens');
-			D9T_TEMPLATES_w.update();
-	
-			// Popula a árvore (agora o passo mais demorado)
 			populateTreeFromData(templateTree, data);
-			
+			expandAllNodes(templateTree);
 		} else {
-			itemCounterLab.text = '0 itens';
 			templateTree.add('item', 'Nenhum item encontrado para esta categoria.');
 		}
-	
+
+		updateItemCounter();
 		setLoadingState(false);
 	}
 
@@ -663,7 +681,10 @@ function d9TemplateDialog() {
 		}
 	}
 
-	codigoTxt.onChanging = function () {};
+	codigoTxt.onChanging = function () {
+		try {
+		} catch (e) {}
+	};
 	
 	var mainBtnGrp2 = vGrp2.add('group');
 	mainBtnGrp2.orientation = 'stack';
