@@ -1,367 +1,1078 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { ChevronLeft, ChevronRight, Play, Download, Loader } from 'lucide-react';
+// =============================================================================
+// GNEWS TEMPLATES - VERSÃO OTIMIZADA
+// Solução para problema de carregamento lento ao trocar produções
+// =============================================================================
 
-const GNEWS_Templates = () => {
-  const [selectedProduction, setSelectedProduction] = useState('');
-  const [isFullyLoaded, setIsFullyLoaded] = useState(false);
-  const [loadingProgress, setLoadingProgress] = useState(0);
-  const [loadingMessage, setLoadingMessage] = useState('Iniciando carregamento...');
-  const [preloadedAssets, setPreloadedAssets] = useState({});
-  const videoRefs = useRef({});
+function d9TemplateDialog() {
+	var scriptName = 'GNEWS TEMPLATES';
+	var scriptVersion = '2.7'; // Versão otimizada
+	var compactWidth, extendedWidth;
+	var fileFilter = ['.aep', '.aet'];
+	var projectFile, previewFile, configFile, scriptFile, templateData;
+	var newCompsArray = [],
+		newOutputsArray = [];
 
-  // Configuração das produções
-  const productions = {
-    jornalNacional: {
-      name: 'Jornal Nacional',
-      templates: [
-        {
-          id: 'template1',
-          name: 'Abertura Principal',
-          thumbnail: 'https://picsum.photos/400/225?random=1',
-          videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-          duration: '0:30'
-        },
-        {
-          id: 'template2',
-          name: 'Vinheta Esporte',
-          thumbnail: 'https://picsum.photos/400/225?random=2',
-          videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-          duration: '0:15'
-        },
-        {
-          id: 'template3',
-          name: 'Lower Third',
-          thumbnail: 'https://picsum.photos/400/225?random=3',
-          videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-          duration: '0:08'
-        }
-      ]
-    },
-    bomDiaBrasil: {
-      name: 'Bom Dia Brasil',
-      templates: [
-        {
-          id: 'template4',
-          name: 'Abertura Matinal',
-          thumbnail: 'https://picsum.photos/400/225?random=4',
-          videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-          duration: '0:25'
-        },
-        {
-          id: 'template5',
-          name: 'Previsão do Tempo',
-          thumbnail: 'https://picsum.photos/400/225?random=5',
-          videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
-          duration: '0:20'
-        }
-      ]
-    },
-    fantastico: {
-      name: 'Fantástico',
-      templates: [
-        {
-          id: 'template6',
-          name: 'Abertura Show',
-          thumbnail: 'https://picsum.photos/400/225?random=6',
-          videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
-          duration: '0:45'
-        },
-        {
-          id: 'template7',
-          name: 'Transição Musical',
-          thumbnail: 'https://picsum.photos/400/225?random=7',
-          videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
-          duration: '0:12'
-        }
-      ]
-    }
-  };
+	// Verificação de segurança para variáveis que podem não estar definidas
+	var lClick = (typeof lClick !== 'undefined') ? lClick : 'Clique: ';
 
-  // Função para pré-carregar uma imagem
-  const preloadImage = (src) => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => resolve(src);
-      img.onerror = reject;
-      img.src = src;
-    });
-  };
+	var cacheFolder = new Folder(scriptMainPath + 'source/cache');
+	if (!cacheFolder.exists) cacheFolder.create();
 
-  // Função para pré-carregar um vídeo
-  const preloadVideo = (src, templateId) => {
-    return new Promise((resolve, reject) => {
-      const video = document.createElement('video');
-      video.preload = 'metadata';
-      video.muted = true;
-      
-      const onLoadedData = () => {
-        video.removeEventListener('loadeddata', onLoadedData);
-        video.removeEventListener('error', onError);
-        
-        // Armazena a referência do vídeo pré-carregado
-        videoRefs.current[templateId] = video;
-        resolve(src);
-      };
+	// =========================================================================
+	// SISTEMA DE CACHE OTIMIZADO - CARREGAMENTO ÚNICO NA INICIALIZAÇÃO
+	// =========================================================================
+	var templatesCache = {};
+	var allCachesLoaded = false;
+	var globalLoadingInProgress = false;
 
-      const onError = () => {
-        video.removeEventListener('loadeddata', onLoadedData);
-        video.removeEventListener('error', onError);
-        reject(new Error(`Erro ao carregar vídeo: ${src}`));
-      };
+	var userConfigFile = null;
+	try {
+		var centralConfigFolder = new Folder(scriptMainPath + 'source/config');
+		if (!centralConfigFolder.exists) centralConfigFolder.create();
+		userConfigFile = new File(centralConfigFolder.fullName + '/TEMPLATES_config.json');
+	} catch (e) {
+		userConfigFile = null;
+	}
 
-      video.addEventListener('loadeddata', onLoadedData);
-      video.addEventListener('error', onError);
-      video.src = src;
-    });
-  };
+	var artesData = null;
+	try {
+		var artesDataFile = new File(scriptMainPath + 'source/libraries/dados_json/DADOS_artes_gnews.json');
+		if (artesDataFile.exists) {
+			artesDataFile.open('r');
+			artesData = JSON.parse(artesDataFile.read());
+			artesDataFile.close();
+		}
+	} catch (err) {}
 
-  // Função principal de pré-carregamento
-  const preloadAllAssets = async () => {
-    const allTemplates = Object.values(productions).flatMap(prod => prod.templates);
-    const totalAssets = allTemplates.length * 2; // imagem + vídeo para cada template
-    let loadedCount = 0;
+	function getArteData(codigo) {
+		if (!artesData || !artesData.artes_codificadas) return null;
+		for (var i = 0; i < artesData.artes_codificadas.length; i++) {
+			if (artesData.artes_codificadas[i].codigo === codigo) return artesData.artes_codificadas[i];
+		}
+		return null;
+	}
 
-    setLoadingMessage('Carregando imagens...');
+	var bgColor1 = '#0B0D0E',
+		normalColor1 = '#C7C8CA',
+		monoColor0 = '#686F75',
+		monoColor1 = '#9CA0A5',
+		monoColor2 = '#302b2bff',
+		normalColor2 = '#ffffffff',
+		highlightColor1 = '#E0003A';
 
-    // Carregar todas as imagens
-    const imagePromises = allTemplates.map(async (template) => {
-      try {
-        await preloadImage(template.thumbnail);
-        loadedCount++;
-        setLoadingProgress((loadedCount / totalAssets) * 100);
-        return { type: 'image', id: template.id, success: true };
-      } catch (error) {
-        console.error(`Erro ao carregar imagem ${template.id}:`, error);
-        loadedCount++;
-        setLoadingProgress((loadedCount / totalAssets) * 100);
-        return { type: 'image', id: template.id, success: false };
-      }
-    });
+	function hexToRgb(hex) {
+		if (hex == undefined) return [Math.random(), Math.random(), Math.random()];
+		hex = hex.replace('#', '');
+		var r = parseInt(hex.substring(0, 2), 16);
+		var g = parseInt(hex.substring(2, 4), 16);
+		var b = parseInt(hex.substring(4, 6), 16);
+		return [r / 255, g / 255, b / 255];
+	}
 
-    await Promise.all(imagePromises);
-    setLoadingMessage('Carregando vídeos...');
+	function setBgColor(element, hexColor) {
+		try {
+			var color = hexToRgb(hexColor);
+			var bType = element.graphics.BrushType.SOLID_COLOR;
+			element.graphics.backgroundColor = element.graphics.newBrush(bType, color);
+		} catch (e) {}
+	}
 
-    // Carregar todos os vídeos
-    const videoPromises = allTemplates.map(async (template) => {
-      try {
-        await preloadVideo(template.videoUrl, template.id);
-        loadedCount++;
-        setLoadingProgress((loadedCount / totalAssets) * 100);
-        return { type: 'video', id: template.id, success: true };
-      } catch (error) {
-        console.error(`Erro ao carregar vídeo ${template.id}:`, error);
-        loadedCount++;
-        setLoadingProgress((loadedCount / totalAssets) * 100);
-        return { type: 'video', id: template.id, success: false };
-      }
-    });
+	function setFgColor(element, hexColor) {
+		try {
+			var color = hexToRgb(hexColor);
+			var pType = element.graphics.PenType.SOLID_COLOR;
+			element.graphics.foregroundColor = element.graphics.newPen(pType, color, 1);
+		} catch (e) {}
+	}
 
-    const videoResults = await Promise.all(videoPromises);
-    
-    // Armazenar resultados do pré-carregamento
-    const assetResults = {};
-    [...await Promise.all(imagePromises), ...videoResults].forEach(result => {
-      if (!assetResults[result.id]) assetResults[result.id] = {};
-      assetResults[result.id][result.type] = result.success;
-    });
+	// =========================================================================
+	// SISTEMA DE LOADING OTIMIZADO
+	// =========================================================================
+	function setGlobalLoadingState(isLoading, message, progress) {
+		if (isLoading) {
+			loadingGrp.children[0].text = message || 'Carregando, por favor aguarde...';
+			if (progress !== undefined && loadingGrp.children[1]) {
+				loadingGrp.children[1].text = progress;
+			}
+			loadingGrp.visible = true;
+			templateTree.visible = false;
+			searchBox.enabled = false;
+			prodDrop.enabled = false;
+			
+			// Desabilita todos os botões durante o loading global
+			try {
+				if (refreshBtn.leftClick) refreshBtn.leftClick.enabled = false;
+				else refreshBtn.enabled = false;
+				if (openFldBtn.leftClick) openFldBtn.leftClick.enabled = false;
+				else openFldBtn.enabled = false;
+			} catch (e) {}
+		} else {
+			loadingGrp.visible = false;
+			templateTree.visible = true;
+			searchBox.enabled = true;
+			prodDrop.enabled = true;
+			
+			// Reabilita os botões
+			try {
+				if (refreshBtn.leftClick) refreshBtn.leftClick.enabled = true;
+				else refreshBtn.enabled = true;
+				if (openFldBtn.leftClick) openFldBtn.leftClick.enabled = true;
+				else openFldBtn.enabled = true;
+			} catch (e) {}
+		}
+	}
 
-    setPreloadedAssets(assetResults);
-    setLoadingMessage('Finalizando...');
-    
-    // Pequeno delay para suavizar a transição
-    setTimeout(() => {
-      setIsFullyLoaded(true);
-      // Define primeira produção como padrão
-      setSelectedProduction(Object.keys(productions)[0]);
-    }, 500);
-  };
+	// =========================================================================
+	// CARREGAMENTO OTIMIZADO DE TODOS OS CACHES
+	// =========================================================================
+	function loadAllCachesInBackground() {
+		if (globalLoadingInProgress || allCachesLoaded) return;
+		
+		globalLoadingInProgress = true;
+		setGlobalLoadingState(true, 'Inicializando sistema...', '');
+		D9T_TEMPLATES_w.update();
 
-  // Iniciar pré-carregamento ao montar o componente
-  useEffect(() => {
-    preloadAllAssets();
-    
-    // Cleanup function para limpar vídeos pré-carregados
-    return () => {
-      Object.values(videoRefs.current).forEach(video => {
-        if (video && video.src) {
-          video.src = '';
-        }
-      });
-    };
-  }, []);
+		var totalProductions = validProductions.length;
+		var loadedCount = 0;
 
-  // Componente de tela de carregamento
-  const LoadingScreen = () => (
-    <div className="fixed inset-0 bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 flex items-center justify-center z-50">
-      <div className="text-center">
-        <div className="mb-8">
-          <div className="w-20 h-20 mx-auto mb-4 relative">
-            <div className="absolute inset-0 border-4 border-blue-300 rounded-full animate-ping opacity-20"></div>
-            <div className="absolute inset-0 border-4 border-t-white border-blue-300 rounded-full animate-spin"></div>
-            <Loader className="absolute inset-0 m-auto w-8 h-8 text-white animate-pulse" />
-          </div>
-        </div>
-        
-        <h2 className="text-3xl font-bold text-white mb-4">
-          Carregando Templates GNEWS
-        </h2>
-        
-        <p className="text-blue-200 mb-8 text-lg">
-          {loadingMessage}
-        </p>
-        
-        <div className="w-80 mx-auto">
-          <div className="bg-blue-800 rounded-full h-3 mb-4 overflow-hidden">
-            <div 
-              className="bg-gradient-to-r from-blue-400 to-white h-full rounded-full transition-all duration-300 ease-out"
-              style={{ width: `${loadingProgress}%` }}
-            ></div>
-          </div>
-          <p className="text-blue-300 text-sm">
-            {Math.round(loadingProgress)}% concluído
-          </p>
-        </div>
-      </div>
-    </div>
-  );
+		for (var i = 0; i < validProductions.length; i++) {
+			var prodName = validProductions[i].name;
+			
+			// Atualiza o progresso
+			loadedCount++;
+			var progressText = 'Carregando ' + prodName + '... (' + loadedCount + '/' + totalProductions + ')';
+			setGlobalLoadingState(true, progressText);
+			D9T_TEMPLATES_w.update();
 
-  // Componente do template
-  const TemplateCard = ({ template, productionKey }) => {
-    const [isPlaying, setIsPlaying] = useState(false);
-    const cardVideoRef = useRef(null);
+			// Carrega o cache individual
+			loadSingleCache(prodName);
+		}
 
-    const handlePlay = () => {
-      if (cardVideoRef.current) {
-        // Use o vídeo pré-carregado se disponível
-        const preloadedVideo = videoRefs.current[template.id];
-        if (preloadedVideo) {
-          cardVideoRef.current.src = preloadedVideo.src;
-        }
-        
-        cardVideoRef.current.play();
-        setIsPlaying(true);
-      }
-    };
+		// Finaliza o processo
+		allCachesLoaded = true;
+		globalLoadingInProgress = false;
+		setGlobalLoadingState(false);
+		
+		// Carrega a produção selecionada inicialmente
+		loadTemplatesFromCache();
+	}
 
-    const handleVideoEnd = () => {
-      setIsPlaying(false);
-      if (cardVideoRef.current) {
-        cardVideoRef.current.currentTime = 0;
-      }
-    };
+	function loadSingleCache(prodName) {
+		if (templatesCache[prodName]) return; // Já carregado
 
-    return (
-      <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group">
-        <div className="relative aspect-video bg-gray-100">
-          <img 
-            src={template.thumbnail} 
-            alt={template.name}
-            className={`w-full h-full object-cover transition-opacity duration-300 ${isPlaying ? 'opacity-0' : 'opacity-100'}`}
-          />
-          <video
-            ref={cardVideoRef}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${isPlaying ? 'opacity-100' : 'opacity-0'}`}
-            muted
-            onEnded={handleVideoEnd}
-          />
-          
-          {!isPlaying && (
-            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300 flex items-center justify-center">
-              <button 
-                onClick={handlePlay}
-                className="bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full p-4 transform scale-0 group-hover:scale-100 transition-all duration-300 shadow-lg"
-              >
-                <Play className="w-8 h-8 text-blue-600 ml-1" fill="currentColor" />
-              </button>
-            </div>
-          )}
-          
-          <div className="absolute top-3 right-3 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-sm">
-            {template.duration}
-          </div>
-        </div>
-        
-        <div className="p-6">
-          <h3 className="font-semibold text-lg text-gray-800 mb-3">{template.name}</h3>
-          <div className="flex gap-2">
-            <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2">
-              <Play className="w-4 h-4" />
-              Usar Template
-            </button>
-            <button className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded-lg transition-colors duration-200">
-              <Download className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
+		var cacheFileName;
+		switch (prodName) {
+			case 'PEÇAS GRÁFICAS':
+				cacheFileName = 'templates_pecas_cache.json';
+				break;
+			case 'BASE TEMÁTICA':
+				cacheFileName = 'templates_base_cache.json';
+				break;
+			case 'ILUSTRAÇÕES':
+				cacheFileName = 'templates_ilustra_cache.json';
+				break;
+			default:
+				cacheFileName = prodName.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '_cache.json';
+				break;
+		}
 
-  // Se ainda não carregou completamente, mostra tela de loading
-  if (!isFullyLoaded) {
-    return <LoadingScreen />;
-  }
+		var templatesCacheFile = new File(cacheFolder.fullName + '/' + cacheFileName);
+		
+		if (templatesCacheFile.exists) {
+			try {
+				templatesCacheFile.open('r');
+				var cacheContent = templatesCacheFile.read();
+				templatesCacheFile.close();
+				
+				var masterCacheData = JSON.parse(cacheContent);
+				var combinedTreeData = [];
+				
+				for (var path in masterCacheData) {
+					if (masterCacheData.hasOwnProperty(path)) {
+						combinedTreeData = combinedTreeData.concat(masterCacheData[path]);
+					}
+				}
+				
+				templatesCache[prodName] = combinedTreeData;
+			} catch (e) {
+				templatesCache[prodName] = [{ type: 'item', text: 'Erro ao ler o cache: ' + e.message }];
+			}
+		} else {
+			templatesCache[prodName] = [{ type: 'item', text: 'Cache não encontrado.' }];
+		}
+	}
 
-  const currentProduction = productions[selectedProduction];
+	// =========================================================================
+	// FUNÇÃO DE CARREGAMENTO OTIMIZADA - AGORA INSTANTÂNEA
+	// =========================================================================
+	function loadTemplatesFromCache() {
+		if (!allCachesLoaded) {
+			setGlobalLoadingState(true, 'Cache ainda não carregado...');
+			return;
+		}
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">Templates GNEWS</h1>
-            <div className="text-sm text-green-600 bg-green-50 px-3 py-1 rounded-full">
-              ✓ Todos os recursos carregados
-            </div>
-          </div>
-        </div>
-      </header>
+		var prodName = validProductions[prodDrop.selection.index].name;
+		var data = templatesCache[prodName];
 
-      {/* Navigation */}
-      <nav className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex space-x-1 overflow-x-auto py-4">
-            {Object.entries(productions).map(([key, production]) => (
-              <button
-                key={key}
-                onClick={() => setSelectedProduction(key)}
-                className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 whitespace-nowrap ${
-                  selectedProduction === key
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                {production.name}
-              </button>
-            ))}
-          </div>
-        </div>
-      </nav>
+		templateTree.removeAll();
 
-      {/* Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        {currentProduction && (
-          <div>
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-3xl font-bold text-gray-900">{currentProduction.name}</h2>
-              <p className="text-gray-600">{currentProduction.templates.length} templates disponíveis</p>
-            </div>
+		if (data && data.length > 0) {
+			populateTreeFromData(templateTree, data);
+			expandAllNodes(templateTree);
+		} else {
+			templateTree.add('item', 'Nenhum item encontrado para esta categoria.');
+		}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {currentProduction.templates.map(template => (
-                <TemplateCard 
-                  key={template.id} 
-                  template={template} 
-                  productionKey={selectedProduction}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-      </main>
-    </div>
-  );
-};
+		updateItemCounter();
+	}
 
-export default GNEWS_Templates;
+	function populateTreeFromData(treeNode, dataArray) {
+		for (var i = 0; i < dataArray.length; i++) {
+			var itemData = dataArray[i];
+			if (itemData.type === 'node') {
+				var node = treeNode.add('node', itemData.text);
+				if (typeof D9T_FOLDER_AE_ICON !== 'undefined') {
+					node.image = D9T_FOLDER_AE_ICON;
+				}
+				if (itemData.children && itemData.children.length > 0) {
+					populateTreeFromData(node, itemData.children);
+				}
+			} else if (itemData.type === 'item') {
+				var item = treeNode.add('item', itemData.text);
+				if (typeof D9T_AE_ICON !== 'undefined') {
+					item.image = D9T_AE_ICON;
+				}
+				item.filePath = itemData.filePath;
+				item.modDate = itemData.modDate;
+				item.size = itemData.size;
+			}
+		}
+	}
+
+	function expandAllNodes(tree) {
+		if (!tree || !tree.items) return;
+		for (var i = 0; i < tree.items.length; i++) {
+			var item = tree.items[i];
+			if (item.type === 'node') {
+				item.expanded = true;
+				if (item.items && item.items.length > 0) {
+					expandAllNodes(item);
+				}
+			}
+		}
+	}
+
+	// =========================================================================
+	// INTERFACE DO USUÁRIO
+	// =========================================================================
+	var D9T_TEMPLATES_w = new Window('palette', scriptName + ' ' + scriptVersion);
+	
+	// Header superior
+	var topHeaderGrp = D9T_TEMPLATES_w.add('group');
+	topHeaderGrp.orientation = 'row';
+	topHeaderGrp.alignment = ['fill', 'top'];
+	topHeaderGrp.margins = [0, 5, 10, 0];
+	
+	var titlePlaceholder = topHeaderGrp.add('statictext', undefined, '');
+	titlePlaceholder.alignment = ['fill', 'center'];
+	
+	var helpBtnGrp = topHeaderGrp.add('group');
+	helpBtnGrp.alignment = ['right', 'center'];
+	
+	var infoBtn;
+	if (typeof themeIconButton === 'function' && typeof D9T_INFO_ICON !== 'undefined') {
+		infoBtn = new themeIconButton(helpBtnGrp, {
+			icon: D9T_INFO_ICON,
+			tips: [lClick + 'ajuda | DOCS']
+		});
+	} else {
+		infoBtn = helpBtnGrp.add('button', undefined, '?');
+		infoBtn.helpTip = 'ajuda';
+		infoBtn.preferredSize = [32, 32];
+	}
+
+	// Layout principal
+	var hGrp = D9T_TEMPLATES_w.add('group');
+	hGrp.spacing = 10;
+	var vGrp1 = hGrp.add('group');
+	vGrp1.orientation = 'column';
+	vGrp1.spacing = 8;
+	vGrp1.alignment = ['fill', 'fill'];
+	
+	var vGrp2 = hGrp.add('group');
+	vGrp2.orientation = 'column';
+	vGrp2.spacing = 8;
+	vGrp2.alignment = ['fill', 'fill'];
+
+	// Seção de produção
+	var prodGrp = vGrp1.add('group');
+	prodGrp.alignment = 'fill';
+	prodGrp.spacing = 8;
+	
+	var prodIconGrp;
+	if (typeof changeIcon === 'function') {
+		prodIconGrp = prodGrp.add('group');
+		prodIconGrp.alignment = ['left', 'center'];
+		prodIconGrp.preferredSize = [32, 32];
+	}
+	
+	var validProductions = [
+		{ name: 'PEÇAS GRÁFICAS', iconIndex: 0 },
+		{ name: 'BASE TEMÁTICA', iconIndex: 1 },
+		{ name: 'ILUSTRAÇÕES', iconIndex: 2 }
+	];
+	
+	var prodDropItems = [];
+	for (var p = 0; p < validProductions.length; p++) {
+		prodDropItems.push(validProductions[p].name);
+	}
+	
+	var prodDrop = prodGrp.add('dropdownlist', undefined, prodDropItems, { alignment: ['fill', 'center'] });
+	prodDrop.selection = 0;
+	prodDrop.helpTip = "PRODUÇÃO SELECIONADA";
+	
+	var divProd;
+	if (typeof themeDivider === 'function') {
+		divProd = themeDivider(vGrp1);
+		divProd.alignment = ['fill', 'center'];
+	}
+
+	// Seção de busca e árvore
+	var templatesHeaderGrp = vGrp1.add('group');
+	templatesHeaderGrp.alignment = 'fill';
+	
+	var templateLab = templatesHeaderGrp.add('statictext', undefined, 'BUSCA:');
+	setFgColor(templateLab, normalColor1);
+	
+	var itemCounterLab = templatesHeaderGrp.add('statictext', undefined, '', {
+		justify: 'right'
+	});
+	itemCounterLab.alignment = ['fill', 'center'];
+	setFgColor(itemCounterLab, monoColor1);
+
+	var treeGrp = vGrp1.add('group');
+	treeGrp.orientation = 'column';
+	treeGrp.spacing = 4;
+	
+	var placeholderText = '⌕  Digite para Buscar...';
+	var searchBox = treeGrp.add('edittext', [0, 0, 320, 24], '');
+	searchBox.text = placeholderText;
+	searchBox.isPlaceholderActive = true;
+	setFgColor(searchBox, monoColor0);
+
+	var treeContainerGrp = treeGrp.add('group', [0, 0, 320, 420]);
+	treeContainerGrp.orientation = 'stack';
+	treeContainerGrp.alignment = ['fill', 'fill'];
+	
+	var templateTree = treeContainerGrp.add('treeview', [0, 0, 320, 420]);
+	setFgColor(templateTree, monoColor1);
+	
+	// =========================================================================
+	// LOADING GROUP APRIMORADO
+	// =========================================================================
+	var loadingGrp = treeContainerGrp.add('group');
+	loadingGrp.orientation = 'column';
+	loadingGrp.alignChildren = ['center', 'center'];
+	loadingGrp.spacing = 10;
+	
+	// Texto principal de loading
+	var loadingText = loadingGrp.add('statictext', undefined, 'Carregando, por favor aguarde...');
+	setFgColor(loadingText, normalColor1);
+	
+	// Texto de progresso
+	var progressText = loadingGrp.add('statictext', undefined, '');
+	setFgColor(progressText, monoColor0);
+	progressText.characters = 40;
+	
+	loadingGrp.visible = false;
+
+	// Botões de ação
+	var mainBtnGrp1 = vGrp1.add('group');
+	mainBtnGrp1.alignment = 'fill';
+	mainBtnGrp1.spacing = 8;
+	
+	var refreshBtn;
+	if (typeof themeIconButton === 'function' && typeof D9T_REFRESH_ICON !== 'undefined') {
+		refreshBtn = new themeIconButton(mainBtnGrp1, {
+			icon: D9T_REFRESH_ICON,
+			tips: [lClick + 'atualizar lista de templates']
+		});
+	} else {
+		refreshBtn = mainBtnGrp1.add('button', undefined, '🔄');
+		refreshBtn.helpTip = 'atualizar lista de templates';
+		refreshBtn.preferredSize = [32, 32];
+	}
+	
+	var openFldBtn;
+	if (typeof themeIconButton === 'function' && typeof D9T_FOLDER_ICON !== 'undefined') {
+		openFldBtn = new themeIconButton(mainBtnGrp1, {
+			icon: D9T_FOLDER_ICON,
+			tips: [lClick + 'abrir pasta de templates']
+		});
+	} else {
+		openFldBtn = mainBtnGrp1.add('button', undefined, '📁');
+		openFldBtn.helpTip = 'abrir pasta de templates';
+		openFldBtn.preferredSize = [32, 32];
+	}
+
+	// Seção de preview (lado direito)
+	var previewHeaderGrp = vGrp2.add('group');
+	previewHeaderGrp.alignment = 'fill';
+	previewHeaderGrp.orientation = 'stack';
+	
+	var previewLabGrp = previewHeaderGrp.add('group');
+	previewLabGrp.alignment = 'left';
+	
+	var previewLab = previewHeaderGrp.add('statictext', undefined, 'PREVIEW:');
+	setFgColor(previewLab, normalColor1);
+	
+	var previewGrp = vGrp2.add('group');
+	previewGrp.orientation = 'column';
+	previewGrp.alignChildren = 'left';
+	
+	var previewImg;
+	if (typeof no_preview !== 'undefined') {
+		previewImg = previewGrp.add('image', [0, 0, 600, 338], no_preview);
+	} else {
+		previewImg = previewGrp.add('image', [0, 0, 600, 338]);
+	}
+	
+	var newDiv;
+	if (typeof themeDivider === 'function') {
+		newDiv = themeDivider(vGrp2);
+		newDiv.alignment = ['fill', 'center'];
+	}
+
+	// Seção de informações GNEWS
+	var infoArteMainGrp = vGrp2.add('group');
+	infoArteMainGrp.alignment = 'fill';
+	infoArteMainGrp.orientation = 'column';
+	infoArteMainGrp.spacing = 8;
+	
+	var infoArteHeaderGrp = infoArteMainGrp.add('group');
+	infoArteHeaderGrp.alignment = 'fill';
+	
+	var infoArteLab = infoArteHeaderGrp.add('statictext', undefined, 'INFORMAÇÕES GNEWS:');
+	setFgColor(infoArteLab, normalColor1);
+	
+	var infoArteGrp = infoArteMainGrp.add('group');
+	infoArteGrp.orientation = 'column';
+	infoArteGrp.spacing = 6;
+	
+	var codigoGrp = infoArteGrp.add('group');
+	codigoGrp.alignment = 'fill';
+	var codigoLab = codigoGrp.add('statictext', undefined, 'Código:');
+	setFgColor(codigoLab, monoColor1);
+	codigoLab.preferredSize = [80, 20];
+	
+	var codigoTxt = codigoGrp.add('edittext', undefined, '');
+	codigoTxt.alignment = ['fill', 'center'];
+	codigoTxt.helpTip = 'Digite o código da arte GNEWS (ex: GNVZ036)';
+	
+	var infoLabels = ['Nome da Arte:', 'Servidor Destino:', 'Última Atualização:'];
+	var infoValues = [];
+	
+	for (var i = 0; i < infoLabels.length; i++) {
+		var infoRowGrp = infoArteGrp.add('group');
+		infoRowGrp.alignment = 'fill';
+		
+		var infoLab = infoRowGrp.add('statictext', undefined, infoLabels[i]);
+		setFgColor(infoLab, monoColor1);
+		infoLab.preferredSize = [80, 20];
+		
+		var infoVal = infoRowGrp.add('statictext', undefined, '');
+		setFgColor(infoVal, normalColor1);
+		infoVal.alignment = ['fill', 'center'];
+		infoValues.push(infoVal);
+	}
+
+	// Botões finais
+	var rBtnGrp2 = vGrp2.add('group');
+	rBtnGrp2.alignment = 'fill';
+	rBtnGrp2.spacing = 8;
+	
+	var openBtn;
+	if (typeof themeButton === 'function') {
+		openBtn = new themeButton(rBtnGrp2, {
+			width: 120,
+			height: 32,
+			labelTxt: 'abrir',
+			tips: [lClick + 'abrir o projeto selecionado']
+		});
+	} else {
+		openBtn = rBtnGrp2.add('button', undefined, 'Abrir');
+		openBtn.helpTip = 'abrir o projeto selecionado';
+		openBtn.preferredSize = [120, 32];
+	}
+	
+	var importBtn;
+	if (typeof themeButton === 'function') {
+		importBtn = new themeButton(rBtnGrp2, {
+			width: 120,
+			height: 32,
+			textColor: bgColor1,
+			buttonColor: normalColor1,
+			labelTxt: 'importar',
+			tips: [lClick + 'importar o template selecionado']
+		});
+	} else {
+		importBtn = rBtnGrp2.add('button', undefined, 'Importar');
+		importBtn.helpTip = 'importar o template selecionado';
+		importBtn.preferredSize = [120, 32];
+	}
+
+	// =========================================================================
+	// FUNÇÕES DE UTILIDADE
+	// =========================================================================
+	function updateItemCounter() {
+		if (!templateTree || !templateTree.items) {
+			itemCounterLab.text = '0 itens';
+			return;
+		}
+		
+		var count = 0;
+		function countItems(tree) {
+			if (!tree || !tree.items) return;
+			for (var i = 0; i < tree.items.length; i++) {
+				var item = tree.items[i];
+				if (item.type === 'item') {
+					count++;
+				} else if (item.type === 'node') {
+					countItems(item);
+				}
+			}
+		}
+		
+		countItems(templateTree);
+		itemCounterLab.text = count + (count === 1 ? ' item' : ' itens');
+	}
+
+	function performSearch(searchTerm) {
+		if (!allCachesLoaded) return;
+		
+		var prodName = validProductions[prodDrop.selection.index].name;
+		var masterData = templatesCache[prodName];
+
+		if (!masterData) return;
+
+		if (searchTerm === '') {
+			templateTree.removeAll();
+			populateTreeFromData(templateTree, masterData);
+			expandAllNodes(templateTree);
+			updateItemCounter();
+			return;
+		}
+
+		var searchTermUpper = searchTerm.toUpperCase();
+		var cleanSearchTerm = searchTermUpper;
+		if (typeof String.prototype.replaceSpecialCharacters === 'function') {
+			cleanSearchTerm = searchTermUpper.replaceSpecialCharacters();
+		}
+
+		function filterData(data) {
+			var filteredList = [];
+			for (var i = 0; i < data.length; i++) {
+				var item = data[i];
+
+				if (item.type === 'item') {
+					var itemText = item.text.toUpperCase();
+					if (typeof String.prototype.replaceSpecialCharacters === 'function') {
+						itemText = itemText.replaceSpecialCharacters();
+					}
+					if (itemText.indexOf(cleanSearchTerm) !== -1) {
+						filteredList.push(item);
+					}
+				} else if (item.type === 'node') {
+					var nodeText = item.text.toUpperCase();
+					if (typeof String.prototype.replaceSpecialCharacters === 'function') {
+						nodeText = nodeText.replaceSpecialCharacters();
+					}
+					var filteredChildren = filterData(item.children);
+					if (nodeText.indexOf(cleanSearchTerm) !== -1 || filteredChildren.length > 0) {
+						var nodeCopy = JSON.parse(JSON.stringify(item));
+						nodeCopy.children = filteredChildren;
+						filteredList.push(nodeCopy);
+					}
+				}
+			}
+			return filteredList;
+		}
+
+		var filteredTreeData = filterData(masterData);
+
+		templateTree.removeAll();
+		populateTreeFromData(templateTree, filteredTreeData);
+		expandAllNodes(templateTree);
+		updateItemCounter();
+	}
+
+	// =========================================================================
+	// EVENTOS DA INTERFACE
+	// =========================================================================
+	
+	// Configurar tema
+	setBgColor(D9T_TEMPLATES_w, bgColor1);
+
+	// =========================================================================
+	// EVENTO OTIMIZADO DO DROPDOWN - AGORA INSTANTÂNEO
+	// =========================================================================
+	prodDrop.onChange = function () {
+		if (!allCachesLoaded) {
+			setGlobalLoadingState(true, 'Aguarde o carregamento inicial...');
+			return;
+		}
+
+		var i = this.selection.index;
+		
+		// Atualiza ícone se disponível
+		if (typeof changeIcon === 'function') {
+			changeIcon(i, prodIconGrp);
+		}
+		
+		// Salva configuração do usuário
+		try {
+			if (userConfigFile) {
+				var userConfig = {};
+				if (userConfigFile.exists) {
+					userConfigFile.open('r');
+					var configContent = userConfigFile.read();
+					userConfigFile.close();
+					if (configContent) {
+						try {
+							userConfig = JSON.parse(configContent);
+						} catch (jsonError) {
+							userConfig = {};
+						}
+					}
+				}
+				if (!userConfig.gnews_templates) {
+					userConfig.gnews_templates = {};
+				}
+				userConfig.gnews_templates.lastProductionIndex = i;
+				userConfigFile.open('w');
+				userConfigFile.write(JSON.stringify(userConfig, null, '\t'));
+				userConfigFile.close();
+			}
+		} catch (e) {}
+		
+		// Carrega templates instantaneamente (cache já está em memória)
+		loadTemplatesFromCache();
+	};
+
+	// =========================================================================
+	// EVENTO ONSHOW OTIMIZADO
+	// =========================================================================
+	D9T_TEMPLATES_w.onShow = function () {
+		extendedWidth = D9T_TEMPLATES_w.size.width;
+		compactWidth = extendedWidth - 680;
+		vGrp2.visible = true;
+		if (newDiv) newDiv.visible = true;
+		D9T_TEMPLATES_w.size.width = extendedWidth;
+
+		// Carrega configuração do usuário
+		try {
+			if (userConfigFile && userConfigFile.exists) {
+				userConfigFile.open('r');
+				var configContent = userConfigFile.read();
+				userConfigFile.close();
+				if (configContent && configContent.trim() !== '') {
+					var centralConfig = JSON.parse(configContent);
+					if (centralConfig.gnews_templates && typeof centralConfig.gnews_templates.lastProductionIndex !== 'undefined') {
+						var lastIndex = parseInt(centralConfig.gnews_templates.lastProductionIndex);
+						if (!isNaN(lastIndex) && lastIndex >= 0 && lastIndex < prodDrop.items.length) {
+							prodDrop.selection = lastIndex;
+						}
+					}
+				}
+			}
+		} catch (e) {}
+
+		// Inicia carregamento de todos os caches (apenas uma vez)
+		if (!allCachesLoaded && !globalLoadingInProgress) {
+			loadAllCachesInBackground();
+		} else if (allCachesLoaded) {
+			// Se já está carregado, mostra os templates imediatamente
+			loadTemplatesFromCache();
+		}
+	};
+
+	// =========================================================================
+	// EVENTOS DE BUSCA OTIMIZADOS
+	// =========================================================================
+	searchBox.onActivate = function () {
+		if (this.isPlaceholderActive) {
+			this.text = '';
+			this.isPlaceholderActive = false;
+			setFgColor(this, normalColor1);
+		}
+	};
+
+	searchBox.onDeactivate = function () {
+		if (this.text === '') {
+			this.text = placeholderText;
+			this.isPlaceholderActive = true;
+			setFgColor(this, monoColor0);
+			if (allCachesLoaded) {
+				performSearch('');
+			}
+		}
+	};
+
+	searchBox.onChanging = function () {
+		if (!this.isPlaceholderActive && allCachesLoaded) {
+			performSearch(this.text);
+		}
+	};
+
+	// =========================================================================
+	// EVENTOS DOS BOTÕES
+	// =========================================================================
+	
+	// Botão de refresh
+	if (refreshBtn && typeof refreshBtn.leftClick !== 'undefined') {
+		refreshBtn.leftClick.onClick = function () {
+			// Reset do cache e recarregamento
+			templatesCache = {};
+			allCachesLoaded = false;
+			globalLoadingInProgress = false;
+			loadAllCachesInBackground();
+		};
+	} else if (refreshBtn) {
+		refreshBtn.onClick = function () {
+			templatesCache = {};
+			allCachesLoaded = false;
+			globalLoadingInProgress = false;
+			loadAllCachesInBackground();
+		};
+	}
+
+	// Botão de abrir pasta
+	if (openFldBtn && typeof openFldBtn.leftClick !== 'undefined') {
+		openFldBtn.leftClick.onClick = function () {
+			openTemplatesFolder();
+		};
+	} else if (openFldBtn) {
+		openFldBtn.onClick = function () {
+			openTemplatesFolder();
+		};
+	}
+
+	function openTemplatesFolder() {
+		if (!prodDrop.selection) {
+			alert("Nenhuma produção selecionada.");
+			return;
+		}
+
+		// Aqui você implementaria a lógica para abrir a pasta baseada na produção
+		var prodName = validProductions[prodDrop.selection.index].name;
+		alert("Abrir pasta para: " + prodName);
+	}
+
+	// =========================================================================
+	// EVENTOS DA ÁRVORE DE TEMPLATES
+	// =========================================================================
+	templateTree.onChange = function () {
+		if (this.selection && this.selection.filePath) {
+			// Atualiza preview se disponível
+			// updatePreview(this.selection.filePath);
+			
+			// Limpa informações GNEWS
+			for (var i = 0; i < infoValues.length; i++) {
+				infoValues[i].text = '';
+			}
+			codigoTxt.text = '';
+		}
+	};
+
+	templateTree.onDoubleClick = function () {
+		if (this.selection != null && this.selection.filePath) {
+			executeOpen();
+		}
+	};
+
+	// =========================================================================
+	// EVENTOS DOS BOTÕES DE AÇÃO
+	// =========================================================================
+	if (openBtn && typeof openBtn.leftClick !== 'undefined') {
+		openBtn.leftClick.onClick = function () {
+			executeOpen();
+		};
+	} else if (openBtn) {
+		openBtn.onClick = function () {
+			executeOpen();
+		};
+	}
+
+	if (importBtn && typeof importBtn.leftClick !== 'undefined') {
+		importBtn.leftClick.onClick = function () {
+			executeImport();
+		};
+	} else if (importBtn) {
+		importBtn.onClick = function () {
+			executeImport();
+		};
+	}
+
+	function executeOpen() {
+		if (!templateTree.selection || !templateTree.selection.filePath) {
+			alert("Selecione um template primeiro.");
+			return;
+		}
+		
+		var templatePath = templateTree.selection.filePath;
+		var templateFile = new File(templatePath);
+		
+		if (!templateFile.exists) {
+			alert("Arquivo não encontrado:\n" + templatePath);
+			return;
+		}
+		
+		try {
+			// Abre o projeto no After Effects
+			var newProject = app.open(templateFile);
+			if (newProject) {
+				alert("Template aberto com sucesso!");
+			}
+		} catch (e) {
+			alert("Erro ao abrir template:\n" + e.message);
+		}
+	}
+
+	function executeImport() {
+		if (!templateTree.selection || !templateTree.selection.filePath) {
+			alert("Selecione um template primeiro.");
+			return;
+		}
+		
+		var templatePath = templateTree.selection.filePath;
+		var templateFile = new File(templatePath);
+		
+		if (!templateFile.exists) {
+			alert("Arquivo não encontrado:\n" + templatePath);
+			return;
+		}
+		
+		try {
+			// Importa o template para o projeto atual
+			var importOptions = new ImportOptions(templateFile);
+			var importedProject = app.project.importFile(importOptions);
+			
+			if (importedProject) {
+				// Log GNEWS se houver código
+				var templateName = templateFile.name.replace(/\.[^\.]+$/, '');
+				logGNewsImport(templateName);
+				
+				alert("Template importado com sucesso!");
+				D9T_TEMPLATES_w.close();
+			}
+		} catch (e) {
+			alert("Erro ao importar template:\n" + e.message);
+		}
+	}
+
+	function logGNewsImport(templateName) {
+		try {
+			var logFile = new File(scriptMainPath + 'source/logs/gnews_templates_log.csv');
+			var currentDate = new Date();
+			var dateStr = currentDate.getFullYear() + '-' + 
+						  String(currentDate.getMonth() + 1).padStart(2, '0') + '-' + 
+						  String(currentDate.getDate()).padStart(2, '0');
+			var timeStr = String(currentDate.getHours()).padStart(2, '0') + ':' + 
+						  String(currentDate.getMinutes()).padStart(2, '0') + ':' + 
+						  String(currentDate.getSeconds()).padStart(2, '0');
+			
+			var logData = [
+				templateName, 
+				'1', 
+				system.userName, 
+				dateStr, 
+				timeStr, 
+				codigoTxt.text.trim().toUpperCase(), 
+				infoValues[0].text, 
+				infoValues[1].text
+			].join(',');
+			
+			// Salva o log
+			if (typeof saveLogData === 'function') {
+				saveLogData(logFile, logData);
+			} else {
+				if (!logFile.exists) {
+					logFile.open('w');
+					logFile.writeln('Template,Quantidade,Designer,Data,Hora,Codigo_Arte,Nome_Arte,Servidor_Destino');
+					logFile.close();
+				}
+				logFile.open('a');
+				logFile.writeln(logData);
+				logFile.close();
+			}
+			
+			// Webhook se disponível
+			if (typeof sendToWebhookWithCurl === 'function') {
+				var webhookURL = "";
+				var webData = {
+					template: templateName,
+					quantidade: 1,
+					designer: system.userName,
+					codigo_arte: codigoTxt.text.trim().toUpperCase(),
+					nome_arte: infoValues[0].text,
+					servidor_destino: infoValues[1].text
+				};
+				sendToWebhookWithCurl(webData, webhookURL);
+			}
+		} catch (err) {
+			// Log silencioso em caso de erro
+		}
+	}
+
+	// =========================================================================
+	// EVENTO DE CÓDIGO GNEWS
+	// =========================================================================
+	codigoTxt.onChanging = function () {
+		var codigo = this.text.trim().toUpperCase();
+		
+		if (codigo.length >= 3) {
+			var arteInfo = getArteData(codigo);
+			
+			if (arteInfo) {
+				infoValues[0].text = arteInfo.nome || '';
+				infoValues[1].text = arteInfo.servidor || '';
+				infoValues[2].text = arteInfo.ultima_atualizacao || '';
+			} else {
+				// Limpa se não encontrar
+				for (var i = 0; i < infoValues.length; i++) {
+					infoValues[i].text = '';
+				}
+			}
+		} else {
+			// Limpa se código muito curto
+			for (var i = 0; i < infoValues.length; i++) {
+				infoValues[i].text = '';
+			}
+		}
+	};
+
+	// =========================================================================
+	// EVENTO DE AJUDA
+	// =========================================================================
+	if (infoBtn && typeof infoBtn.leftClick !== 'undefined') {
+		infoBtn.leftClick.onClick = function () {
+			showHelpDialog();
+		};
+	} else if (infoBtn) {
+		infoBtn.onClick = function () {
+			showHelpDialog();
+		};
+	}
+
+	function showHelpDialog() {
+		var TARGET_HELP_WIDTH = 450,
+			MARGIN_SIZE = 15;
+		
+		var helpWin = new Window("dialog", scriptName + " - Ajuda", undefined, { closeButton: true });
+		helpWin.orientation = "column";
+		helpWin.alignChildren = ["fill", "fill"];
+		helpWin.spacing = 10;
+		helpWin.margins = MARGIN_SIZE;
+		helpWin.preferredSize = [TARGET_HELP_WIDTH, 600];
+		
+		setBgColor(helpWin, bgColor1);
+		
+		var headerPanel = helpWin.add("panel", undefined, "");
+		headerPanel.orientation = "column";
+		headerPanel.alignChildren = ["fill", "top"];
+		headerPanel.alignment = ["fill", "top"];
+		headerPanel.spacing = 10;
+		headerPanel.margins = 15;
+		
+		var titleText = headerPanel.add("statictext", undefined, "AJUDA - GNEWS TEMPLATES");
+		titleText.graphics.font = ScriptUI.newFont("Arial", "Bold", 16);
+		titleText.alignment = ["center", "center"];
+		setFgColor(titleText, highlightColor1);
+		
+		var mainDescText = headerPanel.add("statictext", undefined, "Gerencie e preencha templates GNEWS com informações automáticas das artes.", { multiline: true });
+		mainDescText.alignment = ["fill", "fill"];
+		mainDescText.preferredSize.height = 40;
+		setFgColor(mainDescText, normalColor1);
+
+		var contentPanel = helpWin.add("panel", undefined, "");
+		contentPanel.orientation = "column";
+		contentPanel.alignChildren = ["fill", "fill"];
+		contentPanel.alignment = ["fill", "fill"];
+		contentPanel.spacing = 10;
+		contentPanel.margins = 15;
+
+		var helpContent = [
+			"▶ OTIMIZAÇÕES DA VERSÃO 2.7:",
+			"• Carregamento único de todos os caches na inicialização",
+			"• Troca instantânea entre produções sem lentidão",
+			"• Interface de loading aprimorada com progresso",
+			"• Cache mantido em memória para máxima performance",
+			"",
+			"▶ SELEÇÃO DE TEMPLATE:",
+			"Navegue pela árvore à esquerda para selecionar um template (.aep ou .aet).",
+			"",
+			"▶ BUSCA RÁPIDA:",
+			"Digite no campo de busca para filtrar templates instantaneamente.",
+			"",
+			"▶ CÓDIGO GNEWS:",
+			"Digite o código da arte (ex: GNVZ036) para carregar informações automáticas.",
+			"",
+			"▶ AÇÕES:",
+			"• Duplo clique: Abre o template diretamente",
+			"• Botão Abrir: Abre o template selecionado",
+			"• Botão Importar: Importa para o projeto atual",
+			"• 🔄 Atualizar: Recarrega todos os caches",
+			"• 📁 Pasta: Abre o diretório de templates"
+		];
+
+		for (var i = 0; i < helpContent.length; i++) {
+			var line = helpContent[i];
+			var textElement = contentPanel.add("statictext", undefined, line, { multiline: false });
+			textElement.alignment = ["fill", "top"];
+			
+			if (line.indexOf("▶") === 0) {
+				setFgColor(textElement, highlightColor1);
+				textElement.graphics.font = ScriptUI.newFont("Arial", "Bold", 12);
+			} else {
+				setFgColor(textElement, normalColor1);
+			}
+		}
+
+		var buttonPanel = helpWin.add("group");
+		buttonPanel.alignment = ["fill", "bottom"];
+		buttonPanel.alignChildren = ["center", "center"];
+
+		var okButton = buttonPanel.add("button", undefined, "OK");
+		okButton.preferredSize = [80, 30];
+		okButton.onClick = function () {
+			helpWin.close();
+		};
+
+		helpWin.center();
+		helpWin.show();
+	}
+
+	// =========================================================================
+	// EVENTO DE FECHAMENTO
+	// =========================================================================
+	D9T_TEMPLATES_w.onClose = function () {
+		if (!scriptFile || !scriptFile.exists) return;
+		try {
+			scriptFile.open('r');
+			eval(scriptFile.read());
+			scriptFile.close();
+		} catch (err) {
+			alert((typeof lol !== 'undefined' ? lol : '') + '#D9T_021 - ' + err.message);
+		}
+	};
+
+	// =========================================================================
+	// INICIALIZAÇÃO E EXIBIÇÃO
+	// =========================================================================
+	
+	// Define tamanhos da janela
+	D9T_TEMPLATES_w.preferredSize = [1000, 600];
+	D9T_TEMPLATES_w.center();
+	
+	D9T_TEMPLATES_w.show();
+}
