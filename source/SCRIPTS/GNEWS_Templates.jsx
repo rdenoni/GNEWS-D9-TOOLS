@@ -1,553 +1,273 @@
-// =============================================================================
-// GNEWS TEMPLATES - VERSÃO OTIMIZADA CORRIGIDA
-// Sistema de carregamento EXATAMENTE como pedido pelo usuário
-// =============================================================================
-
-function d9TemplateDialog() {
-	var scriptName = 'GNEWS TEMPLATES';
-	var scriptVersion = '2.7';
-	var compactWidth, extendedWidth;
-	var fileFilter = ['.aep', '.aet'];
-	var projectFile, previewFile, configFile, scriptFile, templateData;
-	var newCompsArray = [],
-		newOutputsArray = [];
-
-	var lClick = (typeof lClick !== 'undefined') ? lClick : 'Clique: ';
-
-	var cacheFolder = new Folder(scriptMainPath + 'source/cache');
-	if (!cacheFolder.exists) cacheFolder.create();
-
-	// =========================================================================
-	// SISTEMA DE CACHE OTIMIZADO - CARREGAMENTO ÚNICO INICIAL
-	// =========================================================================
-	var templatesCache = {};
-	var allCachesLoaded = false;
-	var isInitialLoading = false;
-
-	var userConfigFile = null;
-	try {
-		var centralConfigFolder = new Folder(scriptMainPath + 'source/config');
-		if (!centralConfigFolder.exists) centralConfigFolder.create();
-		userConfigFile = new File(centralConfigFolder.fullName + '/TEMPLATES_config.json');
-	} catch (e) {
-		userConfigFile = null;
-	}
-
-	var artesData = null;
-	try {
-		var artesDataFile = new File(scriptMainPath + 'source/libraries/dados_json/DADOS_artes_gnews.json');
-		if (artesDataFile.exists) {
-			artesDataFile.open('r');
-			artesData = JSON.parse(artesDataFile.read());
-			artesDataFile.close();
-		}
-	} catch (err) {}
-
-	function getArteData(codigo) {
-		if (!artesData || !artesData.artes_codificadas) return null;
-		for (var i = 0; i < artesData.artes_codificadas.length; i++) {
-			if (artesData.artes_codificadas[i].codigo === codigo) return artesData.artes_codificadas[i];
-		}
-		return null;
-	}
-
-	var bgColor1 = '#0B0D0E',
-		normalColor1 = '#C7C8CA',
-		monoColor0 = '#686F75',
-		monoColor1 = '#9CA0A5',
-		monoColor2 = '#302b2bff',
-		normalColor2 = '#ffffffff',
-		highlightColor1 = '#E0003A';
-
-	function hexToRgb(hex) {
-		if (hex == undefined) return [Math.random(), Math.random(), Math.random()];
-		hex = hex.replace('#', '');
-		var r = parseInt(hex.substring(0, 2), 16);
-		var g = parseInt(hex.substring(2, 4), 16);
-		var b = parseInt(hex.substring(4, 6), 16);
-		return [r / 255, g / 255, b / 255];
-	}
-
-	function setBgColor(element, hexColor) {
-		try {
-			var color = hexToRgb(hexColor);
-			var bType = element.graphics.BrushType.SOLID_COLOR;
-			element.graphics.backgroundColor = element.graphics.newBrush(bType, color);
-		} catch (e) {}
-	}
-
-	function setFgColor(element, hexColor) {
-		try {
-			var color = hexToRgb(hexColor);
-			var pType = element.graphics.PenType.SOLID_COLOR;
-			element.graphics.foregroundColor = element.graphics.newPen(pType, color, 1);
-		} catch (e) {}
-	}
-
-	// =========================================================================
-	// INTERFACE SEGUINDO ESTRUTURA ORIGINAL EXATA
-	// =========================================================================
-	var D9T_TEMPLATES_w = new Window('palette', scriptName + ' ' + scriptVersion);
-
-	var topHeaderGrp = D9T_TEMPLATES_w.add('group');
-	topHeaderGrp.orientation = 'row';
-	topHeaderGrp.alignment = ['fill', 'top'];
-	topHeaderGrp.margins = [0, 5, 10, 0];
-
-	var titlePlaceholder = topHeaderGrp.add('statictext', undefined, '');
-	titlePlaceholder.alignment = ['fill', 'center'];
-
-	var helpBtnGrp = topHeaderGrp.add('group');
-	helpBtnGrp.alignment = ['right', 'center'];
-
-	var infoBtn;
-	if (typeof themeIconButton === 'function' && typeof D9T_INFO_ICON !== 'undefined') {
-		infoBtn = new themeIconButton(helpBtnGrp, {
-			icon: D9T_INFO_ICON,
-			tips: [lClick + 'ajuda | DOCS']
-		});
-	} else {
-		infoBtn = helpBtnGrp.add('button', undefined, '?');
-		infoBtn.helpTip = 'ajuda | DOCS';
-		infoBtn.preferredSize = [24, 24];
-	}
-
-	var mainGrp = D9T_TEMPLATES_w.add('group');
-	mainGrp.orientation = 'stack';
-
-	var optionsMainGrp = mainGrp.add('group');
-	optionsMainGrp.orientation = 'column';
-	optionsMainGrp.spacing = 12;
-	optionsMainGrp.alignment = ['left', 'top'];
-	optionsMainGrp.visible = false;
-
-	var infoHeaderLab = optionsMainGrp.add('statictext', [0, 0, 320, 18]);
-	setFgColor(infoHeaderLab, normalColor1);
-
-	var progressBar = optionsMainGrp.add('progressbar', [0, 0, 320, 1]);
-
-	var optBtnMainGrp = optionsMainGrp.add('group');
-	optBtnMainGrp.orientation = 'stack';
-	optBtnMainGrp.alignment = 'fill';
-	optBtnMainGrp.margins = [0, 32, 0, 0];
-	optBtnMainGrp.visible = false;
-
-	var optBtnMainGrpL = optBtnMainGrp.add('group');
-	optBtnMainGrpL.alignment = 'left';
-	optBtnMainGrpL.spacing = 16;
-
-	var cancelBtn;
-	if (typeof themeButton === 'function') {
-		cancelBtn = new themeButton(optBtnMainGrpL, {
-			width: 80,
-			height: 32,
-			labelTxt: 'cancelar',
-			tips: [lClick + 'cancelar operação']
-		});
-	} else {
-		cancelBtn = optBtnMainGrpL.add('button', undefined, 'Cancelar');
-		cancelBtn.preferredSize = [80, 32];
-	}
-
-	var optBtnMainGrpR = optBtnMainGrp.add('group');
-	optBtnMainGrpR.alignment = 'right';
-	optBtnMainGrpR.spacing = 16;
-
-	var nextBtn;
-	if (typeof themeButton === 'function') {
-		nextBtn = new themeButton(optBtnMainGrpR, {
-			width: 100,
-			height: 32,
-			textColor: bgColor1,
-			buttonColor: normalColor1,
-			labelTxt: 'continuar',
-			tips: [lClick + 'continuar processo']
-		});
-	} else {
-		nextBtn = optBtnMainGrpR.add('button', undefined, 'Continuar');
-		nextBtn.preferredSize = [100, 32];
-	}
-
-	var templatesMainGrp = mainGrp.add('group');
-	templatesMainGrp.spacing = 12;
-
-	var vGrp1 = templatesMainGrp.add('group');
-	vGrp1.orientation = 'column';
-	vGrp1.alignment = ['center', 'top'];
-	vGrp1.alignChildren = 'left';
-	vGrp1.spacing = 12;
-
-	var vGrp2 = templatesMainGrp.add('group');
-	vGrp2.orientation = 'column';
-	vGrp2.alignment = ['center', 'top'];
-	vGrp2.alignChildren = 'left';
-	vGrp2.spacing = 12;
-	vGrp2.visible = false;
-
-	// =========================================================================
-	// SEÇÃO DE PRODUÇÃO COM ESTRUTURA ORIGINAL
-	// =========================================================================
-	var prodHeaderGrp = vGrp1.add('group');
-	prodHeaderGrp.alignment = 'fill';
-	prodHeaderGrp.orientation = 'stack';
-
-	var prodLab = prodHeaderGrp.add('statictext', undefined, 'PRODUÇÃO:');
-	setFgColor(prodLab, normalColor1);
-
-	var prodGrp = vGrp1.add('group');
-	prodGrp.spacing = 4;
-	prodGrp.alignment = 'fill';
-
-	var prodIconGrp = prodGrp.add('group');
-	prodIconGrp.orientation = 'stack';
-
-	// Configuração das produções - ESTRUTURA ORIGINAL
-	var prodDropItems = [];
-	var validProductions = [];
-
-	if (typeof D9T_prodArray !== 'undefined' && D9T_prodArray && D9T_prodArray.length > 0) {
-		if (D9T_prodArray.length === 1 && D9T_prodArray[0].pecasGraficas) {
-			var configData = D9T_prodArray[0];
-
-			validProductions = [{
-				name: 'PEÇAS GRÁFICAS',
-				icon: 'D9T_TEMPPECAS_ICON',
-				paths: configData.pecasGraficas || []
-			}, {
-				name: 'BASE TEMÁTICA',
-				icon: 'D9T_TBASE_ICON',
-				paths: configData.baseTematica || []
-			}, {
-				name: 'ILUSTRAÇÕES',
-				icon: 'D9T_TILUSTRA_ICON',
-				paths: configData.ilustracoes || []
-			}];
-			prodDropItems = ['PEÇAS GRÁFICAS', 'BASE TEMÁTICA', 'ILUSTRAÇÕES'];
-		}
-	}
-
-	// FALLBACK: Se não há configuração, cria padrão
-	if (validProductions.length === 0) {
-		validProductions = [{
-			name: 'PEÇAS GRÁFICAS',
-			icon: 'D9T_TEMPPECAS_ICON',
-			paths: []
-		}, {
-			name: 'BASE TEMÁTICA',
-			icon: 'D9T_TBASE_ICON',
-			paths: []
-		}, {
-			name: 'ILUSTRAÇÕES',
-			icon: 'D9T_TILUSTRA_ICON',
-			paths: []
-		}];
-		prodDropItems = ['PEÇAS GRÁFICAS', 'BASE TEMÁTICA', 'ILUSTRAÇÕES'];
-	}
-
-	// FUNÇÃO ORIGINAL PARA ÍCONES
-	if (typeof populateMainIcons === 'function') {
-		populateMainIcons(prodIconGrp, validProductions);
-	}
-
-	var prodDrop = prodGrp.add('dropdownlist', undefined, prodDropItems, {
-		alignment: ['fill', 'center']
-	});
-	prodDrop.selection = 0;
-	prodDrop.helpTip = "PRODUÇÃO SELECIONADA";
-
-	var divProd;
-	if (typeof themeDivider === 'function') {
-		divProd = themeDivider(vGrp1);
-		divProd.alignment = ['fill', 'center'];
-	}
-
-	// =========================================================================
-	// SEÇÃO DE TEMPLATES - ESTRUTURA ORIGINAL
-	// =========================================================================
-	var templatesHeaderGrp = vGrp1.add('group');
-	templatesHeaderGrp.alignment = 'fill';
-
-	var templateLab = templatesHeaderGrp.add('statictext', undefined, 'BUSCA:');
-	setFgColor(templateLab, normalColor1);
-
-	var itemCounterLab = templatesHeaderGrp.add('statictext', undefined, '', {
-		justify: 'right'
-	});
-	itemCounterLab.alignment = ['fill', 'center'];
-	setFgColor(itemCounterLab, monoColor1);
-
-	var treeGrp = vGrp1.add('group');
-	treeGrp.orientation = 'column';
-	treeGrp.spacing = 4;
-
-	var placeholderText = '⌕  Digite para Buscar...';
-	var searchBox = treeGrp.add('edittext', [0, 0, 320, 24], '');
-	searchBox.text = placeholderText;
-	searchBox.isPlaceholderActive = true;
-	setFgColor(searchBox, monoColor0);
-
-	var treeContainerGrp = treeGrp.add('group', [0, 0, 320, 420]);
-	treeContainerGrp.orientation = 'stack';
-	treeContainerGrp.alignment = ['fill', 'fill'];
-
-	var templateTree = treeContainerGrp.add('treeview', [0, 0, 320, 420]);
-	setFgColor(templateTree, monoColor1);
-
-	var loadingGrp = treeContainerGrp.add('group');
-	loadingGrp.alignChildren = ['center', 'center'];
-	loadingGrp.add('statictext', undefined, 'Carregando, por favor aguarde...');
-	loadingGrp.visible = false;
-
-	// =========================================================================
-	// BOTÕES DE AÇÃO - ESTRUTURA ORIGINAL CORRIGIDA
-	// =========================================================================
-	var mainBtnGrp1 = vGrp1.add('group');
-	mainBtnGrp1.orientation = 'stack';
-	mainBtnGrp1.alignment = 'fill';
-	mainBtnGrp1.margins = [0, 8, 0, 0];
-
-	var lBtnGrp1 = mainBtnGrp1.add('group');
-	lBtnGrp1.alignment = 'left';
-	lBtnGrp1.spacing = 16;
-
-	var refreshBtn;
-	if (typeof themeIconButton === 'function' && typeof D9T_ATUALIZAR_ICON !== 'undefined') {
-		refreshBtn = new themeIconButton(lBtnGrp1, {
-			icon: D9T_ATUALIZAR_ICON,
-			tips: [lClick + 'Recarregar templates do cache']
-		});
-	} else {
-		refreshBtn = lBtnGrp1.add('button', undefined, 'Atualizar');
-		refreshBtn.helpTip = 'Recarregar templates do cache';
-	}
-
-	var openFldBtn;
-	if (typeof themeIconButton === 'function' && typeof D9T_PASTA_ICON !== 'undefined') {
-		openFldBtn = new themeIconButton(lBtnGrp1, {
-			icon: D9T_PASTA_ICON,
-			tips: [lClick + 'abrir pasta de templates']
-		});
-	} else {
-		openFldBtn = lBtnGrp1.add('button', undefined, 'Abrir');
-		openFldBtn.helpTip = 'abrir pasta de templates';
-	}
-
-	// =========================================================================
-	// SEÇÃO DE PREVIEW - LADO DIREITO
-	// =========================================================================
-	var previewHeaderGrp = vGrp2.add('group');
-	previewHeaderGrp.alignment = 'fill';
-	previewHeaderGrp.orientation = 'stack';
-
-	var previewLabGrp = previewHeaderGrp.add('group');
-	previewLabGrp.alignment = 'left';
-
-	var previewLab = previewHeaderGrp.add('statictext', undefined, 'PREVIEW:');
-	setFgColor(previewLab, normalColor1);
-
-	var previewGrp = vGrp2.add('group');
-	previewGrp.orientation = 'column';
-	previewGrp.alignChildren = 'left';
-
-	var previewImg;
-	if (typeof no_preview !== 'undefined') {
-		previewImg = previewGrp.add('image', [0, 0, 600, 338], no_preview);
-	} else {
-		previewImg = previewGrp.add('image', [0, 0, 600, 338]);
-	}
-
-	var newDiv;
-	if (typeof themeDivider === 'function') {
-		newDiv = themeDivider(vGrp2);
-		newDiv.alignment = ['fill', 'center'];
-	}
-
-	// =========================================================================
-	// SEÇÃO DE INFORMAÇÕES GNEWS
-	// =========================================================================
-	var infoArteMainGrp = vGrp2.add('group');
-	infoArteMainGrp.alignment = 'fill';
-	infoArteMainGrp.orientation = 'column';
-	infoArteMainGrp.spacing = 8;
-
-	var infoArteHeaderGrp = infoArteMainGrp.add('group');
-	infoArteHeaderGrp.alignment = 'fill';
-
-	var infoArteLab = infoArteHeaderGrp.add('statictext', undefined, 'INFORMAÇÕES GNEWS:');
-	setFgColor(infoArteLab, normalColor1);
-
-	var infoArteGrp = infoArteMainGrp.add('group');
-	infoArteGrp.orientation = 'column';
-	infoArteGrp.spacing = 6;
-
-	var codigoGrp = infoArteGrp.add('group');
-	codigoGrp.alignment = 'fill';
-	var codigoLab = codigoGrp.add('statictext', undefined, 'Código:');
-	setFgColor(codigoLab, monoColor1);
-	codigoLab.preferredSize = [80, 20];
-
-	var codigoTxt = codigoGrp.add('edittext', undefined, '');
-	codigoTxt.alignment = ['fill', 'center'];
-	codigoTxt.helpTip = 'Digite o código da arte GNEWS (ex: GNVZ036)';
-
-	var infoLabels = ['Nome da Arte:', 'Servidor Destino:', 'Última Atualização:'];
-	var infoValues = [];
-
-	for (var i = 0; i < infoLabels.length; i++) {
-		var infoRowGrp = infoArteGrp.add('group');
-		infoRowGrp.alignment = 'fill';
-
-		var infoLab = infoRowGrp.add('statictext', undefined, infoLabels[i]);
-		setFgColor(infoLab, monoColor1);
-		infoLab.preferredSize = [80, 20];
-
-		var infoVal = infoRowGrp.add('statictext', undefined, '');
-		setFgColor(infoVal, normalColor1);
-		infoVal.alignment = ['fill', 'center'];
-		infoValues.push(infoVal);
-	}
-
-	// =========================================================================
-	// BOTÕES FINAIS - ESTRUTURA ORIGINAL CORRIGIDA
-	// =========================================================================
-	var rBtnGrp2 = vGrp2.add('group');
-	rBtnGrp2.alignment = 'right';
-	rBtnGrp2.spacing = 8;
-
-	var openBtn;
-	if (typeof themeButton === 'function') {
-		openBtn = new themeButton(rBtnGrp2, {
-			width: 120,
-			height: 32,
-			labelTxt: 'abrir',
-			tips: [lClick + 'abrir o projeto selecionado']
-		});
-	} else {
-		openBtn = rBtnGrp2.add('button', undefined, 'Abrir');
-		openBtn.helpTip = 'abrir o projeto selecionado';
-		openBtn.preferredSize = [120, 32];
-	}
-
-	var importBtn;
-	if (typeof themeButton === 'function') {
-		importBtn = new themeButton(rBtnGrp2, {
-			width: 120,
-			height: 32,
-			textColor: bgColor1,
-			buttonColor: normalColor1,
-			labelTxt: 'importar',
-			tips: [lClick + 'importar o template selecionado']
-		});
-	} else {
-		importBtn = rBtnGrp2.add('button', undefined, 'Importar');
-		importBtn.helpTip = 'importar o template selecionado';
-		importBtn.preferredSize = [120, 32];
-	}
-
-	// =========================================================================
-	// SISTEMA DE CACHE ULTRA-RÁPIDO PARA TREEVIEW
-	// =========================================================================
-	function loadAllCachesInBackground() {
-		if (isInitialLoading || allCachesLoaded) return;
-
-		isInitialLoading = true;
-		var totalProductions = validProductions.length;
-		var loadedCount = 0;
-
-		for (var i = 0; i < validProductions.length; i++) {
-			var prodName = validProductions[i].name;
-			loadedCount++;
-
-			// Carrega o cache individual
-			loadSingleCache(prodName);
-		}
-
-		// Finaliza o processo
-		allCachesLoaded = true;
-		isInitialLoading = false;
-
-		// Remove loading e mostra templates
-		setLoadingState(false);
-		loadTemplatesFromCacheInstant();
-	}
-
-	function loadSingleCache(prodName) {
-		if (templatesCache[prodName]) return;
-
-		var cacheFileName;
-		switch (prodName) {
-			case 'PEÇAS GRÁFICAS':
-				cacheFileName = 'templates_pecas_cache.json';
-				break;
-			case 'BASE TEMÁTICA':
-				cacheFileName = 'templates_base_cache.json';
-				break;
-			case 'ILUSTRAÇÕES':
-				cacheFileName = 'templates_ilustra_cache.json';
-				break;
-			default:
-				cacheFileName = prodName.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '_cache.json';
-				break;
-		}
-
-		var templatesCacheFile = new File(cacheFolder.fullName + '/' + cacheFileName);
-
-		if (templatesCacheFile.exists) {
-			try {
-				templatesCacheFile.open('r');
-				var cacheContent = templatesCacheFile.read();
-				templatesCacheFile.close();
-
-				var masterCacheData = JSON.parse(cacheContent);
-				var combinedTreeData = [];
-
-				for (var path in masterCacheData) {
-					if (masterCacheData.hasOwnProperty(path)) {
-						combinedTreeData = combinedTreeData.concat(masterCacheData[path]);
-					}
-				}
-
-				templatesCache[prodName] = combinedTreeData;
-			} catch (e) {
-				templatesCache[prodName] = [{
-					type: 'item',
-					text: 'Erro ao ler o cache: ' + e.message
-				}];
-			}
-		} else {
-			templatesCache[prodName] = [{
-				type: 'item',
-				text: 'Cache não encontrado.'
-			}];
-		}
-	}
-
-	// =========================================================================
-	// POPULAÇÃO INSTANTÂNEA DA ÁRVORE (SEM DELAY)
-	// =========================================================================
-	function loadTemplatesFromCacheInstant() {
-		if (!allCachesLoaded) return;
-
-		var prodName = validProductions[prodDrop.selection.index].name;
-		var data = templatesCache[prodName];
-
-		templateTree.removeAll();
-
-		if (data && data.length > 0) {
-			populateTreeFromDataFast(templateTree, data);
-			
-			// ===== ALTERAÇÃO PARA OTIMIZAÇÃO DE VELOCIDADE =====
-			// A linha abaixo foi comentada. Ela força a expansão de todas as pastas,
-			// o que causa lentidão na renderização da interface. Sem ela, a troca de
-			// produção é instantânea, e o usuário pode expandir as pastas manualmente.
-			// expandAllNodes(templateTree);
-
-		} else {
-			templateTree.add('item', 'Nenhum item encontrado para esta categoria.');
-		}
-
-		updateItemCounter();
-	}
+// Adicione estas modificações ao arquivo GNEWS_Templates.jsx
+
+// 1. MODIFICAÇÃO NA FUNÇÃO loadTemplatesFromCache()
+// Substitua a função existente por esta versão otimizada:
+
+function loadTemplatesFromCache() {
+    var prodName = validProductions[prodDrop.selection.index].name;
+    
+    // Remove o loading state para tornar instantâneo
+    // setLoadingState(true, 'Carregando ' + prodName + '...');
+    // D9T_TEMPLATES_w.update();
+
+    templateTree.removeAll();
+    
+    // Verifica se o cache já está carregado
+    if (!templatesCache[prodName]) {
+        // Se não estiver, mostra loading e carrega
+        setLoadingState(true, 'Carregando ' + prodName + '...');
+        D9T_TEMPLATES_w.update();
+        loadCacheInBackground(prodName);
+        setLoadingState(false);
+    }
+    
+    var data = templatesCache[prodName];
+
+    if (data && data.length > 0) {
+        // Usa requestIdle para não bloquear a UI
+        populateTreeFromDataOptimized(templateTree, data);
+        expandAllNodes(templateTree);
+    } else {
+        templateTree.add('item', 'Nenhum item encontrado para esta categoria.');
+    }
+
+    updateItemCounter();
+    // Remove o loading state final
+    // setLoadingState(false);
+}
+
+// 2. NOVA FUNÇÃO OTIMIZADA PARA POPULAR A ÁRVORE
+// Adicione esta nova função que popula a árvore de forma mais eficiente:
+
+function populateTreeFromDataOptimized(treeNode, dataArray) {
+    // Desabilita temporariamente o redraw da árvore
+    treeNode.visible = false;
+    
+    try {
+        // Processa em lotes para melhor performance
+        var batchSize = 50;
+        var currentBatch = 0;
+        
+        function processBatch() {
+            var endIndex = Math.min(currentBatch + batchSize, dataArray.length);
+            
+            for (var i = currentBatch; i < endIndex; i++) {
+                var itemData = dataArray[i];
+                if (itemData.type === 'node') {
+                    var node = treeNode.add('node', itemData.text);
+                    if (typeof D9T_FOLDER_AE_ICON !== 'undefined') {
+                        node.image = D9T_FOLDER_AE_ICON;
+                    }
+                    if (itemData.children && itemData.children.length > 0) {
+                        populateTreeFromData(node, itemData.children);
+                    }
+                } else if (itemData.type === 'item') {
+                    var item = treeNode.add('item', itemData.text);
+                    if (typeof D9T_AE_ICON !== 'undefined') {
+                        item.image = D9T_AE_ICON;
+                    }
+                    item.filePath = itemData.filePath;
+                    item.modDate = itemData.modDate;
+                    item.size = itemData.size;
+                }
+            }
+            
+            currentBatch = endIndex;
+            if (currentBatch < dataArray.length) {
+                // Processa o próximo lote após um pequeno delay
+                $.sleep(1);
+                processBatch();
+            }
+        }
+        
+        processBatch();
+        
+    } finally {
+        // Reabilita o redraw da árvore
+        treeNode.visible = true;
+    }
+}
+
+// 3. MODIFICAÇÃO NO onShow DO WINDOW
+// Substitua o D9T_TEMPLATES_w.onShow existente por esta versão:
+
+D9T_TEMPLATES_w.onShow = function () {
+    extendedWidth = D9T_TEMPLATES_w.size.width;
+    compactWidth = extendedWidth - 680;
+    vGrp2.visible = true;
+    if (newDiv) newDiv.visible = true;
+    D9T_TEMPLATES_w.size.width = extendedWidth;
+
+    // Pré-carrega todos os caches em background sem bloquear a UI
+    setLoadingState(true, 'Preparando interface...');
+    D9T_TEMPLATES_w.update();
+    
+    // Carrega todos os caches de uma vez
+    for (var i = 0; i < validProductions.length; i++) {
+        loadCacheInBackground(validProductions[i].name);
+    }
+    
+    setLoadingState(false);
+    
+    // Restaura a última seleção
+    try {
+        if (userConfigFile && userConfigFile.exists) {
+            userConfigFile.open('r');
+            var configContent = userConfigFile.read();
+            userConfigFile.close();
+            if (configContent && configContent.trim() !== '') {
+                var centralConfig = JSON.parse(configContent);
+                if (centralConfig.gnews_templates && typeof centralConfig.gnews_templates.lastProductionIndex !== 'undefined') {
+                    var lastIndex = parseInt(centralConfig.gnews_templates.lastProductionIndex);
+                    if (!isNaN(lastIndex) && lastIndex >= 0 && lastIndex < prodDrop.items.length) {
+                        prodDrop.selection = lastIndex;
+                    }
+                }
+            }
+        }
+    } catch (e) {}
+    
+    // Carrega a primeira visualização
+    loadTemplatesFromCache();
+    searchBox.active = true;
+    updateArteInfo();
+};
+
+// 4. MODIFICAÇÃO NO prodDrop.onChange
+// Substitua o prodDrop.onChange existente por esta versão:
+
+prodDrop.onChange = function () {
+    var i = this.selection.index;
+    if (typeof changeIcon === 'function') {
+        changeIcon(i, prodIconGrp);
+    }
+    
+    // Salva a seleção
+    try {
+        if (userConfigFile) {
+            var userConfig = {};
+            if (userConfigFile.exists) {
+                userConfigFile.open('r');
+                var configContent = userConfigFile.read();
+                userConfigFile.close();
+                if (configContent) {
+                    try {
+                        userConfig = JSON.parse(configContent);
+                    } catch (jsonError) {
+                        userConfig = {};
+                    }
+                }
+            }
+            if (!userConfig.gnews_templates) {
+                userConfig.gnews_templates = {};
+            }
+            userConfig.gnews_templates.lastProductionIndex = i;
+            userConfigFile.open('w');
+            userConfigFile.write(JSON.stringify(userConfig, null, '\t'));
+            userConfigFile.close();
+        }
+    } catch (e) {}
+    
+    // Carrega instantaneamente do cache
+    loadTemplatesFromCache();
+};
+
+// 5. FUNÇÃO AUXILIAR PARA EXPANSÃO OTIMIZADA
+// Substitua a função expandAllNodes existente:
+
+function expandAllNodes(tree) {
+    if (!tree || !tree.items) return;
+    
+    // Desabilita temporariamente o redraw
+    tree.visible = false;
+    
+    try {
+        function expandRecursive(node) {
+            for (var i = 0; i < node.items.length; i++) {
+                var item = node.items[i];
+                if (item.type === 'node') {
+                    item.expanded = true;
+                    if (item.items && item.items.length > 0) {
+                        expandRecursive(item);
+                    }
+                }
+            }
+        }
+        
+        expandRecursive(tree);
+        
+    } finally {
+        // Reabilita o redraw
+        tree.visible = true;
+    }
+}
+
+// 6. OTIMIZAÇÃO DA FUNÇÃO performSearch
+// Substitua a função performSearch existente:
+
+function performSearch(searchTerm) {
+    var prodName = validProductions[prodDrop.selection.index].name;
+    var masterData = templatesCache[prodName];
+
+    if (!masterData) return;
+
+    // Desabilita o redraw durante a busca
+    templateTree.visible = false;
+    
+    try {
+        templateTree.removeAll();
+        
+        if (searchTerm === '') {
+            populateTreeFromDataOptimized(templateTree, masterData);
+        } else {
+            var searchTermUpper = searchTerm.toUpperCase();
+            var cleanSearchTerm = searchTermUpper;
+            if (typeof String.prototype.replaceSpecialCharacters === 'function') {
+                cleanSearchTerm = searchTermUpper.replaceSpecialCharacters();
+            }
+
+            function filterData(data) {
+                var filteredList = [];
+                for (var i = 0; i < data.length; i++) {
+                    var item = data[i];
+
+                    if (item.type === 'item') {
+                        var itemText = item.text.toUpperCase();
+                        if (typeof String.prototype.replaceSpecialCharacters === 'function') {
+                            itemText = itemText.replaceSpecialCharacters();
+                        }
+                        if (itemText.indexOf(cleanSearchTerm) !== -1) {
+                            filteredList.push(item);
+                        }
+                    } else if (item.type === 'node') {
+                        var nodeText = item.text.toUpperCase();
+                        if (typeof String.prototype.replaceSpecialCharacters === 'function') {
+                            nodeText = nodeText.replaceSpecialCharacters();
+                        }
+                        var filteredChildren = filterData(item.children);
+                        if (nodeText.indexOf(cleanSearchTerm) !== -1 || filteredChildren.length > 0) {
+                            var nodeCopy = JSON.parse(JSON.stringify(item));
+                            nodeCopy.children = filteredChildren;
+                            filteredList.push(nodeCopy);
+                        }
+                    }
+                }
+                return filteredList;
+            }
+
+            var filteredTreeData = filterData(masterData);
+            populateTreeFromDataOptimized(templateTree, filteredTreeData);
+        }
+        
+        expandAllNodes(templateTree);
+        
+    } finally {
+        // Reabilita o redraw
+        templateTree.visible = true;
+    }
+    
+    updateItemCounter();
+}
 
 	function populateTreeFromDataFast(treeNode, dataArray) {
 		// VERSÃO OTIMIZADA PARA GRANDES QUANTIDADES DE ARQUIVOS
