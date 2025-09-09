@@ -408,7 +408,7 @@ function d9TemplateDialog() {
 	// BOTÕES FINAIS - ESTRUTURA ORIGINAL CORRIGIDA
 	// =========================================================================
 	var rBtnGrp2 = vGrp2.add('group');
-	rBtnGrp2.alignment = 'fill';
+	rBtnGrp2.alignment = 'right';
 	rBtnGrp2.spacing = 8;
 	
 	var openBtn;
