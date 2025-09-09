@@ -61,11 +61,6 @@ o script funcionará normalmente, mas você não terá:\n\
         #include 'source/SCRIPTS/GNEWS_LibraryLive.jsx';        
         #include 'source/SCRIPTS/GNEWS_SearchLayers.jsx';
         #include 'source/SCRIPTS/GNEWS_FinderProject.jsx';
-        #include 'source/SCRIPTS/GNEWS_CopyLinks.jsx';
-        #include 'source/config/Templates_configWin.js';
-        #include 'source/config/LibraryLive_configWin.js'; 
-        #include 'source/config/LayersOrder_configWin.js';
-        
 
     // === ESTRUTURA DA INTERFACE ===
     var D9T_mainGrpUiStructure = {
