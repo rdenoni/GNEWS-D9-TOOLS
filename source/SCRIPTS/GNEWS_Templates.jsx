@@ -26,7 +26,35 @@ function d9TemplateDialog() {
 		userConfigFile = null;
 	}
 
-	// ===== LÓGICA DE DADOS DA ARTE (RESTAURADA) =====
+// ===== Função para filtrar subpastas BASE TEMATICAS E ILUSTRACAO =====
+
+	function filterExcludedFolders(dataArray) {
+		var filteredArray = [];
+		// Define os nomes das pastas a serem ignoradas (em maiúsculas para comparação)
+		var excludedNames = ['BASE TEMATICAS', 'ILUSTRACAO'];
+
+		for (var i = 0; i < dataArray.length; i++) {
+			var item = dataArray[i];
+
+			if (item.type === 'node') {
+				// Verifica se o nome do nó (pasta) NÃO está na lista de exclusão
+				if (excludedNames.indexOf(item.text.toUpperCase().trim()) === -1) {
+					// Clona o nó para não modificar o cache original
+					var nodeCopy = JSON.parse(JSON.stringify(item)); 
+					// Filtra os filhos da pasta recursivamente
+					nodeCopy.children = filterExcludedFolders(item.children || []);
+					filteredArray.push(nodeCopy);
+				}
+				// Se o nome da pasta estiver na lista de exclusão, ela é simplesmente ignorada.
+
+			} else {
+				// Se for um item (arquivo), ele é mantido na lista
+				filteredArray.push(item);
+			}
+		}
+		return filteredArray;
+	}
+	// ===== LÓGICA DE DADOS DA ARTE =====
 	var artesData = null;
 	try {
 		var artesDataFile = new File(scriptMainPath + 'source/libraries/dados_json/DADOS_artes_gnews.json');
@@ -588,24 +616,33 @@ for (var r = 0; r < infoRows.length; r++) {
         }
     }
 
-    function loadTemplatesFromCache() {
-        var prodName = validProductions[prodDrop.selection.index].name;
-        templateTree.removeAll();
-        if (!templatesCache[prodName]) {
-            setLoadingState(true, 'Carregando ' + prodName + '...');
-            D9T_TEMPLATES_w.update();
-            loadCacheInBackground(prodName);
-            setLoadingState(false);
+	function loadTemplatesFromCache() {
+		var prodName = validProductions[prodDrop.selection.index].name;
+		
+		setLoadingState(true, 'Carregando ' + prodName + '...');
+		D9T_TEMPLATES_w.update();
+
+		templateTree.removeAll();
+		var data = templatesCache[prodName];
+        var filteredData = data; // Inicia com os dados originais por padrão
+
+        
+        // Se a produção for "PEÇAS GRÁFICAS" e houver dados, aplica o filtro.
+        if (prodName === 'PEÇAS GRÁFICAS' && data) {
+            filteredData = filterExcludedFolders(data);
         }
-        var data = templatesCache[prodName];
-        if (data && data.length > 0) {
-            populateTreeFromDataOptimized(templateTree, data);
-            expandAllNodes(templateTree);
-        } else {
-            templateTree.add('item', 'Nenhum item encontrado para esta categoria.');
-        }
-        updateItemCounter();
-    }
+
+		// Usa os dados filtrados (filteredData) para popular a árvore
+		if (filteredData && filteredData.length > 0) {
+			populateTreeFromData(templateTree, filteredData);
+			expandAllNodes(templateTree);
+		} else {
+			templateTree.add('item', 'Nenhum item encontrado para esta categoria.');
+		}
+
+		updateItemCounter();
+		setLoadingState(false);
+	}
     
 	function updateItemCounter() {
 		var count = 0;

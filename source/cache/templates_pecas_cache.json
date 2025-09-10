@@ -567,8 +567,8 @@
                   "type": "item",
                   "text": "ficha_arquivo_pasta_documento.aet",
                   "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\DOCUMENTOS\\ficha_arquivo_pasta_documento.aet",
-                  "size": 2317195,
-                  "modDate": "Monday, 08 Sep 2025 10:46:44 GMT"
+                  "size": 2316938,
+                  "modDate": "Wednesday, 10 Sep 2025 11:01:00 GMT"
                 }
               ]
             },
@@ -1823,8 +1823,8 @@
                       "type": "item",
                       "text": "Nao fazer.aep",
                       "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Colagens\\Estudos\\Colagens 2025\\_Apresentacao\\Nao fazer.aep",
-                      "size": 6869705,
-                      "modDate": "Tuesday, 09 Sep 2025 14:54:18 GMT"
+                      "size": 10268839,
+                      "modDate": "Tuesday, 09 Sep 2025 18:33:29 GMT"
                     }
                   ]
                 }
@@ -2467,6 +2467,19 @@
               "modDate": "Monday, 09 Jun 2025 11:32:42 GMT"
             }
           ]
+        }
+      ]
+    },
+    {
+      "type": "node",
+      "text": "Esquematica",
+      "children": [
+        {
+          "type": "item",
+          "text": "BASE FOTOS COM PIN.aep",
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Esquematica\\BASE FOTOS COM PIN.aep",
+          "size": 2901381,
+          "modDate": "Wednesday, 10 Sep 2025 02:40:34 GMT"
         }
       ]
     },
