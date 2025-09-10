@@ -295,43 +295,47 @@ function d9TemplateDialog() {
 		newDiv.alignment = ['fill', 'center'];
 	}
 
-// ===== LÓGICA DE DADOS DA ARTE (RESTAURADA) =====
+    // ===== BLOCO DE INFORMAÇÕES DA ARTE (RESTAURADO E CORRIGIDO) =====
+	var infoArteMainGrp = vGrp2.add('group');
+	infoArteMainGrp.alignment = 'left';
+	infoArteMainGrp.orientation = 'column';
+	infoArteMainGrp.spacing = 12;
 
-var artesData = null;
+	var arteHeaderGrp = infoArteMainGrp.add('group');
+	arteHeaderGrp.alignment = 'fill';
+	arteHeaderGrp.orientation = 'stack';
+	var arteLab = arteHeaderGrp.add('statictext', undefined, 'INFORMAÇÕES DA ARTE:');
+	setFgColor(arteLab, normalColor1);
 
-try {
+	var codigoGrp = infoArteMainGrp.add('group');
+	codigoGrp.orientation = 'row';
+	codigoGrp.alignChildren = ['left', 'center'];
+	codigoGrp.spacing = 8;
+	var codigoLab = codigoGrp.add('statictext', undefined, 'Código:');
+	codigoLab.preferredSize.width = 100;
+	setFgColor(codigoLab, monoColor1);
+	var codigoTxt = codigoGrp.add('edittext', [0, 0, 180, 24], '');
+	codigoTxt.helpTip = 'Digite o código da arte (ex: GNVZ036)';
 
-var artesDataFile = new File(scriptMainPath + 'source/libraries/dados_json/DADOS_artes_gnews.json');
-
-if (artesDataFile.exists) {
-
-artesDataFile.open('r');
-
-artesData = JSON.parse(artesDataFile.read());
-
-artesDataFile.close();
-
-}
-
-} catch (err) {}
-
-
-
-function getArteData(codigo) {
-
-if (!artesData || !artesData.artes_codificadas) return null;
-
-for (var i = 0; i < artesData.artes_codificadas.length; i++) {
-
-if (artesData.artes_codificadas[i].codigo === codigo) return artesData.artes_codificadas[i];
-
-}
-
-return null;
-
-}
-
-//
+	var infoRows = [{ label: 'Nome da Arte:', value: '---' },
+                    { label: 'Servidor Destino:', value: '---' },
+                    { label: 'Última Atualização:', value: '---' },
+                    { label: 'Versão:', value: '---' }];
+	var infoValues = [];
+	for (var r = 0; r < infoRows.length; r++) {
+		var infoRow = infoArteMainGrp.add('group');
+		infoRow.orientation = 'row';
+		infoRow.alignChildren = ['left', 'center'];
+		infoRow.spacing = 8;
+		var label = infoRow.add('statictext', undefined, infoRows[r].label);
+		label.preferredSize.width = 100;
+		setFgColor(label, monoColor1);
+		var value = infoRow.add('statictext', undefined, infoRows[r].value);
+		value.alignment = ['fill', 'center'];
+		setFgColor(value, normalColor2);
+		infoValues.push(value);
+	}
+    // ===================================================================
 
 	var rBtnGrp2 = vGrp2.add('group');
 	rBtnGrp2.alignment = 'right';
