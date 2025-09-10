@@ -966,8 +966,17 @@ for (var r = 0; r < infoRows.length; r++) {
 		} catch (err) {}
 	}
 
-	if (infoBtn && typeof infoBtn.leftClick !== 'undefined') { infoBtn.leftClick.onClick = function() { showHelpDialog(); }; } else if (infoBtn) { infoBtn.onClick = function() { showHelpDialog(); }; }
-	function showHelpDialog() { /* ... implementação da ajuda ... */ }
+if (infoBtn && typeof infoBtn.leftClick !== 'undefined') {
+    infoBtn.leftClick.onClick = function () {
+        // ✅ Chama a função correta da biblioteca HELP lib.js
+        showTemplatesHelp(); 
+    };
+} else if (infoBtn) {
+    infoBtn.onClick = function () {
+        // ✅ Chama a função correta da biblioteca HELP lib.js
+        showTemplatesHelp();
+    };
+}
 	if (cancelBtn && typeof cancelBtn.leftClick !== 'undefined') { cancelBtn.leftClick.onClick = function() { D9T_TEMPLATES_w.close(); }; } else if (cancelBtn) { cancelBtn.onClick = function() { D9T_TEMPLATES_w.close(); }; }
 
 	D9T_TEMPLATES_w.center();
