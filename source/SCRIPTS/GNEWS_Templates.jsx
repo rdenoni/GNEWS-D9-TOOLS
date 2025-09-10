@@ -581,40 +581,28 @@ for (var r = 0; r < infoRows.length; r++) {
 		}
 	}
 
-    function populateTreeFromDataOptimized(treeNode, dataArray) {
-        treeNode.visible = false;
-        try {
-            var batchSize = 50;
-            var currentBatch = 0;
-            function processBatch() {
-                var endIndex = Math.min(currentBatch + batchSize, dataArray.length);
-                for (var i = currentBatch; i < endIndex; i++) {
-                    var itemData = dataArray[i];
-                    if (itemData.type === 'node') {
-                        var node = treeNode.add('node', itemData.text);
-                        if (typeof D9T_FOLDER_AE_ICON !== 'undefined') { node.image = D9T_FOLDER_AE_ICON; }
-                        if (itemData.children && itemData.children.length > 0) {
-                            populateTreeFromDataOptimized(node, itemData.children);
-                        }
-                    } else if (itemData.type === 'item') {
-                        var item = treeNode.add('item', itemData.text);
-                        if (typeof D9T_AE_ICON !== 'undefined') { item.image = D9T_AE_ICON; }
-                        item.filePath = itemData.filePath;
-                        item.modDate = itemData.modDate;
-                        item.size = itemData.size;
-                    }
-                }
-                currentBatch = endIndex;
-                if (currentBatch < dataArray.length) {
-                    $.sleep(1);
-                    processBatch();
-                }
+function populateTreeFromData(treeNode, dataArray) {
+    for (var i = 0; i < dataArray.length; i++) {
+        var itemData = dataArray[i];
+        if (itemData.type === 'node') {
+            var node = treeNode.add('node', itemData.text);
+            if (typeof D9T_FOLDER_AE_ICON !== 'undefined') {
+                node.image = D9T_FOLDER_AE_ICON;
             }
-            processBatch();
-        } finally {
-            treeNode.visible = true;
+            if (itemData.children && itemData.children.length > 0) {
+                populateTreeFromData(node, itemData.children);
+            }
+        } else if (itemData.type === 'item') {
+            var item = treeNode.add('item', itemData.text);
+            if (typeof D9T_AE_ICON !== 'undefined') {
+                item.image = D9T_AE_ICON;
+            }
+            item.filePath = itemData.filePath;
+            item.modDate = itemData.modDate;
+            item.size = itemData.size;
         }
     }
+}
 
 	function loadTemplatesFromCache() {
 		var prodName = validProductions[prodDrop.selection.index].name;
