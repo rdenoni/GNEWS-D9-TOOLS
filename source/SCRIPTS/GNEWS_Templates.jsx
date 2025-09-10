@@ -1,10 +1,10 @@
 // =============================================================================
-// GNEWS TEMPLATES - VERSÃO COM INFO DA ARTE RESTAURADO E LISTA PLANA
+// GNEWS TEMPLATES - VERSÃO COM LISTA PLANA COMO PADRÃO
 // =============================================================================
 
 function d9TemplateDialog() {
 	var scriptName = 'GNEWS TEMPLATES';
-	var scriptVersion = '3.1'; // Versão incrementada
+	var scriptVersion = '3.2'; // Versão incrementada
 	var compactWidth, extendedWidth;
 	var fileFilter = ['.aep', '.aet'];
 	var projectFile, previewFile, configFile, scriptFile, templateData;
@@ -26,7 +26,6 @@ function d9TemplateDialog() {
 		userConfigFile = null;
 	}
 
-	// ===== Função para filtrar subpastas indesejadas =====
 	function filterExcludedFolders(dataArray) {
 		var filteredArray = [];
 		var excludedNames = ['Icones', 'Ilustracoes','Ilustracoes','Fotos para aberturas','Adobe After Effects Auto-Save','BAGUNCA ALHEIA','_OLD','backup','versoes anteriores','PARA_SCRIPT','_PREVIEWS','PARA_SCRIPT'];
@@ -37,7 +36,7 @@ function d9TemplateDialog() {
 				if (excludedNames.indexOf(item.text.toUpperCase().trim()) === -1) {
 					var nodeCopy = JSON.parse(JSON.stringify(item)); 
 					nodeCopy.children = filterExcludedFolders(item.children || []);
-					if (nodeCopy.children.length > 0) { // Apenas inclui pastas que ainda têm conteúdo após o filtro
+					if (nodeCopy.children.length > 0) {
 						filteredArray.push(nodeCopy);
 					}
 				}
@@ -48,7 +47,6 @@ function d9TemplateDialog() {
 		return filteredArray;
 	}
 
-	// ✅ ===== NOVA FUNÇÃO PARA CRIAR LISTA PLANA DE ARQUIVOS =====
 	function getFlatFileList(dataArray) {
 		var flatList = [];
 		function traverse(nodes) {
@@ -65,7 +63,6 @@ function d9TemplateDialog() {
 		return flatList;
 	}
 
-	// ===== LÓGICA DE DADOS DA ARTE =====
 	var artesData = null;
 	try {
 		var artesDataFile = new File(scriptMainPath + 'source/libraries/dados_json/DADOS_artes_gnews.json');
@@ -83,7 +80,6 @@ function d9TemplateDialog() {
 		}
 		return null;
 	}
-	// =================================================
 
 	var bgColor1 = '#0B0D0E',
 		normalColor1 = '#C7C8CA',
@@ -234,7 +230,6 @@ function d9TemplateDialog() {
 		divProd.alignment = ['fill', 'center'];
 	}
 
-	// ✅ ===== CABEÇALHO DE BUSCA COM CHECKBOX DE LISTA PLANA =====
 	var templatesHeaderGrp = vGrp1.add('group');
 	templatesHeaderGrp.alignment = 'fill';
 	templatesHeaderGrp.orientation = 'stack';
@@ -449,7 +444,6 @@ function d9TemplateDialog() {
 		} else { templatesCache[prodName] = [{ type: 'item', text: 'Cache não encontrado.' }]; }
 	}
 
-	// ✅ ===== FUNÇÃO DE CARREGAMENTO ATUALIZADA PARA LISTA PLANA =====
 	function loadTemplatesFromCache() {
 		var prodName = validProductions[prodDrop.selection.index].name;
 		setLoadingState(true, 'Carregando ' + prodName + '...');
@@ -549,7 +543,6 @@ function d9TemplateDialog() {
 
 	setBgColor(D9T_TEMPLATES_w, bgColor1);
     
-	// ✅ ===== EVENTO ONCLICK PARA O CHECKBOX =====
 	flatViewCheckbox.onClick = function() {
 		loadTemplatesFromCache();
 	};
@@ -575,6 +568,8 @@ function d9TemplateDialog() {
     D9T_TEMPLATES_w.onShow = function () {
         extendedWidth = D9T_TEMPLATES_w.size.width; compactWidth = extendedWidth - 680;
         vGrp2.visible = true; if (newDiv) newDiv.visible = true; D9T_TEMPLATES_w.size.width = extendedWidth;
+		// ✅ ADICIONADO PARA MARCAR O CHECKBOX COMO PADRÃO
+		flatViewCheckbox.value = true;
         setLoadingState(true, 'Preparando interface...'); D9T_TEMPLATES_w.update();
         for (var i = 0; i < validProductions.length; i++) { loadCacheInBackground(validProductions[i].name); }
         setLoadingState(false);
