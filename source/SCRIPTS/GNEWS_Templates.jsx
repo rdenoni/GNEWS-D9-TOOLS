@@ -26,7 +26,36 @@ function d9TemplateDialog() {
 		userConfigFile = null;
 	}
 
-	// ===== LÓGICA DE DADOS DA ARTE (RESTAURADA) =====
+// ===== Função para filtrar subpastas BASE TEMATICAS E ILUSTRACAO =====
+
+	function filterExcludedFolders(dataArray) {
+		var filteredArray = [];
+		// ✅ LISTA DE EXCLUSÃO ATUALIZADA
+		var excludedNames = ['Icones', 'Ilustracoes','Ilustracoes','Fotos para aberturas','Adobe After Effects Auto-Save','BAGUNCA ALHEIA','_OLD','backup','versoes anteriores','PARA_SCRIPT','_PREVIEWS','PARA_SCRIPT'];
+
+
+		for (var i = 0; i < dataArray.length; i++) {
+			var item = dataArray[i];
+
+			if (item.type === 'node') {
+				// Verifica se o nome do nó (pasta) NÃO está na lista de exclusão
+				if (excludedNames.indexOf(item.text.toUpperCase().trim()) === -1) {
+					// Clona o nó para não modificar o cache original
+					var nodeCopy = JSON.parse(JSON.stringify(item)); 
+					// Filtra os filhos da pasta recursivamente
+					nodeCopy.children = filterExcludedFolders(item.children || []);
+					filteredArray.push(nodeCopy);
+				}
+				// Se o nome da pasta estiver na lista de exclusão, ela é simplesmente ignorada.
+
+			} else {
+				// Se for um item (arquivo), ele é mantido na lista
+				filteredArray.push(item);
+			}
+		}
+		return filteredArray;
+	}
+	// ===== LÓGICA DE DADOS DA ARTE =====
 	var artesData = null;
 	try {
 		var artesDataFile = new File(scriptMainPath + 'source/libraries/dados_json/DADOS_artes_gnews.json');
@@ -360,7 +389,6 @@ for (var r = 0; r < infoRows.length; r++) {
     
     // Cria o campo de Valor (ex: "---")
     var value = infoRow.add('statictext', undefined, infoRows[r].value);
-    // ✅ ESTA É A CORREÇÃO: Define uma largura fixa para o campo de texto
     value.preferredSize.width = 180; 
     setFgColor(value, normalColor2);
     infoValues.push(value);
@@ -553,59 +581,30 @@ for (var r = 0; r < infoRows.length; r++) {
 		}
 	}
 
-    function populateTreeFromDataOptimized(treeNode, dataArray) {
-        treeNode.visible = false;
-        try {
-            var batchSize = 50;
-            var currentBatch = 0;
-            function processBatch() {
-                var endIndex = Math.min(currentBatch + batchSize, dataArray.length);
-                for (var i = currentBatch; i < endIndex; i++) {
-                    var itemData = dataArray[i];
-                    if (itemData.type === 'node') {
-                        var node = treeNode.add('node', itemData.text);
-                        if (typeof D9T_FOLDER_AE_ICON !== 'undefined') { node.image = D9T_FOLDER_AE_ICON; }
-                        if (itemData.children && itemData.children.length > 0) {
-                            populateTreeFromDataOptimized(node, itemData.children);
-                        }
-                    } else if (itemData.type === 'item') {
-                        var item = treeNode.add('item', itemData.text);
-                        if (typeof D9T_AE_ICON !== 'undefined') { item.image = D9T_AE_ICON; }
-                        item.filePath = itemData.filePath;
-                        item.modDate = itemData.modDate;
-                        item.size = itemData.size;
-                    }
-                }
-                currentBatch = endIndex;
-                if (currentBatch < dataArray.length) {
-                    $.sleep(1);
-                    processBatch();
-                }
-            }
-            processBatch();
-        } finally {
-            treeNode.visible = true;
-        }
-    }
+	function loadTemplatesFromCache() {
+		var prodName = validProductions[prodDrop.selection.index].name;
+		
+		setLoadingState(true, 'Carregando ' + prodName + '...');
+		D9T_TEMPLATES_w.update();
 
-    function loadTemplatesFromCache() {
-        var prodName = validProductions[prodDrop.selection.index].name;
-        templateTree.removeAll();
-        if (!templatesCache[prodName]) {
-            setLoadingState(true, 'Carregando ' + prodName + '...');
-            D9T_TEMPLATES_w.update();
-            loadCacheInBackground(prodName);
-            setLoadingState(false);
+		templateTree.removeAll();
+		var data = templatesCache[prodName];
+        var filteredData = data; 
+
+        if (prodName === 'PEÇAS GRÁFICAS' && data) {
+            filteredData = filterExcludedFolders(data);
         }
-        var data = templatesCache[prodName];
-        if (data && data.length > 0) {
-            populateTreeFromDataOptimized(templateTree, data);
-            expandAllNodes(templateTree);
-        } else {
-            templateTree.add('item', 'Nenhum item encontrado para esta categoria.');
-        }
-        updateItemCounter();
-    }
+
+		if (filteredData && filteredData.length > 0) {
+			populateTreeFromData(templateTree, filteredData);
+			expandAllNodes(templateTree);
+		} else {
+			templateTree.add('item', 'Nenhum item encontrado para esta categoria.');
+		}
+
+		updateItemCounter();
+		setLoadingState(false);
+	}
     
 	function updateItemCounter() {
 		var count = 0;
@@ -635,75 +634,68 @@ for (var r = 0; r < infoRows.length; r++) {
 	}
 
     function expandAllNodes(tree) {
-        if (!tree || !tree.items) return;
-        tree.visible = false;
-        try {
-            function expandRecursive(node) {
-                for (var i = 0; i < node.items.length; i++) {
-                    var item = node.items[i];
-                    if (item.type === 'node') {
-                        item.expanded = true;
-                        if (item.items && item.items.length > 0) {
-                            expandRecursive(item);
-                        }
-                    }
-                }
-            }
-            expandRecursive(tree);
-        } finally {
-            tree.visible = true;
-        }
-    }
+		if (!tree || !tree.items) return;
+
+		function expandRecursive(node) {
+			for (var i = 0; i < node.items.length; i++) {
+				var item = node.items[i];
+				if (item.type === 'node') {
+					item.expanded = true;
+					if (item.items && item.items.length > 0) {
+						expandRecursive(item);
+					}
+				}
+			}
+		}
+		expandRecursive(tree);
+	}
     
     function performSearch(searchTerm) {
         var prodName = validProductions[prodDrop.selection.index].name;
         var masterData = templatesCache[prodName];
         if (!masterData) return;
-        templateTree.visible = false;
-        try {
-            templateTree.removeAll();
-            if (searchTerm === '') {
-                populateTreeFromDataOptimized(templateTree, masterData);
-            } else {
-                var searchTermUpper = searchTerm.toUpperCase();
-                var cleanSearchTerm = searchTermUpper;
-                if (typeof String.prototype.replaceSpecialCharacters === 'function') {
-                    cleanSearchTerm = searchTermUpper.replaceSpecialCharacters();
-                }
-                function filterData(data) {
-                    var filteredList = [];
-                    for (var i = 0; i < data.length; i++) {
-                        var item = data[i];
-                        if (item.type === 'item') {
-                            var itemText = item.text.toUpperCase();
-                            if (typeof String.prototype.replaceSpecialCharacters === 'function') {
-                                itemText = itemText.replaceSpecialCharacters();
-                            }
-                            if (itemText.indexOf(cleanSearchTerm) !== -1) {
-                                filteredList.push(item);
-                            }
-                        } else if (item.type === 'node') {
-                            var nodeText = item.text.toUpperCase();
-                            if (typeof String.prototype.replaceSpecialCharacters === 'function') {
-                                nodeText = nodeText.replaceSpecialCharacters();
-                            }
-                            var filteredChildren = filterData(item.children);
-                            if (nodeText.indexOf(cleanSearchTerm) !== -1 || filteredChildren.length > 0) {
-                                var nodeCopy = JSON.parse(JSON.stringify(item));
-                                nodeCopy.children = filteredChildren;
-                                filteredList.push(nodeCopy);
-                            }
+        
+        templateTree.removeAll();
+
+        if (searchTerm === '') {
+            populateTreeFromData(templateTree, masterData);
+        } else {
+            var searchTermUpper = searchTerm.toUpperCase();
+            var cleanSearchTerm = searchTermUpper;
+            if (typeof String.prototype.replaceSpecialCharacters === 'function') {
+                cleanSearchTerm = searchTermUpper.replaceSpecialCharacters();
+            }
+            function filterData(data) {
+                var filteredList = [];
+                for (var i = 0; i < data.length; i++) {
+                    var item = data[i];
+                    if (item.type === 'item') {
+                        var itemText = item.text.toUpperCase();
+                        if (typeof String.prototype.replaceSpecialCharacters === 'function') {
+                            itemText = itemText.replaceSpecialCharacters();
+                        }
+                        if (itemText.indexOf(cleanSearchTerm) !== -1) {
+                            filteredList.push(item);
+                        }
+                    } else if (item.type === 'node') {
+                        var nodeText = item.text.toUpperCase();
+                        if (typeof String.prototype.replaceSpecialCharacters === 'function') {
+                            nodeText = nodeText.replaceSpecialCharacters();
+                        }
+                        var filteredChildren = filterData(item.children);
+                        if (nodeText.indexOf(cleanSearchTerm) !== -1 || filteredChildren.length > 0) {
+                            var nodeCopy = JSON.parse(JSON.stringify(item));
+                            nodeCopy.children = filteredChildren;
+                            filteredList.push(nodeCopy);
                         }
                     }
-                    return filteredList;
                 }
-                var filteredTreeData = filterData(masterData);
-                populateTreeFromDataOptimized(templateTree, filteredTreeData);
+                return filteredList;
             }
-            expandAllNodes(templateTree);
-        } finally {
-            templateTree.visible = true;
+            var filteredTreeData = filterData(masterData);
+            populateTreeFromData(templateTree, filteredTreeData);
         }
+        expandAllNodes(templateTree);
         updateItemCounter();
     }
 
@@ -763,7 +755,7 @@ for (var r = 0; r < infoRows.length; r++) {
         } catch (e) {}
         loadTemplatesFromCache();
         searchBox.active = true;
-        updateArteInfo(); // Chama a função para popular a info inicial
+        updateArteInfo(); 
     };
 
 	searchBox.onActivate = function() {
@@ -879,7 +871,7 @@ for (var r = 0; r < infoRows.length; r++) {
                 infoValues[0].text = arteInfo.nome || '';
                 infoValues[1].text = arteInfo.servidor || '';
                 infoValues[2].text = arteInfo.ultima_atualizacao || '';
-				infoValues[3].text = ''; // Versão não vem do JSON, limpa o campo
+				infoValues[3].text = ''; 
             } else {
                 infoValues[0].text = '---';
                 infoValues[1].text = '---';
@@ -968,12 +960,10 @@ for (var r = 0; r < infoRows.length; r++) {
 
 if (infoBtn && typeof infoBtn.leftClick !== 'undefined') {
     infoBtn.leftClick.onClick = function () {
-        // ✅ Chama a função correta da biblioteca HELP lib.js
         showTemplatesHelp(); 
     };
 } else if (infoBtn) {
     infoBtn.onClick = function () {
-        // ✅ Chama a função correta da biblioteca HELP lib.js
         showTemplatesHelp();
     };
 }
