@@ -31,7 +31,7 @@ function d9TemplateDialog() {
 	function filterExcludedFolders(dataArray) {
 		var filteredArray = [];
 		// Define os nomes das pastas a serem ignoradas (em maiúsculas para comparação)
-		var excludedNames = ['BASE TEMATICAS', 'ILUSTRACAO'];
+		var excludedNames = ['Icones', 'Ilustracoes','Ilustracoes','Fotos para aberturas','Adobe After Effects Auto-Save','BAGUNCA ALHEIA','_OLD','backup','versoes anteriores','PARA_SCRIPT','_PREVIEWS','_IMAGENS'];
 
 		for (var i = 0; i < dataArray.length; i++) {
 			var item = dataArray[i];
@@ -580,29 +580,6 @@ for (var r = 0; r < infoRows.length; r++) {
 			templatesCache[prodName] = [{ type: 'item', text: 'Cache não encontrado.' }];
 		}
 	}
-
-function populateTreeFromData(treeNode, dataArray) {
-    for (var i = 0; i < dataArray.length; i++) {
-        var itemData = dataArray[i];
-        if (itemData.type === 'node') {
-            var node = treeNode.add('node', itemData.text);
-            if (typeof D9T_FOLDER_AE_ICON !== 'undefined') {
-                node.image = D9T_FOLDER_AE_ICON;
-            }
-            if (itemData.children && itemData.children.length > 0) {
-                populateTreeFromData(node, itemData.children);
-            }
-        } else if (itemData.type === 'item') {
-            var item = treeNode.add('item', itemData.text);
-            if (typeof D9T_AE_ICON !== 'undefined') {
-                item.image = D9T_AE_ICON;
-            }
-            item.filePath = itemData.filePath;
-            item.modDate = itemData.modDate;
-            item.size = itemData.size;
-        }
-    }
-}
 
 	function loadTemplatesFromCache() {
 		var prodName = validProductions[prodDrop.selection.index].name;
