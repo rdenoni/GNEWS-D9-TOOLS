@@ -20,21 +20,6 @@ function createStatusWindow(title) {
     return win;
 }
 
-function flattenData(dataArray) {
-    var flatList = [];
-    var nodesToProcess = dataArray.slice(0);
-    while (nodesToProcess.length > 0) {
-        var node = nodesToProcess.pop();
-        if (node.type === 'item') {
-            flatList.push(node);
-        } else if (node.type === 'node' && node.children) {
-            for (var i = node.children.length - 1; i >= 0; i--) {
-                nodesToProcess.push(node.children[i]);
-            }
-        }
-    }
-    return flatList.reverse();
-}
 
 function d9TemplateDialog() {
     var initialStatusWin = createStatusWindow("GNEWS Templates");
