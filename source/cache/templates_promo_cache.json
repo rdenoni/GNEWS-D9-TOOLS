@@ -1,0 +1,278 @@
+{
+  "/t/JORNALISMO/GLOBONEWS/PROMO/TEMPLATES": [
+    {
+      "type": "node",
+      "text": "CANAL",
+      "children": [
+        {
+          "type": "item",
+          "text": "pilula temas.aet",
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\PROMO\\TEMPLATES\\CANAL\\pilula temas.aet",
+          "size": 892489,
+          "modDate": "Tuesday, 25 Mar 2025 15:55:31 GMT"
+        }
+      ]
+    },
+    {
+      "type": "node",
+      "text": "FACTUAIS",
+      "children": [
+        {
+          "type": "item",
+          "text": "historia ao vivo.aet",
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\PROMO\\TEMPLATES\\FACTUAIS\\historia ao vivo.aet",
+          "size": 535826,
+          "modDate": "Tuesday, 02 Sep 2025 15:41:40 GMT"
+        }
+      ]
+    },
+    {
+      "type": "node",
+      "text": "MARCA",
+      "children": [
+        {
+          "type": "item",
+          "text": "marca.aet",
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\PROMO\\TEMPLATES\\MARCA\\marca.aet",
+          "size": 927117,
+          "modDate": "Tuesday, 02 Sep 2025 18:06:09 GMT"
+        },
+        {
+          "type": "item",
+          "text": "nunca desliga.aet",
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\PROMO\\TEMPLATES\\MARCA\\nunca desliga.aet",
+          "size": 136579,
+          "modDate": "Tuesday, 02 Sep 2025 18:26:14 GMT"
+        }
+      ]
+    },
+    {
+      "type": "node",
+      "text": "ON-AIR",
+      "children": [
+        {
+          "type": "node",
+          "text": "end page",
+          "children": [
+            {
+              "type": "item",
+              "text": "end page 2025.aet",
+              "filePath": "T:\\JORNALISMO\\GLOBONEWS\\PROMO\\TEMPLATES\\ON-AIR\\end page\\end page 2025.aet",
+              "size": 13360603,
+              "modDate": "Monday, 01 Sep 2025 17:43:38 GMT"
+            },
+            {
+              "type": "item",
+              "text": "end page vertical.aet",
+              "filePath": "T:\\JORNALISMO\\GLOBONEWS\\PROMO\\TEMPLATES\\ON-AIR\\end page\\end page vertical.aet",
+              "size": 4321664,
+              "modDate": "Monday, 01 Sep 2025 20:17:48 GMT"
+            }
+          ]
+        },
+        {
+          "type": "node",
+          "text": "lettering",
+          "children": [
+            {
+              "type": "item",
+              "text": "lettering digitacao.aet",
+              "filePath": "T:\\JORNALISMO\\GLOBONEWS\\PROMO\\TEMPLATES\\ON-AIR\\lettering\\lettering digitacao.aet",
+              "size": 425986,
+              "modDate": "Monday, 01 Sep 2025 20:25:12 GMT"
+            },
+            {
+              "type": "item",
+              "text": "lettering footage animado.aet",
+              "filePath": "T:\\JORNALISMO\\GLOBONEWS\\PROMO\\TEMPLATES\\ON-AIR\\lettering\\lettering footage animado.aet",
+              "size": 259018,
+              "modDate": "Monday, 01 Sep 2025 20:35:44 GMT"
+            },
+            {
+              "type": "item",
+              "text": "lettering palavras.aet",
+              "filePath": "T:\\JORNALISMO\\GLOBONEWS\\PROMO\\TEMPLATES\\ON-AIR\\lettering\\lettering palavras.aet",
+              "size": 254083,
+              "modDate": "Monday, 01 Sep 2025 20:31:38 GMT"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "node",
+      "text": "OUTROS",
+      "children": [
+        {
+          "type": "item",
+          "text": "barra pillar box gnews.aet",
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\PROMO\\TEMPLATES\\OUTROS\\barra pillar box gnews.aet",
+          "size": 394672,
+          "modDate": "Tuesday, 25 Mar 2025 15:55:42 GMT"
+        },
+        {
+          "type": "item",
+          "text": "graficos.aet",
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\PROMO\\TEMPLATES\\OUTROS\\graficos.aet",
+          "size": 3295188,
+          "modDate": "Tuesday, 25 Mar 2025 15:55:44 GMT"
+        },
+        {
+          "type": "item",
+          "text": "rasgo.aet",
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\PROMO\\TEMPLATES\\OUTROS\\rasgo.aet",
+          "size": 496233,
+          "modDate": "Tuesday, 25 Mar 2025 15:55:44 GMT"
+        },
+        {
+          "type": "item",
+          "text": "selo premios.aet",
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\PROMO\\TEMPLATES\\OUTROS\\selo premios.aet",
+          "size": 1022843,
+          "modDate": "Tuesday, 25 Mar 2025 15:55:45 GMT"
+        }
+      ]
+    },
+    {
+      "type": "node",
+      "text": "PROGRAMAS",
+      "children": [
+        {
+          "type": "node",
+          "text": "central",
+          "children": [
+            {
+              "type": "node",
+              "text": "sabatinas",
+              "children": [
+                {
+                  "type": "item",
+                  "text": "sabatinas.aet",
+                  "filePath": "T:\\JORNALISMO\\GLOBONEWS\\PROMO\\TEMPLATES\\PROGRAMAS\\central\\sabatinas\\sabatinas.aet",
+                  "size": 3025483,
+                  "modDate": "Tuesday, 25 Mar 2025 15:55:48 GMT"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "node",
+          "text": "dialogos mario sergio conti",
+          "children": [
+            {
+              "type": "item",
+              "text": "dialogos com mario sergio conti.aet",
+              "filePath": "T:\\JORNALISMO\\GLOBONEWS\\PROMO\\TEMPLATES\\PROGRAMAS\\dialogos mario sergio conti\\dialogos com mario sergio conti.aet",
+              "size": 7201240,
+              "modDate": "Wednesday, 03 Sep 2025 21:19:33 GMT"
+            }
+          ]
+        },
+        {
+          "type": "node",
+          "text": "documentario",
+          "children": [
+            {
+              "type": "item",
+              "text": "documentario.aet",
+              "filePath": "T:\\JORNALISMO\\GLOBONEWS\\PROMO\\TEMPLATES\\PROGRAMAS\\documentario\\documentario.aet",
+              "size": 2427061,
+              "modDate": "Tuesday, 02 Sep 2025 19:26:55 GMT"
+            }
+          ]
+        },
+        {
+          "type": "node",
+          "text": "fernando gabeira",
+          "children": [
+            {
+              "type": "node",
+              "text": "pelas estradas",
+              "children": [
+                {
+                  "type": "item",
+                  "text": "pelas estradas.aet",
+                  "filePath": "T:\\JORNALISMO\\GLOBONEWS\\PROMO\\TEMPLATES\\PROGRAMAS\\fernando gabeira\\pelas estradas\\pelas estradas.aet",
+                  "size": 1662031,
+                  "modDate": "Tuesday, 25 Mar 2025 15:55:51 GMT"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "node",
+          "text": "lideranca sa",
+          "children": [
+            {
+              "type": "item",
+              "text": "LIDERANCA ESPECIFICA 2T.aet",
+              "filePath": "T:\\JORNALISMO\\GLOBONEWS\\PROMO\\TEMPLATES\\PROGRAMAS\\lideranca sa\\LIDERANCA ESPECIFICA 2T.aet",
+              "size": 21477939,
+              "modDate": "Monday, 01 Sep 2025 20:07:12 GMT"
+            }
+          ]
+        },
+        {
+          "type": "node",
+          "text": "miriam leitao",
+          "children": [
+            {
+              "type": "item",
+              "text": "miriam leitao entrevista.aet",
+              "filePath": "T:\\JORNALISMO\\GLOBONEWS\\PROMO\\TEMPLATES\\PROGRAMAS\\miriam leitao\\miriam leitao entrevista.aet",
+              "size": 6782221,
+              "modDate": "Wednesday, 03 Sep 2025 21:05:31 GMT"
+            }
+          ]
+        },
+        {
+          "type": "node",
+          "text": "pilulas",
+          "children": [
+            {
+              "type": "item",
+              "text": "pilula programas.aet",
+              "filePath": "T:\\JORNALISMO\\GLOBONEWS\\PROMO\\TEMPLATES\\PROGRAMAS\\pilulas\\pilula programas.aet",
+              "size": 1109788,
+              "modDate": "Wednesday, 03 Sep 2025 21:22:48 GMT"
+            }
+          ]
+        },
+        {
+          "type": "node",
+          "text": "roberto davila",
+          "children": [
+            {
+              "type": "node",
+              "text": "davila entrevista",
+              "children": [
+                {
+                  "type": "item",
+                  "text": "davila entrevista.aet",
+                  "filePath": "T:\\JORNALISMO\\GLOBONEWS\\PROMO\\TEMPLATES\\PROGRAMAS\\roberto davila\\davila entrevista\\davila entrevista.aet",
+                  "size": 1888684,
+                  "modDate": "Tuesday, 02 Sep 2025 19:38:24 GMT"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "node",
+      "text": "VINHETAS",
+      "children": [
+        {
+          "type": "item",
+          "text": "vinheta nunca desliga.aet",
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\PROMO\\TEMPLATES\\VINHETAS\\vinheta nunca desliga.aet",
+          "size": 333055,
+          "modDate": "Tuesday, 02 Sep 2025 18:49:10 GMT"
+        }
+      ]
+    }
+  ]
+}

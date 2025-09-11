@@ -14,7 +14,6 @@ function countItemsInTree(nodes) {
     return count;
 }
 
-// ALTERAÇÃO: A função agora aceita 'categoryName' para aplicar regras específicas.
 function getFolderStructureAsData(rootFolder, fileFilter, categoryName) {
     if (!rootFolder.exists) return [];
     var allItems;
@@ -28,7 +27,6 @@ function getFolderStructureAsData(rootFolder, fileFilter, categoryName) {
     var folders = [];
     var files = [];
 
-    // ALTERAÇÃO: Lista de pastas a serem ignoradas especificamente para JORNAIS.
     var jornaisExclusions = [
         'Icones', 'Ilustracoes', 'Fotos para aberturas', 'BAGUNCA ALHEIA',
         '_OLD', 'backup', 'versoes anteriores', 'PARA_SCRIPT', '_PREVIEWS'
@@ -37,12 +35,10 @@ function getFolderStructureAsData(rootFolder, fileFilter, categoryName) {
     for (var i = 0; i < allItems.length; i++) {
         var item = allItems[i];
         if (item instanceof Folder) {
-            // Regra Geral: Ignorar pastas de Auto-Save e _AME.
             if (item.displayName === "Adobe After Effects Auto-Save" || item.displayName.slice(-4).toUpperCase() === '_AME') {
                 continue;
             }
 
-            // ALTERAÇÃO: Aplicar regras de exclusão específicas para a categoria 'JORNAIS'.
             if (categoryName === 'JORNAIS') {
                 var isExcluded = false;
                 for (var ex = 0; ex < jornaisExclusions.length; ex++) {
@@ -52,11 +48,10 @@ function getFolderStructureAsData(rootFolder, fileFilter, categoryName) {
                     }
                 }
                 if (isExcluded) {
-                    continue; // Pula para o próximo item se a pasta estiver na lista de exclusão.
+                    continue;
                 }
             }
             
-            // ALTERAÇÃO: Passa 'categoryName' na chamada recursiva.
             var subItems = getFolderStructureAsData(item, fileFilter, categoryName);
             if (subItems.length > 0) {
                 folders.push({
@@ -103,7 +98,6 @@ function d9ProdFoldersDialog(prodArray) {
     if (!cacheFolder.exists) cacheFolder.create();
     var fileFilter = ['.aep', '.aet'];
 
-    // ALTERAÇÃO: Atualização da lista de categorias para corresponder à janela principal.
     var categorias = [
         { nome: 'JORNAIS', key: 'jornais', caminhos: [] },
         { nome: 'PROMO', key: 'promo', caminhos: [] },
@@ -117,10 +111,8 @@ function d9ProdFoldersDialog(prodArray) {
     try {
         if (typeof prodArray !== 'undefined' && prodArray.length > 0) {
             var prodData = prodArray[0];
-            // Mapeia os caminhos salvos para as categorias corretas.
             for (var i = 0; i < categorias.length; i++) {
                 var catKey = categorias[i].key;
-                // Renomeia a chave antiga 'pecasGraficas' para 'jornais' para manter compatibilidade.
                 if (catKey === 'jornais' && prodData['pecasGraficas']) {
                      categorias[i].caminhos = prodData['pecasGraficas'];
                 } else if (prodData[catKey] && prodData[catKey].length > 0) {
@@ -238,37 +230,19 @@ function d9ProdFoldersDialog(prodArray) {
             }
 
             try {
-                // ALTERAÇÃO: Passa o nome da categoria para a função de geração de cache.
                 var treeData = getFolderStructureAsData(folder, fileFilter, categoryName);
                 var newCount = countItemsInTree(treeData);
 
                 var cacheFileName;
-                // ALTERAÇÃO: Nomes dos arquivos de cache atualizados para as novas categorias.
                 switch (categoryName) {
-                    case 'JORNAIS':
-                        cacheFileName = 'templates_jornais_cache.json'; // Nome antigo 'pecas' atualizado
-                        break;
-                    case 'PROMO':
-                        cacheFileName = 'templates_promo_cache.json';
-                        break;
-                    case 'PROGRAMAS':
-                        cacheFileName = 'templates_programas_cache.json';
-                        break;
-                    case 'EVENTOS':
-                        cacheFileName = 'templates_eventos_cache.json';
-                        break;
-                    case 'MARKETING':
-                        cacheFileName = 'templates_marketing_cache.json';
-                        break;
-                    case 'BASE TEMÁTICA':
-                        cacheFileName = 'templates_base_cache.json';
-                        break;
-                    case 'ILUSTRAÇÕES':
-                        cacheFileName = 'templates_ilustra_cache.json';
-                        break;
-                    default:
-                        cacheFileName = 'templates_' + categoryName.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '_cache.json';
-                        break;
+                    case 'JORNAIS': cacheFileName = 'templates_jornais_cache.json'; break;
+                    case 'PROMO': cacheFileName = 'templates_promo_cache.json'; break;
+                    case 'PROGRAMAS': cacheFileName = 'templates_programas_cache.json'; break;
+                    case 'EVENTOS': cacheFileName = 'templates_eventos_cache.json'; break;
+                    case 'MARKETING': cacheFileName = 'templates_marketing_cache.json'; break;
+                    case 'BASE TEMÁTICA': cacheFileName = 'templates_base_cache.json'; break;
+                    case 'ILUSTRAÇÕES': cacheFileName = 'templates_ilustra_cache.json'; break;
+                    default: cacheFileName = 'templates_' + categoryName.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '_cache.json'; break;
                 }
                 
                 var cacheFile = new File(cacheFolder.fullName + '/' + cacheFileName);
@@ -278,12 +252,23 @@ function d9ProdFoldersDialog(prodArray) {
                 if (cacheFile.exists) {
                     try {
                         cacheFile.open('r');
-                        masterCacheData = JSON.parse(cacheFile.read());
+                        var content = cacheFile.read(); // Lê o conteúdo primeiro
                         cacheFile.close();
-                        if (masterCacheData[pathStr]) {
+                        if(content && content.trim() !== '') { // Verifica se há conteúdo
+                             masterCacheData = JSON.parse(content);
+                        }
+                        if (masterCacheData && masterCacheData[pathStr]) {
                             oldCount = countItemsInTree(masterCacheData[pathStr]);
                         }
-                    } catch(e) { masterCacheData = {}; }
+                    } catch(e) { 
+                        masterCacheData = {}; // Se qualquer erro ocorrer, reseta o cache
+                    }
+                }
+
+                // CORREÇÃO: Garante que masterCacheData seja um objeto antes de usá-lo.
+                // Isso previne o erro "null is not an object".
+                if (masterCacheData === null || typeof masterCacheData !== 'object') {
+                    masterCacheData = {};
                 }
 
                 masterCacheData[pathStr] = treeData;
@@ -342,13 +327,11 @@ function d9ProdFoldersDialog(prodArray) {
         } catch (err) { alert('Erro ao salvar: ' + err.message); }
     });
     
-    // ALTERAÇÃO: Função atualizada para coletar os dados das novas categorias.
     function collectConfigData() {
         var configOutput = {};
         var allCatGrps = mainGrp.children;
 
         for (var c = 0; c < allCatGrps.length; c++) {
-            // Verifica se o grupo é um cabeçalho de categoria.
             if (allCatGrps[c] instanceof Group && allCatGrps[c].children.length > 0 && allCatGrps[c].children[0] instanceof StaticText && allCatGrps[c].children[0].text.indexOf(':') > -1) {
                 var catName = allCatGrps[c].children[0].text.replace(':', '');
                 var pathsGrp = allCatGrps[c + 1];
@@ -360,7 +343,6 @@ function d9ProdFoldersDialog(prodArray) {
                     }
                 }
                 
-                // Encontra a chave correspondente ao nome da categoria.
                 for (var k = 0; k < categorias.length; k++) {
                     if (categorias[k].nome === catName) {
                         configOutput[categorias[k].key] = caminhos;
@@ -372,7 +354,6 @@ function d9ProdFoldersDialog(prodArray) {
         
         configOutput.name = 'Configuração de Caminhos';
         configOutput.icon = '';
-        // Mantém a compatibilidade com a chave antiga 'templatesPath'.
         configOutput.templatesPath = configOutput.jornais ? configOutput.jornais[0] : '';
 
         return configOutput;
