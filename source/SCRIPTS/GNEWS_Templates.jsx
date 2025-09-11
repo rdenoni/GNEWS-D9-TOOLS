@@ -1,10 +1,46 @@
+$.encoding = "UTF-8";
+
 // =============================================================================
-// GNEWS TEMPLATES - VERSÃO COM INFO DA ARTE RESTAURADO
+// GNEWS TEMPLATES - V3.2
 // =============================================================================
+
+// ADIÇÃO: Função para criar e gerenciar uma janela de status de progresso.
+function createStatusWindow(title) {
+    var win = new Window("palette", title, undefined, { closeButton: false });
+    win.orientation = "column";
+    win.alignChildren = "fill";
+    win.preferredSize.width = 300;
+    
+    var textGroup = win.add("group");
+    textGroup.alignment = "center";
+    var statusLabel = textGroup.add("statictext", undefined, "Iniciando...");
+    statusLabel.characters = 40;
+
+    var progressGroup = win.add("group");
+    progressGroup.alignment = "center";
+    var progressLabel = progressGroup.add("statictext", undefined, "0 / 0");
+    progressLabel.characters = 20;
+
+    win.update = function(statusText, currentValue, maxValue) {
+        if (statusText) {
+            statusLabel.text = statusText;
+        }
+        if (currentValue !== undefined && maxValue !== undefined) {
+            progressLabel.text = currentValue + " / " + maxValue;
+        }
+        win.layout.layout(true);
+        if (win.visible) {
+            win.update();
+        }
+    };
+    
+    return win;
+}
+
 
 function d9TemplateDialog() {
 	var scriptName = 'GNEWS TEMPLATES';
-	var scriptVersion = '3.1'; // Versão incrementada
+	var scriptVersion = '3.2'; // Versão incrementada
 	var compactWidth, extendedWidth;
 	var fileFilter = ['.aep', '.aet'];
 	var projectFile, previewFile, configFile, scriptFile, templateData;
@@ -26,7 +62,7 @@ function d9TemplateDialog() {
 		userConfigFile = null;
 	}
 
-	// ===== LÓGICA DE DADOS DA ARTE (RESTAURADA) =====
+	// ===== LÓGICA DE DADOS DA ARTE =====
 	var artesData = null;
 	try {
 		var artesDataFile = new File(scriptMainPath + 'source/libraries/dados_json/DADOS_artes_gnews.json');
@@ -171,32 +207,31 @@ function d9TemplateDialog() {
 	var prodIconGrp = prodGrp.add('group');
 	prodIconGrp.orientation = 'stack';
 	
-    // ===== ALTERAÇÃO DOS MENUS DE PRODUÇÃO =====
 	var prodDropItems = ['JORNAIS', 'PROMO', 'PROGRAMAS', 'EVENTOS', 'MARKETING', 'BASE TEMÁTICA', 'ILUSTRAÇÕES'];
     var validProductions = [
-        { name: 'JORNAIS', icon: 'D9T_TEMPPECAS_ICON', paths: [] }, // Renomeado
-        { name: 'PROMO', icon: 'D9T_TBASE_ICON', paths: [] },      // Adicionado
-        { name: 'PROGRAMAS', icon: 'D9T_TBASE_ICON', paths: [] },  // Adicionado
-        { name: 'EVENTOS', icon: 'D9T_TBASE_ICON', paths: [] },    // Adicionado
-        { name: 'MARKETING', icon: 'D9T_TBASE_ICON', paths: [] },  // Adicionado
+        { name: 'JORNAIS', icon: 'D9T_TEMPPECAS_ICON', paths: [] },
+        { name: 'PROMO', icon: 'D9T_TBASE_ICON', paths: [] },
+        { name: 'PROGRAMAS', icon: 'D9T_TBASE_ICON', paths: [] },
+        { name: 'EVENTOS', icon: 'D9T_TBASE_ICON', paths: [] },
+        { name: 'MARKETING', icon: 'D9T_TBASE_ICON', paths: [] },
         { name: 'BASE TEMÁTICA', icon: 'D9T_TBASE_ICON', paths: [] },
         { name: 'ILUSTRAÇÕES', icon: 'D9T_TILUSTRA_ICON', paths: [] }
     ];
 
-    // Lógica para carregar os paths do arquivo de configuração, se existir
     if (typeof D9T_prodArray !== 'undefined' && D9T_prodArray && D9T_prodArray.length > 0) {
-		if (D9T_prodArray.length === 1 && D9T_prodArray[0].pecasGraficas) {
+		if (D9T_prodArray.length === 1) {
             var configData = D9T_prodArray[0];
-            // Mapeia os paths do config para os nomes corretos em validProductions
             for(var i=0; i < validProductions.length; i++){
-                if(validProductions[i].name === 'JORNAIS') validProductions[i].paths = configData.pecasGraficas || [];
-                if(validProductions[i].name === 'BASE TEMÁTICA') validProductions[i].paths = configData.baseTematica || [];
-                if(validProductions[i].name === 'ILUSTRAÇÕES') validProductions[i].paths = configData.ilustracoes || [];
-                // Adicione aqui os paths para os novos menus se eles estiverem no seu JSON
+                var prod = validProductions[i];
+                var key = prod.name.toLowerCase().replace(' ', '');
+                if (key === 'jornais' && configData['pecasGraficas']) { // Compatibilidade
+                    prod.paths = configData['pecasGraficas'] || [];
+                } else if (configData[key]) {
+                    prod.paths = configData[key] || [];
+                }
             }
         }
     }
-    // ===============================================
 
 	if (typeof populateMainIcons === 'function') {
 		populateMainIcons(prodIconGrp, validProductions);
@@ -225,21 +260,18 @@ function d9TemplateDialog() {
 	treeGrp.spacing = 4;
 	var placeholderText = '⌕  Digite para Buscar...';
 
-    // ===== ALTERAÇÃO DA POSIÇÃO DO CHECKBOX =====
-    // Grupo do checkbox foi movido para ANTES do searchBox
     var viewOptGrp = treeGrp.add('group');
     viewOptGrp.orientation = 'row';
     viewOptGrp.alignment = ['left', 'center'];
     var flatViewCheckbox = viewOptGrp.add('checkbox', undefined, 'Exibir em lista');
     setFgColor(flatViewCheckbox, normalColor1);
     flatViewCheckbox.helpTip = 'Marque para exibir todos os arquivos em uma lista plana, sem a hierarquia de pastas.';
-    flatViewCheckbox.value = true; // Define o checkbox como MARCADO por padrão
+    flatViewCheckbox.value = true;
 
 	var searchBox = treeGrp.add('edittext', [0, 0, 320, 24], '');
 	searchBox.text = placeholderText;
 	searchBox.isPlaceholderActive = true;
 	setFgColor(searchBox, monoColor0);
-    // ==========================================
 
 	var treeContainerGrp = treeGrp.add('group', [0, 0, 320, 420]);
 	treeContainerGrp.orientation = 'stack';
@@ -299,16 +331,13 @@ function d9TemplateDialog() {
 		newDiv.alignment = ['fill', 'center'];
 	}
 
-    // ===== BLOCO DE INFORMAÇÕES DA ARTE (RESTAURADO E CORRIGIDO) =====
     var infoArteMainGrp = vGrp2.add('group');
     infoArteMainGrp.alignment = ['left', 'top'];
     infoArteMainGrp.spacing = 12;
-
     var arteInfoGrp = infoArteMainGrp.add('group');
     arteInfoGrp.orientation = 'column';
     arteInfoGrp.alignment = ['left', 'top'];
     arteInfoGrp.alignChildren = 'left';
-
     var arteHeaderGrp = arteInfoGrp.add('group');
     arteHeaderGrp.alignment = 'fill';
     arteHeaderGrp.orientation = 'stack';
@@ -316,7 +345,6 @@ function d9TemplateDialog() {
     arteLabGrp.alignment = 'left';
     var arteLab = arteLabGrp.add('statictext', undefined, 'INFORMAÇÕES DA ARTE:');
     setFgColor(arteLab, normalColor1);
-
     var codigoGrp = arteInfoGrp.add('group');
     codigoGrp.orientation = 'row';
     codigoGrp.alignChildren = ['left', 'center'];
@@ -327,53 +355,30 @@ function d9TemplateDialog() {
     setFgColor(codigoLab, monoColor0);
     var codigoTxt = codigoGrp.add('edittext', [0, 0, 120, 24], '');
     codigoTxt.helpTip = 'Digite o codigo da arte (ex: GNVZ036)';
-
-    var infoRows = [{
-        label: 'Nome da Arte:',
-        value: '---'
-    }, {
-        label: 'Servidor Destino:',
-        value: '---'
-    }, {
-        label: 'Última Atualização:',
-        value: '---'
-    }, {
-        label: 'Versão:',
-        value: '---'
-    }];
-
-    var infoLabels = [],
-        infoValues = [];
+    var infoRows = [{label: 'Nome da Arte:', value: '---'}, {label: 'Servidor Destino:', value: '---'}, {label: 'Última Atualização:', value: '---'}, {label: 'Versão:', value: '---'}];
+    var infoLabels = [], infoValues = [];
     for (var r = 0; r < infoRows.length; r++) {
         var infoRow = arteInfoGrp.add('group');
         infoRow.orientation = 'row';
         infoRow.alignChildren = ['left', 'center'];
         infoRow.spacing = 8;
         infoRow.margins = [0, 2, 0, 0];
-        
         var label = infoRow.add('statictext', undefined, infoRows[r].label);
         label.preferredSize.width = 100;
         setFgColor(label, monoColor0);
         infoLabels.push(label);
-        
         var value = infoRow.add('statictext', undefined, infoRows[r].value);
         value.preferredSize.width = 180; 
         setFgColor(value, normalColor2);
         infoValues.push(value);
     }
-    // ===================================================================
 
 	var rBtnGrp2 = vGrp2.add('group');
 	rBtnGrp2.alignment = 'right';
 	rBtnGrp2.spacing = 16;
 	var openBtn;
 	if (typeof themeButton === 'function') {
-		openBtn = new themeButton(rBtnGrp2, {
-			width: 120,
-			height: 32,
-			labelTxt: 'abrir',
-			tips: [lClick + 'abrir o projeto selecionado']
-		});
+		openBtn = new themeButton(rBtnGrp2, { width: 120, height: 32, labelTxt: 'abrir', tips: [lClick + 'abrir o projeto selecionado'] });
 	} else {
 		openBtn = rBtnGrp2.add('button', undefined, 'Abrir');
 		openBtn.helpTip = 'abrir o projeto selecionado';
@@ -381,107 +386,40 @@ function d9TemplateDialog() {
 	}
 	var importBtn;
 	if (typeof themeButton === 'function') {
-		importBtn = new themeButton(rBtnGrp2, {
-			width: 120,
-			height: 32,
-			textColor: bgColor1,
-			buttonColor: normalColor1,
-			labelTxt: 'importar',
-			tips: [lClick + 'importar o template selecionado']
-		});
+		importBtn = new themeButton(rBtnGrp2, { width: 120, height: 32, textColor: bgColor1, buttonColor: normalColor1, labelTxt: 'importar', tips: [lClick + 'importar o template selecionado'] });
 	} else {
 		importBtn = rBtnGrp2.add('button', undefined, 'Importar');
 		importBtn.helpTip = 'importar o template selecionado';
 		importBtn.preferredSize = [120, 32];
 	}
 
-    // ===== FUNÇÕES DE INFORMAÇÃO DA ARTE (RESTAURADAS) =====
     function getAepVersion(aepFile) {
         if (!aepFile || !aepFile.exists) { return "N/A"; }
         try {
-            aepFile.encoding = "BINARY";
-            aepFile.open('r');
-            var fileContent = aepFile.read(4000000);
-            aepFile.close();
-            var version = "Adobe After Effects 2020";
-            var lastCreatorToolIndex = fileContent.lastIndexOf("<xmp:CreatorTool>");
-            var lastAgentIndex = fileContent.lastIndexOf("<stEvt:softwareAgent>");
-            var searchIndex = -1;
-            var regexToUse = null;
-            if (lastCreatorToolIndex > lastAgentIndex) {
-                searchIndex = lastCreatorToolIndex;
-                regexToUse = /<xmp:CreatorTool>(.*?)<\/xmp:CreatorTool>/i;
-            } else if (lastAgentIndex > -1) {
-                searchIndex = lastAgentIndex;
-                regexToUse = /<stEvt:softwareAgent>(.*?)<\/stEvt:softwareAgent>/i;
-            }
-            if (searchIndex > -1) {
-                var match = regexToUse.exec(fileContent.substring(searchIndex));
-                if (match && match[1]) {
-                    version = match[1].replace(/^\s+|\s+$/g, '');
-                }
-            }
-            if (version.indexOf("Photoshop") > -1) {
-                version = version.replace("Photoshop", "After Effects");
-            }
-            if (version.indexOf("23.2") > -1) {
-                version = "Adobe After Effects 2023";
-            }
+            aepFile.encoding = "BINARY"; aepFile.open('r'); var fileContent = aepFile.read(4000000); aepFile.close(); var version = "Adobe After Effects 2020"; var lastCreatorToolIndex = fileContent.lastIndexOf("<xmp:CreatorTool>"); var lastAgentIndex = fileContent.lastIndexOf("<stEvt:softwareAgent>"); var searchIndex = -1; var regexToUse = null;
+            if (lastCreatorToolIndex > lastAgentIndex) { searchIndex = lastCreatorToolIndex; regexToUse = /<xmp:CreatorTool>(.*?)<\/xmp:CreatorTool>/i; } else if (lastAgentIndex > -1) { searchIndex = lastAgentIndex; regexToUse = /<stEvt:softwareAgent>(.*?)<\/stEvt:softwareAgent>/i; }
+            if (searchIndex > -1) { var match = regexToUse.exec(fileContent.substring(searchIndex)); if (match && match[1]) { version = match[1].replace(/^\s+|\s+$/g, ''); } }
+            if (version.indexOf("Photoshop") > -1) { version = version.replace("Photoshop", "After Effects"); }
+            if (version.indexOf("23.2") > -1) { version = "Adobe After Effects 2023"; }
             return version;
-        } catch (e) {
-            return "Erro de leitura";
-        }
+        } catch (e) { return "Erro de leitura"; }
     }
-
     function generateCodigoFromTemplate(templateName) {
         try {
-            var name = (typeof deleteFileExt === 'function' ? deleteFileExt(templateName) : templateName.replace(/\.[^\.]+$/, '')).toUpperCase();
-            var currentYear = new Date().getFullYear().toString();
-            var cleanName = name.replace(/[^A-Z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
-            var words = cleanName.split(' ');
-            var lettersOnly = cleanName.replace(/[^A-Z]/g, '');
-            var codigo = '';
-            if (words.length >= 3) {
-                var firstTwoLetters = lettersOnly.substring(0, 2);
-                var letterAfterFirstSpace = words[1].charAt(0);
-                var letterAfterSecondSpace = words[2].charAt(0);
-                codigo = firstTwoLetters + letterAfterFirstSpace + letterAfterSecondSpace + currentYear;
-            } else if (words.length === 2) {
-                var firstThreeLetters = lettersOnly.substring(0, 3);
-                var letterAfterSpace = words[1].charAt(0);
-                codigo = firstThreeLetters + letterAfterSpace + currentYear;
-            } else {
-                codigo = lettersOnly.substring(0, 4) + currentYear;
-            }
+            var name = (typeof deleteFileExt === 'function' ? deleteFileExt(templateName) : templateName.replace(/\.[^\.]+$/, '')).toUpperCase(); var currentYear = new Date().getFullYear().toString(); var cleanName = name.replace(/[^A-Z0-9\s]/g, '').replace(/\s+/g, ' ').trim(); var words = cleanName.split(' '); var lettersOnly = cleanName.replace(/[^A-Z]/g, ''); var codigo = '';
+            if (words.length >= 3) { var firstTwoLetters = lettersOnly.substring(0, 2); var letterAfterFirstSpace = words[1].charAt(0); var letterAfterSecondSpace = words[2].charAt(0); codigo = firstTwoLetters + letterAfterFirstSpace + letterAfterSecondSpace + currentYear; } else if (words.length === 2) { var firstThreeLetters = lettersOnly.substring(0, 3); var letterAfterSpace = words[1].charAt(0); codigo = firstThreeLetters + letterAfterSpace + currentYear; } else { codigo = lettersOnly.substring(0, 4) + currentYear; }
             return codigo.toUpperCase();
-        } catch (e) {
-            return 'AUTO' + new Date().getFullYear();
-        }
+        } catch (e) { return 'AUTO' + new Date().getFullYear(); }
     }
-
     function determineServidorDestino(templateName, templatePath) {
         try {
-            var name = templateName.toUpperCase();
-            var path = templatePath ? templatePath.toUpperCase() : '';
-            var fullText = name + ' ' + path;
-            var ilhaTerms = ['PESQUISA', 'DATAFOLHA', 'QUAEST', 'IPEC', 'CREDITO', 'INSERT', 'ALPHA'];
-            for (var i = 0; i < ilhaTerms.length; i++) {
-                if (fullText.indexOf(ilhaTerms[i]) !== -1) return 'PARA ILHA';
-            }
-            var vizTerms = ['CABECALHO', 'QR CODE', 'VIRTUAL', 'TOTEM'];
-            for (var i = 0; i < vizTerms.length; i++) {
-                if (fullText.indexOf(vizTerms[i]) !== -1) return 'VIZ';
-            }
-            var magazineTerms = ['ESTUDIO I', 'ESTÚDIO I', 'STUDIO I', 'STÚDIO I', 'GLOBONEWS INTERNACIONAL', 'BALAIO'];
-            for (var i = 0; i < magazineTerms.length; i++) {
-                if (fullText.indexOf(magazineTerms[i]) !== -1) return 'PAM MAGAZINE';
-            }
+            var name = templateName.toUpperCase(); var path = templatePath ? templatePath.toUpperCase() : ''; var fullText = name + ' ' + path;
+            var ilhaTerms = ['PESQUISA', 'DATAFOLHA', 'QUAEST', 'IPEC', 'CREDITO', 'INSERT', 'ALPHA']; for (var i = 0; i < ilhaTerms.length; i++) { if (fullText.indexOf(ilhaTerms[i]) !== -1) return 'PARA ILHA'; }
+            var vizTerms = ['CABECALHO', 'QR CODE', 'VIRTUAL', 'TOTEM']; for (var i = 0; i < vizTerms.length; i++) { if (fullText.indexOf(vizTerms[i]) !== -1) return 'VIZ'; }
+            var magazineTerms = ['ESTUDIO I', 'ESTÚDIO I', 'STUDIO I', 'STÚDIO I', 'GLOBONEWS INTERNACIONAL', 'BALAIO']; for (var i = 0; i < magazineTerms.length; i++) { if (fullText.indexOf(magazineTerms[i]) !== -1) return 'PAM MAGAZINE'; }
             return 'PAM HARDNEWS';
-        } catch (e) {
-            return 'ERRO';
-        }
+        } catch (e) { return 'ERRO'; }
     }
-
     function updateArteInfo() {
         try {
             var selectedTemplate = templateTree.selection;
@@ -495,38 +433,28 @@ function d9TemplateDialog() {
                 var servidorDestino = determineServidorDestino(templateNameWithExt, templatePath);
                 infoValues[1].text = servidorDestino;
                 var modDate = new Date(selectedTemplate.modDate);
-                var day = ('0' + modDate.getDate()).slice(-2);
-                var month = ('0' + (modDate.getMonth() + 1)).slice(-2);
-                var year = modDate.getFullYear();
+                var day = ('0' + modDate.getDate()).slice(-2); var month = ('0' + (modDate.getMonth() + 1)).slice(-2); var year = modDate.getFullYear();
                 infoValues[2].text = day + '/' + month + '/' + year;
                 var aepFile = new File(selectedTemplate.filePath);
                 var aepVersion = getAepVersion(aepFile);
                 infoValues[3].text = aepVersion;
             } else {
-                codigoTxt.text = '';
-                infoValues[0].text = '---';
-                infoValues[1].text = '---';
-                infoValues[2].text = '---';
-                infoValues[3].text = '---';
+                codigoTxt.text = ''; infoValues[0].text = '---'; infoValues[1].text = '---'; infoValues[2].text = '---'; infoValues[3].text = '---';
             }
-        } catch (e) {
-            infoValues[0].text = 'Erro ao atualizar';
-            infoValues[1].text = 'Erro';
-            infoValues[2].text = 'Erro';
-            infoValues[3].text = 'Erro';
-        }
+        } catch (e) { infoValues[0].text = 'Erro ao atualizar'; infoValues[1].text = 'Erro'; infoValues[2].text = 'Erro'; infoValues[3].text = 'Erro'; }
     }
-    // =========================================================
 
 	function loadCacheInBackground(prodName) {
 		if (templatesCache[prodName]) return;
 		var cacheFileName;
-        // Mapeamento de nomes de produção para nomes de arquivo de cache
-		switch (prodName) {
-			case 'JORNAIS': cacheFileName = 'templates_pecas_cache.json'; break;
+        switch (prodName) {
+            case 'JORNAIS': cacheFileName = 'templates_jornais_cache.json'; break;
+            case 'PROMO': cacheFileName = 'templates_promo_cache.json'; break;
+            case 'PROGRAMAS': cacheFileName = 'templates_programas_cache.json'; break;
+            case 'EVENTOS': cacheFileName = 'templates_eventos_cache.json'; break;
+            case 'MARKETING': cacheFileName = 'templates_marketing_cache.json'; break;
 			case 'BASE TEMÁTICA': cacheFileName = 'templates_base_cache.json'; break;
 			case 'ILUSTRAÇÕES': cacheFileName = 'templates_ilustra_cache.json'; break;
-            // Para os novos, um padrão genérico
 			default: cacheFileName = 'templates_' + prodName.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '_cache.json'; break;
 		}
 		var templatesCacheFile = new File(cacheFolder.fullName + '/' + cacheFileName);
@@ -569,51 +497,52 @@ function d9TemplateDialog() {
                     } else if (itemData.type === 'item') {
                         var item = treeNode.add('item', itemData.text);
                         if (typeof D9T_AE_ICON !== 'undefined') { item.image = D9T_AE_ICON; }
-                        item.filePath = itemData.filePath;
-                        item.modDate = itemData.modDate;
-                        item.size = itemData.size;
+                        item.filePath = itemData.filePath; item.modDate = itemData.modDate; item.size = itemData.size;
                     }
                 }
                 currentBatch = endIndex;
-                if (currentBatch < dataArray.length) {
-                    $.sleep(1);
-                    processBatch();
-                }
+                if (currentBatch < dataArray.length) { $.sleep(1); processBatch(); }
             }
             processBatch();
-        } finally {
-            treeNode.visible = true;
-        }
+        } finally { treeNode.visible = true; }
     }
 
     function populateTreeFromList(treeNode, dataArray) {
-        treeNode.visible = false;
+        var statusWin;
         try {
             var flatList = flattenData(dataArray);
+            if (flatList.length === 0) { treeNode.visible = true; return; }
+            statusWin = createStatusWindow("Carregando Templates...");
+            statusWin.show();
+            treeNode.visible = false;
 
             var batchSize = 50;
             var currentBatch = 0;
+
             function processBatch() {
                 var endIndex = Math.min(currentBatch + batchSize, flatList.length);
                 for (var i = currentBatch; i < endIndex; i++) {
                     var itemData = flatList[i];
                     var item = treeNode.add('item', itemData.text);
-                    if (typeof D9T_AE_ICON !== 'undefined') {
-                        item.image = D9T_AE_ICON;
-                    }
-                    item.filePath = itemData.filePath;
-                    item.modDate = itemData.modDate;
-                    item.size = itemData.size;
+                    if (typeof D9T_AE_ICON !== 'undefined') { item.image = D9T_AE_ICON; }
+                    item.filePath = itemData.filePath; item.modDate = itemData.modDate; item.size = itemData.size;
                 }
                 currentBatch = endIndex;
+                statusWin.update("Carregando itens...", currentBatch, flatList.length);
+
                 if (currentBatch < flatList.length) {
                     $.sleep(1);
                     processBatch();
+                } else {
+                    statusWin.close();
+                    treeNode.visible = true;
                 }
             }
             processBatch();
-        } finally {
+        } catch(e) {
+            if (statusWin) statusWin.close();
             treeNode.visible = true;
+            alert("Erro ao popular a lista: " + e.message);
         }
     }
 
@@ -626,8 +555,8 @@ function d9TemplateDialog() {
             loadCacheInBackground(prodName);
             setLoadingState(false);
         }
-        var data = templatesCache[prodName];
-        if (data && data.length > 0) {
+        var data = templatesCache[prodName] || [];
+        if (data.length > 0) {
             if (flatViewCheckbox.value) {
                 populateTreeFromList(templateTree, data);
             } else {
@@ -643,15 +572,10 @@ function d9TemplateDialog() {
 	function updateItemCounter() {
 		var count = 0;
 		function countItemsInNode(node) {
-			var nodeCount = 0;
-			if (!node.items) return 0;
+			var nodeCount = 0; if (!node.items) return 0;
 			for (var i = 0; i < node.items.length; i++) {
 				var item = node.items[i];
-				if (item.type === 'item') {
-					nodeCount++;
-				} else if (item.type === 'node') {
-					nodeCount += countItemsInNode(item);
-				}
+				if (item.type === 'item') { nodeCount++; } else if (item.type === 'node') { nodeCount += countItemsInNode(item); }
 			}
 			return nodeCount;
 		}
@@ -675,79 +599,45 @@ function d9TemplateDialog() {
             function expandRecursive(node) {
                 for (var i = 0; i < node.items.length; i++) {
                     var item = node.items[i];
-                    if (item.type === 'node') {
-                        item.expanded = true;
-                        if (item.items && item.items.length > 0) {
-                            expandRecursive(item);
-                        }
-                    }
+                    if (item.type === 'node') { item.expanded = true; if (item.items && item.items.length > 0) { expandRecursive(item); } }
                 }
             }
             expandRecursive(tree);
-        } finally {
-            tree.visible = true;
-        }
+        } finally { tree.visible = true; }
     }
     
     function performSearch(searchTerm) {
         var prodName = validProductions[prodDrop.selection.index].name;
-        var masterData = templatesCache[prodName];
-        if (!masterData) return;
+        var masterData = templatesCache[prodName]; if (!masterData) return;
         templateTree.visible = false;
         try {
             templateTree.removeAll();
             if (searchTerm === '') {
-                if (flatViewCheckbox.value) {
-                    populateTreeFromList(templateTree, masterData);
-                } else {
-                    populateTreeFromDataOptimized(templateTree, masterData);
-                }
+                if (flatViewCheckbox.value) { populateTreeFromList(templateTree, masterData); } else { populateTreeFromDataOptimized(templateTree, masterData); }
             } else {
                 var searchTermUpper = searchTerm.toUpperCase();
                 var cleanSearchTerm = searchTermUpper;
-                if (typeof String.prototype.replaceSpecialCharacters === 'function') {
-                    cleanSearchTerm = searchTermUpper.replaceSpecialCharacters();
-                }
+                if (typeof String.prototype.replaceSpecialCharacters === 'function') { cleanSearchTerm = searchTermUpper.replaceSpecialCharacters(); }
                 function filterData(data) {
                     var filteredList = [];
                     for (var i = 0; i < data.length; i++) {
                         var item = data[i];
                         if (item.type === 'item') {
-                            var itemText = item.text.toUpperCase();
-                            if (typeof String.prototype.replaceSpecialCharacters === 'function') {
-                                itemText = itemText.replaceSpecialCharacters();
-                            }
-                            if (itemText.indexOf(cleanSearchTerm) !== -1) {
-                                filteredList.push(item);
-                            }
+                            var itemText = item.text.toUpperCase(); if (typeof String.prototype.replaceSpecialCharacters === 'function') { itemText = itemText.replaceSpecialCharacters(); }
+                            if (itemText.indexOf(cleanSearchTerm) !== -1) { filteredList.push(item); }
                         } else if (item.type === 'node') {
-                            var nodeText = item.text.toUpperCase();
-                            if (typeof String.prototype.replaceSpecialCharacters === 'function') {
-                                nodeText = nodeText.replaceSpecialCharacters();
-                            }
+                            var nodeText = item.text.toUpperCase(); if (typeof String.prototype.replaceSpecialCharacters === 'function') { nodeText = nodeText.replaceSpecialCharacters(); }
                             var filteredChildren = filterData(item.children);
-                            if (nodeText.indexOf(cleanSearchTerm) !== -1 || filteredChildren.length > 0) {
-                                var nodeCopy = JSON.parse(JSON.stringify(item));
-                                nodeCopy.children = filteredChildren;
-                                filteredList.push(nodeCopy);
-                            }
+                            if (nodeText.indexOf(cleanSearchTerm) !== -1 || filteredChildren.length > 0) { var nodeCopy = JSON.parse(JSON.stringify(item)); nodeCopy.children = filteredChildren; filteredList.push(nodeCopy); }
                         }
                     }
                     return filteredList;
                 }
                 var filteredTreeData = filterData(masterData);
-                if (flatViewCheckbox.value) {
-                    populateTreeFromList(templateTree, filteredTreeData);
-                } else {
-                    populateTreeFromDataOptimized(templateTree, filteredTreeData);
-                }
+                if (flatViewCheckbox.value) { populateTreeFromList(templateTree, filteredTreeData); } else { populateTreeFromDataOptimized(templateTree, filteredTreeData); }
             }
-            if (!flatViewCheckbox.value) {
-                expandAllNodes(templateTree);
-            }
-        } finally {
-            templateTree.visible = true;
-        }
+            if (!flatViewCheckbox.value) { expandAllNodes(templateTree); }
+        } finally { templateTree.visible = true; }
         updateItemCounter();
     }
 
@@ -755,57 +645,36 @@ function d9TemplateDialog() {
     
     prodDrop.onChange = function () {
         var i = this.selection.index;
-        if (typeof changeIcon === 'function') {
-            changeIcon(i, prodIconGrp);
-        }
+        if (typeof changeIcon === 'function') { changeIcon(i, prodIconGrp); }
         try {
             if (userConfigFile) {
-                var userConfig = {};
-                if (userConfigFile.exists) {
-                    userConfigFile.open('r');
-                    var configContent = userConfigFile.read();
-                    userConfigFile.close();
-                    if (configContent) { try { userConfig = JSON.parse(configContent); } catch (jsonError) { userConfig = {}; } }
-                }
+                var userConfig = {}; if (userConfigFile.exists) { userConfigFile.open('r'); var configContent = userConfigFile.read(); userConfigFile.close(); if (configContent) { try { userConfig = JSON.parse(configContent); } catch (jsonError) { userConfig = {}; } } }
                 if (!userConfig.gnews_templates) { userConfig.gnews_templates = {}; }
                 userConfig.gnews_templates.lastProductionIndex = i;
-                userConfigFile.open('w');
-                userConfigFile.write(JSON.stringify(userConfig, null, '\t'));
-                userConfigFile.close();
+                userConfigFile.open('w'); userConfigFile.write(JSON.stringify(userConfig, null, '\t')); userConfigFile.close();
             }
         } catch (e) {}
         loadTemplatesFromCache();
     };
 
     flatViewCheckbox.onClick = function() {
-        // Recarrega a visualização (árvore ou lista) ao clicar
         performSearch(searchBox.isPlaceholderActive ? '' : searchBox.text);
     };
 
     D9T_TEMPLATES_w.onShow = function () {
-        extendedWidth = D9T_TEMPLATES_w.size.width;
-        compactWidth = extendedWidth - 680;
-        vGrp2.visible = true;
-        if (newDiv) newDiv.visible = true;
-        D9T_TEMPLATES_w.size.width = extendedWidth;
-        setLoadingState(true, 'Preparando interface...');
-        D9T_TEMPLATES_w.update();
-        for (var i = 0; i < validProductions.length; i++) {
-            loadCacheInBackground(validProductions[i].name);
-        }
+        extendedWidth = D9T_TEMPLATES_w.size.width; compactWidth = extendedWidth - 680; vGrp2.visible = true;
+        if (newDiv) newDiv.visible = true; D9T_TEMPLATES_w.size.width = extendedWidth;
+        setLoadingState(true, 'Preparando interface...'); D9T_TEMPLATES_w.update();
+        for (var i = 0; i < validProductions.length; i++) { loadCacheInBackground(validProductions[i].name); }
         setLoadingState(false);
         try {
             if (userConfigFile && userConfigFile.exists) {
-                userConfigFile.open('r');
-                var configContent = userConfigFile.read();
-                userConfigFile.close();
+                userConfigFile.open('r'); var configContent = userConfigFile.read(); userConfigFile.close();
                 if (configContent && configContent.trim() !== '') {
                     var centralConfig = JSON.parse(configContent);
                     if (centralConfig.gnews_templates && typeof centralConfig.gnews_templates.lastProductionIndex !== 'undefined') {
                         var lastIndex = parseInt(centralConfig.gnews_templates.lastProductionIndex);
-                        if (!isNaN(lastIndex) && lastIndex >= 0 && lastIndex < prodDrop.items.length) {
-                            prodDrop.selection = lastIndex;
-                        }
+                        if (!isNaN(lastIndex) && lastIndex >= 0 && lastIndex < prodDrop.items.length) { prodDrop.selection = lastIndex; }
                     }
                 }
             }
@@ -815,91 +684,39 @@ function d9TemplateDialog() {
         updateArteInfo();
     };
 
-	searchBox.onActivate = function() {
-		if (this.isPlaceholderActive) {
-			this.text = '';
-			this.isPlaceholderActive = false;
-			setFgColor(this, normalColor1);
-		}
-	};
-	searchBox.onDeactivate = function() {
-		if (this.text === '') {
-			this.text = placeholderText;
-			this.isPlaceholderActive = true;
-			setFgColor(this, monoColor0);
-			performSearch('');
-		}
-	};
-	searchBox.onChanging = function() {
-		if (!this.isPlaceholderActive) { performSearch(this.text); }
-	};
+	searchBox.onActivate = function() { if (this.isPlaceholderActive) { this.text = ''; this.isPlaceholderActive = false; setFgColor(this, normalColor1); } };
+	searchBox.onDeactivate = function() { if (this.text === '') { this.text = placeholderText; this.isPlaceholderActive = true; setFgColor(this, monoColor0); performSearch(''); } };
+	searchBox.onChanging = function() { if (!this.isPlaceholderActive) { performSearch(this.text); } };
 
 	function handleRefresh() {
-		templatesCache = {};
-		setLoadingState(true, 'Recarregando cache...');
-        D9T_TEMPLATES_w.update();
+		templatesCache = {}; setLoadingState(true, 'Recarregando cache...'); D9T_TEMPLATES_w.update();
 		try {
-            for (var i = 0; i < validProductions.length; i++) {
-                loadCacheInBackground(validProductions[i].name);
-            }
+            for (var i = 0; i < validProductions.length; i++) { loadCacheInBackground(validProductions[i].name); }
             loadTemplatesFromCache();
-		} catch (err) {
-			alert("Ocorreu um erro ao recarregar: " + err.message);
-		}
+		} catch (err) { alert("Ocorreu um erro ao recarregar: " + err.message); }
         setLoadingState(false);
 	}
-	if (refreshBtn && typeof refreshBtn.leftClick !== 'undefined') {
-		refreshBtn.leftClick.onClick = handleRefresh;
-	} else if (refreshBtn) {
-		refreshBtn.onClick = handleRefresh;
-	}
-
-	if (openFldBtn && typeof openFldBtn.leftClick !== 'undefined') {
-		openFldBtn.leftClick.onClick = function() { openTemplatesFolder(); };
-	} else if (openFldBtn) {
-		openFldBtn.onClick = function() { openTemplatesFolder(); };
-	}
+	if (refreshBtn && typeof refreshBtn.leftClick !== 'undefined') { refreshBtn.leftClick.onClick = handleRefresh; } else if (refreshBtn) { refreshBtn.onClick = handleRefresh; }
+	if (openFldBtn && typeof openFldBtn.leftClick !== 'undefined') { openFldBtn.leftClick.onClick = function() { openTemplatesFolder(); }; } else if (openFldBtn) { openFldBtn.onClick = function() { openTemplatesFolder(); }; }
 
 	function openTemplatesFolder() {
 		if (!prodDrop.selection) { alert("Nenhuma produção selecionada."); return; }
 		var selectedProduction = validProductions[prodDrop.selection.index];
 		var availablePaths = selectedProduction.paths;
 		if (!availablePaths || availablePaths.length === 0) { alert("Nenhum caminho configurado para a produção '" + selectedProduction.name + "'."); return; }
-		function openPath(pathString) {
-			var folderToShow = new Folder(pathString);
-			if (!folderToShow.exists) { alert("A pasta ('" + folderToShow.fsName + "') não foi encontrada."); return; }
-			folderToShow.execute();
-		}
-		if (availablePaths.length === 1) {
-			openPath(availablePaths[0]);
-		} else {
-			var pathSelectionWin = new Window('dialog', 'Selecionar Pasta');
-			pathSelectionWin.add('statictext', undefined, 'Escolha um caminho para abrir:');
-			var list = pathSelectionWin.add('listbox', undefined, availablePaths);
-			list.selection = 0;
-			var btnGrp = pathSelectionWin.add('group');
-			btnGrp.add('button', undefined, 'Cancelar', { name: 'cancel' });
-			var okBtn = btnGrp.add('button', undefined, 'Abrir', { name: 'ok' });
-			okBtn.onClick = function() {
-				if (list.selection) {
-					openPath(list.selection.text);
-					pathSelectionWin.close();
-				}
-			};
+		function openPath(pathString) { var folderToShow = new Folder(pathString); if (!folderToShow.exists) { alert("A pasta ('" + folderToShow.fsName + "') não foi encontrada."); return; } folderToShow.execute(); }
+		if (availablePaths.length === 1) { openPath(availablePaths[0]); } else {
+			var pathSelectionWin = new Window('dialog', 'Selecionar Pasta'); pathSelectionWin.add('statictext', undefined, 'Escolha um caminho para abrir:'); var list = pathSelectionWin.add('listbox', undefined, availablePaths); list.selection = 0;
+			var btnGrp = pathSelectionWin.add('group'); btnGrp.add('button', undefined, 'Cancelar', { name: 'cancel' }); var okBtn = btnGrp.add('button', undefined, 'Abrir', { name: 'ok' });
+			okBtn.onClick = function() { if (list.selection) { openPath(list.selection.text); pathSelectionWin.close(); } };
 			pathSelectionWin.show();
 		}
 	}
 
 	templateTree.onChange = function () {
-        if (this.selection != null && this.selection.type == 'node') {
-            this.selection = null;
-            return;
-        }
+        if (this.selection != null && this.selection.type == 'node') { this.selection = null; return; }
         updateArteInfo();
-        if (this.selection == null || !this.selection.filePath) {
-            try { openBtn.enabled = false; importBtn.enabled = false; } catch (e) {}
-            return;
-        }
+        if (this.selection == null || !this.selection.filePath) { try { openBtn.enabled = false; importBtn.enabled = false; } catch (e) {} return; }
         projectFile = new File(this.selection.filePath);
         if (typeof this.selection.modDate !== 'undefined' && this.selection.modDate !== null) {
             var fileSize = (this.selection.size / (1024 * 1024)).toFixed(2) + ' MB';
@@ -907,48 +724,24 @@ function d9TemplateDialog() {
             var formattedDate = ('0' + modDate.getDate()).slice(-2) + '/' + ('0' + (modDate.getMonth() + 1)).slice(-2) + '/' + modDate.getFullYear();
             this.selection.helpTip = 'Arquivo: ' + this.selection.text + '\nTamanho: ' + fileSize + '\nModificado em: ' + formattedDate;
         }
-
-        // ===== LÓGICA DE PREVIEW ATUALIZADA =====
         var previewBaseName = (typeof deleteFileExt === 'function' ? deleteFileExt(projectFile.displayName) : projectFile.displayName.replace(/\.[^\.]+$/, ''));
         var previewBase = projectFile.path + '/' + previewBaseName;
         var foundPreview = false;
-
-        // 1. Tenta encontrar o preview ao lado do arquivo
         previewFile = new File(previewBase + '_preview.png');
-        if (previewFile.exists) {
-            previewImg.image = previewFile;
-            foundPreview = true;
-        }
-        
-        // 2. Se não encontrar, procura na pasta _PREVIEWS
+        if (previewFile.exists) { previewImg.image = previewFile; foundPreview = true; }
         if (!foundPreview) {
             var previewFolder = new Folder(projectFile.path + '/_PREVIEWS');
             if (previewFolder.exists) {
-                // Tenta com sufixo _preview.png
                 var previewInFolder = new File(previewFolder.fullName + '/' + previewBaseName + '_preview.png');
-                if (previewInFolder.exists) {
-                    previewImg.image = previewInFolder;
-                    foundPreview = true;
-                } else {
-                    // Tenta com outros formatos de imagem (png, jpg)
+                if (previewInFolder.exists) { previewImg.image = previewInFolder; foundPreview = true; } else {
                     var potentialPreviews = previewFolder.getFiles(previewBaseName + '.*');
                     for (var p = 0; p < potentialPreviews.length; p++) {
-                        if (/\.(png|jpg|jpeg)$/i.test(potentialPreviews[p].name)) {
-                            previewImg.image = potentialPreviews[p];
-                            foundPreview = true;
-                            break;
-                        }
+                        if (/\.(png|jpg|jpeg)$/i.test(potentialPreviews[p].name)) { previewImg.image = potentialPreviews[p]; foundPreview = true; break; }
                     }
                 }
             }
         }
-
-        // 3. Se ainda não encontrou, usa a imagem padrão
-        if (!foundPreview && typeof no_preview !== 'undefined') {
-            previewImg.image = no_preview;
-        }
-        // ==========================================
-
+        if (!foundPreview && typeof no_preview !== 'undefined') { previewImg.image = no_preview; }
         try { openBtn.enabled = true; importBtn.enabled = true; } catch (e) {}
     };
 
@@ -957,36 +750,22 @@ function d9TemplateDialog() {
         if (codigo.length >= 3) {
             var arteInfo = getArteData(codigo);
             if (arteInfo) {
-                infoValues[0].text = arteInfo.nome || '';
-                infoValues[1].text = arteInfo.servidor || '';
-                infoValues[2].text = arteInfo.ultima_atualizacao || '';
-				infoValues[3].text = ''; // Versão não vem do JSON, limpa o campo
+                infoValues[0].text = arteInfo.nome || ''; infoValues[1].text = arteInfo.servidor || ''; infoValues[2].text = arteInfo.ultima_atualizacao || ''; infoValues[3].text = '';
             } else {
-                infoValues[0].text = '---';
-                infoValues[1].text = '---';
-                infoValues[2].text = '---';
-				infoValues[3].text = '---';
+                infoValues[0].text = '---'; infoValues[1].text = '---'; infoValues[2].text = '---'; infoValues[3].text = '---';
             }
         }
     };
 
-	templateTree.onActivate = function() {
-		try { openBtn.enabled = true; importBtn.enabled = true; } catch (e) {}
-	};
-	templateTree.onDoubleClick = function() {
-		if (this.selection != null && this.selection.filePath) { executeOpen(); }
-	};
-
+	templateTree.onActivate = function() { try { openBtn.enabled = true; importBtn.enabled = true; } catch (e) {} };
+	templateTree.onDoubleClick = function() { if (this.selection != null && this.selection.filePath) { executeOpen(); } };
 	if (openBtn && typeof openBtn.leftClick !== 'undefined') { openBtn.leftClick.onClick = function() { executeOpen(); }; } else if (openBtn) { openBtn.onClick = function() { executeOpen(); }; }
 	if (importBtn && typeof importBtn.leftClick !== 'undefined') { importBtn.leftClick.onClick = function() { executeImport(); }; } else if (importBtn) { importBtn.onClick = function() { executeImport(); }; }
 
 	function executeOpen() {
 		if (templateTree.selection && templateTree.selection.filePath) {
 			var fileToOpen = new File(templateTree.selection.filePath);
-			if (fileToOpen.exists) {
-				D9T_TEMPLATES_w.close();
-				app.open(fileToOpen);
-			} else { alert("Arquivo não encontrado."); }
+			if (fileToOpen.exists) { D9T_TEMPLATES_w.close(); app.open(fileToOpen); } else { alert("Arquivo não encontrado."); }
 		}
 	}
 
@@ -995,19 +774,14 @@ function d9TemplateDialog() {
 		var fileToImport = new File(templateTree.selection.filePath);
 		if (!fileToImport.exists) { alert("Arquivo não encontrado."); return; }
 		try {
-			app.project.bitsPerChannel = 8;
-			app.project.expressionEngine = 'javascript-1.0';
-			app.project.linearBlending = true;
-			app.project.timeDisplayType = TimeDisplayType.TIMECODE;
+			app.project.bitsPerChannel = 8; app.project.expressionEngine = 'javascript-1.0'; app.project.linearBlending = true; app.project.timeDisplayType = TimeDisplayType.TIMECODE;
 			var importOptions = new ImportOptions(fileToImport);
 			app.project.importFile(importOptions);
 			var templateName = fileToImport.name.replace(/\.[^\.]+$/, '');
 			logGNewsImport(templateName);
 			alert("Template '" + templateName + "' importado com sucesso!");
 			D9T_TEMPLATES_w.close();
-		} catch (e) {
-			alert("Erro ao importar template: " + e.message);
-		}
+		} catch (e) { alert("Erro ao importar template: " + e.message); }
 	}
 
 	function logGNewsImport(templateName) {
@@ -1022,32 +796,19 @@ function d9TemplateDialog() {
 			if (typeof saveLogData === 'function') {
 				saveLogData(logFile, logData);
 			} else {
-				if (!logFile.exists) {
-					logFile.open('w');
-					logFile.writeln('Template,Quantidade,Designer,Data,Hora,Codigo_Arte,Nome_Arte,Servidor_Destino');
-					logFile.close();
-				}
-				logFile.open('a');
-				logFile.writeln(logData);
-				logFile.close();
+				if (!logFile.exists) { logFile.open('w'); logFile.writeln('Template,Quantidade,Designer,Data,Hora,Codigo_Arte,Nome_Arte,Servidor_Destino'); logFile.close(); }
+				logFile.open('a'); logFile.writeln(logData); logFile.close();
 			}
 			if (typeof sendToWebhookWithCurl === 'function') {
 				var webhookURL = "";
-				var webData = {
-					template: templateName,
-					quantidade: 1,
-					designer: system.userName,
-					codigo_arte: codigoTxt.text.trim().toUpperCase(),
-					nome_arte: infoValues[0].text,
-					servidor_destino: infoValues[1].text
-				};
+				var webData = { template: templateName, quantidade: 1, designer: system.userName, codigo_arte: codigoTxt.text.trim().toUpperCase(), nome_arte: infoValues[0].text, servidor_destino: infoValues[1].text };
 				sendToWebhookWithCurl(webData, webhookURL);
 			}
 		} catch (err) {}
 	}
 
 	if (infoBtn && typeof infoBtn.leftClick !== 'undefined') { infoBtn.leftClick.onClick = function() { showHelpDialog(); }; } else if (infoBtn) { infoBtn.onClick = function() { showHelpDialog(); }; }
-	function showHelpDialog() { /* ... implementação da ajuda ... */ }
+	function showHelpDialog() { alert("Janela de Ajuda"); }
 	if (cancelBtn && typeof cancelBtn.leftClick !== 'undefined') { cancelBtn.leftClick.onClick = function() { D9T_TEMPLATES_w.close(); }; } else if (cancelBtn) { cancelBtn.onClick = function() { D9T_TEMPLATES_w.close(); }; }
 
 	D9T_TEMPLATES_w.center();
