@@ -1,24 +1,33 @@
 {
-	"PRODUCTIONS": [
-		{
-			"name": "Configuração de Caminhos",
-			"icon": "",
-			"templatesPath": "/t/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS",
-			"pecasGraficas": [
-				"/t/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS",
-				"/d/PROJETOS/SCRIPTS AFTER/files/templates"
-			],
-			"baseTematica": [
-				"/t/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS/Bases caracter/_BASES_TEMATICAS",
-				"/d/PROJETOS/SCRIPTS AFTER/files/BASE TEMATICAS"
-			],
-			"ilustracoes": [
-				"/t/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS/Ilustracoes",
-				"/d/PROJETOS/SCRIPTS AFTER/files/ILUSTRACAO"
-			]
-		}
-	],
-	"gnews_templates": {
-		"lastProductionIndex": 6
-	}
+  "PRODUCTIONS": [
+    {
+      "jornais": [
+        "/t/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS",
+        "/d/PROJETOS/SCRIPTS AFTER/files/templates"
+      ],
+      "promo": [
+        "/t/JORNALISMO/GLOBONEWS/PROMO/TEMPLATES"
+      ],
+      "programas": [
+        "~/Desktop"
+      ],
+      "eventos": [
+        "~/Desktop"
+      ],
+      "marketing": [
+        "~/Desktop"
+      ],
+      "baseTematica": [
+        "/t/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS/Bases caracter/_BASES_TEMATICAS",
+        "/d/PROJETOS/SCRIPTS AFTER/files/BASE TEMATICAS"
+      ],
+      "ilustracoes": [
+        "/t/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS/Ilustracoes",
+        "/d/PROJETOS/SCRIPTS AFTER/files/ILUSTRACAO"
+      ],
+      "name": "Configuração GNEWS",
+      "icon": "",
+      "templatesPath": "/t/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS"
+    }
+  ]
 }

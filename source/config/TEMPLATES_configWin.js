@@ -1,3 +1,6 @@
+// ADICIONADO: Garante que o script seja lido com a codificação correta para acentos.
+$.encoding = "UTF-8";
+
 /* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
 
@@ -174,6 +177,7 @@ function d9ProdFoldersDialog(prodArray) {
         catPathsGrp.margins = [20, 0, 0, 0];
         
         (function(grp, cat) {
+            cat.uiGroup = grp; // Armazena a referência ao grupo de UI
             for (var p = 0; p < cat.caminhos.length; p++) {
                 addPathLine(grp, cat.caminhos[p], cat.nome);
             }
@@ -252,21 +256,19 @@ function d9ProdFoldersDialog(prodArray) {
                 if (cacheFile.exists) {
                     try {
                         cacheFile.open('r');
-                        var content = cacheFile.read(); // Lê o conteúdo primeiro
+                        var content = cacheFile.read();
                         cacheFile.close();
-                        if(content && content.trim() !== '') { // Verifica se há conteúdo
+                        if(content && content.trim() !== '') {
                              masterCacheData = JSON.parse(content);
                         }
                         if (masterCacheData && masterCacheData[pathStr]) {
                             oldCount = countItemsInTree(masterCacheData[pathStr]);
                         }
                     } catch(e) { 
-                        masterCacheData = {}; // Se qualquer erro ocorrer, reseta o cache
+                        masterCacheData = {};
                     }
                 }
-
-                // CORREÇÃO: Garante que masterCacheData seja um objeto antes de usá-lo.
-                // Isso previne o erro "null is not an object".
+                
                 if (masterCacheData === null || typeof masterCacheData !== 'object') {
                     masterCacheData = {};
                 }
@@ -313,46 +315,105 @@ function d9ProdFoldersDialog(prodArray) {
     
     function setupButtonClick(btn, func) { if (btn.leftClick) { btn.leftClick.onClick = func; } else { btn.onClick = func; } }
     
+    // --- FUNÇÕES CORRIGIDAS E ADICIONADAS ---
+
+    // ADICIONADO: Função para salvar os dados da configuração no arquivo JSON central.
+    function saveProdData(dataToSave) {
+        var configFile = new File(scriptMainPath + 'source/config/TEMPLATES_config.json');
+        try {
+            configFile.encoding = "UTF-8"; // Garante a codificação correta na escrita
+            configFile.open('w');
+            // O arquivo de configuração espera um array, então envolvemos o objeto em um.
+            var configContainer = { "PRODUCTIONS": [dataToSave] };
+            configFile.write(JSON.stringify(configContainer, null, 2));
+            configFile.close();
+            return true;
+        } catch (e) {
+            alert("Erro ao salvar o arquivo de configuração:\n" + e.message);
+            return false;
+        }
+    }
+
+    // ADICIONADO: Função para repopular a UI após importar um arquivo.
+    function repopulateUI(configData) {
+        for (var i = 0; i < categorias.length; i++) {
+            var cat = categorias[i];
+            var paths = configData[cat.key] || [];
+            // Limpa os caminhos antigos da UI
+            while (cat.uiGroup.children.length > 0) {
+                cat.uiGroup.remove(cat.uiGroup.children[0]);
+            }
+            // Adiciona os novos caminhos
+            for (var p = 0; p < paths.length; p++) {
+                addPathLine(cat.uiGroup, paths[p], cat.nome);
+            }
+        }
+        D9T_CONFIG_w.layout.layout(true);
+    }
+    
     setupButtonClick(saveBtn, function () {
         try {
             var configData = collectConfigData();
-            if (typeof saveProdData === 'function') {
-                saveProdData([configData]);
+            if (saveProdData(configData)) {
+                 if (typeof D9T_prodArray !== 'undefined') {
+                    D9T_prodArray = [configData];
+                }
+                alert('Configuração salva com sucesso!\n\nUse o botão "Atualizar" (🔄) na janela de Templates para aplicar as mudanças.');
+                D9T_CONFIG_w.close();
             }
-            if (typeof D9T_prodArray !== 'undefined') {
-                D9T_prodArray = [configData];
+        } catch (err) { alert('Erro ao coletar dados para salvar: ' + err.message); }
+    });
+
+    // ADICIONADO: Lógica para o botão de Exportar.
+    setupButtonClick(exportBtn, function() {
+        var configData = collectConfigData();
+        var saveFile = File.saveDialog("Salvar configuração como...", "D9T_Templates_Config_*.json");
+        if (saveFile) {
+            try {
+                saveFile.encoding = "UTF-8";
+                saveFile.open('w');
+                saveFile.write(JSON.stringify(configData, null, 2));
+                saveFile.close();
+                alert("Configuração exportada com sucesso para:\n" + saveFile.fsName);
+            } catch (e) {
+                alert("Erro ao exportar o arquivo:\n" + e.message);
             }
-            alert('Configuração salva com sucesso!\n\nUse o botão "Atualizar" (🔄) na janela de Templates para recarregar do cache.');
-            D9T_CONFIG_w.close();
-        } catch (err) { alert('Erro ao salvar: ' + err.message); }
+        }
+    });
+
+    // ADICIONADO: Lógica para o botão de Importar.
+    setupButtonClick(importBtn, function() {
+        var configFile = File.openDialog("Selecione um arquivo de configuração (.json)", "*.json");
+        if (configFile) {
+            try {
+                configFile.encoding = "UTF-8";
+                configFile.open('r');
+                var content = configFile.read();
+                configFile.close();
+                var importedData = JSON.parse(content);
+                repopulateUI(importedData);
+                alert("Configuração importada com sucesso!");
+            } catch (e) {
+                alert("Erro ao importar o arquivo de configuração:\n" + e.message);
+            }
+        }
     });
     
     function collectConfigData() {
         var configOutput = {};
-        var allCatGrps = mainGrp.children;
-
-        for (var c = 0; c < allCatGrps.length; c++) {
-            if (allCatGrps[c] instanceof Group && allCatGrps[c].children.length > 0 && allCatGrps[c].children[0] instanceof StaticText && allCatGrps[c].children[0].text.indexOf(':') > -1) {
-                var catName = allCatGrps[c].children[0].text.replace(':', '');
-                var pathsGrp = allCatGrps[c + 1];
-                var caminhos = [];
-
-                if (pathsGrp && pathsGrp.children) {
-                    for (var i = 0; i < pathsGrp.children.length; i++) {
-                        caminhos.push(pathsGrp.children[i].children[1].properties.pathValue);
-                    }
-                }
-                
-                for (var k = 0; k < categorias.length; k++) {
-                    if (categorias[k].nome === catName) {
-                        configOutput[categorias[k].key] = caminhos;
-                        break;
-                    }
+        for (var i = 0; i < categorias.length; i++) {
+            var cat = categorias[i];
+            var caminhos = [];
+            if (cat.uiGroup && cat.uiGroup.children) {
+                for(var j = 0; j < cat.uiGroup.children.length; j++){
+                    // O StaticText com o caminho é o segundo elemento (índice 1) do grupo da linha
+                    caminhos.push(cat.uiGroup.children[j].children[1].properties.pathValue);
                 }
             }
+            configOutput[cat.key] = caminhos;
         }
         
-        configOutput.name = 'Configuração de Caminhos';
+        configOutput.name = 'Configuração GNEWS';
         configOutput.icon = '';
         configOutput.templatesPath = configOutput.jornais ? configOutput.jornais[0] : '';
 
