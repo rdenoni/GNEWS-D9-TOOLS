@@ -1,3 +1,6 @@
+// ADICIONADO: Garante que o script seja lido com a codificação correta para acentos.
+$.encoding = "UTF-8";
+
 /*
 ---------------------------------------------------------------
 > UI_FUNC.js - Interface e Layout Completo
@@ -494,24 +497,38 @@ function themeAltButton(sectionGrp, ctrlProperties) {
 }
 
 function drawThemeButton(button) {
-    button.onDraw = function () {
+    button.onDraw = function() {
         var g = this.graphics;
+        var w = this.size.width;
+        var h = this.size.height;
         var textPen = g.newPen(g.PenType.SOLID_COLOR, this.textColor, 1);
         var fillBrush = g.newBrush(g.BrushType.SOLID_COLOR, this.buttonColor);
-        var h = this.size.height;
-        var w = this.size.width;
+
+        // Desenha a forma do botão (lógica original mantida)
         g.ellipsePath(0, 0, h, h);
         g.ellipsePath(w - h, 0, h, h);
         g.rectPath(h / 2, 0, w - h, h);
         g.fillPath(fillBrush);
+
+        // --- CORREÇÃO: Lógica de centralização de texto revisada ---
         var textLinesArray = this.text.split("\n");
-        var pyInc = 12;
+        var approxLineHeight = 13; // Uma altura de linha aproximada para cálculo
+        var totalTextHeight = (textLinesArray.length -1) * approxLineHeight;
+
+        // Calcula o ponto Y inicial para o bloco de texto ficar centrado verticalmente
+        var startY = (h - totalTextHeight) / 2;
+
         for (var l = 0; l < textLinesArray.length; l++) {
-            var textSize = g.measureString(textLinesArray[l]);
+            var lineText = textLinesArray[l];
+            var textSize = g.measureString(lineText);
+
+            // Centraliza horizontalmente
             var px = (w - textSize.width) / 2;
-            var py = l == 0 ? (-(textLinesArray.length - 1) / 2) * pyInc : (py += pyInc);
-            if (typeof appV !== "undefined" && appV > 24 && l == 0) py += 8;
-            g.drawString(textLinesArray[l], textPen, px, py);
+
+            // Calcula a posição da linha de base (baseline) para a linha atual
+            var py = startY + (l * approxLineHeight);
+
+            g.drawString(lineText, textPen, px, py);
         }
     };
 }
