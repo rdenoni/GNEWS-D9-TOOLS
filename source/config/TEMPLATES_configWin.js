@@ -42,7 +42,6 @@ function getFolderStructureAsData(rootFolder, fileFilter, categoryName, progress
             if (upperCaseDisplayName === "ADOBE AFTER EFFECTS AUTO-SAVE" || upperCaseDisplayName.slice(-4) === '_AME') continue;
             if (categoryName === 'JORNAIS' && jornaisExclusions.indexOf(upperCaseDisplayName) > -1) continue;
             
-            // ALTERAÇÃO: Atualiza a janela de status com a pasta atual para melhor feedback.
             if (progress && progress.win) {
                 progress.win.update("Escaneando: " + item.displayName, progress.count);
             }
@@ -56,7 +55,7 @@ function getFolderStructureAsData(rootFolder, fileFilter, categoryName, progress
                 files.push({ type: 'item', text: item.displayName, filePath: item.fsName, size: item.length, modDate: item.modified.toUTCString() });
                 if (progress) {
                     progress.count++;
-                    if (progress.win && progress.count % 20 === 0) { // Atualiza a contagem a cada 20 arquivos
+                    if (progress.win && progress.count % 20 === 0) {
                         progress.win.update("Escaneando: " + rootFolder.displayName, progress.count);
                     }
                 }
@@ -74,7 +73,6 @@ function d9ProdFoldersDialog(prodArray) {
     if (!cacheFolder.exists) cacheFolder.create();
     var fileFilter = ['.aep', '.aet'];
     
-    // ALTERAÇÃO: Chaves ("keys") padronizadas para minúsculas e sem acentos.
     var categorias = [
         { nome: 'JORNAIS',       key: 'jornais',       caminhos: [] }, 
         { nome: 'PROMO',         key: 'promo',         caminhos: [] },
@@ -82,6 +80,7 @@ function d9ProdFoldersDialog(prodArray) {
         { nome: 'EVENTOS',       key: 'eventos',       caminhos: [] },
         { nome: 'MARKETING',     key: 'marketing',     caminhos: [] }, 
         { nome: 'BASE TEMÁTICA', key: 'basetematica',  caminhos: [] },
+        // CORREÇÃO: Chave padronizada para "ilustracoes" sem acentos.
         { nome: 'ILUSTRAÇÕES',   key: 'ilustracoes',   caminhos: [] }
     ];
 
@@ -90,7 +89,7 @@ function d9ProdFoldersDialog(prodArray) {
             var prodData = prodArray[0];
             for (var i = 0; i < categorias.length; i++) {
                 var cat = categorias[i];
-                if (cat.key === 'jornais' && prodData['pecasGraficas']) { // Mantém compatibilidade com a chave antiga
+                if (cat.key === 'jornais' && prodData['pecasGraficas']) {
                      cat.caminhos = prodData['pecasGraficas'] || [Folder.desktop.fullName];
                 } else if (prodData[cat.key] && prodData[cat.key].length > 0) {
                     cat.caminhos = prodData[cat.key];
@@ -103,7 +102,7 @@ function d9ProdFoldersDialog(prodArray) {
         var desktopPath = Folder.desktop.fullName;
         for (var j = 0; j < categorias.length; j++) { categorias[j].caminhos = [desktopPath]; }
     }
-    var D9T_CONFIG_w = new Window('dialog', scriptName + (typeof scriptVersion !== 'undefined' ? ' ' + scriptVersion : ''));
+    var D9T_CONFIG_w = new Window('dialog', scriptName + ' v1.1'); // Versão incrementada
     D9T_CONFIG_w.orientation = 'column'; D9T_CONFIG_w.alignChildren = ['center', 'top']; D9T_CONFIG_w.spacing = 12; D9T_CONFIG_w.margins = 16;
     var headerGrp = D9T_CONFIG_w.add('group');
     headerGrp.alignment = 'fill'; headerGrp.orientation = 'row';
