@@ -1,33 +1,36 @@
 {
-  "PRODUCTIONS": [
-    {
-      "jornais": [
-        "/t/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS",
-        "/d/PROJETOS/SCRIPTS AFTER/files/templates"
-      ],
-      "promo": [
-        "/t/JORNALISMO/GLOBONEWS/PROMO/TEMPLATES"
-      ],
-      "programas": [
-        "~/Desktop"
-      ],
-      "eventos": [
-        "/t/JORNALISMO/GLOBONEWS/EVENTOS"
-      ],
-      "marketing": [
-        "/t/JORNALISMO/GLOBONEWS/MARKETING"
-      ],
-      "baseTematica": [
-        "/t/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS/Bases caracter/_BASES_TEMATICAS",
-        "/d/PROJETOS/SCRIPTS AFTER/files/BASE TEMATICAS"
-      ],
-      "ilustracoes": [
-        "/t/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS/Ilustracoes",
-        "/d/PROJETOS/SCRIPTS AFTER/files/ILUSTRACAO"
-      ],
-      "name": "Configuração GNEWS",
-      "icon": "",
-      "templatesPath": "/t/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS"
-    }
-  ]
+	"PRODUCTIONS": [
+		{
+			"jornais": [
+				"/t/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS",
+				"/d/PROJETOS/SCRIPTS AFTER/files/templates"
+			],
+			"promo": [
+				"/t/JORNALISMO/GLOBONEWS/PROMO/TEMPLATES"
+			],
+			"programas": [
+				"/t/JORNALISMO/GLOBONEWS/PROGRAMAS"
+			],
+			"eventos": [
+				"/t/JORNALISMO/GLOBONEWS/EVENTOS"
+			],
+			"marketing": [
+				"/t/JORNALISMO/GLOBONEWS/MARKETING"
+			],
+			"baseTematica": [
+				"/t/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS/Bases caracter/_BASES_TEMATICAS",
+				"/d/PROJETOS/SCRIPTS AFTER/files/BASE TEMATICAS"
+			],
+			"ilustracoes": [
+				"/t/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS/Ilustracoes",
+				"/d/PROJETOS/SCRIPTS AFTER/files/ILUSTRACAO"
+			],
+			"name": "Configuração GNEWS",
+			"icon": "",
+			"templatesPath": "/t/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS"
+		}
+	],
+	"gnews_templates": {
+		"lastProductionIndex": 4
+	}
 }
