@@ -4,7 +4,7 @@
 
 function d9TemplateDialog() {
 	var scriptName = 'GNEWS TEMPLATES';
-	var scriptVersion = '3.0'; // Versão incrementada
+	var scriptVersion = '3.1'; // Versão incrementada
 	var compactWidth, extendedWidth;
 	var fileFilter = ['.aep', '.aet'];
 	var projectFile, previewFile, configFile, scriptFile, templateData;
@@ -170,43 +170,34 @@ function d9TemplateDialog() {
 	prodGrp.alignment = 'fill';
 	var prodIconGrp = prodGrp.add('group');
 	prodIconGrp.orientation = 'stack';
-	var prodDropItems = [];
-	var validProductions = [];
-	if (typeof D9T_prodArray !== 'undefined' && D9T_prodArray && D9T_prodArray.length > 0) {
+	
+    // ===== ALTERAÇÃO DOS MENUS DE PRODUÇÃO =====
+	var prodDropItems = ['JORNAIS', 'PROMO', 'PROGRAMAS', 'EVENTOS', 'MARKETING', 'BASE TEMÁTICA', 'ILUSTRAÇÕES'];
+    var validProductions = [
+        { name: 'JORNAIS', icon: 'D9T_TEMPPECAS_ICON', paths: [] }, // Renomeado
+        { name: 'PROMO', icon: 'D9T_TBASE_ICON', paths: [] },      // Adicionado
+        { name: 'PROGRAMAS', icon: 'D9T_TBASE_ICON', paths: [] },  // Adicionado
+        { name: 'EVENTOS', icon: 'D9T_TBASE_ICON', paths: [] },    // Adicionado
+        { name: 'MARKETING', icon: 'D9T_TBASE_ICON', paths: [] },  // Adicionado
+        { name: 'BASE TEMÁTICA', icon: 'D9T_TBASE_ICON', paths: [] },
+        { name: 'ILUSTRAÇÕES', icon: 'D9T_TILUSTRA_ICON', paths: [] }
+    ];
+
+    // Lógica para carregar os paths do arquivo de configuração, se existir
+    if (typeof D9T_prodArray !== 'undefined' && D9T_prodArray && D9T_prodArray.length > 0) {
 		if (D9T_prodArray.length === 1 && D9T_prodArray[0].pecasGraficas) {
-			var configData = D9T_prodArray[0];
-			validProductions = [{
-				name: 'PEÇAS GRÁFICAS',
-				icon: 'D9T_TEMPPECAS_ICON',
-				paths: configData.pecasGraficas || []
-			}, {
-				name: 'BASE TEMÁTICA',
-				icon: 'D9T_TBASE_ICON',
-				paths: configData.baseTematica || []
-			}, {
-				name: 'ILUSTRAÇÕES',
-				icon: 'D9T_TILUSTRA_ICON',
-				paths: configData.ilustracoes || []
-			}, ];
-			prodDropItems = ['PEÇAS GRÁFICAS', 'BASE TEMÁTICA', 'ILUSTRAÇÕES'];
-		}
-	}
-	if (validProductions.length === 0) {
-		validProductions = [{
-			name: 'PEÇAS GRÁFICAS',
-			icon: 'D9T_TEMPPECAS_ICON',
-			paths: []
-		}, {
-			name: 'BASE TEMÁTICA',
-			icon: 'D9T_TBASE_ICON',
-			paths: []
-		}, {
-			name: 'ILUSTRAÇÕES',
-			icon: 'D9T_TILUSTRA_ICON',
-			paths: []
-		}, ];
-		prodDropItems = ['PEÇAS GRÁFICAS', 'BASE TEMÁTICA', 'ILUSTRAÇÕES'];
-	}
+            var configData = D9T_prodArray[0];
+            // Mapeia os paths do config para os nomes corretos em validProductions
+            for(var i=0; i < validProductions.length; i++){
+                if(validProductions[i].name === 'JORNAIS') validProductions[i].paths = configData.pecasGraficas || [];
+                if(validProductions[i].name === 'BASE TEMÁTICA') validProductions[i].paths = configData.baseTematica || [];
+                if(validProductions[i].name === 'ILUSTRAÇÕES') validProductions[i].paths = configData.ilustracoes || [];
+                // Adicione aqui os paths para os novos menus se eles estiverem no seu JSON
+            }
+        }
+    }
+    // ===============================================
+
 	if (typeof populateMainIcons === 'function') {
 		populateMainIcons(prodIconGrp, validProductions);
 	}
@@ -233,17 +224,22 @@ function d9TemplateDialog() {
 	treeGrp.orientation = 'column';
 	treeGrp.spacing = 4;
 	var placeholderText = '⌕  Digite para Buscar...';
-	var searchBox = treeGrp.add('edittext', [0, 0, 320, 24], '');
-	searchBox.text = placeholderText;
-	searchBox.isPlaceholderActive = true;
-	setFgColor(searchBox, monoColor0);
-    // Adiciona o novo grupo para o checkbox e o label
+
+    // ===== ALTERAÇÃO DA POSIÇÃO DO CHECKBOX =====
+    // Grupo do checkbox foi movido para ANTES do searchBox
     var viewOptGrp = treeGrp.add('group');
     viewOptGrp.orientation = 'row';
     viewOptGrp.alignment = ['left', 'center'];
     var flatViewCheckbox = viewOptGrp.add('checkbox', undefined, 'Exibir em lista');
     setFgColor(flatViewCheckbox, normalColor1);
     flatViewCheckbox.helpTip = 'Marque para exibir todos os arquivos em uma lista plana, sem a hierarquia de pastas.';
+    flatViewCheckbox.value = true; // Define o checkbox como MARCADO por padrão
+
+	var searchBox = treeGrp.add('edittext', [0, 0, 320, 24], '');
+	searchBox.text = placeholderText;
+	searchBox.isPlaceholderActive = true;
+	setFgColor(searchBox, monoColor0);
+    // ==========================================
 
 	var treeContainerGrp = treeGrp.add('group', [0, 0, 320, 420]);
 	treeContainerGrp.orientation = 'stack';
@@ -304,75 +300,67 @@ function d9TemplateDialog() {
 	}
 
     // ===== BLOCO DE INFORMAÇÕES DA ARTE (RESTAURADO E CORRIGIDO) =====
-// Cria o grupo principal para as informações da arte
-var infoArteMainGrp = vGrp2.add('group');
-infoArteMainGrp.alignment = ['left', 'top'];
-infoArteMainGrp.spacing = 12;
+    var infoArteMainGrp = vGrp2.add('group');
+    infoArteMainGrp.alignment = ['left', 'top'];
+    infoArteMainGrp.spacing = 12;
 
-var arteInfoGrp = infoArteMainGrp.add('group');
-arteInfoGrp.orientation = 'column';
-arteInfoGrp.alignment = ['left', 'top'];
-arteInfoGrp.alignChildren = 'left';
+    var arteInfoGrp = infoArteMainGrp.add('group');
+    arteInfoGrp.orientation = 'column';
+    arteInfoGrp.alignment = ['left', 'top'];
+    arteInfoGrp.alignChildren = 'left';
 
-// Cabeçalho da seção
-var arteHeaderGrp = arteInfoGrp.add('group');
-arteHeaderGrp.alignment = 'fill';
-arteHeaderGrp.orientation = 'stack';
-var arteLabGrp = arteHeaderGrp.add('group');
-arteLabGrp.alignment = 'left';
-var arteLab = arteLabGrp.add('statictext', undefined, 'INFORMAÇÕES DA ARTE:');
-setFgColor(arteLab, normalColor1);
+    var arteHeaderGrp = arteInfoGrp.add('group');
+    arteHeaderGrp.alignment = 'fill';
+    arteHeaderGrp.orientation = 'stack';
+    var arteLabGrp = arteHeaderGrp.add('group');
+    arteLabGrp.alignment = 'left';
+    var arteLab = arteLabGrp.add('statictext', undefined, 'INFORMAÇÕES DA ARTE:');
+    setFgColor(arteLab, normalColor1);
 
-// Campo de texto para o "Código"
-var codigoGrp = arteInfoGrp.add('group');
-codigoGrp.orientation = 'row';
-codigoGrp.alignChildren = ['left', 'center'];
-codigoGrp.spacing = 8;
-codigoGrp.margins = [0, 8, 0, 0];
-var codigoLab = codigoGrp.add('statictext', undefined, 'Código:');
-codigoLab.preferredSize.width = 60;
-setFgColor(codigoLab, monoColor0);
-var codigoTxt = codigoGrp.add('edittext', [0, 0, 120, 24], '');
-codigoTxt.helpTip = 'Digite o codigo da arte (ex: GNVZ036)';
+    var codigoGrp = arteInfoGrp.add('group');
+    codigoGrp.orientation = 'row';
+    codigoGrp.alignChildren = ['left', 'center'];
+    codigoGrp.spacing = 8;
+    codigoGrp.margins = [0, 8, 0, 0];
+    var codigoLab = codigoGrp.add('statictext', undefined, 'Código:');
+    codigoLab.preferredSize.width = 60;
+    setFgColor(codigoLab, monoColor0);
+    var codigoTxt = codigoGrp.add('edittext', [0, 0, 120, 24], '');
+    codigoTxt.helpTip = 'Digite o codigo da arte (ex: GNVZ036)';
 
-// Definição das linhas de informação
-var infoRows = [{
-    label: 'Nome da Arte:',
-    value: '---'
-}, {
-    label: 'Servidor Destino:',
-    value: '---'
-}, {
-    label: 'Última Atualização:',
-    value: '---'
-}, {
-    label: 'Versão:',
-    value: '---'
-}];
+    var infoRows = [{
+        label: 'Nome da Arte:',
+        value: '---'
+    }, {
+        label: 'Servidor Destino:',
+        value: '---'
+    }, {
+        label: 'Última Atualização:',
+        value: '---'
+    }, {
+        label: 'Versão:',
+        value: '---'
+    }];
 
-// Loop que cria os labels e os campos de valor (COM A CORREÇÃO)
-var infoLabels = [],
-    infoValues = [];
-for (var r = 0; r < infoRows.length; r++) {
-    var infoRow = arteInfoGrp.add('group');
-    infoRow.orientation = 'row';
-    infoRow.alignChildren = ['left', 'center'];
-    infoRow.spacing = 8;
-    infoRow.margins = [0, 2, 0, 0];
-    
-    // Cria o Rótulo (ex: "Nome da Arte:")
-    var label = infoRow.add('statictext', undefined, infoRows[r].label);
-    label.preferredSize.width = 100;
-    setFgColor(label, monoColor0);
-    infoLabels.push(label);
-    
-    // Cria o campo de Valor (ex: "---")
-    var value = infoRow.add('statictext', undefined, infoRows[r].value);
-    // ✅ ESTA É A CORREÇÃO: Define uma largura fixa para o campo de texto
-    value.preferredSize.width = 180; 
-    setFgColor(value, normalColor2);
-    infoValues.push(value);
-}
+    var infoLabels = [],
+        infoValues = [];
+    for (var r = 0; r < infoRows.length; r++) {
+        var infoRow = arteInfoGrp.add('group');
+        infoRow.orientation = 'row';
+        infoRow.alignChildren = ['left', 'center'];
+        infoRow.spacing = 8;
+        infoRow.margins = [0, 2, 0, 0];
+        
+        var label = infoRow.add('statictext', undefined, infoRows[r].label);
+        label.preferredSize.width = 100;
+        setFgColor(label, monoColor0);
+        infoLabels.push(label);
+        
+        var value = infoRow.add('statictext', undefined, infoRows[r].value);
+        value.preferredSize.width = 180; 
+        setFgColor(value, normalColor2);
+        infoValues.push(value);
+    }
     // ===================================================================
 
 	var rBtnGrp2 = vGrp2.add('group');
@@ -533,11 +521,13 @@ for (var r = 0; r < infoRows.length; r++) {
 	function loadCacheInBackground(prodName) {
 		if (templatesCache[prodName]) return;
 		var cacheFileName;
+        // Mapeamento de nomes de produção para nomes de arquivo de cache
 		switch (prodName) {
-			case 'PEÇAS GRÁFICAS': cacheFileName = 'templates_pecas_cache.json'; break;
+			case 'JORNAIS': cacheFileName = 'templates_pecas_cache.json'; break;
 			case 'BASE TEMÁTICA': cacheFileName = 'templates_base_cache.json'; break;
 			case 'ILUSTRAÇÕES': cacheFileName = 'templates_ilustra_cache.json'; break;
-			default: cacheFileName = prodName.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '_cache.json'; break;
+            // Para os novos, um padrão genérico
+			default: cacheFileName = 'templates_' + prodName.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '_cache.json'; break;
 		}
 		var templatesCacheFile = new File(cacheFolder.fullName + '/' + cacheFileName);
 		if (templatesCacheFile.exists) {
@@ -557,7 +547,7 @@ for (var r = 0; r < infoRows.length; r++) {
 				templatesCache[prodName] = [{ type: 'item', text: 'Erro ao ler o cache.' }];
 			}
 		} else {
-			templatesCache[prodName] = [{ type: 'item', text: 'Cache não encontrado.' }];
+			templatesCache[prodName] = [{ type: 'item', text: 'Cache para "' + prodName + '" não encontrado.' }];
 		}
 	}
 
@@ -596,11 +586,9 @@ for (var r = 0; r < infoRows.length; r++) {
         }
     }
 
-    // Função que popula a árvore com uma lista simples de arquivos
     function populateTreeFromList(treeNode, dataArray) {
         treeNode.visible = false;
         try {
-            // Usa a função flattenData para converter a hierarquia em uma lista simples
             var flatList = flattenData(dataArray);
 
             var batchSize = 50;
@@ -640,7 +628,6 @@ for (var r = 0; r < infoRows.length; r++) {
         }
         var data = templatesCache[prodName];
         if (data && data.length > 0) {
-            // Nova lógica: alternar entre visualização de árvore e lista
             if (flatViewCheckbox.value) {
                 populateTreeFromList(templateTree, data);
             } else {
@@ -648,7 +635,7 @@ for (var r = 0; r < infoRows.length; r++) {
                 expandAllNodes(templateTree);
             }
         } else {
-            templateTree.add('item', 'Nenhum item encontrado para esta categoria.');
+            templateTree.add('item', 'Nenhum item encontrado para "' + prodName + '".');
         }
         updateItemCounter();
     }
@@ -678,7 +665,7 @@ for (var r = 0; r < infoRows.length; r++) {
 		templateTree.visible = !isLoading;
 		searchBox.enabled = !isLoading;
 		prodDrop.enabled = !isLoading;
-        flatViewCheckbox.enabled = !isLoading; // Desabilita o checkbox durante o carregamento
+        flatViewCheckbox.enabled = !isLoading;
 	}
 
     function expandAllNodes(tree) {
@@ -791,7 +778,8 @@ for (var r = 0; r < infoRows.length; r++) {
     };
 
     flatViewCheckbox.onClick = function() {
-        loadTemplatesFromCache();
+        // Recarrega a visualização (árvore ou lista) ao clicar
+        performSearch(searchBox.isPlaceholderActive ? '' : searchBox.text);
     };
 
     D9T_TEMPLATES_w.onShow = function () {
@@ -824,7 +812,7 @@ for (var r = 0; r < infoRows.length; r++) {
         } catch (e) {}
         loadTemplatesFromCache();
         searchBox.active = true;
-        updateArteInfo(); // Chama a função para popular a info inicial
+        updateArteInfo();
     };
 
 	searchBox.onActivate = function() {
@@ -902,7 +890,6 @@ for (var r = 0; r < infoRows.length; r++) {
 		}
 	}
 
-    // ===== EVENTOS DE INFO DA ARTE (RESTAURADOS) =====
 	templateTree.onChange = function () {
         if (this.selection != null && this.selection.type == 'node') {
             this.selection = null;
@@ -920,15 +907,48 @@ for (var r = 0; r < infoRows.length; r++) {
             var formattedDate = ('0' + modDate.getDate()).slice(-2) + '/' + ('0' + (modDate.getMonth() + 1)).slice(-2) + '/' + modDate.getFullYear();
             this.selection.helpTip = 'Arquivo: ' + this.selection.text + '\nTamanho: ' + fileSize + '\nModificado em: ' + formattedDate;
         }
-        var previewBase = projectFile.path + '/' + (typeof deleteFileExt === 'function' ? deleteFileExt(projectFile.displayName) : projectFile.displayName.replace(/\.[^\.]+$/, ''));
+
+        // ===== LÓGICA DE PREVIEW ATUALIZADA =====
+        var previewBaseName = (typeof deleteFileExt === 'function' ? deleteFileExt(projectFile.displayName) : projectFile.displayName.replace(/\.[^\.]+$/, ''));
+        var previewBase = projectFile.path + '/' + previewBaseName;
+        var foundPreview = false;
+
+        // 1. Tenta encontrar o preview ao lado do arquivo
         previewFile = new File(previewBase + '_preview.png');
         if (previewFile.exists) {
             previewImg.image = previewFile;
-        } else {
-            if (typeof no_preview !== 'undefined') {
-                previewImg.image = no_preview;
+            foundPreview = true;
+        }
+        
+        // 2. Se não encontrar, procura na pasta _PREVIEWS
+        if (!foundPreview) {
+            var previewFolder = new Folder(projectFile.path + '/_PREVIEWS');
+            if (previewFolder.exists) {
+                // Tenta com sufixo _preview.png
+                var previewInFolder = new File(previewFolder.fullName + '/' + previewBaseName + '_preview.png');
+                if (previewInFolder.exists) {
+                    previewImg.image = previewInFolder;
+                    foundPreview = true;
+                } else {
+                    // Tenta com outros formatos de imagem (png, jpg)
+                    var potentialPreviews = previewFolder.getFiles(previewBaseName + '.*');
+                    for (var p = 0; p < potentialPreviews.length; p++) {
+                        if (/\.(png|jpg|jpeg)$/i.test(potentialPreviews[p].name)) {
+                            previewImg.image = potentialPreviews[p];
+                            foundPreview = true;
+                            break;
+                        }
+                    }
+                }
             }
         }
+
+        // 3. Se ainda não encontrou, usa a imagem padrão
+        if (!foundPreview && typeof no_preview !== 'undefined') {
+            previewImg.image = no_preview;
+        }
+        // ==========================================
+
         try { openBtn.enabled = true; importBtn.enabled = true; } catch (e) {}
     };
 
@@ -949,7 +969,6 @@ for (var r = 0; r < infoRows.length; r++) {
             }
         }
     };
-	// =========================================================
 
 	templateTree.onActivate = function() {
 		try { openBtn.enabled = true; importBtn.enabled = true; } catch (e) {}
