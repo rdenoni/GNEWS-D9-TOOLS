@@ -496,6 +496,9 @@ function themeAltButton(sectionGrp, ctrlProperties) {
     } catch (err) { alert("Erro no themeAltButton: " + err.message); return null; }
 }
 
+// ======================================================================
+// >>>>>>>>>>>>>>>> FUNÇÃO drawThemeButton - VERSÃO CORRIGIDA <<<<<<<<<<<<<<<<
+// ======================================================================
 function drawThemeButton(button) {
     button.onDraw = function() {
         var g = this.graphics;
@@ -504,34 +507,41 @@ function drawThemeButton(button) {
         var textPen = g.newPen(g.PenType.SOLID_COLOR, this.textColor, 1);
         var fillBrush = g.newBrush(g.BrushType.SOLID_COLOR, this.buttonColor);
 
-        // Desenha a forma do botão (lógica original mantida)
+        // 1. Desenha a forma do botão (esta parte está correta)
         g.ellipsePath(0, 0, h, h);
         g.ellipsePath(w - h, 0, h, h);
         g.rectPath(h / 2, 0, w - h, h);
         g.fillPath(fillBrush);
 
-        // --- CORREÇÃO: Lógica de centralização de texto revisada ---
+        // --- LÓGICA DE CENTRALIZAÇÃO DE TEXTO (VERSÃO MELHORADA) ---
         var textLinesArray = this.text.split("\n");
-        var approxLineHeight = 13; // Uma altura de linha aproximada para cálculo
-        var totalTextHeight = (textLinesArray.length -1) * approxLineHeight;
+        
+        // 2. Parâmetros do texto
+        var fontHeight = 12; // Altura aproximada da fonte
+        var totalTextHeight = textLinesArray.length * fontHeight;
 
-        // Calcula o ponto Y inicial para o bloco de texto ficar centrado verticalmente
+        // 3. Calcula a posição Y inicial para o bloco de texto
+        // Isso encontra a "margem superior" para que o bloco de texto fique centrado
         var startY = (h - totalTextHeight) / 2;
 
+        // 4. Desenha cada linha de texto
         for (var l = 0; l < textLinesArray.length; l++) {
             var lineText = textLinesArray[l];
             var textSize = g.measureString(lineText);
 
-            // Centraliza horizontalmente
+            // Posição X: Centraliza o texto horizontalmente
             var px = (w - textSize.width) / 2;
 
-            // Calcula a posição da linha de base (baseline) para a linha atual
-            var py = startY + (l * approxLineHeight);
+            // Posição Y: Calcula a posição da 'baseline' (linha de base da fonte)
+            // O valor '10' é um ajuste para alinhar a baseline corretamente no centro vertical
+            var baselineOffset = 10;
+            var py = startY + (l * fontHeight) + baselineOffset;
 
             g.drawString(lineText, textPen, px, py);
         }
     };
 }
+
 
 function drawThemeAltButton(button) {
     var g = button.graphics;
