@@ -301,3 +301,17 @@ function populateTreeFromData(treeNode, dataArray) {
         }
     }
 }
+
+// Nova função para converter a hierarquia de dados em uma lista plana de itens
+function flattenData(dataArray) {
+    var flatList = [];
+    for (var i = 0; i < dataArray.length; i++) {
+        var item = dataArray[i];
+        if (item.type === 'item') {
+            flatList.push(item);
+        } else if (item.type === 'node' && item.children) {
+            flatList = flatList.concat(flattenData(item.children));
+        }
+    }
+    return flatList;
+}

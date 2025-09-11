@@ -237,6 +237,14 @@ function d9TemplateDialog() {
 	searchBox.text = placeholderText;
 	searchBox.isPlaceholderActive = true;
 	setFgColor(searchBox, monoColor0);
+    // Adiciona o novo grupo para o checkbox e o label
+    var viewOptGrp = treeGrp.add('group');
+    viewOptGrp.orientation = 'row';
+    viewOptGrp.alignment = ['left', 'center'];
+    var flatViewCheckbox = viewOptGrp.add('checkbox', undefined, 'Exibir em lista');
+    setFgColor(flatViewCheckbox, normalColor1);
+    flatViewCheckbox.helpTip = 'Marque para exibir todos os arquivos em uma lista plana, sem a hierarquia de pastas.';
+
 	var treeContainerGrp = treeGrp.add('group', [0, 0, 320, 420]);
 	treeContainerGrp.orientation = 'stack';
 	treeContainerGrp.alignment = ['fill', 'fill'];
@@ -588,7 +596,40 @@ for (var r = 0; r < infoRows.length; r++) {
         }
     }
 
-    function loadTemplatesFromCache() {
+    // Função que popula a árvore com uma lista simples de arquivos
+    function populateTreeFromList(treeNode, dataArray) {
+        treeNode.visible = false;
+        try {
+            // Usa a função flattenData para converter a hierarquia em uma lista simples
+            var flatList = flattenData(dataArray);
+
+            var batchSize = 50;
+            var currentBatch = 0;
+            function processBatch() {
+                var endIndex = Math.min(currentBatch + batchSize, flatList.length);
+                for (var i = currentBatch; i < endIndex; i++) {
+                    var itemData = flatList[i];
+                    var item = treeNode.add('item', itemData.text);
+                    if (typeof D9T_AE_ICON !== 'undefined') {
+                        item.image = D9T_AE_ICON;
+                    }
+                    item.filePath = itemData.filePath;
+                    item.modDate = itemData.modDate;
+                    item.size = itemData.size;
+                }
+                currentBatch = endIndex;
+                if (currentBatch < flatList.length) {
+                    $.sleep(1);
+                    processBatch();
+                }
+            }
+            processBatch();
+        } finally {
+            treeNode.visible = true;
+        }
+    }
+
+	function loadTemplatesFromCache() {
         var prodName = validProductions[prodDrop.selection.index].name;
         templateTree.removeAll();
         if (!templatesCache[prodName]) {
@@ -599,8 +640,13 @@ for (var r = 0; r < infoRows.length; r++) {
         }
         var data = templatesCache[prodName];
         if (data && data.length > 0) {
-            populateTreeFromDataOptimized(templateTree, data);
-            expandAllNodes(templateTree);
+            // Nova lógica: alternar entre visualização de árvore e lista
+            if (flatViewCheckbox.value) {
+                populateTreeFromList(templateTree, data);
+            } else {
+                populateTreeFromDataOptimized(templateTree, data);
+                expandAllNodes(templateTree);
+            }
         } else {
             templateTree.add('item', 'Nenhum item encontrado para esta categoria.');
         }
@@ -632,6 +678,7 @@ for (var r = 0; r < infoRows.length; r++) {
 		templateTree.visible = !isLoading;
 		searchBox.enabled = !isLoading;
 		prodDrop.enabled = !isLoading;
+        flatViewCheckbox.enabled = !isLoading; // Desabilita o checkbox durante o carregamento
 	}
 
     function expandAllNodes(tree) {
@@ -663,7 +710,11 @@ for (var r = 0; r < infoRows.length; r++) {
         try {
             templateTree.removeAll();
             if (searchTerm === '') {
-                populateTreeFromDataOptimized(templateTree, masterData);
+                if (flatViewCheckbox.value) {
+                    populateTreeFromList(templateTree, masterData);
+                } else {
+                    populateTreeFromDataOptimized(templateTree, masterData);
+                }
             } else {
                 var searchTermUpper = searchTerm.toUpperCase();
                 var cleanSearchTerm = searchTermUpper;
@@ -698,9 +749,15 @@ for (var r = 0; r < infoRows.length; r++) {
                     return filteredList;
                 }
                 var filteredTreeData = filterData(masterData);
-                populateTreeFromDataOptimized(templateTree, filteredTreeData);
+                if (flatViewCheckbox.value) {
+                    populateTreeFromList(templateTree, filteredTreeData);
+                } else {
+                    populateTreeFromDataOptimized(templateTree, filteredTreeData);
+                }
             }
-            expandAllNodes(templateTree);
+            if (!flatViewCheckbox.value) {
+                expandAllNodes(templateTree);
+            }
         } finally {
             templateTree.visible = true;
         }
@@ -730,6 +787,10 @@ for (var r = 0; r < infoRows.length; r++) {
                 userConfigFile.close();
             }
         } catch (e) {}
+        loadTemplatesFromCache();
+    };
+
+    flatViewCheckbox.onClick = function() {
         loadTemplatesFromCache();
     };
 
