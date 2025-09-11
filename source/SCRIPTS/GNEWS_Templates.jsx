@@ -1,7 +1,7 @@
 $.encoding = "UTF-8";
 
 // =============================================================================
-// GNEWS TEMPLATES - V3.3
+// GNEWS TEMPLATES - V3.5
 // =============================================================================
 
 function createStatusWindow(title) {
@@ -29,7 +29,7 @@ function createStatusWindow(title) {
 
 function d9TemplateDialog() {
   var scriptName = "GNEWS TEMPLATES";
-  var scriptVersion = "3.3";
+  var scriptVersion = "3.5"; // Versão incrementada
   var fileFilter = [".aep", ".aet"];
   var projectFile;
   var lClick = typeof lClick !== "undefined" ? lClick : "Clique: ";
@@ -158,28 +158,33 @@ function d9TemplateDialog() {
     "ILUSTRAÇÕES",
   ];
   var validProductions = [
-    { name: "JORNAIS", icon: "D9T_TEMPPECAS_ICON", paths: [] },
-    { name: "PROMO", icon: "D9T_TBASE_ICON", paths: [] },
-    { name: "PROGRAMAS", icon: "D9T_TBASE_ICON", paths: [] },
-    { name: "EVENTOS", icon: "D9T_TBASE_ICON", paths: [] },
-    { name: "MARKETING", icon: "D9T_TBASE_ICON", paths: [] },
-    { name: "BASE TEMÁTICA", icon: "D9T_TBASE_ICON", paths: [] },
-    { name: "ILUSTRAÇÕES", icon: "D9T_TILUSTRA_ICON", paths: [] },
+    { name: "JORNAIS", key: "jornais", icon: "D9T_TEMPPECAS_ICON", paths: [] },
+    { name: "PROMO", key: "promo", icon: "D9T_TBASE_ICON", paths: [] },
+    { name: "PROGRAMAS", key: "programas", icon: "D9T_TBASE_ICON", paths: [] },
+    { name: "EVENTOS", key: "eventos", icon: "D9T_TBASE_ICON", paths: [] },
+    { name: "MARKETING", key: "marketing", icon: "D9T_TBASE_ICON", paths: [] },
+    {
+      name: "BASE TEMÁTICA",
+      key: "basetematica",
+      icon: "D9T_TBASE_ICON",
+      paths: [],
+    },
+    {
+      name: "ILUSTRAÇÕES",
+      key: "ilustracoes",
+      icon: "D9T_TILUSTRA_ICON",
+      paths: [],
+    },
   ];
-  if (
-    typeof D9T_prodArray !== "undefined" &&
-    D9T_prodArray &&
-    D9T_prodArray.length > 0
-  ) {
-    if (D9T_prodArray.length === 1) {
+  if (typeof D9T_prodArray !== "undefined" && D9T_prodArray.length > 0) {
+    if (D9T_prodArray[0]) {
       var configData = D9T_prodArray[0];
       for (var i = 0; i < validProductions.length; i++) {
         var prod = validProductions[i];
-        var key = (prod.key || prod.name.toLowerCase()).replace(/\s/g, "");
-        if (key === "jornais" && configData["pecasGraficas"]) {
+        if (prod.key === "jornais" && configData["pecasGraficas"]) {
           prod.paths = configData["pecasGraficas"] || [];
-        } else if (configData[key]) {
-          prod.paths = configData[key] || [];
+        } else if (configData[prod.key]) {
+          prod.paths = configData[prod.key] || [];
         }
       }
     }
@@ -197,22 +202,16 @@ function d9TemplateDialog() {
     divProd = themeDivider(vGrp1);
     divProd.alignment = ["fill", "center"];
   }
-
-  // ALTERAÇÃO: Grupo de cabeçalho para alinhar "BUSCA" e "Exibir em lista".
   var templatesHeaderGrp = vGrp1.add("group");
   templatesHeaderGrp.orientation = "row";
   templatesHeaderGrp.alignment = "fill";
   var templateLab = templatesHeaderGrp.add("statictext", undefined, "BUSCA:");
   templateLab.alignment = ["left", "center"];
   setFgColor(templateLab, normalColor1);
-
   var templatesHeaderOptionsGrp = templatesHeaderGrp.add("group");
   templatesHeaderOptionsGrp.orientation = "row";
   templatesHeaderOptionsGrp.alignment = ["right", "center"];
-  var viewOptGrp = templatesHeaderOptionsGrp.add("group");
-  viewOptGrp.orientation = "row";
-  viewOptGrp.alignment = ["right", "center"];
-  var flatViewCheckbox = viewOptGrp.add(
+  var flatViewCheckbox = templatesHeaderOptionsGrp.add(
     "checkbox",
     undefined,
     "Exibir em lista"
@@ -230,7 +229,6 @@ function d9TemplateDialog() {
   itemCounterLab.alignment = ["right", "center"];
   itemCounterLab.characters = 10;
   setFgColor(itemCounterLab, monoColor1);
-
   var treeGrp = vGrp1.add("group");
   treeGrp.orientation = "column";
   treeGrp.spacing = 4;
@@ -588,9 +586,7 @@ function d9TemplateDialog() {
         ];
       }
     } else {
-      templatesCache[prodName] = [
-        { type: "item", text: 'Cache para "' + prodName + '" não encontrado.' },
-      ];
+      templatesCache[prodName] = [];
     }
   }
   function populateTreeFromDataOptimized(treeNode, dataArray) {
@@ -624,15 +620,19 @@ function d9TemplateDialog() {
         if (currentBatch < dataArray.length) {
           $.sleep(1);
           processBatch();
+        } else {
+          treeNode.visible = true;
         }
       }
       processBatch();
     } finally {
-      treeNode.visible = true;
+      if (!treeNode.visible) treeNode.visible = true;
     }
   }
+
+  // ALTERAÇÃO: Função corrigida para usar um laço 'while' e evitar o erro "Stack overrun".
   function populateTreeFromList(treeNode, dataArray) {
-    var statusWin;
+    var statusWin = null;
     try {
       var flatList = flattenData(dataArray);
       if (flatList.length === 0) {
@@ -644,10 +644,10 @@ function d9TemplateDialog() {
       statusWin.update("Carregando itens...", 0, flatList.length);
       treeNode.visible = false;
       var batchSize = 50;
-      var currentBatch = 0;
-      function processBatch() {
-        var endIndex = Math.min(currentBatch + batchSize, flatList.length);
-        for (var i = currentBatch; i < endIndex; i++) {
+      var currentIndex = 0;
+      while (currentIndex < flatList.length) {
+        var endIndex = Math.min(currentIndex + batchSize, flatList.length);
+        for (var i = currentIndex; i < endIndex; i++) {
           var itemData = flatList[i];
           var item = treeNode.add("item", itemData.text);
           if (typeof D9T_AE_ICON !== "undefined") {
@@ -657,23 +657,18 @@ function d9TemplateDialog() {
           item.modDate = itemData.modDate;
           item.size = itemData.size;
         }
-        currentBatch = endIndex;
-        statusWin.update("Carregando itens...", currentBatch, flatList.length);
-        if (currentBatch < flatList.length) {
-          $.sleep(1);
-          processBatch();
-        } else {
-          statusWin.close();
-          treeNode.visible = true;
-        }
+        currentIndex = endIndex;
+        statusWin.update("Carregando itens...", currentIndex, flatList.length);
+        $.sleep(1);
       }
-      processBatch();
     } catch (e) {
+      alert("Erro ao popular a lista: " + e.message);
+    } finally {
       if (statusWin) statusWin.close();
       treeNode.visible = true;
-      alert("Erro ao popular a lista: " + e.message);
     }
   }
+
   function loadTemplatesFromCache() {
     var prodName = validProductions[prodDrop.selection.index].name;
     templateTree.removeAll();
@@ -884,7 +879,7 @@ function d9TemplateDialog() {
     loadTemplatesFromCache();
     searchBox.active = true;
     updateArteInfo();
-    vGrp2.visible = true; // Mostra o painel direito após tudo carregado
+    vGrp2.visible = true;
     D9T_TEMPLATES_w.layout.layout(true);
   };
   searchBox.onActivate = function () {
@@ -1082,7 +1077,7 @@ function d9TemplateDialog() {
   };
   templateTree.onDoubleClick = function () {
     if (this.selection != null && this.selection.filePath) {
-      executeOpen();
+      executeImport();
     }
   };
   if (openBtn && typeof openBtn.leftClick !== "undefined") {
@@ -1198,16 +1193,20 @@ function d9TemplateDialog() {
   }
   if (infoBtn && typeof infoBtn.leftClick !== "undefined") {
     infoBtn.leftClick.onClick = function () {
-      showHelpDialog();
+      if (typeof showTemplatesHelp === "function") {
+        showTemplatesHelp();
+      } else {
+        alert("Arquivo de ajuda (HELP lib.js) não foi carregado corretamente.");
+      }
     };
   } else if (infoBtn) {
     infoBtn.onClick = function () {
-      showHelpDialog();
+      if (typeof showTemplatesHelp === "function") {
+        showTemplatesHelp();
+      } else {
+        alert("Arquivo de ajuda (HELP lib.js) não foi carregado corretamente.");
+      }
     };
-  }
-  function showHelpDialog() {
-    if (typeof showTemplatesHelp === "function") showTemplatesHelp();
-    else alert("Função de ajuda não encontrada.");
   }
   D9T_TEMPLATES_w.center();
   D9T_TEMPLATES_w.show();
