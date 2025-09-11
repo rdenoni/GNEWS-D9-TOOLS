@@ -14,7 +14,8 @@ function countItemsInTree(nodes) {
     return count;
 }
 
-function getFolderStructureAsData(rootFolder, fileFilter) {
+// ALTERAÇÃO: A função agora aceita 'categoryName' para aplicar regras específicas.
+function getFolderStructureAsData(rootFolder, fileFilter, categoryName) {
     if (!rootFolder.exists) return [];
     var allItems;
     try {
@@ -27,14 +28,36 @@ function getFolderStructureAsData(rootFolder, fileFilter) {
     var folders = [];
     var files = [];
 
+    // ALTERAÇÃO: Lista de pastas a serem ignoradas especificamente para JORNAIS.
+    var jornaisExclusions = [
+        'Icones', 'Ilustracoes', 'Fotos para aberturas', 'BAGUNCA ALHEIA',
+        '_OLD', 'backup', 'versoes anteriores', 'PARA_SCRIPT', '_PREVIEWS'
+    ];
+
     for (var i = 0; i < allItems.length; i++) {
         var item = allItems[i];
         if (item instanceof Folder) {
-            // REGRA ATUALIZADA: Ignorar pastas de Auto-Save e pastas temporárias do Media Encoder (_AME)
-            if (item.displayName === "Adobe After Effects Auto-Save" || item.displayName.slice(-4) === '_AME') {
+            // Regra Geral: Ignorar pastas de Auto-Save e _AME.
+            if (item.displayName === "Adobe After Effects Auto-Save" || item.displayName.slice(-4).toUpperCase() === '_AME') {
                 continue;
             }
-            var subItems = getFolderStructureAsData(item, fileFilter);
+
+            // ALTERAÇÃO: Aplicar regras de exclusão específicas para a categoria 'JORNAIS'.
+            if (categoryName === 'JORNAIS') {
+                var isExcluded = false;
+                for (var ex = 0; ex < jornaisExclusions.length; ex++) {
+                    if (item.displayName === jornaisExclusions[ex]) {
+                        isExcluded = true;
+                        break;
+                    }
+                }
+                if (isExcluded) {
+                    continue; // Pula para o próximo item se a pasta estiver na lista de exclusão.
+                }
+            }
+            
+            // ALTERAÇÃO: Passa 'categoryName' na chamada recursiva.
+            var subItems = getFolderStructureAsData(item, fileFilter, categoryName);
             if (subItems.length > 0) {
                 folders.push({
                     type: 'node',
@@ -43,7 +66,6 @@ function getFolderStructureAsData(rootFolder, fileFilter) {
                 });
             }
         } else if (item instanceof File) {
-            // REGRA ATUALIZADA: Ignorar arquivos de auto-save e arquivos temporários (tmpAEto)
             if (item.displayName.toLowerCase().indexOf("auto-save") > -1 || item.displayName.slice(0, 7) === 'tmpAEto') {
                 continue;
             }
@@ -81,18 +103,32 @@ function d9ProdFoldersDialog(prodArray) {
     if (!cacheFolder.exists) cacheFolder.create();
     var fileFilter = ['.aep', '.aet'];
 
+    // ALTERAÇÃO: Atualização da lista de categorias para corresponder à janela principal.
     var categorias = [
-        { nome: 'PEÇAS GRÁFICAS', key: 'pecasGraficas', caminhos: [] },
+        { nome: 'JORNAIS', key: 'jornais', caminhos: [] },
+        { nome: 'PROMO', key: 'promo', caminhos: [] },
+        { nome: 'PROGRAMAS', key: 'programas', caminhos: [] },
+        { nome: 'EVENTOS', key: 'eventos', caminhos: [] },
+        { nome: 'MARKETING', key: 'marketing', caminhos: [] },
         { nome: 'BASE TEMÁTICA', key: 'baseTematica', caminhos: [] },
         { nome: 'ILUSTRAÇÕES', key: 'ilustracoes', caminhos: [] }
     ];
     
     try {
-if (typeof prodArray !== 'undefined' && prodArray.length > 0) {
-    var prodData = prodArray[0];
-            categorias[0].caminhos = prodData.pecasGraficas || [prodData.templatesPath || Folder.desktop.fullName];
-            categorias[1].caminhos = prodData.baseTematica || [Folder.desktop.fullName];
-            categorias[2].caminhos = prodData.ilustracoes || [Folder.desktop.fullName];
+        if (typeof prodArray !== 'undefined' && prodArray.length > 0) {
+            var prodData = prodArray[0];
+            // Mapeia os caminhos salvos para as categorias corretas.
+            for (var i = 0; i < categorias.length; i++) {
+                var catKey = categorias[i].key;
+                // Renomeia a chave antiga 'pecasGraficas' para 'jornais' para manter compatibilidade.
+                if (catKey === 'jornais' && prodData['pecasGraficas']) {
+                     categorias[i].caminhos = prodData['pecasGraficas'];
+                } else if (prodData[catKey] && prodData[catKey].length > 0) {
+                    categorias[i].caminhos = prodData[catKey];
+                } else {
+                    categorias[i].caminhos = [Folder.desktop.fullName];
+                }
+            }
         } else {
             var desktopPath = Folder.desktop.fullName;
             for (var i = 0; i < categorias.length; i++) {
@@ -202,13 +238,27 @@ if (typeof prodArray !== 'undefined' && prodArray.length > 0) {
             }
 
             try {
-                var treeData = getFolderStructureAsData(folder, fileFilter);
+                // ALTERAÇÃO: Passa o nome da categoria para a função de geração de cache.
+                var treeData = getFolderStructureAsData(folder, fileFilter, categoryName);
                 var newCount = countItemsInTree(treeData);
 
                 var cacheFileName;
+                // ALTERAÇÃO: Nomes dos arquivos de cache atualizados para as novas categorias.
                 switch (categoryName) {
-                    case 'PEÇAS GRÁFICAS':
-                        cacheFileName = 'templates_pecas_cache.json';
+                    case 'JORNAIS':
+                        cacheFileName = 'templates_jornais_cache.json'; // Nome antigo 'pecas' atualizado
+                        break;
+                    case 'PROMO':
+                        cacheFileName = 'templates_promo_cache.json';
+                        break;
+                    case 'PROGRAMAS':
+                        cacheFileName = 'templates_programas_cache.json';
+                        break;
+                    case 'EVENTOS':
+                        cacheFileName = 'templates_eventos_cache.json';
+                        break;
+                    case 'MARKETING':
+                        cacheFileName = 'templates_marketing_cache.json';
                         break;
                     case 'BASE TEMÁTICA':
                         cacheFileName = 'templates_base_cache.json';
@@ -217,7 +267,7 @@ if (typeof prodArray !== 'undefined' && prodArray.length > 0) {
                         cacheFileName = 'templates_ilustra_cache.json';
                         break;
                     default:
-                        cacheFileName = categoryName.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '_cache.json';
+                        cacheFileName = 'templates_' + categoryName.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '_cache.json';
                         break;
                 }
                 
@@ -292,25 +342,40 @@ if (typeof prodArray !== 'undefined' && prodArray.length > 0) {
         } catch (err) { alert('Erro ao salvar: ' + err.message); }
     });
     
+    // ALTERAÇÃO: Função atualizada para coletar os dados das novas categorias.
     function collectConfigData() {
-        var pecasGraficas = [], baseTematica = [], ilustracoes = [];
+        var configOutput = {};
         var allCatGrps = mainGrp.children;
+
         for (var c = 0; c < allCatGrps.length; c++) {
+            // Verifica se o grupo é um cabeçalho de categoria.
             if (allCatGrps[c] instanceof Group && allCatGrps[c].children.length > 0 && allCatGrps[c].children[0] instanceof StaticText && allCatGrps[c].children[0].text.indexOf(':') > -1) {
                 var catName = allCatGrps[c].children[0].text.replace(':', '');
-                var pathsGrp = allCatGrps[c+1];
+                var pathsGrp = allCatGrps[c + 1];
                 var caminhos = [];
+
                 if (pathsGrp && pathsGrp.children) {
-                    for(var i = 0; i < pathsGrp.children.length; i++){
+                    for (var i = 0; i < pathsGrp.children.length; i++) {
                         caminhos.push(pathsGrp.children[i].children[1].properties.pathValue);
                     }
                 }
-                if (catName === 'PEÇAS GRÁFICAS') pecasGraficas = caminhos;
-                else if (catName === 'BASE TEMÁTICA') baseTematica = caminhos;
-                else if (catName === 'ILUSTRAÇÕES') ilustracoes = caminhos;
+                
+                // Encontra a chave correspondente ao nome da categoria.
+                for (var k = 0; k < categorias.length; k++) {
+                    if (categorias[k].nome === catName) {
+                        configOutput[categorias[k].key] = caminhos;
+                        break;
+                    }
+                }
             }
         }
-        return { name: 'Configuração de Caminhos', icon: '', templatesPath: pecasGraficas[0] || '', pecasGraficas: pecasGraficas, baseTematica: baseTematica, ilustracoes: ilustracoes };
+        
+        configOutput.name = 'Configuração de Caminhos';
+        configOutput.icon = '';
+        // Mantém a compatibilidade com a chave antiga 'templatesPath'.
+        configOutput.templatesPath = configOutput.jornais ? configOutput.jornais[0] : '';
+
+        return configOutput;
     }
     
     D9T_CONFIG_w.show();
