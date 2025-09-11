@@ -1,7 +1,7 @@
 $.encoding = "UTF-8";
 
 // =============================================================================
-// GNEWS TEMPLATES - V3.5
+// GNEWS TEMPLATES - V3.3
 // =============================================================================
 
 function createStatusWindow(title) {
@@ -28,7 +28,7 @@ function createStatusWindow(title) {
 
 function d9TemplateDialog() {
 	var scriptName = 'GNEWS TEMPLATES';
-	var scriptVersion = '3.5'; // Versão incrementada
+	var scriptVersion = '3.3';
 	var fileFilter = ['.aep', '.aet'];
 	var projectFile;
 	var lClick = (typeof lClick !== 'undefined') ? lClick : 'Clique: ';
@@ -103,18 +103,19 @@ function d9TemplateDialog() {
 	prodIconGrp.orientation = 'stack';
 	var prodDropItems = ['JORNAIS', 'PROMO', 'PROGRAMAS', 'EVENTOS', 'MARKETING', 'BASE TEMÁTICA', 'ILUSTRAÇÕES'];
     var validProductions = [
-        { name: 'JORNAIS', key: 'jornais', icon: 'D9T_TEMPPECAS_ICON', paths: [] }, { name: 'PROMO', key: 'promo', icon: 'D9T_TBASE_ICON', paths: [] },
-        { name: 'PROGRAMAS', key: 'programas', icon: 'D9T_TBASE_ICON', paths: [] }, { name: 'EVENTOS', key: 'eventos', icon: 'D9T_TBASE_ICON', paths: [] },
-        { name: 'MARKETING', key: 'marketing', icon: 'D9T_TBASE_ICON', paths: [] }, { name: 'BASE TEMÁTICA', key: 'basetematica', icon: 'D9T_TBASE_ICON', paths: [] },
-        { name: 'ILUSTRAÇÕES', key: 'ilustracoes', icon: 'D9T_TILUSTRA_ICON', paths: [] }
+        { name: 'JORNAIS', icon: 'D9T_TEMPPECAS_ICON', paths: [] }, { name: 'PROMO', icon: 'D9T_TBASE_ICON', paths: [] },
+        { name: 'PROGRAMAS', icon: 'D9T_TBASE_ICON', paths: [] }, { name: 'EVENTOS', icon: 'D9T_TBASE_ICON', paths: [] },
+        { name: 'MARKETING', icon: 'D9T_TBASE_ICON', paths: [] }, { name: 'BASE TEMÁTICA', icon: 'D9T_TBASE_ICON', paths: [] },
+        { name: 'ILUSTRAÇÕES', icon: 'D9T_TILUSTRA_ICON', paths: [] }
     ];
-    if (typeof D9T_prodArray !== 'undefined' && D9T_prodArray.length > 0) {
-		if (D9T_prodArray[0]) {
+    if (typeof D9T_prodArray !== 'undefined' && D9T_prodArray && D9T_prodArray.length > 0) {
+		if (D9T_prodArray.length === 1) {
             var configData = D9T_prodArray[0];
             for(var i=0; i < validProductions.length; i++){
                 var prod = validProductions[i];
-                if (prod.key === 'jornais' && configData['pecasGraficas']) { prod.paths = configData['pecasGraficas'] || []; } 
-                else if (configData[prod.key]) { prod.paths = configData[prod.key] || []; }
+                var key = (prod.key || prod.name.toLowerCase()).replace(/\s/g, '');
+                if (key === 'jornais' && configData['pecasGraficas']) { prod.paths = configData['pecasGraficas'] || []; } 
+                else if (configData[key]) { prod.paths = configData[key] || []; }
             }
         }
     }
@@ -123,22 +124,33 @@ function d9TemplateDialog() {
 	prodDrop.selection = 0; prodDrop.helpTip = "PRODUÇÃO SELECIONADA";
 	var divProd;
 	if (typeof themeDivider === 'function') { divProd = themeDivider(vGrp1); divProd.alignment = ['fill', 'center']; }
+
+    // ALTERAÇÃO: Grupo de cabeçalho para alinhar "BUSCA" e "Exibir em lista".
     var templatesHeaderGrp = vGrp1.add('group');
-    templatesHeaderGrp.orientation = 'row'; templatesHeaderGrp.alignment = 'fill';
+    templatesHeaderGrp.orientation = 'row';
+    templatesHeaderGrp.alignment = 'fill';
     var templateLab = templatesHeaderGrp.add('statictext', undefined, 'BUSCA:');
     templateLab.alignment = ['left', 'center'];
     setFgColor(templateLab, normalColor1);
+    
     var templatesHeaderOptionsGrp = templatesHeaderGrp.add('group');
-    templatesHeaderOptionsGrp.orientation = 'row'; templatesHeaderOptionsGrp.alignment = ['right', 'center'];
-    var flatViewCheckbox = templatesHeaderOptionsGrp.add('checkbox', undefined, 'Exibir em lista');
+    templatesHeaderOptionsGrp.orientation = 'row';
+    templatesHeaderOptionsGrp.alignment = ['right', 'center'];
+    var viewOptGrp = templatesHeaderOptionsGrp.add('group');
+    viewOptGrp.orientation = 'row';
+    viewOptGrp.alignment = ['right', 'center'];
+    var flatViewCheckbox = viewOptGrp.add('checkbox', undefined, 'Exibir em lista');
     setFgColor(flatViewCheckbox, normalColor1);
     flatViewCheckbox.helpTip = 'Marque para exibir todos os arquivos em uma lista plana, sem a hierarquia de pastas.';
     flatViewCheckbox.value = true;
     var itemCounterLab = templatesHeaderOptionsGrp.add('statictext', undefined, '', { justify: 'right' });
-    itemCounterLab.alignment = ['right', 'center']; itemCounterLab.characters = 10;
+    itemCounterLab.alignment = ['right', 'center'];
+    itemCounterLab.characters = 10;
     setFgColor(itemCounterLab, monoColor1);
+    
 	var treeGrp = vGrp1.add('group');
-	treeGrp.orientation = 'column'; treeGrp.spacing = 4;
+	treeGrp.orientation = 'column';
+	treeGrp.spacing = 4;
 	var placeholderText = '⌕  Digite para Buscar...';
 	var searchBox = treeGrp.add('edittext', [0, 0, 320, 24], '');
 	searchBox.text = placeholderText; searchBox.isPlaceholderActive = true;
@@ -240,47 +252,14 @@ function d9TemplateDialog() {
 				for (var path in masterCacheData) { if (masterCacheData.hasOwnProperty(path)) { combinedTreeData = combinedTreeData.concat(masterCacheData[path]); } }
 				templatesCache[prodName] = combinedTreeData;
 			} catch (e) { templatesCache[prodName] = [{ type: 'item', text: 'Erro ao ler o cache.' }]; }
-		} else { templatesCache[prodName] = []; }
+		} else { templatesCache[prodName] = [{ type: 'item', text: 'Cache para "' + prodName + '" não encontrado.' }]; }
 	}
     function populateTreeFromDataOptimized(treeNode, dataArray) {
-        treeNode.visible = false; try { var batchSize = 50; var currentBatch = 0; function processBatch() { var endIndex = Math.min(currentBatch + batchSize, dataArray.length); for (var i = currentBatch; i < endIndex; i++) { var itemData = dataArray[i]; if (itemData.type === 'node') { var node = treeNode.add('node', itemData.text); if (typeof D9T_FOLDER_AE_ICON !== 'undefined') { node.image = D9T_FOLDER_AE_ICON; } if (itemData.children && itemData.children.length > 0) { populateTreeFromDataOptimized(node, itemData.children); } } else if (itemData.type === 'item') { var item = treeNode.add('item', itemData.text); if (typeof D9T_AE_ICON !== 'undefined') { item.image = D9T_AE_ICON; } item.filePath = itemData.filePath; item.modDate = itemData.modDate; item.size = itemData.size; } } currentBatch = endIndex; if (currentBatch < dataArray.length) { $.sleep(1); processBatch(); } else { treeNode.visible = true; } } processBatch(); } finally { if (!treeNode.visible) treeNode.visible = true; }
+        treeNode.visible = false; try { var batchSize = 50; var currentBatch = 0; function processBatch() { var endIndex = Math.min(currentBatch + batchSize, dataArray.length); for (var i = currentBatch; i < endIndex; i++) { var itemData = dataArray[i]; if (itemData.type === 'node') { var node = treeNode.add('node', itemData.text); if (typeof D9T_FOLDER_AE_ICON !== 'undefined') { node.image = D9T_FOLDER_AE_ICON; } if (itemData.children && itemData.children.length > 0) { populateTreeFromDataOptimized(node, itemData.children); } } else if (itemData.type === 'item') { var item = treeNode.add('item', itemData.text); if (typeof D9T_AE_ICON !== 'undefined') { item.image = D9T_AE_ICON; } item.filePath = itemData.filePath; item.modDate = itemData.modDate; item.size = itemData.size; } } currentBatch = endIndex; if (currentBatch < dataArray.length) { $.sleep(1); processBatch(); } } processBatch(); } finally { treeNode.visible = true; }
     }
-    
-    // ALTERAÇÃO: Função corrigida para usar um laço 'while' e evitar o erro "Stack overrun".
     function populateTreeFromList(treeNode, dataArray) {
-        var statusWin = null;
-        try {
-            var flatList = flattenData(dataArray);
-            if (flatList.length === 0) {
-                treeNode.visible = true;
-                return;
-            }
-            statusWin = createStatusWindow("Carregando Templates...");
-            statusWin.show();
-            statusWin.update("Carregando itens...", 0, flatList.length);
-            treeNode.visible = false;
-            var batchSize = 50;
-            var currentIndex = 0;
-            while (currentIndex < flatList.length) {
-                var endIndex = Math.min(currentIndex + batchSize, flatList.length);
-                for (var i = currentIndex; i < endIndex; i++) {
-                    var itemData = flatList[i];
-                    var item = treeNode.add('item', itemData.text);
-                    if (typeof D9T_AE_ICON !== 'undefined') { item.image = D9T_AE_ICON; }
-                    item.filePath = itemData.filePath; item.modDate = itemData.modDate; item.size = itemData.size;
-                }
-                currentIndex = endIndex;
-                statusWin.update("Carregando itens...", currentIndex, flatList.length);
-                $.sleep(1);
-            }
-        } catch(e) {
-            alert("Erro ao popular a lista: " + e.message);
-        } finally {
-            if (statusWin) statusWin.close();
-            treeNode.visible = true;
-        }
+        var statusWin; try { var flatList = flattenData(dataArray); if (flatList.length === 0) { treeNode.visible = true; return; } statusWin = createStatusWindow("Carregando Templates..."); statusWin.show(); statusWin.update("Carregando itens...", 0, flatList.length); treeNode.visible = false; var batchSize = 50; var currentBatch = 0; function processBatch() { var endIndex = Math.min(currentBatch + batchSize, flatList.length); for (var i = currentBatch; i < endIndex; i++) { var itemData = flatList[i]; var item = treeNode.add('item', itemData.text); if (typeof D9T_AE_ICON !== 'undefined') { item.image = D9T_AE_ICON; } item.filePath = itemData.filePath; item.modDate = itemData.modDate; item.size = itemData.size; } currentBatch = endIndex; statusWin.update("Carregando itens...", currentBatch, flatList.length); if (currentBatch < flatList.length) { $.sleep(1); processBatch(); } else { statusWin.close(); treeNode.visible = true; } } processBatch(); } catch(e) { if (statusWin) statusWin.close(); treeNode.visible = true; alert("Erro ao popular a lista: " + e.message); }
     }
-
 	function loadTemplatesFromCache() {
         var prodName = validProductions[prodDrop.selection.index].name;
         templateTree.removeAll();
@@ -316,7 +295,7 @@ function d9TemplateDialog() {
         loadTemplatesFromCache();
         searchBox.active = true;
         updateArteInfo();
-        vGrp2.visible = true;
+        vGrp2.visible = true; // Mostra o painel direito após tudo carregado
         D9T_TEMPLATES_w.layout.layout(true);
     };
 	searchBox.onActivate = function() { if (this.isPlaceholderActive) { this.text = ''; this.isPlaceholderActive = false; setFgColor(this, normalColor1); } };
@@ -329,17 +308,14 @@ function d9TemplateDialog() {
 	templateTree.onChange = function () { if (this.selection != null && this.selection.type == 'node') { this.selection = null; return; } updateArteInfo(); if (this.selection == null || !this.selection.filePath) { try { openBtn.enabled = false; importBtn.enabled = false; } catch (e) {} return; } projectFile = new File(this.selection.filePath); if (typeof this.selection.modDate !== 'undefined' && this.selection.modDate !== null) { var fileSize = (this.selection.size / (1024 * 1024)).toFixed(2) + ' MB'; var modDate = new Date(this.selection.modDate); var formattedDate = ('0' + modDate.getDate()).slice(-2) + '/' + ('0' + (modDate.getMonth() + 1)).slice(-2) + '/' + modDate.getFullYear(); this.selection.helpTip = 'Arquivo: ' + this.selection.text + '\nTamanho: ' + fileSize + '\nModificado em: ' + formattedDate; } var previewBaseName = (typeof deleteFileExt === 'function' ? deleteFileExt(projectFile.displayName) : projectFile.displayName.replace(/\.[^\.]+$/, '')); var previewBase = projectFile.path + '/' + previewBaseName; var foundPreview = false; previewFile = new File(previewBase + '_preview.png'); if (previewFile.exists) { previewImg.image = previewFile; foundPreview = true; } if (!foundPreview) { var previewFolder = new Folder(projectFile.path + '/_PREVIEWS'); if (previewFolder.exists) { var previewInFolder = new File(previewFolder.fullName + '/' + previewBaseName + '_preview.png'); if (previewInFolder.exists) { previewImg.image = previewInFolder; foundPreview = true; } else { var potentialPreviews = previewFolder.getFiles(previewBaseName + '.*'); for (var p = 0; p < potentialPreviews.length; p++) { if (/\.(png|jpg|jpeg)$/i.test(potentialPreviews[p].name)) { previewImg.image = potentialPreviews[p]; foundPreview = true; break; } } } } } if (!foundPreview && typeof no_preview !== 'undefined') { previewImg.image = no_preview; } try { openBtn.enabled = true; importBtn.enabled = true; } catch (e) {} };
 	codigoTxt.onChanging = function () { var codigo = this.text.trim().toUpperCase(); if (codigo.length >= 3) { var arteInfo = getArteData(codigo); if (arteInfo) { infoValues[0].text = arteInfo.nome || ''; infoValues[1].text = arteInfo.servidor || ''; infoValues[2].text = arteInfo.ultima_atualizacao || ''; infoValues[3].text = ''; } else { infoValues[0].text = '---'; infoValues[1].text = '---'; infoValues[2].text = '---'; infoValues[3].text = '---'; } } };
 	templateTree.onActivate = function() { try { openBtn.enabled = true; importBtn.enabled = true; } catch (e) {} };
-	templateTree.onDoubleClick = function() { if (this.selection != null && this.selection.filePath) { executeImport(); } };
+	templateTree.onDoubleClick = function() { if (this.selection != null && this.selection.filePath) { executeOpen(); } };
 	if (openBtn && typeof openBtn.leftClick !== 'undefined') { openBtn.leftClick.onClick = function() { executeOpen(); }; } else if (openBtn) { openBtn.onClick = function() { executeOpen(); }; }
 	if (importBtn && typeof importBtn.leftClick !== 'undefined') { importBtn.leftClick.onClick = function() { executeImport(); }; } else if (importBtn) { importBtn.onClick = function() { executeImport(); }; }
 	function executeOpen() { if (templateTree.selection && templateTree.selection.filePath) { var fileToOpen = new File(templateTree.selection.filePath); if (fileToOpen.exists) { D9T_TEMPLATES_w.close(); app.open(fileToOpen); } else { alert("Arquivo não encontrado."); } } }
 	function executeImport() { if (!templateTree.selection || !templateTree.selection.filePath) { alert("Selecione um template."); return; } var fileToImport = new File(templateTree.selection.filePath); if (!fileToImport.exists) { alert("Arquivo não encontrado."); return; } try { app.project.bitsPerChannel = 8; app.project.expressionEngine = 'javascript-1.0'; app.project.linearBlending = true; app.project.timeDisplayType = TimeDisplayType.TIMECODE; var importOptions = new ImportOptions(fileToImport); app.project.importFile(importOptions); var templateName = fileToImport.name.replace(/\.[^\.]+$/, ''); logGNewsImport(templateName); D9T_TEMPLATES_w.close(); } catch (e) { alert("Erro ao importar template: " + e.message); } }
 	function logGNewsImport(templateName) { try { var logFolder = new Folder(validProductions[prodDrop.selection.index].paths[0]); var logPath = logFolder.exists ? logFolder.fsName : scriptMainPath + 'source/logs'; var logFile = new File(logPath + '/log padeiro.csv'); var dt = new Date(); var dateStr = ('0' + dt.getDate()).slice(-2) + '/' + ('0' + (dt.getMonth() + 1)).slice(-2) + '/' + dt.getFullYear(); var timeStr = ('0' + dt.getHours()).slice(-2) + ':' + ('0' + dt.getMinutes()).slice(-2); var logData = [templateName, '1', system.userName, dateStr, timeStr, codigoTxt.text.trim().toUpperCase(), infoValues[0].text, infoValues[1].text, ].join(','); if (typeof saveLogData === 'function') { saveLogData(logFile, logData); } else { if (!logFile.exists) { logFile.open('w'); logFile.writeln('Template,Quantidade,Designer,Data,Hora,Codigo_Arte,Nome_Arte,Servidor_Destino'); logFile.close(); } logFile.open('a'); logFile.writeln(logData); logFile.close(); } if (typeof sendToWebhookWithCurl === 'function') { var webhookURL = ""; var webData = { template: templateName, quantidade: 1, designer: system.userName, codigo_arte: codigoTxt.text.trim().toUpperCase(), nome_arte: infoValues[0].text, servidor_destino: infoValues[1].text }; sendToWebhookWithCurl(webData, webhookURL); } } catch (err) {} }
-    if (infoBtn && typeof infoBtn.leftClick !== 'undefined') {
-        infoBtn.leftClick.onClick = function() { if (typeof showTemplatesHelp === 'function') { showTemplatesHelp(); } else { alert("Arquivo de ajuda (HELP lib.js) não foi carregado corretamente."); } };
-    } else if (infoBtn) {
-        infoBtn.onClick = function() { if (typeof showTemplatesHelp === 'function') { showTemplatesHelp(); } else { alert("Arquivo de ajuda (HELP lib.js) não foi carregado corretamente."); } };
-    }
+	if (infoBtn && typeof infoBtn.leftClick !== 'undefined') { infoBtn.leftClick.onClick = function() { showHelpDialog(); }; } else if (infoBtn) { infoBtn.onClick = function() { showHelpDialog(); }; }
+	function showHelpDialog() { if(typeof showTemplatesHelp === 'function') showTemplatesHelp(); else alert("Função de ajuda não encontrada."); }
 	D9T_TEMPLATES_w.center();
 	D9T_TEMPLATES_w.show();
 }
