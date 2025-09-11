@@ -17,14 +17,26 @@ function countItemsInTree(nodes) {
     return count;
 }
 
+// ======================================================================
+// >>>>>>>>>>>>>>>> FUNÇÃO getFolderStructureAsData - VERSÃO MAIS ROBUSTA <<<<<<<<<<<<<<<<
+// ======================================================================
 function getFolderStructureAsData(rootFolder, fileFilter, categoryName) {
     if (!rootFolder.exists) return [];
-    var allItems;
+    var allItems = null;
+
+    // CORREÇÃO: Envolve a leitura de arquivos em um bloco try...catch.
+    // Isso impede que pastas com problemas de permissão ou outros erros travem o script.
     try {
         allItems = rootFolder.getFiles();
-        if (allItems === null) return [];
     } catch (e) {
-        return [];
+        // Se a leitura falhar, registra um aviso no painel "Info" do AE e continua.
+        writeLn("Aviso: Não foi possível ler o conteúdo da pasta (verifique permissões): " + decodeURI(rootFolder.fsName));
+        return []; // Retorna um array vazio para esta pasta, permitindo que o script continue.
+    }
+
+    if (allItems === null) {
+        writeLn("Aviso: O conteúdo da pasta retornou nulo (pode estar vazia ou inacessível): " + decodeURI(rootFolder.fsName));
+        return []; // Retorna um array vazio se o resultado for nulo.
     }
 
     var folders = [];
@@ -315,15 +327,11 @@ function d9ProdFoldersDialog(prodArray) {
     
     function setupButtonClick(btn, func) { if (btn.leftClick) { btn.leftClick.onClick = func; } else { btn.onClick = func; } }
     
-    // --- FUNÇÕES CORRIGIDAS E ADICIONADAS ---
-
-    // ADICIONADO: Função para salvar os dados da configuração no arquivo JSON central.
     function saveProdData(dataToSave) {
         var configFile = new File(scriptMainPath + 'source/config/TEMPLATES_config.json');
         try {
-            configFile.encoding = "UTF-8"; // Garante a codificação correta na escrita
+            configFile.encoding = "UTF-8";
             configFile.open('w');
-            // O arquivo de configuração espera um array, então envolvemos o objeto em um.
             var configContainer = { "PRODUCTIONS": [dataToSave] };
             configFile.write(JSON.stringify(configContainer, null, 2));
             configFile.close();
@@ -334,16 +342,13 @@ function d9ProdFoldersDialog(prodArray) {
         }
     }
 
-    // ADICIONADO: Função para repopular a UI após importar um arquivo.
     function repopulateUI(configData) {
         for (var i = 0; i < categorias.length; i++) {
             var cat = categorias[i];
             var paths = configData[cat.key] || [];
-            // Limpa os caminhos antigos da UI
             while (cat.uiGroup.children.length > 0) {
                 cat.uiGroup.remove(cat.uiGroup.children[0]);
             }
-            // Adiciona os novos caminhos
             for (var p = 0; p < paths.length; p++) {
                 addPathLine(cat.uiGroup, paths[p], cat.nome);
             }
@@ -364,7 +369,6 @@ function d9ProdFoldersDialog(prodArray) {
         } catch (err) { alert('Erro ao coletar dados para salvar: ' + err.message); }
     });
 
-    // ADICIONADO: Lógica para o botão de Exportar.
     setupButtonClick(exportBtn, function() {
         var configData = collectConfigData();
         var saveFile = File.saveDialog("Salvar configuração como...", "D9T_Templates_Config_*.json");
@@ -381,7 +385,6 @@ function d9ProdFoldersDialog(prodArray) {
         }
     });
 
-    // ADICIONADO: Lógica para o botão de Importar.
     setupButtonClick(importBtn, function() {
         var configFile = File.openDialog("Selecione um arquivo de configuração (.json)", "*.json");
         if (configFile) {
@@ -406,7 +409,6 @@ function d9ProdFoldersDialog(prodArray) {
             var caminhos = [];
             if (cat.uiGroup && cat.uiGroup.children) {
                 for(var j = 0; j < cat.uiGroup.children.length; j++){
-                    // O StaticText com o caminho é o segundo elemento (índice 1) do grupo da linha
                     caminhos.push(cat.uiGroup.children[j].children[1].properties.pathValue);
                 }
             }
