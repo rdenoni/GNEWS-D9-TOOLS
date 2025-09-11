@@ -1,7 +1,7 @@
 $.encoding = "UTF-8";
 
 // =============================================================================
-// GNEWS TEMPLATES - V3.9
+// GNEWS TEMPLATES - V4.0
 // =============================================================================
 
 function createStatusWindow(title) {
@@ -20,6 +20,7 @@ function createStatusWindow(title) {
     return win;
 }
 
+// A função 'flattenData' foi removida daqui e corrigida em 'treeView lib.js'
 
 function d9TemplateDialog() {
     var initialStatusWin = createStatusWindow("GNEWS Templates");
@@ -27,7 +28,7 @@ function d9TemplateDialog() {
     initialStatusWin.update("Inicializando, por favor aguarde...");
 
 	var scriptName = 'GNEWS TEMPLATES';
-	var scriptVersion = '3.9';
+	var scriptVersion = '4.0';
 	var fileFilter = ['.aep', '.aet'];
 	var projectFile;
 	var lClick = (typeof lClick !== 'undefined') ? lClick : 'Clique: ';
@@ -243,7 +244,6 @@ function d9TemplateDialog() {
 		} else { templatesCache[prodName] = []; }
 	}
 
-    // ALTERAÇÃO: Função reescrita para ser iterativa e evitar "Stack overrun".
     function populateTreeFromDataOptimized(treeNode, dataArray) {
         treeNode.visible = false;
         try {
@@ -314,8 +314,6 @@ function d9TemplateDialog() {
         } else { templateTree.add('item', 'Nenhum item encontrado para "' + prodName + '".'); }
         updateItemCounter();
     }
-
-    // ALTERAÇÃO: Função reescrita para ser iterativa e evitar "Stack overrun".
 	function updateItemCounter() {
 		var count = 0;
         var nodesToProcess = [];
@@ -338,8 +336,6 @@ function d9TemplateDialog() {
 	function setLoadingState(isLoading, message) {
 		loadingGrp.children[0].text = message || 'Carregando, por favor aguarde...'; loadingGrp.visible = isLoading; templateTree.visible = !isLoading; searchBox.enabled = !isLoading; prodDrop.enabled = !isLoading; flatViewCheckbox.enabled = !isLoading;
 	}
-
-    // ALTERAÇÃO: Função reescrita para ser iterativa e evitar "Stack overrun".
     function expandAllNodes(tree) {
         if (!tree || !tree.items) return;
         tree.visible = false;
