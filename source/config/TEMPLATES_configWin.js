@@ -5,11 +5,11 @@ $.encoding = "UTF-8";
 
 function createStatusWindow(title) {
     var win = new Window("palette", title, undefined, { closeButton: false });
-    win.orientation = "column"; win.alignChildren = "fill"; win.preferredSize.width = 300;
+    win.orientation = "column"; win.alignChildren = "fill"; win.preferredSize.width = 350;
     var statusLabel = win.add("statictext", undefined, "Iniciando...");
-    statusLabel.characters = 40;
+    statusLabel.characters = 50;
     var progressLabel = win.add("statictext", undefined, "0 arquivos processados");
-    progressLabel.characters = 40; progressLabel.alignment = "center";
+    progressLabel.characters = 50; progressLabel.alignment = "center";
     win.update = function(statusText, count) {
         if (statusText) statusLabel.text = statusText;
         if (count !== undefined) progressLabel.text = count + " arquivos processados";
@@ -41,6 +41,12 @@ function getFolderStructureAsData(rootFolder, fileFilter, categoryName, progress
             var upperCaseDisplayName = item.displayName.toUpperCase();
             if (upperCaseDisplayName === "ADOBE AFTER EFFECTS AUTO-SAVE" || upperCaseDisplayName.slice(-4) === '_AME') continue;
             if (categoryName === 'JORNAIS' && jornaisExclusions.indexOf(upperCaseDisplayName) > -1) continue;
+            
+            // ALTERAÇÃO: Atualiza a janela de status com a pasta atual para melhor feedback.
+            if (progress && progress.win) {
+                progress.win.update("Escaneando: " + item.displayName, progress.count);
+            }
+            
             var subItems = getFolderStructureAsData(item, fileFilter, categoryName, progress);
             if (subItems.length > 0) { folders.push({ type: 'node', text: item.displayName, children: subItems }); }
         } else if (item instanceof File) {
@@ -50,7 +56,9 @@ function getFolderStructureAsData(rootFolder, fileFilter, categoryName, progress
                 files.push({ type: 'item', text: item.displayName, filePath: item.fsName, size: item.length, modDate: item.modified.toUTCString() });
                 if (progress) {
                     progress.count++;
-                    if (progress.win && progress.count % 10 === 0) { progress.win.update("Processando...", progress.count); }
+                    if (progress.win && progress.count % 20 === 0) { // Atualiza a contagem a cada 20 arquivos
+                        progress.win.update("Escaneando: " + rootFolder.displayName, progress.count);
+                    }
                 }
             }
         }
@@ -65,18 +73,24 @@ function d9ProdFoldersDialog(prodArray) {
     var cacheFolder = new Folder(scriptMainPath + 'source/cache');
     if (!cacheFolder.exists) cacheFolder.create();
     var fileFilter = ['.aep', '.aet'];
+    
+    // ALTERAÇÃO: Chaves ("keys") padronizadas para minúsculas e sem acentos.
     var categorias = [
-        { nome: 'JORNAIS', key: 'jornais', caminhos: [] }, { nome: 'PROMO', key: 'promo', caminhos: [] },
-        { nome: 'PROGRAMAS', key: 'programas', caminhos: [] }, { nome: 'EVENTOS', key: 'eventos', caminhos: [] },
-        { nome: 'MARKETING', key: 'marketing', caminhos: [] }, { nome: 'BASE TEMÁTICA', key: 'basetematica', caminhos: [] },
-        { nome: 'ILUSTRAÇÕES', key: 'ilustrações', caminhos: [] }
+        { nome: 'JORNAIS',       key: 'jornais',       caminhos: [] }, 
+        { nome: 'PROMO',         key: 'promo',         caminhos: [] },
+        { nome: 'PROGRAMAS',     key: 'programas',     caminhos: [] }, 
+        { nome: 'EVENTOS',       key: 'eventos',       caminhos: [] },
+        { nome: 'MARKETING',     key: 'marketing',     caminhos: [] }, 
+        { nome: 'BASE TEMÁTICA', key: 'basetematica',  caminhos: [] },
+        { nome: 'ILUSTRAÇÕES',   key: 'ilustracoes',   caminhos: [] }
     ];
+
     try {
         if (typeof prodArray !== 'undefined' && prodArray.length > 0 && prodArray[0]) {
             var prodData = prodArray[0];
             for (var i = 0; i < categorias.length; i++) {
                 var cat = categorias[i];
-                if (cat.key === 'jornais' && prodData['pecasGraficas']) {
+                if (cat.key === 'jornais' && prodData['pecasGraficas']) { // Mantém compatibilidade com a chave antiga
                      cat.caminhos = prodData['pecasGraficas'] || [Folder.desktop.fullName];
                 } else if (prodData[cat.key] && prodData[cat.key].length > 0) {
                     cat.caminhos = prodData[cat.key];
@@ -99,7 +113,18 @@ function d9ProdFoldersDialog(prodArray) {
     mainGrp.orientation = 'column'; mainGrp.spacing = 16;
     var pathLabsToCheck = [];
 
-    // ALTERAÇÃO: A verificação agora é mais simples e rápida, apenas checa se a pasta existe.
+    function getCacheFileName(categoryName) {
+        switch (categoryName) {
+            case 'JORNAIS': return 'templates_jornais_cache.json';
+            case 'PROMO': return 'templates_promo_cache.json';
+            case 'PROGRAMAS': return 'templates_programas_cache.json';
+            case 'EVENTOS': return 'templates_eventos_cache.json';
+            case 'MARKETING': return 'templates_marketing_cache.json';
+            case 'BASE TEMÁTICA': return 'templates_base_cache.json';
+            case 'ILUSTRAÇÕES': return 'templates_ilustra_cache.json';
+            default: return 'templates_' + categoryName.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '_cache.json';
+        }
+    }
     function checkPathValidity(pathStr) {
         var folder = new Folder(pathStr);
         return folder.exists;
@@ -131,7 +156,6 @@ function d9ProdFoldersDialog(prodArray) {
         })(catPathsGrp, categoria);
     }
     
-    // ADIÇÃO: Função para mover os caminhos para cima ou para baixo.
     function movePath(pathLineGrp, direction) {
         var parent = pathLineGrp.parent;
         var children = [];
@@ -156,29 +180,20 @@ function d9ProdFoldersDialog(prodArray) {
     function addPathLine(parentGrp, pathTxt, categoryName) {
         var pathLineGrp = parentGrp.add('group', undefined);
         pathLineGrp.orientation = 'row'; pathLineGrp.alignChildren = ['left', 'center']; pathLineGrp.spacing = 4;
-        
         var openBtn;
         try { openBtn = new themeIconButton(pathLineGrp, { icon: D9T_PASTA_ICON, tips: [lClick + 'selecionar pasta'] }); } catch (e) { openBtn = pathLineGrp.add('button', undefined, '📁'); openBtn.preferredSize = [24, 24]; openBtn.helpTip = 'selecionar pasta'; }
-        
         var pathLab = pathLineGrp.add('statictext', undefined, pathTxt, { pathValue: pathTxt, truncate: 'middle' });
         pathLab.helpTip = 'caminho da pasta:\n\n' + pathTxt;
         pathLab.preferredSize = [350, 24];
         try { setFgColor(pathLab, normalColor2); } catch (e) {}
         pathLabsToCheck.push(pathLab);
-
-        // ADIÇÃO: Botões de ordenação
         var upBtn = pathLineGrp.add('button', undefined, '▲'); upBtn.preferredSize = [24, 24]; upBtn.helpTip = "Mover para cima";
         var downBtn = pathLineGrp.add('button', undefined, '▼'); downBtn.preferredSize = [24, 24]; downBtn.helpTip = "Mover para baixo";
-        
-        // ALTERAÇÃO: Botões de Testar e Gerar Cache separados
         var testBtn = pathLineGrp.add('button', undefined, '✓'); testBtn.preferredSize = [24, 24]; testBtn.helpTip = "Testar caminho";
         var cacheBtn = pathLineGrp.add('button', undefined, '☁'); cacheBtn.preferredSize = [24, 24]; cacheBtn.helpTip = "Gerar Cache";
-        
         var deletePathBtn;
         try { deletePathBtn = new themeIconButton(pathLineGrp, { icon: D9T_FECHAR_ICON, tips: [lClick + 'deletar caminho'] }); } catch (e) { deletePathBtn = pathLineGrp.add('button', undefined, 'X'); deletePathBtn.preferredSize = [24, 24]; deletePathBtn.helpTip = 'deletar caminho'; }
-        
         function setupButtonClick(btn, func) { if (btn.leftClick) { btn.leftClick.onClick = func; } else { btn.onClick = func; } }
-        
         setupButtonClick(openBtn, function () {
             var newFolder = Folder.selectDialog('selecione a pasta');
             if (newFolder) {
@@ -188,8 +203,6 @@ function d9ProdFoldersDialog(prodArray) {
                 try { setFgColor(pathLab, 'red'); } catch(e){}
             }
         });
-        
-        // ADIÇÃO: Lógica para novos botões
         upBtn.onClick = function() { movePath(pathLineGrp, 'up'); };
         downBtn.onClick = function() { movePath(pathLineGrp, 'down'); };
         testBtn.onClick = function() {
@@ -222,7 +235,7 @@ function d9ProdFoldersDialog(prodArray) {
                 if (masterCacheData === null || typeof masterCacheData !== 'object') { masterCacheData = {}; }
                 masterCacheData[pathStr] = treeData;
                 cacheFile.open('w'); cacheFile.write(JSON.stringify(masterCacheData, null, 2)); cacheFile.close();
-                setFgColor(pathLab, '#2E8B57'); // Verde
+                setFgColor(pathLab, '#2E8B57');
                 alert("Sucesso! Cache para '" + categoryName + "' foi atualizado.\n\n" + newCount + " arquivos encontrados.");
             } catch (e) {
                 setFgColor(pathLab, 'red');
@@ -247,8 +260,6 @@ function d9ProdFoldersDialog(prodArray) {
     var exportBtn = createButton(bGrp1, { width: 80, height: 32, labelTxt: 'exportar', tips: ['exportar configuração'] });
     var saveBtn = createButton(bGrp2, { width: 120, height: 32, labelTxt: 'salvar', tips: ['salvar configuração'] });
     try { setBgColor(D9T_CONFIG_w, bgColor1); } catch (e) {}
-    
-    // ALTERAÇÃO: Otimização para abertura rápida da janela.
     D9T_CONFIG_w.onShow = function() {
         for (var i = 0; i < pathLabsToCheck.length; i++) {
             var pathLab = pathLabsToCheck[i];
@@ -256,7 +267,6 @@ function d9ProdFoldersDialog(prodArray) {
             setFgColor(pathLab, isValid ? normalColor2 : 'red');
         }
     };
-
     function setupButtonClick(btn, func) { if (btn.leftClick) { btn.leftClick.onClick = func; } else { btn.onClick = func; } }
     function saveProdData(dataToSave) {
         var configFile = new File(scriptMainPath + 'source/config/TEMPLATES_config.json');
@@ -269,7 +279,7 @@ function d9ProdFoldersDialog(prodArray) {
         } catch (e) { alert("Erro ao salvar o arquivo de configuração:\n" + e.message); return false; }
     }
     function repopulateUI(configData) {
-        pathLabsToCheck = []; // Limpa a fila de verificação
+        pathLabsToCheck = [];
         for (var i = 0; i < categorias.length; i++) {
             var cat = categorias[i];
             var paths = configData[cat.key] || [];
@@ -299,15 +309,15 @@ function d9ProdFoldersDialog(prodArray) {
             } catch (e) { alert("Erro ao exportar o arquivo:\n" + e.message); }
         }
     });
-    // ALTERAÇÃO: Lógica de importação corrigida para aceitar ambos os formatos de JSON.
     setupButtonClick(importBtn, function() {
         var configFile = File.openDialog("Selecione um arquivo de configuração (.json)", "*.json");
         if (configFile) {
             try {
                 configFile.encoding = "UTF-8"; configFile.open('r'); var content = configFile.read(); configFile.close();
+                if (!content) { alert("Erro: O arquivo de configuração está vazio."); return; }
                 var rawData = JSON.parse(content);
                 var importedData = rawData;
-                if (rawData.PRODUCTIONS && rawData.PRODUCTIONS.length > 0) {
+                if (rawData.PRODUCTIONS && rawData.PRODUCTIONS[0]) {
                     importedData = rawData.PRODUCTIONS[0];
                 }
                 repopulateUI(importedData);
