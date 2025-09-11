@@ -1,10 +1,10 @@
 // =============================================================================
-// GNEWS TEMPLATES - VERSÃO COM INFO DA ARTE RESTAURADO E MELHORIAS
+// GNEWS TEMPLATES - VERSÃO COM CORREÇÕES DE PATH E LOADING
 // =============================================================================
 
 function d9TemplateDialog() {
 	var scriptName = 'GNEWS TEMPLATES';
-	var scriptVersion = '3.2'; // Versão incrementada
+	var scriptVersion = '3.3'; // Versão incrementada
 	var compactWidth, extendedWidth;
 	var fileFilter = ['.aep', '.aet'];
 	var projectFile, previewFile, configFile, scriptFile, templateData;
@@ -76,7 +76,6 @@ function d9TemplateDialog() {
 		userConfigFile = null;
 	}
 
-	// ===== LÓGICA DE DADOS DA ARTE (RESTAURADA) =====
 	var artesData = null;
 	try {
 		var artesDataFile = new File(scriptMainPath + 'source/libraries/dados_json/DADOS_artes_gnews.json');
@@ -94,7 +93,6 @@ function d9TemplateDialog() {
 		}
 		return null;
 	}
-	// =================================================
 
 	var D9T_TEMPLATES_w = new Window('palette', scriptName + ' ' + scriptVersion);
 	var topHeaderGrp = D9T_TEMPLATES_w.add('group');
@@ -187,78 +185,39 @@ function d9TemplateDialog() {
 	prodGrp.alignment = 'fill';
 	var prodIconGrp = prodGrp.add('group');
 	prodIconGrp.orientation = 'stack';
-	var prodDropItems = [];
-	var validProductions = [];
-
-	// ===== ALTERAÇÃO: NOVOS MENUS DE PRODUÇÃO =====
-	if (typeof D9T_prodArray !== 'undefined' && D9T_prodArray && D9T_prodArray.length > 0) {
-		if (D9T_prodArray.length === 1 && D9T_prodArray[0].pecasGraficas) {
-			var configData = D9T_prodArray[0];
-			validProductions = [{
-				name: 'JORNAIS', // Renomeado
-				icon: 'D9T_TEMPPECAS_ICON', // Ícone mantido
-				paths: configData.pecasGraficas || []
-			}, {
-				name: 'PROMO', // Adicionado
-				icon: 'D9T_PROMO_ICON', // Novo ícone (deve ser definido)
-				paths: configData.promo || []
-			}, {
-				name: 'PROGRAMAS', // Adicionado
-				icon: 'D9T_PROGRAMAS_ICON', // Novo ícone
-				paths: configData.programas || []
-			}, {
-				name: 'EVENTOS', // Adicionado
-				icon: 'D9T_EVENTOS_ICON', // Novo ícone
-				paths: configData.eventos || []
-			}, {
-				name: 'MARKETING', // Adicionado
-				icon: 'D9T_MARKETING_ICON', // Novo ícone
-				paths: configData.marketing || []
-			}, {
-				name: 'BASE TEMÁTICA',
-				icon: 'D9T_TBASE_ICON',
-				paths: configData.baseTematica || []
-			}, {
-				name: 'ILUSTRAÇÕES',
-				icon: 'D9T_TILUSTRA_ICON',
-				paths: configData.ilustracoes || []
-			}, ];
-			prodDropItems = ['JORNAIS', 'PROMO', 'PROGRAMAS', 'EVENTOS', 'MARKETING', 'BASE TEMÁTICA', 'ILUSTRAÇÕES'];
-		}
-	}
-	if (validProductions.length === 0) {
-		validProductions = [{
-			name: 'JORNAIS',
-			icon: 'D9T_TEMPPECAS_ICON',
-			paths: []
-		}, {
-			name: 'PROMO',
-			icon: 'D9T_PROMO_ICON',
-			paths: []
-		}, {
-			name: 'PROGRAMAS',
-			icon: 'D9T_PROGRAMAS_ICON',
-			paths: []
-		}, {
-			name: 'EVENTOS',
-			icon: 'D9T_EVENTOS_ICON',
-			paths: []
-		}, {
-			name: 'MARKETING',
-			icon: 'D9T_MARKETING_ICON',
-			paths: []
-		}, {
-			name: 'BASE TEMÁTICA',
-			icon: 'D9T_TBASE_ICON',
-			paths: []
-		}, {
-			name: 'ILUSTRAÇÕES',
-			icon: 'D9T_TILUSTRA_ICON',
-			paths: []
-		}, ];
-		prodDropItems = ['JORNAIS', 'PROMO', 'PROGRAMAS', 'EVENTOS', 'MARKETING', 'BASE TEMÁTICA', 'ILUSTRAÇÕES'];
-	}
-	// ===============================================
+	
+	// ===== CORREÇÃO: CONFIGURAÇÃO DOS CAMINHOS DINÂMICOS =====
+	var prodDropItems = ['JORNAIS', 'PROMO', 'PROGRAMAS', 'EVENTOS', 'MARKETING', 'BASE TEMÁTICA', 'ILUSTRAÇÕES'];
+	var validProductions = [{
+		name: 'JORNAIS',
+		icon: 'D9T_TEMPPECAS_ICON',
+		paths: ['T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\']
+	}, {
+		name: 'PROMO',
+		icon: 'D9T_PROMO_ICON',
+		paths: ['T:\\JORNALISMO\\GLOBONEWS\\PROMO\\']
+	}, {
+		name: 'PROGRAMAS',
+		icon: 'D9T_PROGRAMAS_ICON',
+		paths: ['T:\\JORNALISMO\\GLOBONEWS\\PROGRAMAS\\']
+	}, {
+		name: 'EVENTOS',
+		icon: 'D9T_EVENTOS_ICON',
+		paths: ['T:\\JORNALISMO\\GLOBONEWS\\EVENTOS\\']
+	}, {
+		name: 'MARKETING',
+		icon: 'D9T_MARKETING_ICON',
+		paths: ['T:\\JORNALISMO\\GLOBONEWS\\MARKETING\\']
+	}, {
+		name: 'BASE TEMÁTICA',
+		icon: 'D9T_TBASE_ICON',
+		paths: ['T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Base Tematica\\']
+	}, {
+		name: 'ILUSTRAÇÕES',
+		icon: 'D9T_TILUSTRA_ICON',
+		paths: ['T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Ilustracoes\\']
+	}, ];
+	// ==========================================================
 
 	if (typeof populateMainIcons === 'function') {
 		populateMainIcons(prodIconGrp, validProductions);
@@ -274,10 +233,9 @@ function d9TemplateDialog() {
 		divProd.alignment = ['fill', 'center'];
 	}
 
-	// ===== ALTERAÇÃO: LAYOUT DO CABEÇALHO DE BUSCA =====
 	var templatesHeaderGrp = vGrp1.add('group');
 	templatesHeaderGrp.alignment = 'fill';
-	templatesHeaderGrp.orientation = 'row'; // Alterado para 'row' para alinhar itens
+	templatesHeaderGrp.orientation = 'row';
 	var templateLab = templatesHeaderGrp.add('statictext', undefined, 'BUSCA:');
 	templateLab.alignment = ['left', 'center'];
 	setFgColor(templateLab, normalColor1);
@@ -290,9 +248,8 @@ function d9TemplateDialog() {
 
 	var listViewChk = templatesHeaderGrp.add('checkbox', undefined, 'Exibir em lista');
 	listViewChk.alignment = ['right', 'center'];
-	listViewChk.value = true; // Padrão é marcado
+	listViewChk.value = true;
 	setFgColor(listViewChk, normalColor1);
-	// ====================================================
 
 	var treeGrp = vGrp1.add('group');
 	treeGrp.orientation = 'column';
@@ -306,15 +263,13 @@ function d9TemplateDialog() {
 	treeContainerGrp.orientation = 'stack';
 	treeContainerGrp.alignment = ['fill', 'fill'];
 
-	// ===== ALTERAÇÃO: ADICIONA LISTBOX PARA VISUALIZAÇÃO EM LISTA =====
 	var templateTree = treeContainerGrp.add('treeview', [0, 0, 320, 420]);
 	setFgColor(templateTree, monoColor1);
-	templateTree.visible = false; // Começa invisível
+	templateTree.visible = false;
 
 	var templateList = treeContainerGrp.add('listbox', [0, 0, 320, 420]);
 	setFgColor(templateList, monoColor1);
-	templateList.visible = true; // Começa visível
-	// ===================================================================
+	templateList.visible = true;
 
 	var loadingGrp = treeContainerGrp.add('group');
 	loadingGrp.alignChildren = ['center', 'center'];
@@ -369,8 +324,6 @@ function d9TemplateDialog() {
 		newDiv.alignment = ['fill', 'center'];
 	}
 
-	// ===== BLOCO DE INFORMAÇÕES DA ARTE (RESTAURADO E CORRIGIDO) =====
-	// Cria o grupo principal para as informações da arte
 	var infoArteMainGrp = vGrp2.add('group');
 	infoArteMainGrp.alignment = ['left', 'top'];
 	infoArteMainGrp.spacing = 12;
@@ -380,7 +333,6 @@ function d9TemplateDialog() {
 	arteInfoGrp.alignment = ['left', 'top'];
 	arteInfoGrp.alignChildren = 'left';
 
-	// Cabeçalho da seção
 	var arteHeaderGrp = arteInfoGrp.add('group');
 	arteHeaderGrp.alignment = 'fill';
 	arteHeaderGrp.orientation = 'stack';
@@ -389,7 +341,6 @@ function d9TemplateDialog() {
 	var arteLab = arteLabGrp.add('statictext', undefined, 'INFORMAÇÕES DA ARTE:');
 	setFgColor(arteLab, normalColor1);
 
-	// Campo de texto para o "Código"
 	var codigoGrp = arteInfoGrp.add('group');
 	codigoGrp.orientation = 'row';
 	codigoGrp.alignChildren = ['left', 'center'];
@@ -401,7 +352,6 @@ function d9TemplateDialog() {
 	var codigoTxt = codigoGrp.add('edittext', [0, 0, 120, 24], '');
 	codigoTxt.helpTip = 'Digite o codigo da arte (ex: GNVZ036)';
 
-	// Definição das linhas de informação
 	var infoRows = [{
 		label: 'Nome da Arte:',
 		value: '---'
@@ -416,7 +366,6 @@ function d9TemplateDialog() {
 		value: '---'
 	}];
 
-	// Loop que cria os labels e os campos de valor (COM A CORREÇÃO)
 	var infoLabels = [],
 		infoValues = [];
 	for (var r = 0; r < infoRows.length; r++) {
@@ -426,20 +375,16 @@ function d9TemplateDialog() {
 		infoRow.spacing = 8;
 		infoRow.margins = [0, 2, 0, 0];
 
-		// Cria o Rótulo (ex: "Nome da Arte:")
 		var label = infoRow.add('statictext', undefined, infoRows[r].label);
 		label.preferredSize.width = 100;
 		setFgColor(label, monoColor0);
 		infoLabels.push(label);
 
-		// Cria o campo de Valor (ex: "---")
 		var value = infoRow.add('statictext', undefined, infoRows[r].value);
-		// ✅ ESTA É A CORREÇÃO: Define uma largura fixa para o campo de texto
 		value.preferredSize.width = 180;
 		setFgColor(value, normalColor2);
 		infoValues.push(value);
 	}
-	// ===================================================================
 
 	var rBtnGrp2 = vGrp2.add('group');
 	rBtnGrp2.alignment = 'right';
@@ -473,7 +418,6 @@ function d9TemplateDialog() {
 		importBtn.preferredSize = [120, 32];
 	}
 
-	// ===== FUNÇÕES DE INFORMAÇÃO DA ARTE (RESTAURADAS) =====
 	function getAepVersion(aepFile) {
 		if (!aepFile || !aepFile.exists) {
 			return "N/A";
@@ -595,12 +539,10 @@ function d9TemplateDialog() {
 			infoValues[3].text = 'Erro';
 		}
 	}
-	// =========================================================
 
 	function loadCacheInBackground(prodName) {
 		if (templatesCache[prodName]) return;
 		var cacheFileName;
-		// ===== ALTERAÇÃO: ATUALIZA SWITCH PARA NOVAS PRODUÇÕES =====
 		switch (prodName) {
 			case 'JORNAIS':
 				cacheFileName = 'templates_pecas_cache.json';
@@ -627,7 +569,6 @@ function d9TemplateDialog() {
 				cacheFileName = prodName.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '_cache.json';
 				break;
 		}
-		// =========================================================
 		var templatesCacheFile = new File(cacheFolder.fullName + '/' + cacheFileName);
 		if (templatesCacheFile.exists) {
 			try {
@@ -656,7 +597,6 @@ function d9TemplateDialog() {
 		}
 	}
 
-	// ===== NOVA FUNÇÃO: POPULAR A LISTBOX (COM ÍCONES) =====
 	function populateListFromData(listBox, dataArray) {
 		listBox.removeAll();
 		var allItems = [];
@@ -678,15 +618,13 @@ function d9TemplateDialog() {
 			listItem.filePath = allItems[j].filePath;
 			listItem.modDate = allItems[j].modDate;
 			listItem.size = allItems[j].size;
-			// Adiciona ícone ao item da lista
 			if (allItems[j].filePath && allItems[j].filePath.match(/\.(aep|aet)$/i)) {
 				if (typeof D9T_AE_ICON !== 'undefined') listItem.image = D9T_AE_ICON;
 			} else {
-				if (typeof D9T_FOLDER_AE_ICON !== 'undefined') listItem.image = D9T_FOLDER_AE_ICON; // Para pastas ou items genéricos
+				if (typeof D9T_FOLDER_AE_ICON !== 'undefined') listItem.image = D9T_FOLDER_AE_ICON;
 			}
 		}
 	}
-	// ===========================================
 
 	function populateTreeFromDataOptimized(treeNode, dataArray) {
 		treeNode.visible = false;
@@ -740,7 +678,6 @@ function d9TemplateDialog() {
 		}
 		var data = templatesCache[prodName];
 		if (data && data.length > 0) {
-			// ===== ALTERAÇÃO: DECIDE QUAL VIEW POPULAR =====
 			if (listViewChk.value) {
 				populateListFromData(templateList, data);
 			} else {
@@ -924,7 +861,6 @@ function d9TemplateDialog() {
 						var lastIndex = parseInt(centralConfig.gnews_templates.lastProductionIndex);
 						if (!isNaN(lastIndex) && lastIndex >= 0 && lastIndex < prodDrop.items.length) {
 							prodDrop.selection = lastIndex;
-							// Garante que o ícone de produção seja atualizado no onShow
 							if (typeof changeIcon === 'function') {
 								changeIcon(lastIndex, prodIconGrp);
 							}
@@ -935,15 +871,22 @@ function d9TemplateDialog() {
 		} catch (e) {}
 		loadTemplatesFromCache();
 		searchBox.active = true;
-		updateArteInfo(null); // Chama a função para popular a info inicial
+		updateArteInfo(null);
 	};
 
-	// Pré-carrega o cache antes de exibir a janela principal
-	for (var i = 0; i < validProductions.length; i++) {
-		loadCacheInBackground(validProductions[i].name);
+	// ===== CORREÇÃO: FECHAMENTO GARANTIDO DA JANELA DE STATUS =====
+	try {
+		// Pré-carrega o cache antes de exibir a janela principal
+		for (var i = 0; i < validProductions.length; i++) {
+			loadCacheInBackground(validProductions[i].name);
+		}
+	} catch (e) {
+		alert("Erro ao carregar cache: " + e.toString());
+	} finally {
+		// Garante que a janela de carregamento SEMPRE feche
+		loadingWin.close();
 	}
-	loadingWin.close(); // Fecha a janela de carregamento APÓS O CARREGAMENTO TOTAL
-
+	// ==============================================================
 
 	searchBox.onActivate = function() {
 		if (this.isPlaceholderActive) {
@@ -966,13 +909,11 @@ function d9TemplateDialog() {
 		}
 	};
 
-	// ===== ALTERAÇÃO: EVENTO PARA TROCAR A VISUALIZAÇÃO =====
 	listViewChk.onClick = function() {
 		templateList.visible = this.value;
 		templateTree.visible = !this.value;
 		loadTemplatesFromCache();
 	};
-	// =========================================================
 
 	function handleRefresh() {
 		templatesCache = {};
@@ -1019,7 +960,7 @@ function d9TemplateDialog() {
 		function openPath(pathString) {
 			var folderToShow = new Folder(pathString);
 			if (!folderToShow.exists) {
-				alert("A pasta ('" + folderToShow.fsName + "') não foi encontrada.");
+				alert("O caminho a seguir não foi encontrado:\n" + folderToShow.fsName);
 				return;
 			}
 			folderToShow.execute();
@@ -1027,6 +968,7 @@ function d9TemplateDialog() {
 		if (availablePaths.length === 1) {
 			openPath(availablePaths[0]);
 		} else {
+			// Lógica para múltiplos caminhos (mantida caso seja útil no futuro)
 			var pathSelectionWin = new Window('dialog', 'Selecionar Pasta');
 			pathSelectionWin.add('statictext', undefined, 'Escolha um caminho para abrir:');
 			var list = pathSelectionWin.add('listbox', undefined, availablePaths);
@@ -1065,17 +1007,14 @@ function d9TemplateDialog() {
 			selection.helpTip = 'Arquivo: ' + selection.text + '\nTamanho: ' + fileSize + '\nModificado em: ' + formattedDate;
 		}
 
-		// ===== ALTERAÇÃO: LÓGICA DE PREVIEW MELHORADA =====
 		var previewBaseName = (typeof deleteFileExt === 'function' ? deleteFileExt(projectFile.displayName) : projectFile.displayName.replace(/\.[^\.]+$/, ''));
 		previewFile = new File(projectFile.path + '/' + previewBaseName + '_preview.png');
 		if (!previewFile.exists) {
-			// Procura na subpasta _PREVIEWS
 			var previewSubFolder = new Folder(projectFile.path + '/_PREVIEWS');
 			if (previewSubFolder.exists) {
 				previewFile = new File(previewSubFolder.fullName + '/' + previewBaseName + '_preview.png');
 			}
 		}
-		// ====================================================
 
 		if (previewFile.exists) {
 			previewImg.image = previewFile;
@@ -1090,8 +1029,6 @@ function d9TemplateDialog() {
 		} catch (e) {}
 	}
 
-
-	// ===== EVENTOS DE INFO DA ARTE (RESTAURADOS E UNIFICADOS) =====
 	templateTree.onChange = function() {
 		if (this.selection != null && this.selection.type == 'node') {
 			this.selection = null;
@@ -1112,7 +1049,7 @@ function d9TemplateDialog() {
 				infoValues[0].text = arteInfo.nome || '';
 				infoValues[1].text = arteInfo.servidor || '';
 				infoValues[2].text = arteInfo.ultima_atualizacao || '';
-				infoValues[3].text = ''; // Versão não vem do JSON, limpa o campo
+				infoValues[3].text = '';
 			} else {
 				infoValues[0].text = '---';
 				infoValues[1].text = '---';
@@ -1121,7 +1058,6 @@ function d9TemplateDialog() {
 			}
 		}
 	};
-	// =========================================================
 
 	function onActivateItem() {
 		var view = listViewChk.value ? templateList : templateTree;
@@ -1189,7 +1125,6 @@ function d9TemplateDialog() {
 			app.project.importFile(importOptions);
 			var templateName = fileToImport.name.replace(/\.[^\.]+$/, '');
 			logGNewsImport(templateName);
-			// alert("Template '" + templateName + "' importado com sucesso!"); // REMOVIDO
 			D9T_TEMPLATES_w.close();
 		} catch (e) {
 			alert("Erro ao importar template: " + e.message);
@@ -1232,7 +1167,6 @@ function d9TemplateDialog() {
 		} catch (err) {}
 	}
 
-	// ===== ALTERAÇÃO: BOTÃO DE AJUDA FUNCIONAL =====
 	if (infoBtn && typeof infoBtn.leftClick !== 'undefined') {
 		infoBtn.leftClick.onClick = function() {
 			if (typeof showTemplatesHelp === 'function') showTemplatesHelp();
@@ -1242,7 +1176,6 @@ function d9TemplateDialog() {
 			if (typeof showTemplatesHelp === 'function') showTemplatesHelp();
 		};
 	}
-	// ===============================================
 
 	if (cancelBtn && typeof cancelBtn.leftClick !== 'undefined') {
 		cancelBtn.leftClick.onClick = function() {
