@@ -305,13 +305,21 @@ function populateTreeFromData(treeNode, dataArray) {
 // Nova função para converter a hierarquia de dados em uma lista plana de itens
 function flattenData(dataArray) {
     var flatList = [];
-    for (var i = 0; i < dataArray.length; i++) {
-        var item = dataArray[i];
-        if (item.type === 'item') {
-            flatList.push(item);
-        } else if (item.type === 'node' && item.children) {
-            flatList = flatList.concat(flattenData(item.children));
+    if (!dataArray) return flatList;
+    var nodesToProcess = dataArray.slice(0); // Cria uma cópia para não modificar o original
+    
+    while (nodesToProcess.length > 0) {
+        var node = nodesToProcess.pop(); // Pega o último nó da lista
+        if (!node) continue;
+
+        if (node.type === 'item') {
+            flatList.push(node);
+        } else if (node.type === 'node' && node.children) {
+            // Adiciona os filhos na lista para serem processados
+            for (var i = node.children.length - 1; i >= 0; i--) {
+                nodesToProcess.push(node.children[i]);
+            }
         }
     }
-    return flatList;
+    return flatList.reverse(); // Inverte para manter a ordem original aproximada
 }

@@ -1,5 +1,8 @@
-﻿/* eslint-disable no-unused-vars */
+/* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
+
+
+$.encoding = "UTF-8";
 
 function GND9TOOLS_UTL(thisObj) {
     // Declaração da versão do script 'O Padeiro'
