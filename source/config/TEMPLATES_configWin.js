@@ -1,8 +1,39 @@
-// ADICIONADO: Garante que o script seja lido com a codificação correta para acentos.
 $.encoding = "UTF-8";
 
 /* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
+
+// ADIÇÃO: Função para criar e gerenciar uma janela de status de progresso.
+function createStatusWindow(title) {
+    var win = new Window("palette", title, undefined, { closeButton: false });
+    win.orientation = "column";
+    win.alignChildren = "fill";
+    win.preferredSize.width = 300;
+    
+    var textGroup = win.add("group");
+    textGroup.alignment = "center";
+    var statusLabel = textGroup.add("statictext", undefined, "Iniciando...");
+    statusLabel.characters = 40;
+
+    var progressGroup = win.add("group");
+    progressGroup.alignment = "center";
+    var progressLabel = progressGroup.add("statictext", undefined, "0 / 0");
+    progressLabel.characters = 20;
+
+    win.update = function(statusText, currentValue, maxValue) {
+        if (statusText) {
+            statusLabel.text = statusText;
+        }
+        if (currentValue !== undefined && maxValue !== undefined) {
+            progressLabel.text = currentValue + " / " + maxValue;
+        }
+        win.layout.layout(true);
+        win.update();
+    };
+    
+    return win;
+}
+
 
 function countItemsInTree(nodes) {
     var count = 0;
@@ -17,98 +48,59 @@ function countItemsInTree(nodes) {
     return count;
 }
 
-// ======================================================================
-// >>>>>>>>>>>>>>>> FUNÇÃO getFolderStructureAsData - VERSÃO MAIS ROBUSTA <<<<<<<<<<<<<<<<
-// ======================================================================
-function getFolderStructureAsData(rootFolder, fileFilter, categoryName) {
+function getFolderStructureAsData(rootFolder, fileFilter, categoryName, progress) {
     if (!rootFolder.exists) return [];
     var allItems = null;
 
-    // CORREÇÃO: Envolve a leitura de arquivos em um bloco try...catch.
-    // Isso impede que pastas com problemas de permissão ou outros erros travem o script.
     try {
         allItems = rootFolder.getFiles();
     } catch (e) {
-        // Se a leitura falhar, registra um aviso no painel "Info" do AE e continua.
         writeLn("Aviso: Não foi possível ler o conteúdo da pasta (verifique permissões): " + decodeURI(rootFolder.fsName));
-        return []; // Retorna um array vazio para esta pasta, permitindo que o script continue.
+        return [];
     }
 
     if (allItems === null) {
         writeLn("Aviso: O conteúdo da pasta retornou nulo (pode estar vazia ou inacessível): " + decodeURI(rootFolder.fsName));
-        return []; // Retorna um array vazio se o resultado for nulo.
+        return [];
     }
 
     var folders = [];
     var files = [];
-
-    var jornaisExclusions = [
-        'Icones', 'Ilustracoes', 'Fotos para aberturas', 'BAGUNCA ALHEIA',
-        '_OLD', 'backup', 'versoes anteriores', 'PARA_SCRIPT', '_PREVIEWS'
-    ];
+    var jornaisExclusions = ['Icones', 'Ilustracoes', 'Fotos para aberturas', 'BAGUNCA ALHEIA', '_OLD', 'backup', 'versoes anteriores', 'PARA_SCRIPT', '_PREVIEWS'];
 
     for (var i = 0; i < allItems.length; i++) {
         var item = allItems[i];
         if (item instanceof Folder) {
-            if (item.displayName === "Adobe After Effects Auto-Save" || item.displayName.slice(-4).toUpperCase() === '_AME') {
-                continue;
-            }
-
-            if (categoryName === 'JORNAIS') {
-                var isExcluded = false;
-                for (var ex = 0; ex < jornaisExclusions.length; ex++) {
-                    if (item.displayName === jornaisExclusions[ex]) {
-                        isExcluded = true;
-                        break;
-                    }
-                }
-                if (isExcluded) {
-                    continue;
-                }
-            }
+            if (item.displayName === "Adobe After Effects Auto-Save" || item.displayName.slice(-4).toUpperCase() === '_AME') continue;
+            if (categoryName === 'JORNAIS' && jornaisExclusions.indexOf(item.displayName) > -1) continue;
             
-            var subItems = getFolderStructureAsData(item, fileFilter, categoryName);
+            var subItems = getFolderStructureAsData(item, fileFilter, categoryName, progress);
             if (subItems.length > 0) {
-                folders.push({
-                    type: 'node',
-                    text: item.displayName,
-                    children: subItems
-                });
+                folders.push({ type: 'node', text: item.displayName, children: subItems });
             }
         } else if (item instanceof File) {
-            if (item.displayName.toLowerCase().indexOf("auto-save") > -1 || item.displayName.slice(0, 7) === 'tmpAEto') {
-                continue;
-            }
+            if (item.displayName.toLowerCase().indexOf("auto-save") > -1 || item.displayName.slice(0, 7) === 'tmpAEto') continue;
+            
             var fileExt = item.name.substr(item.name.lastIndexOf('.')).toLowerCase();
-            var isAllowed = false;
-            for (var j = 0; j < fileFilter.length; j++) {
-                if (fileExt === fileFilter[j]) {
-                    isAllowed = true;
-                    break;
+            if (fileFilter.indexOf(fileExt) > -1) {
+                files.push({ type: 'item', text: item.displayName, filePath: item.fsName, size: item.length, modDate: item.modified.toUTCString() });
+                // ALTERAÇÃO: Atualiza o contador de progresso
+                if (progress) {
+                    progress.count++;
+                    if (progress.win && progress.count % 10 === 0) { // Atualiza a cada 10 arquivos para não sobrecarregar
+                        progress.win.update("Processando arquivos...", progress.count, "?");
+                    }
                 }
-            }
-            if (isAllowed) {
-                files.push({
-                    type: 'item',
-                    text: item.displayName,
-                    filePath: item.fsName,
-                    size: item.length,
-                    modDate: item.modified.toUTCString()
-                });
             }
         }
     }
-
     folders.sort(function(a, b) { return a.text.localeCompare(b.text); });
     files.sort(function(a, b) { return a.text.localeCompare(b.text); });
-
     return folders.concat(files);
 }
 
-
 function d9ProdFoldersDialog(prodArray) {
     var scriptName = 'CONFIGURAÇÃO DE CAMINHOS';
-    
     var cacheFolder = new Folder(scriptMainPath + 'source/cache');
     if (!cacheFolder.exists) cacheFolder.create();
     var fileFilter = ['.aep', '.aet'];
@@ -123,6 +115,7 @@ function d9ProdFoldersDialog(prodArray) {
         { nome: 'ILUSTRAÇÕES', key: 'ilustracoes', caminhos: [] }
     ];
     
+    // ... (resto da função d9ProdFoldersDialog, sem alterações na lógica de carregar categorias)
     try {
         if (typeof prodArray !== 'undefined' && prodArray.length > 0) {
             var prodData = prodArray[0];
@@ -165,7 +158,45 @@ function d9ProdFoldersDialog(prodArray) {
     var mainGrp = D9T_CONFIG_w.add('group', undefined);
     mainGrp.orientation = 'column';
     mainGrp.spacing = 16;
-    
+
+    // ADIÇÃO: Função auxiliar para obter o nome do arquivo de cache.
+    function getCacheFileName(categoryName) {
+        switch (categoryName) {
+            case 'JORNAIS': return 'templates_jornais_cache.json';
+            case 'PROMO': return 'templates_promo_cache.json';
+            case 'PROGRAMAS': return 'templates_programas_cache.json';
+            case 'EVENTOS': return 'templates_eventos_cache.json';
+            case 'MARKETING': return 'templates_marketing_cache.json';
+            case 'BASE TEMÁTICA': return 'templates_base_cache.json';
+            case 'ILUSTRAÇÕES': return 'templates_ilustra_cache.json';
+            default: return 'templates_' + categoryName.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '_cache.json';
+        }
+    }
+
+    // ADIÇÃO: Função para verificar o status de um caminho (online e com cache).
+    function checkPathStatus(pathStr, categoryName) {
+        var folder = new Folder(pathStr);
+        if (!folder.exists) {
+            return 'red'; // Pasta não existe
+        }
+        var cacheFile = new File(cacheFolder.fullName + '/' + getCacheFileName(categoryName));
+        if (!cacheFile.exists) {
+            return 'red'; // Arquivo de cache não existe
+        }
+        try {
+            cacheFile.open('r');
+            var content = cacheFile.read();
+            cacheFile.close();
+            var cacheData = JSON.parse(content);
+            if (cacheData && cacheData.hasOwnProperty(pathStr)) {
+                return '#2E8B57'; // Verde: Caminho existe no cache
+            }
+        } catch (e) {
+            return 'red'; // Erro ao ler o cache
+        }
+        return 'red'; // Caminho não encontrado no cache
+    }
+
     for (var c = 0; c < categorias.length; c++) {
         var categoria = categorias[c];
         var newDiv;
@@ -189,7 +220,7 @@ function d9ProdFoldersDialog(prodArray) {
         catPathsGrp.margins = [20, 0, 0, 0];
         
         (function(grp, cat) {
-            cat.uiGroup = grp; // Armazena a referência ao grupo de UI
+            cat.uiGroup = grp;
             for (var p = 0; p < cat.caminhos.length; p++) {
                 addPathLine(grp, cat.caminhos[p], cat.nome);
             }
@@ -203,6 +234,7 @@ function d9ProdFoldersDialog(prodArray) {
     }
     
     function addPathLine(parentGrp, pathTxt, categoryName) {
+        // ... (criação dos botões da linha) ...
         var pathLineGrp = parentGrp.add('group', undefined);
         pathLineGrp.orientation = 'row';
         pathLineGrp.alignChildren = ['left', 'center'];
@@ -214,7 +246,10 @@ function d9ProdFoldersDialog(prodArray) {
         var pathLab = pathLineGrp.add('statictext', undefined, pathTxt, { pathValue: pathTxt, truncate: 'middle' });
         pathLab.helpTip = 'caminho da pasta:\n\n' + pathTxt;
         pathLab.preferredSize = [350, 24];
-        try { setCtrlHighlight(pathLab, normalColor2, highlightColor1); } catch (e) {}
+
+        // ALTERAÇÃO: Define a cor inicial do caminho com base no seu status.
+        var initialColor = checkPathStatus(pathTxt, categoryName);
+        try { setFgColor(pathLab, initialColor); } catch (e) {}
         
         var testBtn = pathLineGrp.add('button', undefined, 'Testar e Gerar Cache');
         testBtn.preferredSize = [120, 24];
@@ -230,75 +265,61 @@ function d9ProdFoldersDialog(prodArray) {
                 pathLab.properties.pathValue = newFolder.fullName;
                 pathLab.text = newFolder.fullName;
                 pathLab.helpTip = newFolder.fullName;
-                try { setFgColor(pathLab, normalColor2); } catch(e){}
+                // Ao mudar, a cor fica vermelha indicando que precisa gerar cache
+                try { setFgColor(pathLab, 'red'); } catch(e){}
             }
         });
         
         testBtn.onClick = function() {
             var pathStr = pathLab.properties.pathValue;
-            alert("Iniciando teste e criação de cache para:\n" + pathStr);
-            
             var folder = new Folder(pathStr);
             if (!folder.exists) {
-                 setFgColor(pathLab, '#DC143C');
+                 setFgColor(pathLab, 'red');
                  alert("Falha! O caminho não existe ou está inacessível.");
                  return;
             }
 
+            // ALTERAÇÃO: Usa a janela de status durante a geração do cache.
+            var statusWin = createStatusWindow("Gerando Cache...");
+            statusWin.show();
+            var progress = { count: 0, win: statusWin };
+
             try {
-                var treeData = getFolderStructureAsData(folder, fileFilter, categoryName);
-                var newCount = countItemsInTree(treeData);
+                statusWin.update("Lendo estrutura de pastas...");
+                var treeData = getFolderStructureAsData(folder, fileFilter, categoryName, progress);
+                var newCount = progress.count;
 
-                var cacheFileName;
-                switch (categoryName) {
-                    case 'JORNAIS': cacheFileName = 'templates_jornais_cache.json'; break;
-                    case 'PROMO': cacheFileName = 'templates_promo_cache.json'; break;
-                    case 'PROGRAMAS': cacheFileName = 'templates_programas_cache.json'; break;
-                    case 'EVENTOS': cacheFileName = 'templates_eventos_cache.json'; break;
-                    case 'MARKETING': cacheFileName = 'templates_marketing_cache.json'; break;
-                    case 'BASE TEMÁTICA': cacheFileName = 'templates_base_cache.json'; break;
-                    case 'ILUSTRAÇÕES': cacheFileName = 'templates_ilustra_cache.json'; break;
-                    default: cacheFileName = 'templates_' + categoryName.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '_cache.json'; break;
-                }
-                
+                statusWin.update("Salvando arquivo de cache...");
+                var cacheFileName = getCacheFileName(categoryName);
                 var cacheFile = new File(cacheFolder.fullName + '/' + cacheFileName);
-
                 var masterCacheData = {};
                 var oldCount = 0;
                 if (cacheFile.exists) {
                     try {
                         cacheFile.open('r');
-                        var content = cacheFile.read();
+                        masterCacheData = JSON.parse(cacheFile.read());
                         cacheFile.close();
-                        if(content && content.trim() !== '') {
-                             masterCacheData = JSON.parse(content);
-                        }
-                        if (masterCacheData && masterCacheData[pathStr]) {
+                        if (masterCacheData[pathStr]) {
                             oldCount = countItemsInTree(masterCacheData[pathStr]);
                         }
-                    } catch(e) { 
-                        masterCacheData = {};
-                    }
+                    } catch(e) { masterCacheData = {}; }
                 }
-                
                 if (masterCacheData === null || typeof masterCacheData !== 'object') {
                     masterCacheData = {};
                 }
-
                 masterCacheData[pathStr] = treeData;
-
                 cacheFile.open('w');
                 cacheFile.write(JSON.stringify(masterCacheData, null, 2));
                 cacheFile.close();
                 
-                setFgColor(pathLab, '#2E8B57');
-                var feedbackMsg = "Sucesso! Cache para '" + categoryName + "' foi atualizado.\n\n" +
-                                  "Total de " + newCount + " arquivos encontrados neste caminho.\n" +
-                                  "(Contagem anterior: " + oldCount + " arquivos)";
-                alert(feedbackMsg);
+                statusWin.close();
+                setFgColor(pathLab, '#2E8B57'); // Verde
+                alert("Sucesso! Cache para '" + categoryName + "' foi atualizado.\n\n" +
+                      "Total de " + newCount + " arquivos encontrados.");
 
             } catch (e) {
-                setFgColor(pathLab, '#DC143C');
+                statusWin.close();
+                setFgColor(pathLab, 'red');
                 alert("Erro crítico ao testar o caminho:\n" + e.message);
             }
         };
@@ -311,6 +332,7 @@ function d9ProdFoldersDialog(prodArray) {
         });
     }
     
+    // ... (Resto do arquivo, incluindo botões Salvar/Importar/Exportar, permanece o mesmo)
     var BtnGrp = D9T_CONFIG_w.add('group', undefined);
     BtnGrp.orientation = 'stack';
     BtnGrp.alignment = 'fill';
