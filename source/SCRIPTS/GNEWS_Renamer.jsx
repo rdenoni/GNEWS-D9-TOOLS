@@ -1,1047 +1,354 @@
-/***************************************************
+/**********************************************************************************
  * GNEWS Renamer.jsx
- * Versão: 7.6 - CORRIGIDO PARA PAINEL GND9TOOLS
- ***************************************************/
+ * Autor: D9
+ * Versão: 15.2.0 (Restauração de Funções e Feedback)
+ *
+ * DESCRIÇÃO:
+ * - CORREÇÃO (v15.2.0): Restaurada a lógica de feedback. Mensagens de sucesso
+ * agora são exibidas no painel de status/preview, em vez de alertas pop-up.
+ * - CORREÇÃO (v15.2.0): Restaurada a lógica completa do botão 'Organizar Projeto'
+ * que havia sido perdida. Todas as funções estão completas.
+ * - UI (v15.1.0): Botão "Salvar" em vermelho, "Correção" alinhado e painel de
+ * status na parte inferior.
+ * - UI (v15.0.0): Implementados os botões temáticos (themeButton).
+ * - LÓGICA (v13.0.0): Refatorado para ler dados do 'Dados_Config.json'.
+ * - LÓGICA (v12.2.0): Correção definitiva da prioridade do usuário.
+ *
+ * MÓDULOS USADOS:
+ * - globals.js: (Cores e variáveis globais)
+ * - main_ui_functions.js: (Função 'themeButton' para os botões customizados)
+ * - Dados_Config.json: (Dados da equipe, programas, artes)
+ * - func_getPathDayByDay.js: (Lógica de caminho de salvamento)
+ *
+ **********************************************************************************/
+
+// Garante que o script seja lido com a codificação correta para acentos.
+$.encoding = "UTF-8";
 
 function createRenamerUI(thisObj) {
+    // =================================================================================
+    // --- VARIÁVEIS DE CONFIGURAÇÃO RÁPIDA DE UI ---
+    // =================================================================================
+    var SCRIPT_NAME = "GNEWS Renamer";
+    var SCRIPT_VERSION = "v15.2.0";
+    var JANELA_TITULO = SCRIPT_NAME + " " + SCRIPT_VERSION;
+    var TITULO_UI = "Construtor de Nomes:";
+    var LARGURA_JANELA = 120;
+    var ALTURA_JANELA = 250;
+    var LARGURA_BOTAO = 128;
+    var ALTURA_BOTAO = 40;
+    var LARGURA_MENU_NOME = 80;
+    var LARGURA_MENU_PRODUCAO = 142;
+    var LARGURA_MENU_TIPO = 137;
+    var LARGURA_MENU_VERSAO = 85;
+    var LARGURA_CAMPO_DESCRICAO = 297;
+    var LARGURA_CAMPO_EDITOR = 297;
+    var MARGENS_JANELA = 15;
+    var ESPACAMENTO_ELEMENTOS = 5;
 
-    // =======================================================================
-    // ETAPA 1: CARREGAMENTO DE DADOS EXTERNOS (COM VERIFICAÇÕES REFORÇADAS)
-    // =======================================================================
+    // =================================================================================
+    // --- DADOS INTERNOS DO SCRIPT ---
+    // =================================================================================
+    var versionsList_internal = [
+        "Nenhuma", "Arte 01", "Arte 02", "Arte 03", "Arte 04",
+        "Arte 05", "Arte 06", "Arte 07", "Arte 08"
+    ];
 
-    function readJsonFile(filePath) {
-        var file = new File(filePath);
-        if (!file.exists) {
-            alert("Erro fatal: Arquivo JSON não encontrado em:\n" + filePath);
-            return null;
-        }
-        try {
-            file.open("r");
-            var content = file.read();
-            file.close();
-            
-            if (typeof JSON !== 'undefined' && typeof JSON.parse === 'function') {
-                return JSON.parse(content);
-            } else {
-                return eval('(' + content + ')');
-            }
-        } catch (e) {
-            alert("Erro ao ler ou parsear o arquivo JSON:\n" + filePath + "\n\n" + e.toString());
-            return null;
-        }
+    // =================================================================================
+    // --- FUNÇÕES AUXILIARES DE TEMA E ARQUIVOS ---
+    // =================================================================================
+    function hexToRgb(hex) { if (typeof hex !== 'string') return [0.1, 0.1, 0.1]; hex = hex.replace("#", ""); return [parseInt(hex.substring(0, 2), 16) / 255, parseInt(hex.substring(2, 4), 16) / 255, parseInt(hex.substring(4, 6), 16) / 255]; }
+    function setBgColor(element, hexColor) { try { if (typeof hexColor !== 'undefined') element.graphics.backgroundColor = element.graphics.newBrush(element.graphics.BrushType.SOLID_COLOR, hexToRgb(hexColor)); } catch (e) {} }
+    function setFgColor(element, hexColor) { try { if (typeof hexColor !== 'undefined') element.graphics.foregroundColor = element.graphics.newPen(element.graphics.PenType.SOLID_COLOR, hexToRgb(hexColor), 1); } catch (e) {} }
+    
+    // Alerta pop-up para erros ou avisos importantes
+    function themedAlert(title, message, alertType) {
+        var d = new Window("dialog", title); d.orientation="column"; d.alignChildren=["center","center"]; d.spacing=10; d.margins=15;
+        setBgColor(d, typeof bgColor1 !== 'undefined' ? bgColor1 : '#282828');
+        var titleColor = typeof normalColor1 !== 'undefined' ? normalColor1 : '#FFFFFF';
+        if (alertType === "error") { titleColor = typeof highlightColor1 !== 'undefined' ? highlightColor1 : '#D4003C'; } 
+        else if (alertType === "success") { titleColor = typeof successColor !== 'undefined' ? successColor : '#97E341'; } 
+        else if (alertType === "warning") { titleColor = typeof warningColor !== 'undefined' ? warningColor : '#fba524'; }
+        var m = d.add('group'); m.orientation = 'column'; var l = message.split('\n');
+        for (var i = 0; i < l.length; i++) { var t = m.add('statictext', undefined, l[i]); setFgColor(t, (i === 0) ? titleColor : (typeof normalColor1 !== 'undefined' ? normalColor1 : '#FFFFFF')); }
+        var b = d.add("button", undefined, "OK", { name: 'ok' }); b.size = [100, 25]; d.center(); d.show();
     }
 
+    // Feedback visual no painel de status (para sucesso ou falhas menores)
+    function showStatusMessage(message, type) {
+        if (!previewText) return;
+        var color = normalColor1;
+        if (type === "success") {
+            color = typeof successColor !== 'undefined' ? successColor : '#97E341';
+        } else if (type === "error") {
+            color = typeof highlightColor1 !== 'undefined' ? highlightColor1 : '#D4003C';
+        }
+        setFgColor(previewText, color);
+        previewText.text = message;
+    }
+    
+    function readJsonFile(filePath) {
+        var file = new File(filePath);
+        if (!file.exists) { throw new Error("Arquivo de configuração não encontrado em: " + filePath); }
+        try {
+            file.open("r"); var content = file.read(); file.close();
+            return JSON.parse(content);
+        } catch (e) { throw new Error("Erro ao ler ou processar o arquivo JSON: " + filePath + "\n" + e.toString()); }
+    }
+
+    // =======================================================================
+    // --- ETAPA 1: CARREGAMENTO DE DADOS (NOVA ARQUITETURA) ---
+    // =======================================================================
     function loadAllData() {
         try {
-            if (typeof scriptMainPath === 'undefined' || scriptMainPath === null) {
-                throw new Error("Variável global 'scriptMainPath' não encontrada. Execute a partir do painel 'GND9 TOOLS'.");
-            }
-
-            var configFilePath = new File(scriptMainPath + "source/config/MORNING_config.json");
-            var configData = readJsonFile(configFilePath.fsName);
-            if (!configData) throw new Error("Não foi possível carregar ou ler o MORNING_config.json.");
-            if (!configData.data_paths) throw new Error("A chave 'data_paths' não foi encontrada no MORNING_config.json.");
-
-            var sourceFolder = new Folder(scriptMainPath + "source/");
-
-            if (!configData.data_paths.names) throw new Error("'data_paths.names' não definido no config.");
-            var equipeDataPath = new File(sourceFolder.fsName + "/" + configData.data_paths.names.replace("../", ""));
-            var equipeData = readJsonFile(equipeDataPath.fsName);
-            if (!equipeData || !equipeData.equipe) throw new Error("Não foi possível carregar ou ler DADOS_equipe_gnews.json.");
-            
-            var namesList = [];
-            var tagsMap = {};
-            for (var i = 0; i < equipeData.equipe.length; i++) {
-                var membro = equipeData.equipe[i];
-                namesList.push(membro.apelido);
-                tagsMap[membro.apelido] = membro.tag;
-            }
-
-            if (!configData.data_paths.productions) throw new Error("'data_paths.productions' não definido no config.");
-            var programacaoDataPath = new File(sourceFolder.fsName + "/" + configData.data_paths.productions.replace("../", ""));
-            var programacaoData = readJsonFile(programacaoDataPath.fsName);
-            if (!programacaoData || !programacaoData.programacao_globonews) throw new Error("Não foi possível carregar ou ler DADOS_programacao_gnews.json.");
-            
+            if (typeof scriptMainPath === 'undefined' || scriptMainPath === null) { throw new Error("A variável global 'scriptMainPath' não foi encontrada."); }
+            var dadosConfigData = readJsonFile(scriptMainPath + "/Dados_Config.json");
+            var equipeData = dadosConfigData.EQUIPE_GNEWS; if (!equipeData || !equipeData.equipe) throw new Error("'EQUIPE_GNEWS' não encontrado em Dados_Config.json.");
+            var namesList = [], tagsMap = {};
+            for (var i = 0; i < equipeData.equipe.length; i++) { namesList.push(equipeData.equipe[i].apelido); tagsMap[equipeData.equipe[i].apelido] = equipeData.equipe[i].tag; }
+            var programacaoData = dadosConfigData.PROGRAMACAO_GNEWS; if (!programacaoData || !programacaoData.programacao) throw new Error("'PROGRAMACAO_GNEWS' não encontrado em Dados_Config.json.");
             var productionsList = [];
-            for (var i = 0; i < programacaoData.programacao_globonews.length; i++) {
-                var programa = programacaoData.programacao_globonews[i];
-                if (programa && programa.tagName) {
-                    var tagNameFormatted = programa.tagName.replace(/_/g, ' ').toLowerCase();
-                    productionsList.push(tagNameFormatted.replace(/\b\w/g, function(l){ return l.toUpperCase(); }));
-                }
-            }
-
-            if (!configData.data_paths.arts) throw new Error("'data_paths.arts' não definido no config.");
-            var artesDataPath = new File(sourceFolder.fsName + "/" + configData.data_paths.arts.replace("../", ""));
-            var artesData = readJsonFile(artesDataPath.fsName);
-            if (!artesData) throw new Error("Não foi possível carregar ou ler DADOS_artes_gnews.json.");
-            
-            var artsList = [];
-            if (artesData.artes_codificadas) {
-                var tempArtes = {};
-                for (var i = 0; i < artesData.artes_codificadas.length; i++) {
-                    var arte_obj = artesData.artes_codificadas[i];
-                    if (arte_obj && arte_obj.arte && !tempArtes[arte_obj.arte]) {
-                        artsList.push(arte_obj.arte);
-                        tempArtes[arte_obj.arte] = true;
-                    }
-                }
-                artsList.sort();
-            } else if (artesData.Artes) {
-                artsList = artesData.Artes;
-            } else {
-                 throw new Error("Nenhuma chave válida ('artes_codificadas' ou 'Artes') encontrada no DADOS_artes_gnews.json.");
-            }
-            
-            if (!configData.inline_data || !configData.inline_data.versions) throw new Error("'inline_data.versions' não definido no config.");
-            var versionsList = configData.inline_data.versions;
-
-            return {
-                names: namesList,
-                tags: tagsMap,
-                productions: productionsList,
-                arts: artsList,
-                versions: versionsList,
-                programacaoRaw: programacaoData
-            };
-
-        } catch (e) {
-            var errorMessage = "Ocorreu um erro crítico durante o carregamento dos dados:\n" + e.toString();
-            $.writeln(errorMessage);
-            alert(errorMessage);
-            return null;
-        }
+            for (var i = 0; i < programacaoData.programacao.length; i++) { var p = programacaoData.programacao[i]; if (p && p.tagName) { productionsList.push(p.tagName.replace(/_/g,' ').toLowerCase().replace(/\b\w/g,function(l){return l.toUpperCase();})); } }
+            var artesData = dadosConfigData.ARTES_GNEWS; if (!artesData || !artesData.arte) throw new Error("'ARTES_GNEWS' não encontrado em Dados_Config.json.");
+            var artsList = [], tempArtes = {};
+            for (var i = 0; i < artesData.arte.length; i++) { var a = artesData.arte[i], n = a.arte || a.arts; if (n && !tempArtes[n]) { artsList.push(n); tempArtes[n] = true; } }
+            artsList.sort();
+            return { names: namesList, tags: tagsMap, productions: productionsList, arts: artsList, versions: versionsList_internal, programacaoRaw: { programacao_globonews: programacaoData.programacao }, equipe: equipeData.equipe };
+        } catch (e) { themedAlert("Erro Crítico de Dados", e.toString(), "error"); return null; }
     }
 
     var loadedData = loadAllData();
-    if (!loadedData) {
-        return;
-    }
-
-    var names = loadedData.names;
-    var tags = loadedData.tags;
-    var productions = loadedData.productions;
-    var arts = loadedData.arts;
-    var versions = loadedData.versions;
-    var programacaoData = loadedData.programacaoRaw;
-
-    // =======================================================================
-    // ENHANCED UNICODE SUPPORT DETECTION
-    // =======================================================================
+    if (!loadedData) return;
+    var names = loadedData.names, tags = loadedData.tags, productions = loadedData.productions,
+        arts = loadedData.arts, versions = loadedData.versions, programacaoData = loadedData.programacaoRaw,
+        equipe = loadedData.equipe;
     
-    function getAfterEffectsVersionInfo() {
-        var version = parseFloat(app.version);
-        var versionYear = null;
-        var supportsUnicode = false;
-        var recommendedFont = "Arial Unicode MS";
-        var fallbackFont = "Arial";
-        
-        if (version >= 24.0) {
-            versionYear = 2024;
-            supportsUnicode = true;
-            recommendedFont = "Segoe UI Emoji";
-        } else if (version >= 23.0) {
-            versionYear = 2023;
-            supportsUnicode = true;
-            recommendedFont = "Arial Unicode MS";
-        } else if (version >= 22.0) {
-            versionYear = 2022;
-            supportsUnicode = true;
-            recommendedFont = "Arial Unicode MS";
-        } else if (version >= 18.0) {
-            versionYear = 2021;
-            supportsUnicode = true;
-            recommendedFont = "Arial Unicode MS";
-        } else if (version >= 17.0) {
-            versionYear = 2020;
-            supportsUnicode = false;
-            recommendedFont = "Arial";
-        } else {
-            versionYear = "Legacy";
-            supportsUnicode = false;
-            recommendedFont = "Arial";
-        }
-        
-        return {
-            version: version,
-            year: versionYear,
-            supportsUnicode: supportsUnicode,
-            recommendedFont: recommendedFont,
-            fallbackFont: fallbackFont
-        };
-    }
-
-    function isUnicodeSupported() {
-        var versionInfo = getAfterEffectsVersionInfo();
-        
-        if (versionInfo.supportsUnicode) {
-            try {
-                var testWin = new Window("dialog");
-                var testText = testWin.add("statictext", undefined, "\uD83D\uDCBE");
-                
-                try {
-                    testText.graphics.font = ScriptUI.newFont(versionInfo.recommendedFont, "Regular", 12);
-                } catch(e) {
-                    try {
-                        testText.graphics.font = ScriptUI.newFont(versionInfo.fallbackFont, "Regular", 12);
-                    } catch(e2) {
-                        testWin.close();
-                        return false;
-                    }
-                }
-                
-                testWin.close();
-                return true;
-                
-            } catch(e) {
-                $.writeln("Unicode test failed: " + e.toString());
-                return false;
-            }
-        }
-        
-        return false;
-    }
-
-    function setUnicodeFont(element) {
-        var versionInfo = getAfterEffectsVersionInfo();
-        
-        if (versionInfo.supportsUnicode) {
-            try {
-                element.graphics.font = ScriptUI.newFont(versionInfo.recommendedFont, "Regular", 12);
-            } catch(e1) {
-                try {
-                    if (versionInfo.recommendedFont !== "Arial Unicode MS") {
-                        element.graphics.font = ScriptUI.newFont("Arial Unicode MS", "Regular", 12);
-                    } else {
-                        element.graphics.font = ScriptUI.newFont("Segoe UI", "Regular", 12);
-                    }
-                } catch(e2) {
-                    try {
-                        element.graphics.font = ScriptUI.newFont(versionInfo.fallbackFont, "Regular", 12);
-                    } catch(e3) {
-                        $.writeln("Warning: Could not set Unicode font, using system default");
-                    }
-                }
-            }
-        }
-    }
-
-    var unicodeIcons = {
-        save: "\uD83D\uDCBE",
-        create: "\u2728",
-        capture: "\uD83D\uDD3D",
-        copy: "\uD83D\uDCCB",
-        organize: "\uD83D\uDCE5"
-    };
-
-    var fallbackIcons = {
-        save: "[SAVE]",
-        create: "[NEW]", 
-        capture: "[GET]",
-        copy: "[COPY]",
-        organize: "[ORG]"
-    };
-
-    function getIcon(iconName) {
-        var versionInfo = getAfterEffectsVersionInfo();
-        
-        if (versionInfo.supportsUnicode && isUnicodeSupported()) {
-            return unicodeIcons[iconName] || fallbackIcons[iconName] || "";
-        } else {
-            return fallbackIcons[iconName] || "";
-        }
-    }
-
     // =======================================================================
-    // FUNÇÃO PARA DEFINIR VALORES PADRÃO NA ABERTURA
+    // --- LÓGICA DO SCRIPT E FUNÇÕES AUXILIARES ---
     // =======================================================================
+    function getLoggedInUserIndex() { var u=system.userName.toLowerCase(),a=null; for(var i=0;i<equipe.length;i++){var s=equipe[i].email?equipe[i].email.toLowerCase():(equipe[i].apelido?equipe[i].apelido.toLowerCase():""); if(s.indexOf(u)>-1){a=equipe[i].apelido;break;}} return a?names.indexOf(a):-1; }
     function setDefaultValuesWithTimeLogic() {
-        descInput.text = "";
-        editorInput.text = "";
-        alterCheck.value = false;
-
-        for (var i = 0; i < nameDrop.items.length; i++) {
-            if (nameDrop.items[i].text.toLowerCase() === "d9") {
-                nameDrop.selection = i;
-                break;
-            }
-        }
-
-        for (var i = 0; i < artDrop.items.length; i++) {
-            if (artDrop.items[i].text.toLowerCase() === "base caracter") {
-                artDrop.selection = i;
-                break;
-            }
-        }
-        
-        versionDrop.selection = 0;
-
-        function isDayInSchedule(scheduleString, currentDay) {
-            var s = scheduleString.toLowerCase();
-            
-            if (s.indexOf("diariamente") > -1 || s.indexOf("segunda a domingo") > -1) {
-                return true;
-            }
-            if (s.indexOf("segunda a sexta") > -1) {
-                return ["seg", "ter", "qua", "qui", "sex"].indexOf(currentDay) > -1;
-            }
-            if (s.indexOf("sábados e domingos") > -1) {
-                return ["sab", "dom"].indexOf(currentDay) > -1;
-            }
-            if (s.indexOf("segunda") > -1) return currentDay === "seg";
-            if (s.indexOf("terça") > -1) return currentDay === "ter";
-            if (s.indexOf("quarta") > -1) return currentDay === "qua";
-            if (s.indexOf("quinta") > -1) return currentDay === "qui";
-            if (s.indexOf("sexta") > -1) return currentDay === "sex";
-            if (s.indexOf("sábado") > -1) return currentDay === "sab";
-            if (s.indexOf("domingo") > -1) return currentDay === "dom";
-
-            return false;
-        }
-
+        descInput.text = ""; editorInput.text = ""; alterCheck.value = false;
+        var userIndex = getLoggedInUserIndex();
+        nameDrop.selection = (userIndex > -1) ? userIndex : (names.indexOf("D9") > -1 ? names.indexOf("D9") : 0);
+        artDrop.selection = arts.indexOf("Base Caracter") > -1 ? arts.indexOf("Base Caracter") : 0;
+        versionDrop.selection = 0; prodDrop.selection = 0;
         try {
-            var now = new Date();
-            var dayMap = ["dom", "seg", "ter", "qua", "qui", "sex", "sab"];
-            var currentDay = dayMap[now.getDay()];
-            var currentTime = pad(now.getHours()) + ":" + pad(now.getMinutes());
-            var productionFound = false;
-
-            for (var i = 0; i < programacaoData.programacao_globonews.length; i++) {
-                var programa = programacaoData.programacao_globonews[i];
-                
-                if (programa.horario && programa.dias_exibicao) {
-                    var timeParts = programa.horario.split(" - ");
-                    var startTime = timeParts[0];
-                    var endTime = timeParts[1];
-
-                    if (isDayInSchedule(programa.dias_exibicao, currentDay)) {
-                        if (currentTime >= startTime && currentTime < endTime) {
-                            var tagNameFormatted = programa.tagName.replace(/_/g, ' ').toLowerCase();
-                            var productionName = tagNameFormatted.replace(/\b\w/g, function(l){ return l.toUpperCase(); });
-                            
-                            for (var p = 0; p < prodDrop.items.length; p++) {
-                                if (prodDrop.items[p].text === productionName) {
-                                    prodDrop.selection = p;
-                                    productionFound = true;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-                if(productionFound) break;
-            }
-            if(!productionFound) {
-                prodDrop.selection = 0;
-            }
-        } catch(e){
-             prodDrop.selection = 0;
-             $.writeln("ERRO CRÍTICO na função de horário: " + e.toString());
-        }
+            var t=function(s){var p=s.split(":");return parseInt(p[0],10)*60+parseInt(p[1],10);}; var n=new Date(),m=["dom","seg","ter","qua","qui","sex","sab"],d=m[n.getDay()],c=n.getHours()*60+n.getMinutes();
+            for (var i=0;i<programacaoData.programacao_globonews.length;i++){var p=programacaoData.programacao_globonews[i]; if(p.horario&&p.dias_exibicao){var h=p.horario.split(" - "); if(c>=t(h[0])&&c<t(h[1])&&isDayInSchedule(p.dias_exibicao,d)){var e=p.tagName.replace(/_/g,' ').toLowerCase().replace(/\b\w/g,function(l){return l.toUpperCase();}); var x=productions.indexOf(e); if(x>-1){prodDrop.selection=x;return;}}}}
+        } catch(e){ themedAlert("Aviso de Horário", "Não foi possível detectar o programa pelo horário:\n" + e.toString(), "warning"); }
     }
-        
-    // =======================================================================
-    // LÓGICA E UI DO SCRIPT
-    // =======================================================================
-        
-    function copyTextToClipboard(textToCopy) {
-        var cmd_win = 'cmd.exe /c cmd.exe /c "echo ' + textToCopy + ' | clip"';
-        var cmd_mac = 'echo "' + textToCopy + '" | pbcopy';
-        if ($.os.indexOf("Windows") !== -1) {
-            system.callSystem(cmd_win);
-        } else {
-            system.callSystem(cmd_mac);
-        }
-    }
-
-    function pad(num) {
-        var s = String(num);
-        while (s.length < 2) { s = "0" + s; }
-        return s;
-    }
-
-    var defaultCompSettings = {
-        width: 1920, height: 1080, pixelAspect: 1.0,
-        duration: 10, frameRate: 29.97
-    };
-
-    var lastSavedPath;
-
-    try {
-        if (typeof scriptMainPath === 'undefined' || scriptMainPath === null) {
-            throw new Error("A variável global 'scriptMainPath' não foi definida.");
-        }
-        var getPathScriptFile = new File(scriptMainPath + "source/libraries/functions/func_getPathDayByDay.js");
-
-        if (getPathScriptFile.exists) {
-            getPathScriptFile.open('r');
-            var scriptContent = getPathScriptFile.read();
-            getPathScriptFile.close();
-            eval(scriptContent);
-
-            var dynamicPath = getPathDayByDay();
-            lastSavedPath = dynamicPath;
-            $.writeln("Caminho dinâmico padrão para salvar definido como: " + lastSavedPath);
-
-        } else {
-            throw new Error("Arquivo 'func_getPathDayByDay.js' não encontrado.");
-        }
-    } catch(e) {
-        $.writeln("AVISO: Falha ao obter o caminho dinâmico. Usando o caminho padrão do projeto. Erro: " + e.toString());
-        lastSavedPath = app.project && app.project.file ? app.project.file.parent.fsName : Folder.desktop.fsName;
-    }
-        
-    var lang = {
-        "pt": {
-            title: "GNEWS RENAMER", name: "NOME:", prod: "PRODUÇÃO:", art: "TIPO:", alter: "CORREÇÃO:",
-            desc: "DESCRIÇÃO:", version: "VERSÃO:", editor: "EDITOR:", capture: "CAPTURAR", save: "SALVAR",
-            copy: "COPIAR", create: "CRIAR", rename: "RENOMEAR",
-            noComp: "Nenhuma composição selecionada!", noEditor: "O campo EDITOR é obrigatório!",
-            renamed: "Composições renomeadas!", saved: "Projeto salvo como: ", saveCancelled: "Salvamento cancelado.",
-            compNameCopied: "Nome da composição copiado!", compCreated: "Composição criada com sucesso!"
-        }
-    };
-    var currentLang = "pt";
-
-    function getAlterationNumber(compName) {
-        if (!compName) return "01";
-        var comps = app.project.items;
-        var maxNum = 0;
-        for (var i = 1; i <= comps.length; i++) {
-            if (comps[i] instanceof CompItem && comps[i].name.toUpperCase().indexOf(compName.toUpperCase()) !== -1) {
-                var match = comps[i].name.match(/C(\d+)/i);
-                if (match && parseInt(match[1], 10) > maxNum) {
-                    maxNum = parseInt(match[1], 10);
-                }
-            }
-        }
-        return pad(maxNum + 1);
-    }
-
-    function parseCompName(compName, currentValues) {
-        var result = JSON.parse(JSON.stringify(currentValues));
+    function isDayInSchedule(s, d) { s = s.toLowerCase(); return s.indexOf("diariamente")>-1||s.indexOf("segunda a domingo")>-1||(s.indexOf("segunda a sexta")>-1&&d!=="sab"&&d!=="dom")||(s.indexOf("sábados e domingos")>-1&&(d==="sab"||d==="dom"))||s.indexOf(d)>-1; }
+    function pad(n) { return n < 10 ? "0" + n : String(n); }
+    var lastSavedPath; try { if (typeof getPathDayByDay === 'function') { lastSavedPath = getPathDayByDay(); } else if (typeof scriptMainPath !== 'undefined') { var f=new File(scriptMainPath + "/source/libraries/functions/func_getPathDayByDay.js"); if(f.exists){eval(File(f).read());lastSavedPath=getPathDayByDay();}else{throw new Error("func_getPathDayByDay.js não encontrado.");} } else { throw new Error("'scriptMainPath' não encontrada."); } } catch(e) { lastSavedPath = Folder.desktop.fsName; $.writeln("AVISO: " + e.toString()); }
+    function getAlterationNumber(c) { if(!c)return"01";var m=0;for(var i=1;i<=app.project.numItems;i++){var t=app.project.item(i);if(t instanceof CompItem&&t.name.toUpperCase().indexOf(c.toUpperCase())>-1){var h=t.name.match(/C(\d+)/i);if(h&&parseInt(h[1],10)>m){m=parseInt(h[1],10);}}}return pad(m+1);}
+    
+    function parseCompNameToUI(compName) {
+        var result = { prodIdx: -1, artIdx: -1, versionIdx: -1, desc: "", editor: "", alter: false };
         if (!compName) return result;
-        result.alter = false;
-        var nameUpper = compName.toUpperCase();
-        var mainPart = nameUpper;
-        var editorPart = "";
-        if (nameUpper.indexOf(" - ") > -1) {
-            var parts = nameUpper.split(" - ");
-            mainPart = parts.shift().trim();
-            editorPart = parts.join(" - ").trim();
-        }
-        if (editorPart) {
-            var alterMatch = editorPart.match(/C(\d+)/i);
-            if (alterMatch) {
-                result.alter = true;
-                editorPart = editorPart.replace(alterMatch[0], "").trim();
-            }
-            result.editor = editorPart;
-        }
-        var foundKeywords = [];
-        for (var nameKey in tags) {
-            if (tags.hasOwnProperty(nameKey)) {
-                var tagValue = tags[nameKey].toUpperCase();
-                if (mainPart.indexOf(tagValue) > -1) {
-                    var nameIndex = names.indexOf(nameKey);
-                    if (nameIndex > -1) {
-                        result.name = nameIndex;
-                        foundKeywords.push(tagValue);
-                        break;
-                    }
-                }
-            }
-        }
-        for (var i = 0; i < productions.length; i++) {
-            if (mainPart.indexOf(productions[i].toUpperCase()) > -1) {
-                result.prod = i;
-                foundKeywords.push(productions[i].toUpperCase());
-                break;
-            }
-        }
-        for (var i = 0; i < arts.length; i++) {
-            if (mainPart.indexOf(arts[i].toUpperCase()) > -1) {
-                result.art = i;
-                foundKeywords.push(arts[i].toUpperCase());
-                break;
-            }
-        }
+        var nameUpper = compName.toUpperCase(); var parts = nameUpper.split(" - ");
+        var mainPart = parts.shift().trim(); result.editor = parts.join(" - ").trim();
+        var alterMatch = result.editor.match(/C(\d+)/);
+        if (alterMatch) { result.alter = true; result.editor = result.editor.replace(alterMatch[0], "").trim(); }
+        var tempDesc = mainPart; var foundKeywords = [];
+        for (var i=0;i<productions.length;i++){if (tempDesc.indexOf(productions[i].toUpperCase()) > -1){result.prodIdx=i;foundKeywords.push(productions[i].toUpperCase());break;}}
+        for (var i=0;i<arts.length;i++){if (tempDesc.indexOf(arts[i].toUpperCase()) > -1){result.artIdx=i;foundKeywords.push(arts[i].toUpperCase());break;}}
         var versionMatch = mainPart.match(/ARTE\s?(\d+)/i);
-        if (versionMatch) {
-            var num = parseInt(versionMatch[1], 10);
-            var formattedVersion = "Arte " + pad(num);
-            for (var i = 1; i < versions.length; i++) {
-                if (versions[i] === formattedVersion) {
-                    result.version = i;
-                    foundKeywords.push(versionMatch[0]);
-                    break;
-                }
-            }
-        }
-        var tempDesc = mainPart.replace("GNEWS", "").trim();
-        for (var i = 0; i < foundKeywords.length; i++) {
-            tempDesc = tempDesc.replace(foundKeywords[i], "");
-        }
+        if (versionMatch) { var v = "Arte "+pad(parseInt(versionMatch[1],10)), x=versions.indexOf(v); if(x>-1){result.versionIdx=x;foundKeywords.push(versionMatch[0].toUpperCase());}}
+        for (var apelido in tags) { if(tags.hasOwnProperty(apelido)){var t=tags[apelido].toUpperCase(); if(mainPart.indexOf(t)>-1){foundKeywords.push(t);break;}}}
+        foundKeywords.push("GNEWS");
+        for (var k=0;k<foundKeywords.length;k++){tempDesc=tempDesc.replace(new RegExp(foundKeywords[k].replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g'),"");}
         result.desc = tempDesc.replace(/\s+/g, ' ').trim();
         return result;
     }
 
-    function sanitizeInput(text) {
-        return text.replace(/[\/\\:*?"<>|]/g, "");
+    function applyParsedDataToUI(parsed) {
+        if (parsed.prodIdx > -1) prodDrop.selection = parsed.prodIdx;
+        if (parsed.artIdx > -1) artDrop.selection = parsed.artIdx;
+        if (parsed.versionIdx > -1) versionDrop.selection = parsed.versionIdx; else versionDrop.selection = 0;
+        descInput.text = parsed.desc; editorInput.text = parsed.editor; alterCheck.value = parsed.alter;
     }
 
-    var win = (thisObj instanceof Panel) ? thisObj : new Window("palette", lang[currentLang].title, undefined, { resizeable: false });
-    win.orientation = "column";
-    win.alignChildren = ["fill", "top"];
-    win.spacing = 5;
-    win.margins = 15;
-    
-    // As funções de tema foram removidas para garantir a compatibilidade,
-    // já que elas dependem de outras bibliotecas.
-    // setBgColor(win, bgColor1);
+    function sanitizeInput(t) { return t.replace(/[\/\\:*?"<>|]/g, ""); }
+    function removeAccents(s){if(!s)return"";var a="áàãâäéèêëíìîïóòõôöúùûüçñÁÀÃÂÄÉÈÊËÍÌÎÏÓÒÕÔÖÚÙÛÜÇÑ",r="aaaaaeeeeiiiiooooouuuucnAAAAAEEEEIIIIOOOOOUUUUCN",n="";for(var i=0;i<s.length;i++){var t=false;for(var j=0;j<a.length;j++){if(s.substr(i,1)==a.substr(j,1)){n+=r.substr(j,1);t=true;break;}}if(!t){n+=s.substr(i,1);}}return n;}
 
-    var headerGrp = win.add('group');
-    headerGrp.alignment = 'fill';
-    headerGrp.orientation = 'stack';
-    var title = headerGrp.add('statictext', undefined, 'Construtor de Nomes:');
-    title.alignment = 'left';
-    // setFgColor(title, normalColor1);
-    var helpGrp = headerGrp.add('group');
-    helpGrp.alignment = 'right';
-    var helpBtn = helpGrp.add('button', undefined, '?');
-    helpBtn.preferredSize = [25, 25];
-
-    var fieldsPanel = win.add("panel");
-    fieldsPanel.orientation = "column";
-    fieldsPanel.alignChildren = ["left", "top"];
-    fieldsPanel.alignment = 'center';
-    fieldsPanel.spacing = 12;
-    fieldsPanel.margins = 12;
-    // setFgColor(fieldsPanel, monoColor1);
-
-    function createDropdown(parent, labelText, items, width) {
-        var grp = parent.add("group");
-        var label = grp.add("statictext", undefined, labelText);
-        // setFgColor(label, monoColor1);
-        var ctrl = grp.add("dropdownlist", undefined, items);
-        if (items && items.length > 0) ctrl.selection = 0;
-        ctrl.preferredSize.width = width;
-        return ctrl;
-    }
-
-    var row1 = fieldsPanel.add("group");
-    row1.orientation = "row";
-    var nameDrop = createDropdown(row1, lang[currentLang].name, names, 80);
-    var prodDrop = createDropdown(row1, lang[currentLang].prod, productions, 80);
-    
-    var row2 = fieldsPanel.add("group");
-    row2.orientation = "row";
-    var artDrop = createDropdown(row2, lang[currentLang].art, arts, 90);
-    var versionDrop = createDropdown(row2, lang[currentLang].version, versions, 97);
-
-    var descGroup = fieldsPanel.add("group");
-    descGroup.alignment = "fill";
-    var descLabel = descGroup.add("statictext", undefined, lang[currentLang].desc);
-    // setFgColor(descLabel, monoColor1);
-    var descInput = descGroup.add("edittext", undefined, "");
-    descInput.alignment = "fill";
-    descInput.preferredSize.width = 218;
-
-    var editorGroup = fieldsPanel.add("group");
-    editorGroup.alignment = "fill";
-    var editorLabel = editorGroup.add("statictext", undefined, lang[currentLang].editor);
-    // setFgColor(editorLabel, monoColor1);
-    var editorInput = editorGroup.add("edittext", undefined, "");
-    editorInput.alignment = "fill";
-    editorInput.preferredSize.width = 238;
-
-    var alterGroup = fieldsPanel.add("group");
-    var alterLabel = alterGroup.add("statictext", undefined, lang[currentLang].alter);
-    // setFgColor(alterLabel, monoColor1);
-    var alterCheck = alterGroup.add("checkbox", undefined, "");
-
-    var previewContainerGroup = win.add("group");
-    previewContainerGroup.alignment = "center";
-    
-    var previewPanel = previewContainerGroup.add("panel");
-    previewPanel.preferredSize.height = 40;
-    previewPanel.alignChildren = ["center", "center"];
-    previewPanel.margins = 2;
-    // setFgColor(previewPanel, monoColor1);
-    var previewText = previewPanel.add("statictext", undefined, "");
-    previewText.preferredSize.width = 309;
-    // setFgColor(previewText, normalColor1);
-    
-    var mainBtnPanel = win.add("group");
-    mainBtnPanel.orientation = "column";
-    mainBtnPanel.alignment = "center";
-    mainBtnPanel.spacing = 5;
-
-    var buttonRow1 = mainBtnPanel.add("group");
-    var buttonRow2 = mainBtnPanel.add("group");
-    
-    var supportsUnicode = isUnicodeSupported();
-    var btnWidth = 100;
-    var btnHeight = 30;
-
-    var renameBtn = buttonRow1.add('button', undefined, (supportsUnicode ? getIcon("save") + "  " : "") + lang[currentLang].rename);
-    renameBtn.size = [btnWidth, btnHeight];
-    var createBtn = buttonRow1.add('button', undefined, (supportsUnicode ? getIcon("create") + "  " : "") + lang[currentLang].create);
-    createBtn.size = [btnWidth, btnHeight];
-    var captureBtn = buttonRow1.add('button', undefined, (supportsUnicode ? getIcon("capture") + "  " : "") + lang[currentLang].capture);
-    captureBtn.size = [btnWidth, btnHeight];
-    
-    var copyBtn = buttonRow2.add('button', undefined, (supportsUnicode ? getIcon("copy") + "  " : "") + lang[currentLang].copy);
-    copyBtn.size = [btnWidth, btnHeight];
-    var organizeBtn = buttonRow2.add('button', undefined, (supportsUnicode ? getIcon("organize") + "  " : "") + "ORGANIZAR");
-    organizeBtn.size = [btnWidth, btnHeight];
-    var saveBtn = buttonRow2.add('button', undefined, (supportsUnicode ? getIcon("save") + "  " : "") + lang[currentLang].save);
-    saveBtn.size = [btnWidth, btnHeight];
-
-    function updateStatusText(message) {
-        previewText.text = message;
-    }
-
-    function removeAccents(str) {
-        if (!str) return "";
-        var com_acento = "áàãâäéèêëíìîïóòõôöúùûüçñÁÀÃÂÄÉÈÊËÍÌÎÏÓÒÕÔÖÚÙÛÜÇÑ";
-        var sem_acento = "aaaaaeeeeiiiiooooouuuucnAAAAAEEEEIIIIOOOOOUUUUCN";
-        var novastr="";
-        for(var i=0; i<str.length; i++) {
-            var troca=false;
-            for (var j=0; j<com_acento.length; j++) {
-                if (str.substr(i,1)==com_acento.substr(j,1)) {
-                    novastr+=sem_acento.substr(j,1);
-                    troca=true;
-                    break;
-                }
-            }
-            if (troca==false) {
-                novastr+=str.substr(i,1);
-            }
-        }
-        return novastr;
-    }
-
-    function onInputChange() {
-        this.text = sanitizeInput(this.text);
-        updatePreview();
-    }
-
-    function updatePreview() {
-        var prodText = prodDrop.selection ? prodDrop.selection.text.toUpperCase() : "";
-        var artText = artDrop.selection ? artDrop.selection.text.toUpperCase() : "";
-        var versionText = (versionDrop.selection && versionDrop.selection.text !== "Nenhuma") ? " " + versionDrop.selection.text.toUpperCase() : "";
-        var baseName = "GNEWS " + prodText + " " + artText;
-        var descStr = descInput.text ? " " + descInput.text.toUpperCase() : "";
-        var editorStr = editorInput.text ? " - " + editorInput.text.toUpperCase() : "";
-        
-        var compNameForAlterationCheck = baseName + descStr;
-        var alterStr = alterCheck.value ? " c" + getAlterationNumber(compNameForAlterationCheck) : "";
-        
-        updateStatusText(baseName + descStr + versionText + editorStr + alterStr);
-    }
-
-    nameDrop.onChange = prodDrop.onChange = artDrop.onChange = versionDrop.onChange = updatePreview;
-    descInput.onChanging = onInputChange;
-    editorInput.onChanging = onInputChange;
-    alterCheck.onClick = updatePreview;
-
-    function getCurrentUIValues() {
-        return {
-            name: nameDrop.selection.index, prod: prodDrop.selection.index, art: artDrop.selection.index,
-            desc: descInput.text, version: versionDrop.selection.index, editor: editorInput.text, alter: alterCheck.value
-        };
-    }
-
-    function updateFieldsFromComp() {
-        var activeComp = app.project.activeItem;
-        if (activeComp instanceof CompItem) {
-            var currentValues = getCurrentUIValues();
-            var parsed = parseCompName(activeComp.name, currentValues);
-            if(parsed){
-                if (parsed.name >= 0) nameDrop.selection = parsed.name;
-                if (parsed.prod >= 0) prodDrop.selection = parsed.prod;
-                if (parsed.art >= 0) artDrop.selection = parsed.art;
-                descInput.text = parsed.desc;
-                if (parsed.version >= 0) versionDrop.selection = parsed.version;
-                editorInput.text = parsed.editor;
-                alterCheck.value = parsed.alter;
-                updatePreview();
-            }
-        }
-    }
-    
-    captureBtn.onClick = function() {
-        if (!(app.project.activeItem instanceof CompItem)) { updateStatusText(lang[currentLang].noComp); return; }
-        updateFieldsFromComp();
-    };
-
-    copyBtn.onClick = function() {
-        var activeItem = app.project.activeItem;
-        if (activeItem && activeItem instanceof CompItem) {
-            try {
-                copyTextToClipboard(activeItem.name);
-                updateStatusText(lang[currentLang].compNameCopied);
-            } catch(e) {
-                updateStatusText("Erro ao copiar: " + e.toString());
+    // =================================================================================
+    // --- FUNÇÕES AUXILIARES DE BOTÕES TEMÁTICOS ---
+    // =================================================================================
+    function createActionButton(parent, label, tip, colorOptions) {
+        var btnBgColor = (typeof normalColor1 !== 'undefined') ? normalColor1 : '#DDDDDD';
+        var btnTextColor = (typeof bgColor1 !== 'undefined') ? bgColor1 : '#000000';
+        var hoverBg = (typeof highlightColor1 !== 'undefined') ? highlightColor1 : '#D4003C';
+        var hoverText = (typeof normalColor1 !== 'undefined') ? normalColor1 : '#FFFFFF';
+        if (colorOptions) { if(colorOptions.bg)btnBgColor=colorOptions.bg; if(colorOptions.text)btnTextColor=colorOptions.text; if(colorOptions.hoverBg)hoverBg=colorOptions.hoverBg; if(colorOptions.hoverText)hoverText=colorOptions.hoverText; }
+        var buttonObj;
+        if (typeof themeButton === 'function') {
+            buttonObj = new themeButton(parent, { width: LARGURA_BOTAO, height: ALTURA_BOTAO, textColor: btnTextColor, buttonColor: btnBgColor, labelTxt: label, tips: [tip] });
+            var customButton = buttonObj.label;
+            if(customButton) {
+                customButton.addEventListener("mouseover", function () { this.textColor=hexToRgb(hoverText); this.buttonColor=hexToRgb(hoverBg); if(typeof drawThemeButton==='function')drawThemeButton(this); this.notify("onDraw"); });
+                customButton.addEventListener("mouseout", function () { this.textColor=hexToRgb(btnTextColor); this.buttonColor=hexToRgb(btnBgColor); if(typeof drawThemeButton==='function')drawThemeButton(this); this.notify("onDraw"); });
             }
         } else {
-            updateStatusText(lang[currentLang].noComp);
+            buttonObj = parent.add('button', undefined, label); buttonObj.preferredSize = [LARGURA_BOTAO, ALTURA_BOTAO]; buttonObj.helpTip = tip;
+            if(!(thisObj instanceof Panel)) { themedAlert("Erro de Módulo", "A biblioteca 'main_ui_functions.js' não foi carregada.", "error"); }
         }
-    };
-    
-    createBtn.onClick = function() {
-        app.beginUndoGroup("Criar Nova Composição");
-        try {
-            updatePreview();
-            var compName = previewText.text;
-            if (compName === "" || compName.indexOf("GNEWS") === -1) {
-                updateStatusText("Gere um nome válido antes de criar a composição."); return;
-            }
-            
-            compName = removeAccents(compName);
+        return buttonObj;
+    }
 
-            app.project.items.addComp(compName, defaultCompSettings.width, defaultCompSettings.height, defaultCompSettings.pixelAspect, defaultCompSettings.duration, defaultCompSettings.frameRate);
-            updateStatusText(lang[currentLang].compCreated);
-        } catch(e) {
-            updateStatusText("Erro ao criar: " + e.message);
-        }
-        app.endUndoGroup();
-    };
+    function assignClick(buttonObj, clickFunction) {
+        if (buttonObj && buttonObj.leftClick) { buttonObj.leftClick.onClick = clickFunction; } 
+        else if (buttonObj) { buttonObj.onClick = clickFunction; }
+    }
 
-    renameBtn.onClick = function() {
-        app.beginUndoGroup("Renomear Composições");
-        try {
-            var selectedComps = [];
-            var selection = app.project.selection;
-            for (var i = 0; i < selection.length; i++) {
-                if (selection[i] instanceof CompItem) { selectedComps.push(selection[i]); }
-            }
-            if (selectedComps.length === 0) { throw new Error(lang[currentLang].noComp); }
-            
-            updatePreview();
-            var finalNameTemplate = previewText.text;
-            finalNameTemplate = removeAccents(finalNameTemplate);
-
-            for (var i = 0; i < selectedComps.length; i++) {
-                var compName = finalNameTemplate;
-                if (alterCheck.value && selectedComps.length > 1) {
-                    var baseNameForAlter = "GNEWS " + (prodDrop.selection ? prodDrop.selection.text.toUpperCase() : "");
-                    var descStrForAlter = descInput.text ? " " + descInput.text.toUpperCase() : "";
-                    var alterNum = parseInt(getAlterationNumber(baseNameForAlter + descStrForAlter), 10) + i;
-                    var alterStr = " c" + pad(alterNum);
-                    compName = compName.replace(/ c\d+$/, "") + alterStr;
-                }
-                selectedComps[i].name = compName;
-            }
-            updateStatusText(lang[currentLang].renamed);
-        } catch (e) {
-            updateStatusText("Erro: " + e.message);
-        }
-        app.endUndoGroup();
-    };
+    // =================================================================================
+    // --- CONSTRUÇÃO DA INTERFACE GRÁFICA (UI) ---
+    // =================================================================================
     
-    organizeBtn.onClick = function() {
-        if (!app.project) {
-            updateStatusText("Por favor, abra um projeto.");
-            return;
-        }
+    var win = (thisObj instanceof Panel) ? thisObj : new Window("palette", JANELA_TITULO, undefined, { resizeable: false });
+    win.orientation = "column"; win.alignChildren = ["fill", "top"]; win.spacing = ESPACAMENTO_ELEMENTOS; win.margins = MARGENS_JANELA;
+    win.preferredSize.width = LARGURA_JANELA; setBgColor(win, bgColor1);
+    var headerGrp = win.add('group'); headerGrp.orientation = 'row'; headerGrp.alignChildren = ["fill", "center"];
+    var title = headerGrp.add('statictext', undefined, TITULO_UI); title.alignment = 'left'; setFgColor(title, highlightColor1);
+    var helpBtnGroup = headerGrp.add('group'); helpBtnGroup.alignment = ['right', 'center'];
+    var helpBtn; var showHelpFunction = function() { if (typeof showRenamerHelp === 'function') { showRenamerHelp(); } else { themedAlert("Ajuda", "A biblioteca de ajuda (HELP lib.js) não foi encontrada.", "warning"); } };
+    if (typeof themeIconButton !== 'undefined' && typeof D9T_INFO_ICON !== 'undefined') { try { helpBtn = new themeIconButton(helpBtnGroup, { icon: D9T_INFO_ICON, tips: ['Ajuda sobre o GNEWS Renamer'] }); if (helpBtn.leftClick) { helpBtn.leftClick.onClick = showHelpFunction; } } catch (e) { helpBtn = helpBtnGroup.add("button", undefined, "?"); helpBtn.preferredSize = [25, 25]; helpBtn.onClick = showHelpFunction; } } else { helpBtn = helpBtnGroup.add("button", undefined, "?"); helpBtn.preferredSize = [25, 25]; helpBtn.onClick = showHelpFunction; }
+    var fieldsPanel = win.add("panel"); fieldsPanel.alignChildren = ["left", "top"]; fieldsPanel.spacing = 10; fieldsPanel.margins = 12; setFgColor(fieldsPanel, monoColor1);
     
+    function createDropdown(p, l, i, w) { var g=p.add("group"); g.alignChildren=['left','center']; var a=g.add("statictext",undefined,l+":"); setFgColor(a,monoColor1); a.preferredSize.width=55; var c=g.add("dropdownlist",undefined,i); if(i.length>0)c.selection=0; c.preferredSize.width=w; return c; }
+    
+    var row1 = fieldsPanel.add("group"); var nameDrop = createDropdown(row1, "Nome", names, LARGURA_MENU_NOME); var prodDrop = createDropdown(row1, "Produção", productions, LARGURA_MENU_PRODUCAO);
+    var row2 = fieldsPanel.add("group"); var artDrop = createDropdown(row2, "Tipo", arts, LARGURA_MENU_TIPO); var versionDrop = createDropdown(row2, "Versão", versions, LARGURA_MENU_VERSAO);
+    var descGroup = fieldsPanel.add("group"); descGroup.alignChildren=['left','center']; var descLabel = descGroup.add("statictext",undefined,"Descrição:"); setFgColor(descLabel,monoColor1); descLabel.preferredSize.width=55; var descInput=descGroup.add("edittext",undefined,""); descInput.preferredSize.width=LARGURA_CAMPO_DESCRICAO;
+    var editorGroup = fieldsPanel.add("group"); editorGroup.alignChildren=['left','center']; var editorLabel = editorGroup.add("statictext",undefined,"Editor:"); setFgColor(editorLabel,monoColor1); editorLabel.preferredSize.width=55; var editorInput=editorGroup.add("edittext",undefined,""); editorInput.preferredSize.width=LARGURA_CAMPO_EDITOR;
+    var alterGroup = fieldsPanel.add("group"); alterGroup.alignChildren=['left','center']; var alterLabel = alterGroup.add("statictext",undefined,"Correção:"); setFgColor(alterLabel,monoColor1); alterLabel.preferredSize.width=55; var alterCheck=alterGroup.add("checkbox");
+    
+    var mainBtnPanel=win.add("group"); mainBtnPanel.alignment="center"; mainBtnPanel.spacing=5;
+    var renameBtn = createActionButton(mainBtnPanel, "Renomear", "Renomeia a(s) composição(ões) selecionada(s)");
+    var duplicarBtn = createActionButton(mainBtnPanel, "Duplicar", "Duplica a composição selecionada e sua hierarquia");
+    var captureBtn = createActionButton(mainBtnPanel, "Capturar", "Captura os dados da composição selecionada");
+    
+    var bottomBtnRow=win.add("group"); bottomBtnRow.alignment="center"; bottomBtnRow.spacing=5; 
+    var copyBtn = createActionButton(bottomBtnRow, "Copiar", "Copia o nome da composição para a área de transferência");
+    var organizeBtn = createActionButton(bottomBtnRow, "Organizar", "Limpa e organiza todo o projeto");
+    var saveBtn = createActionButton(bottomBtnRow, "Salvar", "Salva o arquivo .aep com o nome do preview", {
+        bg: (typeof highlightColor1 !== 'undefined') ? highlightColor1 : '#D4003C', text: (typeof normalColor1 !== 'undefined') ? normalColor1 : '#FFFFFF',
+        hoverBg: (typeof normalColor1 !== 'undefined') ? normalColor1 : '#FFFFFF', hoverText: (typeof bgColor1 !== 'undefined') ? bgColor1 : '#000000'
+    });
+    
+    var previewPanel = win.add("panel"); previewPanel.alignChildren = ["center", "center"]; setFgColor(previewPanel, monoColor1); previewPanel.preferredSize.height = 40;
+    var previewText = previewPanel.add("statictext", undefined, ""); previewText.preferredSize.width = LARGURA_JANELA * 2.5; setFgColor(previewText, normalColor1);
+    
+    // =================================================================================
+    // --- EVENTOS E ATUALIZAÇÕES DA UI ---
+    // =================================================================================
+    function updatePreview() {
+        setFgColor(previewText, normalColor1); // Reseta a cor do preview para a padrão
+        var prodText=prodDrop.selection?prodDrop.selection.text.toUpperCase():""; var artText=artDrop.selection?artDrop.selection.text.toUpperCase():""; var versionText=(versionDrop.selection&&versionDrop.selection.text!=="Nenhuma")?" "+versionDrop.selection.text.toUpperCase():""; var descStr=descInput.text?" "+descInput.text.toUpperCase():""; var editorStr=editorInput.text?" - "+editorInput.text.toUpperCase():""; var alterStr=alterCheck.value?" C"+getAlterationNumber("GNEWS "+prodText+" "+artText+descStr):"";
+        var finalArtText=artText; var finalString="GNEWS "+prodText+" "+finalArtText+descStr+versionText+editorStr+alterStr; var maxChars=70;
+        if(finalString.length>maxChars&&artText.length>8){var overflow=finalString.length-maxChars;var newArtLength=artText.length-overflow-3;if(newArtLength<5){newArtLength=5;}finalArtText=artText.substring(0,newArtLength)+"...";}
+        previewText.text="GNEWS "+prodText+" "+finalArtText+descStr+versionText+editorStr+alterStr;
+    }
+    
+    nameDrop.onChange=prodDrop.onChange=artDrop.onChange=versionDrop.onChange=updatePreview;
+    descInput.onChanging=function(){this.text=sanitizeInput(this.text); updatePreview();};
+    editorInput.onChanging=function(){this.text=sanitizeInput(this.text); updatePreview();};
+    alterCheck.onClick=updatePreview;
+    
+    // --- Ações dos Botões ---
+    assignClick(captureBtn, function() { var a=app.project.activeItem; if(!(a instanceof CompItem)){themedAlert("Aviso","Nenhuma comp selecionada.", "warning");return;} var p=parseCompNameToUI(a.name); applyParsedDataToUI(p); updatePreview(); });
+    assignClick(renameBtn, function() {
+        var s=app.project.selection, c=[]; for(var i=0;i<s.length;i++){if(s[i]instanceof CompItem){c.push(s[i]);}} if(c.length===0){themedAlert("Aviso","Selecione uma comp.", "warning");return;}
+        app.beginUndoGroup("Renomear Composições"); try{
+        var b="GNEWS "+(prodDrop.selection.text.toUpperCase())+" "+(artDrop.selection.text.toUpperCase())+(descInput.text?" "+descInput.text.toUpperCase():""); var e=editorInput.text?" - "+editorInput.text.toUpperCase():"";
+        if(c.length>1){var v=(versionDrop.selection&&versionDrop.selection.text!=="Nenhuma")?" "+versionDrop.selection.text.toUpperCase():""; if(alterCheck.value){var n=parseInt(getAlterationNumber(b),10); for(var i=0;i<c.length;i++){c[i].name=removeAccents(b+v+e+" C"+pad(n+i));}}else{var t=(versionDrop.selection&&versionDrop.selection.text!=="Nenhuma")?(parseInt(versionDrop.selection.text.match(/(\d+)/)[1],10)||1):1; for(var i=0;i<c.length;i++){c[i].name=removeAccents(b+" ARTE "+pad(t+i)+e);}}}else{updatePreview();c[0].name=removeAccents(previewText.text);}
+        showStatusMessage(c.length+" comp(s) renomeada(s)!", "success");}catch(e){themedAlert("Erro","Erro ao renomear:\n"+e.toString(), "error");}finally{app.endUndoGroup();}
+    });
+    assignClick(duplicarBtn, function() { app.beginUndoGroup("Duplicar Comp"); var a=app.project.activeItem; if(!(a instanceof CompItem)){themedAlert("Erro","Selecione uma comp.", "error");return;} var p={}; function r(c){if(p[c.id])return p[c.id];var n=c.duplicate();n.name=c.name+"_2";p[c.id]=n;for(var j=1;j<=n.numLayers;j++){var l=n.layer(j);if(l.source instanceof CompItem){var s=r(l.source);if(s)l.replaceSource(s,false);}}return n;} var f=r(a); for(var k in p){if(p.hasOwnProperty(k)){var o=app.project.itemByID(parseInt(k));if(o)p[k].parentFolder=o.parentFolder;}} if(f){showStatusMessage("Duplicada: "+f.name, "success");} app.endUndoGroup(); });
+    assignClick(copyBtn, function() { var a=app.project.activeItem; if(a instanceof CompItem){var c=($.os.indexOf("Windows")>-1)?'cmd.exe /c cmd.exe /c "echo '+a.name+' | clip"':'echo "'+a.name+'" | pbcopy'; system.callSystem(c); showStatusMessage("Nome copiado!", "success");}else{themedAlert("Aviso","Selecione uma comp.", "warning");}});
+    
+    assignClick(organizeBtn, function() {
         app.beginUndoGroup("Organizar Projeto");
         try {
-            updateStatusText("Analisando o projeto...");
-            
-            function isGnewsNamedComp(comp) {
-                if (!(comp instanceof CompItem)) return false;
-                return (comp.name.toUpperCase().indexOf("GNEWS ") === 0);
-            }
-
-            var compsToProtect_ids = {};
-            var selection = app.project.selection;
-            if (selection.length > 0) {
-                for (var j = 0; j < selection.length; j++) {
-                    if (selection[j] instanceof CompItem) {
-                        compsToProtect_ids[selection[j].id] = true;
-                    }
-                }
-            } else {
+            if (!app.project || app.project.numItems === 0) { themedAlert("Aviso", "Abra um projeto para organizar.", "warning"); return; }
+            function getFootage() {
+                var footage = { stillArray: [], videoArray: [], sonoArray: [], solidArray: [], missingArray: [] };
                 for (var i = 1; i <= app.project.numItems; i++) {
-                    var item = app.project.item(i);
-                    if (isGnewsNamedComp(item)) {
-                        compsToProtect_ids[item.id] = true;
-                    }
+                    var aItem = app.project.item(i);
+                    if (!(aItem instanceof FootageItem)) continue;
+                    if (aItem.footageMissing) { footage.missingArray.push(aItem); continue; }
+                    if (aItem.mainSource instanceof SolidSource) { footage.solidArray.push(aItem); continue; }
+                    if (!(aItem.mainSource instanceof FileSource)) continue;
+                    if (aItem.mainSource.isStill) { footage.stillArray.push(aItem); }
+                    else if (aItem.hasVideo) { footage.videoArray.push(aItem); }
+                    else if (aItem.hasAudio) { footage.sonoArray.push(aItem); }
+                }
+                return footage;
+            }
+            function getComps() {
+                var compArray = [];
+                for (var i = 1; i <= app.project.numItems; i++) { var comp = app.project.item(i); if (comp instanceof CompItem) { compArray.push(comp); } }
+                return compArray;
+            }
+            function projectTemplateFolders() {
+                var folderCache = {};
+                function getOrCreate(name, parent) {
+                    parent = parent || app.project.rootFolder;
+                    var cacheKey = (parent === app.project.rootFolder) ? name : parent.id + "_" + name;
+                    if (folderCache[cacheKey]) return folderCache[cacheKey];
+                    for (var i = 1; i <= parent.numItems; i++) { var item = parent.item(i); if (item instanceof FolderItem && item.name === name) { folderCache[cacheKey] = item; return item; } }
+                    var newFolder = parent.items.addFolder(name);
+                    folderCache[cacheKey] = newFolder;
+                    return newFolder;
+                }
+                var materialFolder = getOrCreate('_MATERIAL');
+                return { 
+                    comps: getOrCreate('Comps', materialFolder), 
+                    videos: getOrCreate('Videos', materialFolder), 
+                    imagens: getOrCreate('Imagens', materialFolder), 
+                    audio: getOrCreate('Audio', materialFolder), 
+                    solidos: getOrCreate('Solidos', materialFolder), 
+                    missing: getOrCreate('!MISSING') 
+                };
+            }
+            function deleteEmptyProjectFolders() {
+                var foundEmpty = true;
+                while (foundEmpty) {
+                    foundEmpty = false;
+                    for (var i = app.project.numItems; i >= 1; i--) { var item = app.project.item(i); if (item instanceof FolderItem && item.numItems === 0) { try { item.remove(); foundEmpty = true; } catch (e) {} } }
                 }
             }
-    
-            function getOrCreateFolder(name, parent) {
-                if (parent === undefined) { parent = app.project.rootFolder; }
-                for (var i = 1; i <= parent.numItems; i++) {
-                    if (parent.item(i) instanceof FolderItem && parent.item(i).name === name) {
-                        return parent.item(i);
-                    }
-                }
-                return parent.items.addFolder(name);
-            }
-            
-            updateStatusText("Reduzindo projeto...");
             app.executeCommand(app.findMenuCommandId("Reduce Project"));
-            
-            var folders = {};
-            var arquivosFolder = getOrCreateFolder('03 ARQUIVOS');
-            
-            var itemsMovedCount = 0;
-            var imageExtensions = [".png", ".jpg", ".jpeg", ".psd", ".ai", ".eps", ".tiff", "tga", ".exr"];
-    
-            updateStatusText("Organizando itens...");
-            for (var i = 1; i <= app.project.numItems; i++) {
-                var item = app.project.item(i);
-                
-                if (item instanceof FolderItem) continue;
-                
-                if (compsToProtect_ids[item.id]) {
-                    if (item.parentFolder !== app.project.rootFolder) {
-                        item.parentFolder = app.project.rootFolder;
-                    }
-                    continue;
-                }
-                
-                var moved = false;
-                if (item instanceof CompItem) {
-                    if (item.usedIn.length > 0) {
-                        if (!folders.precomps) folders.precomps = getOrCreateFolder('02 PRECOMPS');
-                        item.parentFolder = folders.precomps;
-                    } else {
-                        if (!folders.comps) folders.comps = getOrCreateFolder('01 COMPS');
-                        item.parentFolder = folders.comps;
-                    }
-                    moved = true;
-                } else if (item instanceof FootageItem) {
-                    if (item.footageMissing) {
-                        if (!folders.missing) folders.missing = getOrCreateFolder('04 !MISSING');
-                        item.parentFolder = folders.missing;
-                    } else if (item.mainSource instanceof SolidSource) {
-                        if (!folders.solids) folders.solids = getOrCreateFolder('SOLIDOS', arquivosFolder);
-                        item.parentFolder = folders.solids;
-                    } else if (item.hasAudio && !item.hasVideo) {
-                        if (!folders.audio) folders.audio = getOrCreateFolder('AUDIO', arquivosFolder);
-                        item.parentFolder = folders.audio;
-                    } else {
-                        var isImage = false;
-                        for (var j = 0; j < imageExtensions.length; j++) {
-                            if (item.name.toLowerCase().indexOf(imageExtensions[j]) > -1) {
-                                isImage = true;
-                                break;
-                            }
-                        }
-                        if (isImage) {
-                            if (!folders.images) folders.images = getOrCreateFolder('IMAGENS', arquivosFolder);
-                            item.parentFolder = folders.images;
-                        } else {
-                            if (!folders.video) folders.video = getOrCreateFolder('VIDEO', arquivosFolder);
-                            item.parentFolder = folders.video;
-                        }
-                    }
-                    moved = true;
-                }
-                if (moved) itemsMovedCount++;
-            }
-
-            updateStatusText("Limpando pastas vazias...");
-            for(var i = app.project.numItems; i >= 1; i--) {
-                var item = app.project.item(i);
-                if(item instanceof FolderItem && item.numItems === 0) {
-                    try{ item.remove(); } catch(e){}
-                }
-            }
-            
-            if (itemsMovedCount > 0) {
-                updateStatusText("Organizado! " + itemsMovedCount + " itens movidos.");
-            } else {
-                updateStatusText("Projeto reduzido. Nada a reorganizar.");
-            }
-    
+            for (var i = app.project.numItems; i >= 1; i--) { var item = app.project.item(i); if (!(item instanceof FolderItem) && item.parentFolder !== app.project.rootFolder) { item.parentFolder = app.project.rootFolder; } }
+            deleteEmptyProjectFolders();
+            var allFootage = getFootage();
+            var allComps = getComps();
+            var folders = projectTemplateFolders();
+            for (var i=0; i < allFootage.stillArray.length; i++) { allFootage.stillArray[i].parentFolder = folders.imagens; }
+            for (var i=0; i < allFootage.videoArray.length; i++) { allFootage.videoArray[i].parentFolder = folders.videos; }
+            for (var i=0; i < allFootage.sonoArray.length; i++) { allFootage.sonoArray[i].parentFolder = folders.audio; }
+            for (var i=0; i < allFootage.solidArray.length; i++) { allFootage.solidArray[i].parentFolder = folders.solidos; }
+            for (var i=0; i < allFootage.missingArray.length; i++) { allFootage.missingArray[i].parentFolder = folders.missing; }
+            for (var i=0; i < allComps.length; i++) { var comp = allComps[i]; if (comp.name.toUpperCase().indexOf("GNEWS ") === 0) { comp.parentFolder = app.project.rootFolder; } else { comp.parentFolder = folders.comps; } }
+            deleteEmptyProjectFolders();
+            showStatusMessage("Projeto totalmente reorganizado!", "success");
         } catch (e) {
-            updateStatusText("Erro: " + e.toString());
+            themedAlert("Erro", "Erro ao organizar: " + e.toString(), "error");
         } finally {
             app.endUndoGroup();
         }
-    };
-
-    saveBtn.onClick = function() {
-        updatePreview();
-        var finalTagName = tags[names[nameDrop.selection.index]] || "";
-        
-        var cleanPreviewText = removeAccents(previewText.text);
-        
-        var projectName = (finalTagName ? finalTagName + " " : "") + cleanPreviewText + ".aep";
-        projectName = projectName.replace(/[\/\\:*?"<>|]/g, "_");
-        
-        var saveFile = File(lastSavedPath + "/" + projectName).saveDlg("Salvar Projeto Como");
-        if (saveFile) {
-            try {
-                app.project.save(saveFile);
-                lastSavedPath = saveFile.parent.fsName;
-                updateStatusText(lang[currentLang].saved + saveFile.name);
-            } catch (e) {
-                updateStatusText("Erro ao salvar: " + e.toString());
-            }
-        } else {
-            updateStatusText(lang[currentLang].saveCancelled);
-        }
-    };
+    });
+    assignClick(saveBtn, function() { updatePreview(); var b=previewText.text.replace(/\sC\d+$/,""); var t=tags[nameDrop.selection.text]||""; var p=(t?t+" ":"")+removeAccents(b)+".aep"; var f=new File(lastSavedPath+"/"+p).saveDlg("Salvar Projeto Como"); if(f){app.project.save(f);lastSavedPath=f.parent.fsName;showStatusMessage("Projeto salvo: "+f.name, "success");} });
     
-    helpBtn.onClick = function() {
-        var TARGET_HELP_WIDTH = 450;
-        var MARGIN_SIZE = 15;
-        var TOPIC_SECTION_MARGINS = [10, 5, 10, 5];
-        var TOPIC_SPACING = 5;
-        var TOPIC_TITLE_INDENT = 0;
-        var SUBTOPIC_INDENT = 25;
-
-        var helpWin = new Window("palette", "Ajuda - GNEWS Tools", undefined, { closeButton: true });
-        helpWin.orientation = "column";
-        helpWin.alignChildren = ["fill", "fill"];
-        helpWin.spacing = 10;
-        helpWin.margins = MARGIN_SIZE;
-        
-        helpWin.preferredSize = [TARGET_HELP_WIDTH, 600];
-
-        if (typeof bgColor1 !== 'undefined' && typeof setBgColor !== 'undefined') {
-            setBgColor(helpWin, bgColor1);
-        } else {
-            helpWin.graphics.backgroundColor = helpWin.graphics.newBrush(helpWin.graphics.BrushType.SOLID_COLOR, [0.05, 0.04, 0.04, 1]);
-        }
-
-        var headerPanel = helpWin.add("panel", undefined, "");
-        headerPanel.orientation = "column";
-        headerPanel.alignChildren = ["fill", "top"];
-        headerPanel.alignment = ["fill", "top"];
-        headerPanel.spacing = 10;
-        headerPanel.margins = 15;
-        
-        var titleText = headerPanel.add("statictext", undefined, "AJUDA - RENOMEAR, SALVAR E ORGANIZAR");
-        titleText.graphics.font = ScriptUI.newFont("Arial", "Bold", 16);
-        titleText.alignment = ["center", "center"];
-        if (typeof normalColor1 !== 'undefined' && typeof highlightColor1 !== 'undefined' && typeof setFgColor !== 'undefined') {
-            setFgColor(titleText, highlightColor1);
-        } else {
-            titleText.graphics.foregroundColor = titleText.graphics.newPen(titleText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 1], 1);
-        }
-
-        var mainDescText = headerPanel.add("statictext", undefined, "Esta ferramenta padroniza nomes de comps, salva projetos e organiza arquivos.", {multiline: true});
-        mainDescText.alignment = ["fill", "fill"];
-        mainDescText.preferredSize.height = 40;
-        if (typeof normalColor1 !== 'undefined' && typeof setFgColor !== 'undefined') {
-            setFgColor(mainDescText, normalColor1);
-        } else {
-            mainDescText.graphics.foregroundColor = mainDescText.graphics.newPen(mainDescText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 1], 1);
-        }
-
-        var topicsTabPanel = helpWin.add("tabbedpanel");
-        topicsTabPanel.alignment = ["fill", "fill"];
-        topicsTabPanel.margins = 15;
-
-        var allHelpTopics = [
-            {
-                tabName: "CONSTRUTOR E AÇÕES",
-                topics: [
-                    { title: "▶ CONSTRUTOR DE NOMES:", text: "Use os menus e campos para gerar um nome padronizado. O resultado aparece no painel de status." },
-                    { title: "▶ BOTÕES DE AÇÃO:", text: ""},
-                    { title: "  - Capturar:", text: "Preenche os campos com base na composição selecionada no projeto." },
-                    { title: "  - Criar:", text: "Cria uma nova composição vazia utilizando o nome gerado." },
-                    { title: "  - Renamer:", text: "Aplica o nome gerado a todas as composições que estiverem selecionadas." },
-                    { title: "  - Copiar:", text: "Copia o nome da composição atualmente ativa para a área de transferência." },
-                    { title: "  - Salvar:", text: "Salva uma cópia do projeto (.aep) com um nome padronizado, incluindo a tag do seu nome." }
-                ]
-            },
-            {
-                tabName: "ORGANIZADOR",
-                topics: [
-                    { title: "▶ ORGANIZAR PROJETO:", text: "1. Reduz o projeto.\n2. Reorganiza todos os arquivos do projeto." },
-                    { title: "  - Regra de Proteção:", text: "Composições cujo nome começa com 'GNEWS' ou as que estiverem selecionadas no pain painel 'Projeto' serão mantidas na raiz para evitar pré-composição acidental." }
-                ]
-            }
-        ];
-
-        for (var s = 0; s < allHelpTopics.length; s++) {
-            var currentTabSection = allHelpTopics[s];
-            var tab = topicsTabPanel.add("tab", undefined, currentTabSection.tabName);
-            tab.orientation = "column";
-            tab.alignChildren = ["fill", "top"];
-            tab.spacing = 10;
-            tab.margins = TOPIC_SECTION_MARGINS;
-
-            for (var i = 0; i < currentTabSection.topics.length; i++) {
-                var topic = currentTabSection.topics[i];
-                var topicGrp = tab.add("group");
-                topicGrp.orientation = "column";
-                topicGrp.alignChildren = "fill";
-                topicGrp.spacing = TOPIC_SPACING;
-                
-                if (topic.title.indexOf("▶") === 0) {
-                    topicGrp.margins.left = TOPIC_TITLE_INDENT;
-                } else {
-                    topicGrp.margins.left = SUBTOPIC_INDENT;
-                }
-
-                var topicTitle = topicGrp.add("statictext", undefined, topic.title);
-                topicTitle.graphics.font = ScriptUI.newFont("Arial", "Bold", 12);
-                if (typeof highlightColor1 !== 'undefined' && typeof setFgColor !== 'undefined') {
-                    setFgColor(topicTitle, highlightColor1);
-                } else {
-                    topicTitle.graphics.foregroundColor = topicTitle.graphics.newPen(topicTitle.graphics.PenType.SOLID_COLOR, [0.83, 0, 0.23, 1], 1);
-                }
-                topicTitle.preferredSize.width = (TARGET_HELP_WIDTH - (MARGIN_SIZE * 2) - (topicsTabPanel.margins.left + topicsTabPanel.margins.right) - (tab.margins.left + tab.margins.right) - topicGrp.margins.left);
-
-                if(topic.text !== ""){
-                    var topicText = topicGrp.add("statictext", undefined, topic.text, { multiline: true });
-                    topicText.graphics.font = ScriptUI.newFont("Arial", "Regular", 11);
-                    topicText.preferredSize.width = (TARGET_HELP_WIDTH - (MARGIN_SIZE * 2) - (topicsTabPanel.margins.left + topicsTabPanel.margins.right) - (tab.margins.left + tab.margins.right) - topicGrp.margins.left);
-                    topicText.preferredSize.height = 50;
-                    
-                    if (typeof normalColor1 !== 'undefined' && typeof setFgColor !== 'undefined') {
-                        setFgColor(topicText, normalColor1);
-                    } else {
-                        topicText.graphics.foregroundColor = topicText.graphics.newPen(topicText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 1], 1);
-                    }
-                }
-            }
-        }
-
-        var closeBtnGrp = helpWin.add("group");
-        closeBtnGrp.alignment = "center";
-        closeBtnGrp.margins = [0, 10, 0, 0];
-        var closeBtn = closeBtnGrp.add("button", undefined, "Fechar");
-        closeBtn.onClick = function() {
-            helpWin.close();
-        };
-
-        helpWin.layout.layout(true);
-        helpWin.center();
-        helpWin.show();
-    };
-    
-    // Simplificando as chamadas de botão para evitar erros com a biblioteca de tema
-    renameBtn.onClick = renameBtn.onClick || function() {}; // Prevenção de erro
-    createBtn.onClick = createBtn.onClick || function() {};
-    captureBtn.onClick = captureBtn.onClick || function() {};
-    copyBtn.onClick = copyBtn.onClick || function() {};
-    organizeBtn.onClick = organizeBtn.onClick || function() {};
-    saveBtn.onClick = saveBtn.onClick || function() {};
-
-    if (win instanceof Window) {
-        win.center();
-        win.show();
+    // =================================================================================
+    // --- INICIALIZAÇÃO DA UI ---
+    // =================================================================================
+    if (win instanceof Window) { win.center(); win.show(); }
+    setDefaultValuesWithTimeLogic(); 
+    var activeItem = app.project.activeItem;
+    if (activeItem && activeItem instanceof CompItem) {
+        var parsed = parseCompNameToUI(activeItem.name);
+        applyParsedDataToUI(parsed);
     }
-    
-    // O código de inicialização só roda se a janela for autônoma
-    if (!(thisObj instanceof Panel)) {
-        setDefaultValuesWithTimeLogic();
-        updatePreview();
-        var activeItemOnInit = app.project.activeItem;
-        if (activeItemOnInit && activeItemOnInit instanceof CompItem) {
-            updateFieldsFromComp();
-        }
-    }
+    updatePreview();
 }
