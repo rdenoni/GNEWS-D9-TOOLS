@@ -19,19 +19,21 @@ var appOs = $.os.indexOf('Win') >= 0 ? 'Win' : 'Mac';
 var appV = parseInt(app.buildName.substring(0, 2));
 var appFullV = app.buildName.split(/x/i)[0];
 
-// Cores do Style Guide GLOBO
-var bgColor1 = '#0e0b0eff';
-var bgColor2 = '#130606ff';
-var divColor1 = '#1b1a1aff';
-var divColor2 = '#0a0909ff';
+// Cores do Style Guide GNEWS
+var bgColor1 = '#161616ff';
+var bgColor2 = '#1b1b1bff';
+var divColor1 = '#1d1d1fff';
+var divColor2 = '#080808ff';
 var monoColor0 = '#F2F2F2';
 var monoColor1 = '#C7C8CA';
 var monoColor2 = '#302b2bff';
 var monoColor3 = '#1a1919ff';
 var normalColor1 = '#ffffffff';
-var normalColor2 = '#ffffffff';
-var highlightColor1 = '#d4003cff';
-var highlightColor2 = '#ffffffff';
+var normalColor2 = '#E6E6E6FF';
+var highlightColor1 = '#FF0046FF';
+var highlightColor2 = '#f1f1f1ff';
+var successColor = '#97e341ff'; // Verde para sucesso
+var warningColor = '#fba524ff'; // Laranja para aviso
 
 // Preferências de scripts e expressões
 var AE_prefName = 'Pref_SCRIPTING_FILE_NETWORK_SECURITY';
@@ -45,7 +47,7 @@ var userPath = Folder.userData.fullName;
 var AEPreferencesPath = userPath + '/Adobe/After Effects/' + appFullV;
 
 // Caminhos para as preferências do script e pasta temporária
-var scriptPreferencesPath = Folder.userData.fullName + '/GNEWS D9 TOOLS script';
+var scriptPreferencesPath = Folder.userData.fullName + '/GND9TOOLS script';
 var scriptPreferencesFolder = new Folder(scriptPreferencesPath);
 if (!scriptPreferencesFolder.exists) scriptPreferencesFolder.create();
 
@@ -57,7 +59,7 @@ var templatesLocalPath = scriptPreferencesPath + '/templates';
 var templatesLocalFolder = new Folder(templatesLocalPath);
 if (!templatesLocalFolder.exists) templatesLocalFolder.create();
 
-var configFile = new File(scriptMainPath + 'source/config/TEMPLATES_config.json');
+
 
 // Objeto com a lista inicial de produções
 var defaultProductionDataObj = {
@@ -71,7 +73,10 @@ var defaultProductionDataObj = {
 };
 
 // Dados das produções
-var D9T_prodArray = updateProdData(configFile);
+var D9T_prodArray = (typeof TEMPLATES_CONFIG !== 'undefined' && TEMPLATES_CONFIG.PRODUCTIONS) ? 
+                    TEMPLATES_CONFIG.PRODUCTIONS : 
+                    defaultProductionDataObj.PRODUCTIONS;
+
 // Caminho da pasta de templates
 var templatesPath = D9T_prodArray[0].templatesPath;
 var templatesFolder = new Folder(D9T_prodArray[0].templatesPath);
@@ -173,11 +178,30 @@ var defaultScriptPreferencesObj = {
 		// Caminho padrão para a pasta do projeto
 		projPath: '~/Desktop'
 	},
+	uiSettings: {
+		iconSize: [36, 36],
+		iconSpacing: 20,
+		labelSpacing: 8,
+		compactIconSize: [28, 28],
+		compactIconSpacing: 12
+	},
 	selection: {
 		// Preferências de seleção (tipos de camadas null e adjustment, modo de projeto)
 		nullType: 0, // Tipo de camada null padrão (0: shape layer, 1: null layer)
 		adjType: 0, // Tipo de camada de ajuste padrão (0: shape layer, 1: adjustment layer)
 		projectMode: 0 // Modo de projeto padrão (0: legado, 1: customizado)
+	},
+	themeColors: {
+		bgColor1: bgColor1,
+		bgColor2: bgColor2,
+		divColor1: divColor1,
+		monoColor0: monoColor0,
+		monoColor1: monoColor1,
+		monoColor2: monoColor2,
+		monoColor3: monoColor3,
+		normalColor1: normalColor1,
+		normalColor2: normalColor2,
+		highlightColor1: highlightColor1
 	},
 	ignoreMissing: true, // Ignorar arquivos ausentes (padrão: não)
 	devMode: false, // Modo de desenvolvedor (padrão: não)
@@ -185,10 +209,10 @@ var defaultScriptPreferencesObj = {
 	iconTheme: 'dark' // Tema de ícones (padrão: escuro)
 };
 
-// Carrega as preferências do usuário a partir do arquivo 'preferences.json' ou usa os valores padrão.
+// Carrega as preferências do usuário a partir do arquivo 'User_Preferences.json' ou usa os valores padrão.
 function loadScriptPreferences() {
 	// Tenta carregar o arquivo de preferências
-	var tempFile = new File(scriptPreferencesPath + '/preferences.json');
+	var tempFile = new File(scriptPreferencesPath + '/User_Preferences.json');
 
 	// Se o arquivo existir, tenta ler seu conteúdo
 	if (tempFile.exists) {
@@ -208,7 +232,29 @@ function loadScriptPreferences() {
 		if (!scriptPreferencesObj.hasOwnProperty(o))
 			scriptPreferencesObj[o] = defaultScriptPreferencesObj[o];
 	}
+	if (!scriptPreferencesObj.themeColors) {
+		scriptPreferencesObj.themeColors = {};
+	}
+	for (var tc in defaultScriptPreferencesObj.themeColors) {
+		if (!scriptPreferencesObj.themeColors.hasOwnProperty(tc)) {
+			scriptPreferencesObj.themeColors[tc] = defaultScriptPreferencesObj.themeColors[tc];
+		}
+	}
+	applyThemeColorOverrides(scriptPreferencesObj.themeColors);
 	iconTheme = scriptPreferencesObj.iconTheme; // Define o tema de ícones
+
+	if (!scriptPreferencesObj.uiSettings) {
+		scriptPreferencesObj.uiSettings = JSON.parse(JSON.stringify(defaultScriptPreferencesObj.uiSettings));
+	}
+	if (typeof scriptPreferencesObj.uiSettings.labelSpacing !== 'number') {
+		scriptPreferencesObj.uiSettings.labelSpacing = defaultScriptPreferencesObj.uiSettings.labelSpacing;
+	}
+	if (!scriptPreferencesObj.uiSettings.compactIconSize) {
+		scriptPreferencesObj.uiSettings.compactIconSize = defaultScriptPreferencesObj.uiSettings.compactIconSize.slice(0);
+	}
+	if (typeof scriptPreferencesObj.uiSettings.compactIconSpacing !== 'number') {
+		scriptPreferencesObj.uiSettings.compactIconSpacing = defaultScriptPreferencesObj.uiSettings.compactIconSpacing;
+	}
 
 	// Define as preferências de seleção (nullType, adjType, projectMode)
 	for (var s in defaultScriptPreferencesObj.selection) {
@@ -229,6 +275,24 @@ function loadScriptPreferences() {
 
 // Chama a função para carregar as preferências ao iniciar o script
 // loadScriptPreferences();
+
+function applyThemeColorOverrides(overrides) {
+	if (!overrides) { return; }
+	function useOverride(key, fallback) {
+		var value = overrides.hasOwnProperty(key) ? overrides[key] : fallback;
+		return (typeof value === 'string' && value.length >= 4) ? value : fallback;
+	}
+	bgColor1 = useOverride('bgColor1', bgColor1);
+	bgColor2 = useOverride('bgColor2', bgColor2);
+	divColor1 = useOverride('divColor1', divColor1);
+	monoColor0 = useOverride('monoColor0', monoColor0);
+	monoColor1 = useOverride('monoColor1', monoColor1);
+	monoColor2 = useOverride('monoColor2', monoColor2);
+	monoColor3 = useOverride('monoColor3', monoColor3);
+	normalColor1 = useOverride('normalColor1', normalColor1);
+	normalColor2 = useOverride('normalColor2', normalColor2);
+	highlightColor1 = useOverride('highlightColor1', highlightColor1);
+}
 
 // Objeto que armazena as propriedades padrão dos templates do Padeiro
 var defaultTemplateConfigObj = {
@@ -317,3 +381,9 @@ var labelsObj = {
 		name: 'deep orange'
 	}
 };
+
+$.writeln("=== GLOBALS.JS CARREGADO ===");
+$.writeln("normalColor1: " + (typeof normalColor1) + " = " + normalColor1);
+$.writeln("bgColor1: " + (typeof bgColor1) + " = " + bgColor1);
+$.writeln("setFgColor: " + (typeof setFgColor));
+$.writeln("setBgColor: " + (typeof setBgColor));

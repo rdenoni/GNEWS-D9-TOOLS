@@ -1,200 +1,137 @@
-// func_auto_path_servers.js (VERSÃO FINAL - Lógica de detecção corrigida)
+/**********************************************************************************
+ * func_auto_path_servers.js
+ * Versão: 2.0.1 (Correção de Caminho)
+ *
+ * DESCRIÇÃO:
+ * - CORREÇÃO (v2.0.1): Corrigido o caminho de carregamento do arquivo JSON
+ * central, adicionando a barra "/" que faltava.
+ * - ARQUITETURA (v2.0): Script refatorado para ler dados do 'Dados_Config.json'.
+ *
+ **********************************************************************************/
 
-function getTags(programacaoData) {
-    var allGnewsProgramTags = [], gnewsJornalTags = [];
-    if (programacaoData && programacaoData.programacao_globonews) {
-        for (var i = 0; i < programacaoData.programacao_globonews.length; i++) {
-            var program = programacaoData.programacao_globonews[i];
-            allGnewsProgramTags.push(program.tagName);
-            if (program.tipo === "Jornal") { gnewsJornalTags.push(program.tagName); }
+(function(thisObj) {
+
+    // Função auxiliar para ler e parsear arquivos JSON.
+    function readJsonFile(filePath) {
+        var file = new File(filePath);
+        if (!file.exists) { throw new Error("Arquivo de configuração não encontrado: " + file.fsName); }
+        try {
+            file.open("r");
+            var content = file.read();
+            file.close();
+            return JSON.parse(content);
+        } catch (e) {
+            throw new Error("Erro ao ler ou processar o arquivo JSON: " + file.fsName + "\n" + e.toString());
         }
     }
-    return {
-        programas: allGnewsProgramTags,
-        jornais: gnewsJornalTags,
-        artes: ["CREDITO", "CREDITOS", "LETTERING", "LEGENDAS", "LOCALIZADORES", "INSERT", "ALPHA"],
-        pesquisa: ["PESQUISA", "DATAFOLHA", "QUAEST", "IPSOS", "IPEC", "IBGE", "AP", "NORC", "GENIAL"],
-        vizGnews: ["QR CODE", "VIRTUAL", "TOTEM"],
-        artesFant: ["TARJACONFRONTO", "CONFRONTOCAVALINHOS", "CORRIDA"],
-        espFant: ["VINHETACORRIDA", "VINHETACORRIDACAVALINHOS", "CAVALINHOSPATROCINADOS", "FIGURINHAS", "MOLDURASFOGUETE", "MOLDURASSKYPE"],
-        vizFant: ["TELAOBAR", "SELOS", "CONFRONTOSESCUDOS"],
-        touchFant: "TELAOTRANSPARENTE"
-    };
-}
 
-function findTag(tagArray, compNameUpper) {
-    function createRegExp(tag) {
-        var escapedTag = tag.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&').replace(/_/g, '[\\s-]?');
-        return new RegExp('\\b' + escapedTag + '\\b');
-    }
-
-    for (var i = 0; i < tagArray.length; i++) {
-        var originalTag = tagArray[i];
-        if (createRegExp(originalTag).test(compNameUpper)) {
-            return originalTag;
+    // Função para carregar e preparar todos os dados necessários dos arquivos centralizados.
+    function loadServerPathData() {
+        if (typeof scriptMainPath === 'undefined' || scriptMainPath === null) {
+            throw new Error("A variável global 'scriptMainPath' não foi encontrada.");
         }
+        
+        // CORREÇÃO: Adicionada a "/" antes do nome do arquivo.
+        var dadosConfigData = readJsonFile(scriptMainPath + "/Dados_Config.json");
+
+        if (!dadosConfigData.CAMIMHOS_REDE) throw new Error("Objeto 'CAMIMHOS_REDE' não encontrado em Dados_Config.json.");
+        if (!dadosConfigData.PROGRAMACAO_GNEWS || !dadosConfigData.PROGRAMACAO_GNEWS.programacao) throw new Error("Objeto 'PROGRAMACAO_GNEWS' não encontrado ou malformado em Dados_Config.json.");
+
+        // Retorna os dados no formato que as funções antigas esperam, para minimizar alterações.
+        return {
+            caminhosData: dadosConfigData.CAMIMHOS_REDE,
+            programacaoData: { programacao_globonews: dadosConfigData.PROGRAMACAO_GNEWS.programacao }
+        };
     }
     
-    var compNameNormalized = compNameUpper.replace(/[\s-]/g, "");
-    for (var j = 0; j < tagArray.length; j++) {
-        var normalizedTag = tagArray[j].replace(/_/g, "");
-        if (normalizedTag !== "" && compNameNormalized.indexOf(normalizedTag) > -1) {
-            return tagArray[j];
-        }
-    }
-    
-    return null;
-}
-
-
-function regrasGNews(compName, caminhosData, programacaoData, debugMode) {
-    var trace = [];
-    function logTrace(msg) { if(debugMode) trace.push(msg); }
-    var compNameUpper = compName.toUpperCase();
-    var targetObject = null;
-    var tags = getTags(programacaoData);
-    var foundGNEWS = compNameUpper.indexOf("GNEWS") > -1;
-    var pamMagazineInfo = null, pamHardnewsInfo = null, ilhaHardnewsInfo = null, ilhaMagazineInfo = null, ftpVizInfo = null, mxfArteInfo = null;
-
-    for (var serverKey in caminhosData) {
-        if (caminhosData.hasOwnProperty(serverKey)) {
-            var serverItems = caminhosData[serverKey];
-            for (var i = 0; i < serverItems.length; i++) {
-                var item = serverItems[i];
-                if (item.nome === "PAM MAGAZINE") { pamMagazineInfo = item; }
-                else if (item.nome === "PAM HARDNEWS") { pamHardnewsInfo = item; }
-                else if (item.nome === "PARA ILHA HARDNEWS") { ilhaHardnewsInfo = item; } // Corrigido para corresponder ao JSON
-                else if (item.nome === "PARA ILHA MAGAZINE") { ilhaMagazineInfo = item; } // Corrigido para corresponder ao JSON
-                else if (item.nome === "FTP VIZ") { ftpVizInfo = item; }
-                else if (item.nome === "MXF ARTE") { mxfArteInfo = item; }
+    function getTags(programacaoData) {
+        var allGnewsProgramTags = [], gnewsJornalTags = [];
+        if (programacaoData && programacaoData.programacao_globonews) {
+            for (var i = 0; i < programacaoData.programacao_globonews.length; i++) {
+                var program = programacaoData.programacao_globonews[i];
+                allGnewsProgramTags.push(program.tagName);
+                if (program.tipo === "Jornal") { gnewsJornalTags.push(program.tagName); }
             }
         }
+        return {
+            programas: allGnewsProgramTags,
+            jornais: gnewsJornalTags,
+            artes: ["CREDITO", "CREDITOS", "LETTERING", "LEGENDAS", "LOCALIZADORES", "INSERT", "ALPHA"],
+            pesquisa: ["PESQUISA", "DATAFOLHA", "QUAEST", "IPSOS", "IPEC", "IBGE", "AP", "NORC", "GENIAL"],
+            vizGnews: ["QR CODE", "VIRTUAL", "TOTEM"],
+            artesFant: ["TARJACONFRONTO", "CONFRONTOCAVALINHOS", "CORRIDA"],
+            espFant: ["VINHETACORRIDA", "VINHETACORRIDACAVALINHOS", "CAVALINHOSPATROCINADOS", "FIGURINHAS", "MOLDURASFOGUETE", "MOLDURASSKYPE"],
+            vizFant: ["TELAOBAR", "SELOS", "CONFRONTOSESCUDOS"],
+            touchFant: "TELAOTRANSPARENTE"
+        };
     }
-    
-    var foundProgramOrJornalTag = findTag(tags.programas, compNameUpper);
-    var isJornal = findTag(tags.jornais, compNameUpper) !== null;
-    var isArte = findTag(tags.artes, compNameUpper) !== null;
-    var isPesquisa = findTag(tags.pesquisa, compNameUpper) !== null;
-    var isVizGnews = findTag(tags.vizGnews, compNameUpper) !== null;
-    var isPrograma = foundProgramOrJornalTag !== null;
-    var isCabecalho = compNameUpper.indexOf("CABECALHO") > -1;
-    var isPromo = compNameUpper.indexOf("PROMO") > -1;
-    var subfolderForIlha = (foundProgramOrJornalTag) ? "\\" + foundProgramOrJornalTag : "";
-    
-    logTrace("--- Avaliando Regras GNEWS ---");
-    if (foundGNEWS) {
-        logTrace("Palavra 'GNEWS' encontrada. Verificando regras...");
-        if (isCabecalho && ftpVizInfo) { 
-            logTrace("Regra 'CABECALHO' ativada... SUCESSO!");
-            targetObject = { nome: ftpVizInfo.nome, caminho: ftpVizInfo.caminho }; 
-        }
-        else if (isPromo && mxfArteInfo) { 
-            logTrace("Regra 'PROMO' ativada... SUCESSO!");
-            targetObject = { nome: mxfArteInfo.nome, caminho: mxfArteInfo.caminho }; 
-        }
-        else if (isVizGnews && ftpVizInfo) {
-            logTrace("Regra 'VIZ GNEWS (QR/Virtual/Totem)' ativada... SUCESSO!");
-            targetObject = { nome: ftpVizInfo.nome, caminho: ftpVizInfo.caminho };
-        }
-        else if (isPesquisa && pamHardnewsInfo && ilhaHardnewsInfo) { 
-            logTrace("Regra 'PESQUISA' (Duplo Destino) ativada... SUCESSO!");
-            targetObject = { 
-                nome: "PAM HARDNEWS E PARA ILHA HARDNEWS", // CORRIGIDO
-                caminho: pamHardnewsInfo.caminho + "\nE TAMBÉM:\n" + ilhaHardnewsInfo.caminho 
-            }; 
-        }
-        else if (isJornal && isArte && ilhaHardnewsInfo) { 
-            logTrace("Regra 'Jornal + Arte' ativada... SUCESSO!");
-            targetObject = { nome: "PARA ILHA HARDNEWS", caminho: ilhaHardnewsInfo.caminho + "\\GNEWS" + subfolderForIlha }; 
-        }
-        else if (isPrograma && !isJornal && isArte && ilhaMagazineInfo) {
-             logTrace("Regra 'Programa (não jornal) + Arte' ativada... SUCESSO!");
-             targetObject = { nome: "PARA ILHA MAGAZINE", caminho: ilhaMagazineInfo.caminho + "\\GNEWS" + subfolderForIlha }; 
-        }
-        else if (isJornal && pamHardnewsInfo) { 
-            logTrace("Regra 'Apenas Jornal' ativada... SUCESSO!");
-            targetObject = { nome: pamHardnewsInfo.nome, caminho: pamHardnewsInfo.caminho }; 
-        }
-        else if (isPrograma && pamMagazineInfo) {
-             logTrace("Regra 'Apenas Programa' ativada... SUCESSO!");
-             targetObject = { nome: pamMagazineInfo.nome, caminho: pamMagazineInfo.caminho }; 
-        } else {
-            logTrace("Nenhuma regra específica da GNEWS correspondeu.");
-        }
-    } else {
-        logTrace("Palavra 'GNEWS' não encontrada. Pulando regras GNEWS.");
-    }
-    
-    if (debugMode) { return { result: targetObject, trace: trace }; } 
-    else { return targetObject; }
-}
 
-function regrasFant(compName, caminhosData, programacaoData, debugMode) {
-    var trace = [];
-    function logTrace(msg) { if(debugMode) trace.push(msg); }
-    var compNameUpper = compName.toUpperCase();
-    var compNameNormalized = compNameUpper.replace(/[\s_-]/g, "");
-    var targetObject = null;
-    var tags = getTags(programacaoData);
-    logTrace("--- Avaliando Regras FANT ---");
-    if (compNameUpper.indexOf("FANT") === -1) {
-        logTrace("Palavra 'FANT' não encontrada. Pulando regras FANT.");
-        if (debugMode) { return { result: null, trace: trace }; }
+    function findTag(tagArray, compNameUpper) {
+        function createRegExp(tag) { var escapedTag = tag.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&').replace(/_/g, '[\\s-]?'); return new RegExp('\\b' + escapedTag + '\\b'); }
+        for (var i = 0; i < tagArray.length; i++) { if (createRegExp(tagArray[i]).test(compNameUpper)) return tagArray[i]; }
+        var compNameNormalized = compNameUpper.replace(/[\s-]/g, "");
+        for (var j = 0; j < tagArray.length; j++) { var normalizedTag = tagArray[j].replace(/_/g, ""); if (normalizedTag !== "" && compNameNormalized.indexOf(normalizedTag) > -1) return tagArray[j]; }
         return null;
     }
-    logTrace("Palavra 'FANT' encontrada. Verificando regras...");
-    var ilhaMagazineInfo = null, ftpEsporteInfo = null, ftpVizInfo = null, ftpCooluxInfo = null;
-    for (var serverKey in caminhosData) {
-        if (caminhosData.hasOwnProperty(serverKey)) {
-            var serverItems = caminhosData[serverKey];
-            for (var i = 0; i < serverItems.length; i++) {
-                var item = serverItems[i];
-                if (item.nome === "ILHA MAGAZINE") { ilhaMagazineInfo = item; }
-                else if (item.nome === "FTP ESPORTE") { ftpEsporteInfo = item; }
-                else if (item.nome === "FTP VIZ") { ftpVizInfo = item; }
-                else if (item.nome === "FTP COLUX") { ftpCooluxInfo = item; }
+
+    function regrasGNews(compName, caminhosData, programacaoData, debugMode) {
+        var trace = []; function logTrace(msg) { if(debugMode) trace.push(msg); }
+        var compNameUpper = compName.toUpperCase(); var targetObject = null; var tags = getTags(programacaoData);
+        var pamMagazineInfo=null, pamHardnewsInfo=null, ilhaHardnewsInfo=null, ilhaMagazineInfo=null, ftpVizInfo=null, mxfArteInfo=null;
+        for (var serverKey in caminhosData) { if (caminhosData.hasOwnProperty(serverKey)) { var serverItems=caminhosData[serverKey]; for (var i=0;i<serverItems.length;i++){ var item=serverItems[i]; if(item.nome==="PAM MAGAZINE"){pamMagazineInfo=item;}else if(item.nome==="PAM HARDNEWS"){pamHardnewsInfo=item;}else if(item.nome==="PARA ILHA HARDNEWS"){ilhaHardnewsInfo=item;}else if(item.nome==="PARA ILHA MAGAZINE"){ilhaMagazineInfo=item;}else if(item.nome==="FTP VIZ"){ftpVizInfo=item;}else if(item.nome==="MXF ARTE"){mxfArteInfo=item;} } } }
+        var foundProgramOrJornalTag = findTag(tags.programas, compNameUpper); var isJornal = findTag(tags.jornais, compNameUpper) !== null; var isArte = findTag(tags.artes, compNameUpper) !== null; var isPesquisa = findTag(tags.pesquisa, compNameUpper) !== null; var isVizGnews = findTag(tags.vizGnews, compNameUpper) !== null; var isPrograma = foundProgramOrJornalTag !== null; var isCabecalho = compNameUpper.indexOf("CABECALHO") > -1; var isPromo = compNameUpper.indexOf("PROMO") > -1;
+        var subfolderForIlha = (foundProgramOrJornalTag) ? "\\" + foundProgramOrJornalTag : "";
+        logTrace("--- Avaliando Regras GNEWS ---");
+        if (compNameUpper.indexOf("GNEWS") > -1) {
+            logTrace("Palavra 'GNEWS' encontrada.");
+            if (isCabecalho && ftpVizInfo) { targetObject = { nome: ftpVizInfo.nome, caminho: ftpVizInfo.caminho }; }
+            else if (isPromo && mxfArteInfo) { targetObject = { nome: mxfArteInfo.nome, caminho: mxfArteInfo.caminho }; }
+            else if (isVizGnews && ftpVizInfo) { targetObject = { nome: ftpVizInfo.nome, caminho: ftpVizInfo.caminho }; }
+            else if (isPesquisa && pamHardnewsInfo && ilhaHardnewsInfo) { targetObject = { nome: "PAM HARDNEWS E PARA ILHA HARDNEWS", caminho: pamHardnewsInfo.caminho + "\nE TAMBÉM:\n" + ilhaHardnewsInfo.caminho }; }
+            else if (isJornal && isArte && ilhaHardnewsInfo) { targetObject = { nome: "PARA ILHA HARDNEWS", caminho: ilhaHardnewsInfo.caminho + "\\GNEWS" + subfolderForIlha }; }
+            else if (isPrograma && !isJornal && isArte && ilhaMagazineInfo) { targetObject = { nome: "PARA ILHA MAGAZINE", caminho: ilhaMagazineInfo.caminho + "\\GNEWS" + subfolderForIlha }; }
+            else if (isJornal && pamHardnewsInfo) { targetObject = { nome: pamHardnewsInfo.nome, caminho: pamHardnewsInfo.caminho }; }
+            else if (isPrograma && pamMagazineInfo) { targetObject = { nome: pamMagazineInfo.nome, caminho: pamMagazineInfo.caminho }; }
+        }
+        if (debugMode) { return { result: targetObject, trace: trace }; } else { return targetObject; }
+    }
+
+    function regrasFant(compName, caminhosData, programacaoData, debugMode) {
+        var trace = []; function logTrace(msg) { if(debugMode) trace.push(msg); }
+        var compNameUpper = compName.toUpperCase(); var targetObject = null; var tags = getTags(programacaoData);
+        logTrace("--- Avaliando Regras FANT ---");
+        if (compNameUpper.indexOf("FANT") === -1) { if(debugMode) return {result:null,trace:trace}; return null; }
+        var ilhaMagazineInfo=null, ftpEsporteInfo=null, ftpVizInfo=null, ftpCooluxInfo=null;
+        for (var serverKey in caminhosData) { if (caminhosData.hasOwnProperty(serverKey)) { var serverItems=caminhosData[serverKey]; for (var i=0;i<serverItems.length;i++){ var item=serverItems[i]; if(item.nome==="ILHA MAGAZINE"){ilhaMagazineInfo=item;}else if(item.nome==="FTP ESPORTE"){ftpEsporteInfo=item;}else if(item.nome==="FTP VIZ"){ftpVizInfo=item;}else if(item.nome==="FTP COLUX"){ftpCooluxInfo=item;} } } }
+        var foundArtesFtIlhaTag = findTag(tags.artesFant, compNameUpper); var foundFantEspTag = findTag(tags.espFant, compNameUpper); var foundFantVizTag = findTag(tags.vizFant, compNameUpper);
+        var foundTvTouchScreenTag = compNameUpper.replace(/[\s_-]/g, "").indexOf(tags.touchFant) > -1;
+        if (foundTvTouchScreenTag) { targetObject = { nome: "TV TouchScreen", caminho: "Não aplicável - verificar com produção" }; }
+        else if (compNameUpper.indexOf("CHAMADAS") > -1 && compNameUpper.indexOf("SAB") > -1 && ftpCooluxInfo) { targetObject = { nome: ftpCooluxInfo.nome, caminho: ftpCooluxInfo.caminho }; }
+        else if (foundFantVizTag && ftpVizInfo) { targetObject = { nome: ftpVizInfo.nome, caminho: ftpVizInfo.caminho }; }
+        else if (foundFantEspTag && ftpEsporteInfo) { targetObject = { nome: ftpEsporteInfo.nome, caminho: ftpEsporteInfo.caminho + "\\FANTASTICO" }; }
+        else if (foundArtesFtIlhaTag && ilhaMagazineInfo) { targetObject = { nome: "PARA ILHA FANTÁSTICO", caminho: ilhaMagazineInfo.caminho + "\\FANT" }; }
+        else if (ilhaMagazineInfo) { targetObject = { nome: "PARA ILHA FANTÁSTICO", caminho: ilhaMagazineInfo.caminho + "\\FANT" }; }
+        if (debugMode) { return { result: targetObject, trace: trace }; } else { return targetObject; }
+    }
+
+    function autoGetPath(compName, debugMode) {
+        debugMode = debugMode || false;
+        try {
+            var data = loadServerPathData();
+            var result = null;
+            var gnewsResult = regrasGNews(compName, data.caminhosData, data.programacaoData, debugMode);
+            result = debugMode ? gnewsResult.result : gnewsResult;
+            if (result === null) {
+                var fantResult = regrasFant(compName, data.caminhosData, data.programacaoData, debugMode);
+                result = debugMode ? fantResult.result : fantResult;
             }
+            return result;
+        } catch (e) {
+            alert("Erro em autoGetPath:\n" + e.toString());
+            return null;
         }
     }
-    
-    var foundArtesFtIlhaTag = findTag(tags.artesFant, compNameUpper);
-    var foundFantEspTag = findTag(tags.espFant, compNameUpper);
-    var foundFantVizTag = findTag(tags.vizFant, compNameUpper);
-    var foundCooluxChamadas = compNameUpper.indexOf("CHAMADAS") > -1;
-    var foundCooluxSab = compNameUpper.indexOf("SAB") > -1;
-    var foundTvTouchScreenTag = compNameNormalized.indexOf(tags.touchFant) > -1;
 
-    if (foundTvTouchScreenTag) {
-        logTrace("Regra 'TV TouchScreen' ativada... SUCESSO!");
-        targetObject = { nome: "TV TouchScreen", caminho: "Não aplicável - verificar com produção" };
-    }
-    else if (foundCooluxChamadas && foundCooluxSab && ftpCooluxInfo) {
-        logTrace("Regra 'FTP COOLUX (Chamadas Sábado)' ativada... SUCESSO!");
-        targetObject = { nome: ftpCooluxInfo.nome, caminho: ftpCooluxInfo.caminho };
-    }
-    else if (foundFantVizTag && ftpVizInfo) {
-        logTrace("Regra 'FTP VIZ (Fantástico)' ativada... SUCESSO!");
-        targetObject = { nome: ftpVizInfo.nome, caminho: ftpVizInfo.caminho };
-    }
-    else if (foundFantEspTag && ftpEsporteInfo) {
-        logTrace("Regra 'FTP ESPORTE (Fantástico)' ativada... SUCESSO!");
-        targetObject = { nome: ftpEsporteInfo.nome, caminho: ftpEsporteInfo.caminho + "\\FANTASTICO" };
-    }
-    else if (foundArtesFtIlhaTag && ilhaMagazineInfo) {
-        logTrace("Regra 'ILHA MAGAZINE (Arte Específica)' ativada... SUCESSO!");
-        targetObject = { nome: "PARA ILHA FANTÁSTICO", caminho: ilhaMagazineInfo.caminho + "\\FANT" };
-    }
-    else if (ilhaMagazineInfo) {
-        logTrace("Regra 'ILHA MAGAZINE (Genérico)' ativada... SUCESSO!");
-        targetObject = { nome: "PARA ILHA FANTÁSTICO", caminho: ilhaMagazineInfo.caminho + "\\FANT" };
-    } else {
-        logTrace("Nenhuma regra específica do FANT correspondeu.");
-    }
-    if (debugMode) { return { result: targetObject, trace: trace }; } 
-    else { return targetObject; }
-}
+    $.global.autoGetPath = autoGetPath;
 
-$.global.MailMakerAutoPath = {};
-$.global.MailMakerAutoPath.regrasGNews = regrasGNews;
-$.global.MailMakerAutoPath.regrasFant = regrasFant;
-$.global.MailMakerAutoPath.getTags = getTags;
+})(this);

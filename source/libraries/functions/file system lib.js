@@ -72,7 +72,7 @@ function getURLContent(urlArray, dstArray) {
 
 		// Cabeçalho em destaque
 		cmd +=
-			"Write-Host '------------- GNEWS D9 TOOLS script -------------' -ForegroundColor white -BackgroundColor DarkRed;";
+			"Write-Host '------------- GND9TOOLS script -------------' -ForegroundColor white -BackgroundColor DarkRed;";
 
 		// Itera sobre as URLs e prepara os comandos de download
 		for (var i = 0; i < urlArray.length; i++) {
@@ -131,7 +131,7 @@ function unzipContent(zipPath, dstPath) {
 
 		// Cabeçalho em destaque
 		cmd +=
-			"Write-Host '------------- GNEWS D9 TOOLS script -------------' -ForegroundColor white -BackgroundColor DarkRed;";
+			"Write-Host '------------- GND9TOOLS script -------------' -ForegroundColor white -BackgroundColor DarkRed;";
 
 		// Mensagem de extração
 		cmd += "Write-Host '> extraindo " + fileName + "...';";
@@ -167,7 +167,7 @@ function zipContent(path, zipPath) {
 
 		// powershell command string...
 		// header...
-		var cmd = "Write-Host '------------- GNEWS D9 TOOLS script -------------'";
+		var cmd = "Write-Host '------------- GND9TOOLS script -------------'";
 		cmd += ' -ForegroundColor white -BackgroundColor DarkRed;';
 		// current action description...
 		cmd += "Write-Host '> compressing " + fileName + "...';";
@@ -197,7 +197,7 @@ function installWinFonts(fontsPath) {
 	if (filesArray.length == 0) return;
 
 	var installFontsPS =
-		"Write-Host '------------- GNEWS D9 TOOLS script -------------'";
+		"Write-Host '------------- GND9TOOLS script -------------'";
 	installFontsPS += ' -ForegroundColor white -BackgroundColor DarkRed;';
 	installFontsPS += "Write-Host '                (u.u )...zzz';";
 	installFontsPS +=
@@ -480,3 +480,172 @@ function saveLogData(aFile, dataStr) {
 
 	saveTextFile(data, decodeURI(aFile.fullName));
 }
+
+// =======================================================================
+// == CACHE FUNCTIONS (v3.0 - FILTERS, FEEDBACK AND CANCEL) ==
+// =======================================================================
+
+/**
+ * @param {Folder} currentFolder Folder to scan.
+ * @param {Array} filterArray Extensions to include (e.g. ['.aep', '.aet']).
+ * @param {Object} visitedPaths Tracker to avoid infinite recursion.
+ * @param {Object} progress Optional progress data { window, text, isCancelled }.
+ * @returns {Array} Tree describing folders/files that match the filter.
+ */
+function decodePercentEncodedText(value) {
+	if (typeof value !== 'string') {
+		return value;
+	}
+	if (value.indexOf('%') === -1) {
+		return value;
+	}
+	try {
+		return decodeURIComponent(value);
+	} catch (err) {
+		return value;
+	}
+}
+
+function getFolderStructureAsData(currentFolder, filterArray, visitedPaths, progress) {
+    if (!(filterArray instanceof Array)) {
+        filterArray = [];
+    }
+
+    if (!(currentFolder instanceof Folder)) {
+        return [];
+    }
+
+    if (progress && progress.isCancelled) {
+        return [];
+    }
+
+    if (!visitedPaths || typeof visitedPaths !== 'object') {
+        visitedPaths = {};
+    }
+
+    var currentPath = currentFolder.fsName || '';
+    if (!currentPath || visitedPaths[currentPath]) {
+        return [];
+    }
+    visitedPaths[currentPath] = true;
+
+    if (progress && progress.text) {
+        try {
+            progress.text.text = "Lendo: " + Folder.decode(currentFolder.name || '');
+            if (progress.window && progress.window.update) {
+                progress.window.update();
+            }
+        } catch (uiErr) {}
+    }
+
+    var ignoreFolderNames = [
+        'auto-save',
+        'old',
+        'adobe after effects auto-save',
+        'versoes antigas',
+        'backup',
+        'old versions',
+        '__MACOSX'
+    ];
+
+    var items = [];
+    try {
+        var fetched = currentFolder.getFiles();
+        if (fetched && typeof fetched.length === 'number') {
+            items = fetched;
+        }
+    } catch (fsErr) {
+        items = [];
+    }
+
+    function fileMatchesFilter(fileName) {
+        if (!fileName || typeof fileName !== 'string') {
+            return false;
+        }
+        if (fileName.charAt(0) === '_' || fileName.charAt(0) === '.' || fileName.toLowerCase() === 'thumbs.db') {
+            return false;
+        }
+        if (!filterArray.length) {
+            return true;
+        }
+        var lower = fileName.toLowerCase();
+        for (var f = 0; f < filterArray.length; f++) {
+            var ext = filterArray[f];
+            if (typeof ext === 'string' && ext.length > 0 && lower.indexOf(ext.toLowerCase()) !== -1) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    var structure = [];
+    for (var i = 0; i < items.length; i++) {
+        if (progress && progress.isCancelled) {
+            break;
+        }
+
+        var item = items[i];
+        if (!item) {
+            continue;
+        }
+
+        if (item instanceof Folder) {
+            var folderName = item.name || '';
+            var folderNameLower = folderName.toLowerCase();
+            var skip = false;
+            for (var k = 0; k < ignoreFolderNames.length; k++) {
+                if (folderNameLower === ignoreFolderNames[k]) {
+                    skip = true;
+                    break;
+                }
+            }
+            if (skip) {
+                continue;
+            }
+
+            var children = getFolderStructureAsData(item, filterArray, visitedPaths, progress);
+            if (children && children.length > 0) {
+                structure.push({ type: 'node', text: decodePercentEncodedText(folderName || item.fsName), children: children });
+            }
+        } else if (item instanceof File && fileMatchesFilter(item.name)) {
+            var itemName = decodePercentEncodedText(item.name);
+            structure.push({
+                type: 'item',
+                text: itemName,
+                filePath: decodePercentEncodedText(item.fsName),
+                modDate: item.modified ? item.modified.toUTCString() : '',
+                size: item.length || 0
+            });
+        }
+    }
+
+    delete visitedPaths[currentPath];
+    return structure;
+}
+
+/**
+ * @param {Array} treeData Tree generated by getFolderStructureAsData.
+ * @returns {Number} Total count of items in the tree.
+ */
+function countItemsInTree(treeData) {
+    var count = 0;
+    if (!(treeData instanceof Array)) {
+        return 0;
+    }
+    for (var i = 0; i < treeData.length; i++) {
+        var item = treeData[i];
+        if (!item) {
+            continue;
+        }
+        if (item.type === 'item') {
+            count++;
+        } else if (item.type === 'node' && item.children) {
+            count += countItemsInTree(item.children);
+        }
+    }
+    return count;
+}
+
+
+
+
