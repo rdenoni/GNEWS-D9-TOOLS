@@ -1,0 +1,859 @@
+{
+  "ARTES_GNEWS": {
+    "arte": [
+      {
+        "codigo": "GNPH001",
+        "arte": "Destaque",
+        "servidor_destino": "PAM HARDNEWS"
+      },
+      {
+        "codigo": "GNPH002",
+        "arte": "Twitter",
+        "servidor_destino": "PAM HARDNEWS"
+      },
+      {
+        "codigo": "GNPH003",
+        "arte": "Base Caracter",
+        "servidor_destino": "PAM HARDNEWS"
+      },
+      {
+        "codigo": "GNPH004",
+        "arte": "Mapa",
+        "servidor_destino": "PAM HARDNEWS"
+      },
+      {
+        "codigo": "GNPH005",
+        "arte": "Mapa Insert",
+        "servidor_destino": "PAM HARDNEWS"
+      },
+      {
+        "codigo": "GNPH006",
+        "arte": "Foto",
+        "servidor_destino": "PAM HARDNEWS"
+      },
+      {
+        "codigo": "GNPH007",
+        "arte": "Cabeçalho Promo",
+        "servidor_destino": "PAM HARDNEWS"
+      },
+      {
+        "codigo": "GNPH008",
+        "arte": "Gráfico Barra",
+        "servidor_destino": "PAM HARDNEWS"
+      },
+      {
+        "codigo": "GNPH009",
+        "arte": "Gráfico Linha",
+        "servidor_destino": "PAM HARDNEWS"
+      },
+      {
+        "codigo": "GNPH010",
+        "arte": "Gráfico Pizza",
+        "servidor_destino": "PAM HARDNEWS"
+      },
+      {
+        "codigo": "GNPH011",
+        "arte": "Pesquisa",
+        "servidor_destino": "PAM HARDNEWS"
+      },
+      {
+        "codigo": "GNPH012",
+        "arte": "Fato Fake",
+        "servidor_destino": "PAM HARDNEWS"
+      },
+      {
+        "codigo": "GNPH013",
+        "arte": "Linha do Tempo",
+        "servidor_destino": "PAM HARDNEWS"
+      },
+      {
+        "codigo": "GNPH014",
+        "arte": "Perfil",
+        "servidor_destino": "PAM HARDNEWS"
+      },
+      {
+        "codigo": "GNPH015",
+        "arte": "Transcrição",
+        "servidor_destino": "PAM HARDNEWS"
+      },
+      {
+        "codigo": "GNPH016",
+        "arte": "Frase",
+        "servidor_destino": "PAM HARDNEWS"
+      },
+      {
+        "codigo": "GNPH017",
+        "arte": "WhatsApp",
+        "servidor_destino": "PAM HARDNEWS"
+      },
+      {
+        "codigo": "GNPH018",
+        "arte": "Gravador",
+        "servidor_destino": "PAM HARDNEWS"
+      },
+      {
+        "codigo": "GNPH019",
+        "arte": "Mosaico",
+        "servidor_destino": "PAM HARDNEWS"
+      },
+      {
+        "codigo": "GNPH020",
+        "arte": "Dicionário",
+        "servidor_destino": "PAM HARDNEWS"
+      },
+      {
+        "codigo": "GNPH021",
+        "arte": "Nuvem de Palavras",
+        "servidor_destino": "PAM HARDNEWS"
+      },
+      {
+        "codigo": "GNPH022",
+        "arte": "Telão",
+        "servidor_destino": "PAM HARDNEWS"
+      },
+      {
+        "codigo": "GNPM023",
+        "arte": "Display",
+        "servidor_destino": "PAM MAGAZINE"
+      },
+      {
+        "codigo": "GNPM024",
+        "arte": "Escalada",
+        "servidor_destino": "PAM MAGAZINE"
+      },
+      {
+        "codigo": "GNPM025",
+        "arte": "Colagem",
+        "servidor_destino": "PAM MAGAZINE"
+      },
+      {
+        "codigo": "GNPM026",
+        "arte": "Let",
+        "servidor_destino": "PAM MAGAZINE"
+      },
+      {
+        "codigo": "GNPM027",
+        "arte": "Caça Palavras",
+        "servidor_destino": "PAM MAGAZINE"
+      },
+      {
+        "codigo": "GNPM028",
+        "arte": "Vinheta",
+        "servidor_destino": "PAM MAGAZINE"
+      },
+      {
+        "codigo": "GNPM029",
+        "arte": "Claquete",
+        "servidor_destino": "PAM MAGAZINE"
+      },
+      {
+        "codigo": "GNPM030",
+        "arte": "Persiana",
+        "servidor_destino": "PAM MAGAZINE"
+      },
+      {
+        "codigo": "GNPM031",
+        "arte": "Parallax",
+        "servidor_destino": "PAM MAGAZINE"
+      },
+      {
+        "codigo": "GNPM032",
+        "arte": "Promo",
+        "servidor_destino": "PAM MAGAZINE"
+      },
+      {
+        "codigo": "GNIH033",
+        "arte": "Créditos",
+        "servidor_destino": "ILHA HARDNEWS"
+      },
+      {
+        "codigo": "GNIH034",
+        "arte": "Localizador",
+        "servidor_destino": "ILHA HARDNEWS"
+      },
+      {
+        "codigo": "GNIH035",
+        "arte": "Legenda",
+        "servidor_destino": "ILHA HARDNEWS"
+      },
+      {
+        "codigo": "GNVZ036",
+        "arte": "QR Code",
+        "servidor_destino": "FTP VIZ"
+      },
+      {
+        "codigo": "GNVZ037",
+        "arte": "Totem",
+        "servidor_destino": "FTP VIZ"
+      }
+    ]
+  },
+  "PROGRAMACAO_GNEWS": {
+    "programacao": [
+      {
+        "programa": "Faixa da Madrugada (Reprises)",
+        "tipo": "Programa",
+        "horario": "00:00 - 05:00",
+        "dias_exibicao": "Diariamente",
+        "tagName": "FAIXA MADRUGADA"
+      },
+      {
+        "programa": "Jornal GloboNews (Edição da Manhã)",
+        "tipo": "Jornal",
+        "horario": "05:00 - 06:00",
+        "dias_exibicao": "Segunda a Sexta",
+        "tagName": "JORNAL_ED5H"
+      },
+      {
+        "programa": "Jornal GloboNews (Edição das 6h)",
+        "tipo": "Jornal",
+        "horario": "06:00 - 07:00",
+        "dias_exibicao": "Segunda a Sexta",
+        "tagName": "JORNAL_ED6H"
+      },
+      {
+        "programa": "Jornais de Fim de Semana",
+        "tipo": "Jornal",
+        "horario": "06:00 - 09:30",
+        "dias_exibicao": "Sábados e Domingos",
+        "tagName": "JORNAL_FDS_MANHA"
+      },
+      {
+        "programa": "GloboNews Em Ponto",
+        "tipo": "Jornal",
+        "horario": "07:00 - 09:30",
+        "dias_exibicao": "Segunda a Sexta",
+        "tagName": "EM_PONTO"
+      },
+      {
+        "programa": "Conexão GloboNews",
+        "tipo": "Jornal",
+        "horario": "09:30 - 13:00",
+        "dias_exibicao": "Segunda a Sexta",
+        "tagName": "CONEXAO"
+      },
+      {
+        "programa": "Programação de Fim de Semana (Manhã)",
+        "tipo": "Programa",
+        "horario": "09:00 - 13:00",
+        "dias_exibicao": "Sábados e Domingos",
+        "tagName": "PROG_FDS_MANHA"
+      },
+      {
+        "programa": "Estúdio i",
+        "tipo": "Programa",
+        "horario": "13:00 - 16:00",
+        "dias_exibicao": "Segunda a Sexta",
+        "tagName": "ESTUDIO_I"
+      },
+      {
+        "programa": "Jornais de Fim de Semana (Tarde)",
+        "tipo": "Jornal",
+        "horario": "12:00 - 15:00",
+        "dias_exibicao": "Sábados e Domingos",
+        "tagName": "JORNAL_FDS_TARDE"
+      },
+      {
+        "programa": "Jornal GloboNews (Edição das 15h)",
+        "tipo": "Jornal",
+        "horario": "15:00 - 18:00",
+        "dias_exibicao": "Sábados e Domingos",
+        "tagName": "JORNAL_ED15H"
+      },
+      {
+        "programa": "GloboNews Mais",
+        "tipo": "Jornal",
+        "horario": "16:00 - 18:00",
+        "dias_exibicao": "Segunda a Sexta",
+        "tagName": "MAIS"
+      },
+      {
+        "programa": "Jornal GloboNews - Edição das 18h",
+        "tipo": "Jornal",
+        "horario": "18:00 - 20:00",
+        "dias_exibicao": "Segunda a Domingo",
+        "tagName": "JORNAL_ED18H"
+      },
+      {
+        "programa": "GloboNews Internacional",
+        "tipo": "Programa",
+        "horario": "19:30 - 20:00",
+        "dias_exibicao": "Domingos",
+        "tagName": "INTER"
+      },
+      {
+        "programa": "Balaio GloboNews",
+        "tipo": "Programa",
+        "horario": "19:30 - 20:00",
+        "dias_exibicao": "Sábados",
+        "tagName": "BALAIO"
+      },
+      {
+        "programa": "GloboNews Em Pauta",
+        "tipo": "Programa",
+        "horario": "20:00 - 21:30",
+        "dias_exibicao": "Segunda a Quinta",
+        "tagName": "EM_PAUTA"
+      },
+      {
+        "programa": "Jornal GloboNews - Edição das 20h",
+        "tipo": "Jornal",
+        "horario": "20:00 - 21:30",
+        "dias_exibicao": "Sextas e Sábados",
+        "tagName": "JORNAL_ED20H"
+      },
+      {
+        "programa": "Cobertura Especial de Domingo",
+        "tipo": "Jornal",
+        "horario": "20:00 - 22:00",
+        "dias_exibicao": "Domingos",
+        "tagName": "ESPECIAL_DOM"
+      },
+      {
+        "programa": "Cidades e Soluções",
+        "tipo": "Programa",
+        "horario": "21:30 - 22:00",
+        "dias_exibicao": "Sextas-feiras",
+        "tagName": "CIDADES_SOLUCOES"
+      },
+      {
+        "programa": "Jornal das Dez (J10)",
+        "tipo": "Jornal",
+        "horario": "22:00 - 23:00",
+        "dias_exibicao": "Segunda a Domingo",
+        "tagName": "J10"
+      },
+      {
+        "programa": "Central GloboNews",
+        "tipo": "Programa",
+        "horario": "23:00 - 00:00",
+        "dias_exibicao": "Quintas-feiras",
+        "tagName": "CENTRAL"
+      },
+      {
+        "programa": "GloboNews Documentário",
+        "tipo": "Programa",
+        "horario": "23:00 - 00:30",
+        "dias_exibicao": "Sábados",
+        "tagName": "DOC"
+      },
+      {
+        "programa": "Programação de Domingo (Noite)",
+        "tipo": "Programa",
+        "horario": "23:00 - 02:35",
+        "dias_exibicao": "Domingos",
+        "tagName": "PROG_DOM_NOITE"
+      },
+      {
+        "programa": "GloboNews Especial",
+        "tipo": "Programa",
+        "horario": "23:30 - 00:00",
+        "dias_exibicao": "Segundas-feiras",
+        "tagName": "ESPECIAL"
+      },
+      {
+        "programa": "Roberto D'Avila",
+        "tipo": "Programa",
+        "horario": "23:30 - 00:00",
+        "dias_exibicao": "Terças-feiras",
+        "tagName": "ROBERTO_DAVILA"
+      },
+      {
+        "programa": "GloboNews Miriam Leitão",
+        "tipo": "Programa",
+        "horario": "23:30 - 00:00",
+        "dias_exibicao": "Quartas-feiras",
+        "tagName": "MIRIAM_LEITAO"
+      },
+      {
+        "programa": "Diálogos com Mario Sergio Conti",
+        "tipo": "Programa",
+        "horario": "23:30 - 00:00",
+        "dias_exibicao": "Sextas-feiras",
+        "tagName": "DIALOGOS"
+      }
+    ]
+  },
+  "EQUIPE_GNEWS": {
+    "equipe": [
+      {
+        "nome": "Matheus Stone",
+        "cargo": "PRODUTOR I",
+        "setor": "ESPORTE e JORNALISMO",
+        "apelido": "Matheus",
+        "tag": "mcr",
+        "email": "matheus.stone@g.globo"
+      },
+      {
+        "nome": "Rodrigo Trovão",
+        "cargo": "PRODUTOR I",
+        "setor": "ESPORTE e JORNALISMO",
+        "apelido": "Trovão",
+        "tag": "rtr",
+        "email": "trovao@g.globo"
+      },
+      {
+        "nome": "Rafael Denoni",
+        "cargo": "DESIGNER III",
+        "setor": "Promo e JORNALISMO",
+        "apelido": "D9",
+        "tag": "d9r",
+        "email": "rafael.denoni@g.globo"
+      },
+      {
+        "nome": "Igor Vinicios",
+        "cargo": "DESIGNER II",
+        "setor": "JORNALISMO",
+        "apelido": "Igor",
+        "tag": "igr",
+        "email": "igor.vinicius@g.globo"
+      },
+      {
+        "nome": "Elson Junior",
+        "cargo": "DESIGNER II",
+        "setor": "Promo e JORNALISMO",
+        "apelido": "Elson",
+        "tag": "etr",
+        "email": "elson.junior@g.globo"
+      },
+      {
+        "nome": "Rafael Escobar",
+        "cargo": "DESIGNER III",
+        "setor": "JORNALISMO",
+        "apelido": "Escobar",
+        "tag": "rbr",
+        "email": "rafael.escobar@g.globo"
+      },
+      {
+        "nome": "Ian Caldas",
+        "cargo": "DESIGNER I",
+        "setor": "JORNALISMO",
+        "apelido": "Ian",
+        "tag": "iar",
+        "email": "ian.caldas@g.globo"
+      },
+      {
+        "nome": "Fabio Farias",
+        "cargo": "DESIGNER I",
+        "setor": "JORNALISMO",
+        "apelido": "Fábio",
+        "tag": "fjr",
+        "email": "fabio.farias@g.globo"
+      },
+      {
+        "nome": "Gilson Goliveira",
+        "cargo": "DESIGNER I",
+        "setor": "JORNALISMO",
+        "apelido": "Gilson",
+        "tag": "ggr",
+        "email": "gilson.goliveira@g.globo"
+      },
+      {
+        "nome": "Helena Cunha",
+        "cargo": "DESIGNER I",
+        "setor": "JORNALISMO",
+        "apelido": "Helena",
+        "tag": "hcr",
+        "email": "helena.cunha@g.globo"
+      },
+      {
+        "nome": "Amanda Rodrigues",
+        "cargo": "DESIGNER I",
+        "setor": "JORNALISMO e ESPORTE",
+        "apelido": "Amanda",
+        "tag": "iar",
+        "email": "amanda.crodrigues@g.globo"
+      },
+      {
+        "nome": "Gabriela Pelegrineti",
+        "cargo": "DESIGNER I",
+        "setor": "JORNALISMO e ESPORTE",
+        "apelido": "Gabriela",
+        "tag": "gpr",
+        "email": "gabriela.pelegrineti@g.globo"
+      },
+      {
+        "nome": "Maria Freitas",
+        "cargo": "DESIGNER I",
+        "setor": "JORNALISMO e ESPORTE",
+        "apelido": "Maria",
+        "tag": "mfr",
+        "email": "maria.freitas_randstad@prestador.globo"
+      },
+      {
+        "nome": "Barbara Machado",
+        "cargo": "ESTAGIÁRIA",
+        "setor": "JORNALISMO e ESPORTE",
+        "apelido": "Barbara",
+        "tag": "brr",
+        "email": "barbaracsmachado@g.globo"
+      }
+    ]
+  },
+  "CAMINHOS_REDE": {
+    "caminhos": {
+      "grupos": [
+        {
+          "titulo": "GRUPO GNEWS",
+          "subgrupos": [
+            {
+              "titulo": "ACESSOS RJ",
+              "links": [
+                {
+                  "tipo": "folder",
+                  "nome": "GNEWS",
+                  "caminho": "T:/JORNALISMO/GLOBONEWS/"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "PEÇAS GRÁFICAS GN RJ",
+                  "caminho": "T:/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "UTILIDADES",
+                  "caminho": "T:/JORNALISMO/GLOBONEWS/UTILIDADES"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "PROGRAMAS",
+                  "caminho": "T:/JORNALISMO/GLOBONEWS/PROGRAMAS"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "EVENTOS",
+                  "caminho": "T:/JORNALISMO/GLOBONEWS/EVENTOS"
+                }
+              ]
+            },
+            {
+              "titulo": "SERVIDORES RJ",
+              "links": [
+                {
+                  "tipo": "folder",
+                  "nome": "DIA DIA GN RJ",
+                  "caminho": "T:/JORNALISMO/GLOBONEWS/DIARIOS/RJ/2025"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "GLOBONEWS INTERNACIONAL",
+                  "caminho": "//pamjb.servicos.corp.tvglobo.com.br/Arte_Ilha/PARA_ILHA/Magazine/GNEWS/GLOBONEWS INTERNACIONAL"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "GNEWS ESPECIAL",
+                  "caminho": "//pamjb.servicos.corp.tvglobo.com.br/Arte_Ilha/PARA_ILHA/Magazine/GNEWS/GNEWS ESPECIAL"
+                }
+              ]
+            },
+            {
+              "titulo": "ACESSOS SP",
+              "links": [
+                {
+                  "tipo": "folder",
+                  "nome": "PEÇAS GRÁFICAS GN SP",
+                  "caminho": "T:/JORNALISMO/TVGLOBO/DIARIOS_LOCAL/RJ/PRACA_TV/PECAS GRAFICAS"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "DIA DIA SP",
+                  "caminho": "T:/JORNALISMO/GLOBONEWS/DIARIOS/SP/2025"
+                }
+              ]
+            },
+            {
+              "titulo": "SERVIDORES SP",
+              "links": [
+                {
+                  "tipo": "folder",
+                  "nome": "LIDERANÇA S/A",
+                  "caminho": "//10.236.72.2/ifs/GDC_SP_MAM_JORN_M1/PARA ILHA/GNEWS/LIDERANCA SA"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "CIDADES E SOLUCOES",
+                  "caminho": "//10.236.72.2/ifs/GDC_SP_MAM_JORN_M1/PARA ILHA/GNEWS/CIDADES E SOLUCOES"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "EXPEDICAO GNEWS",
+                  "caminho": "//10.236.72.2/ifs/GDC_SP_MAM_JORN_M1/PARA ILHA/GNEWS/EXPEDICAO GNEWS"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "EM PONTO",
+                  "caminho": "//10.236.72.2/ifs/GDC_SP_MAM_JORN_M1/PARA ILHA/GNEWS/EM PONTO/2025"
+                }
+              ]
+            },
+            {
+              "titulo": "PROMO",
+              "links": [
+                {
+                  "tipo": "folder",
+                  "nome": "PROMO",
+                  "caminho": "T:/JORNALISMO/GLOBONEWS/PROMO"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "PROGRAMAS",
+                  "caminho": "T:/JORNALISMO/GLOBONEWS/PROMO/PROGRAMAS"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "TEMPLATES",
+                  "caminho": "T:/JORNALISMO/GLOBONEWS/PROMO/TEMPLATES"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "MXF ARTE",
+                  "caminho": "//pamjb.servicos.corp.tvglobo.com.br/Arte_Ilha/PARA_ARTE/PROMO GNEWS/MXF ARTE Novo"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "PARA ARTE",
+                  "caminho": "//pamjb.servicos.corp.tvglobo.com.br/Arte_Ilha/PARA_ARTE"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "titulo": "GRUPO SERVIDORES",
+          "subgrupos": [
+            {
+              "titulo": "RIO DE JANEIRO",
+              "links": [
+                {
+                  "tipo": "folder",
+                  "nome": "PAM HARDNEWS",
+                  "caminho": "//pamjb.servicos.corp.tvglobo.com.br/Arte_Ilha/UPLOAD_PAM_HARDNEWS/01_ENTRADA"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "PAM MAGAZINE",
+                  "caminho": "//pamjb.servicos.corp.tvglobo.com.br/Arte_Ilha/UPLOAD_PAM_MAGAZINE/01_ENTRADA"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "ILHA MAGAZINE",
+                  "caminho": "//pamjb.servicos.corp.tvglobo.com.br/Arte_Ilha/PARA_ILHA/Magazine/GNEWS"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "ILHA HARDNEWS",
+                  "caminho": "//pamjb.servicos.corp.tvglobo.com.br/Arte_Ilha/PARA_ILHA/Hardnews/GNEWS"
+                }
+              ]
+            },
+            {
+              "titulo": "SÃO PAULO",
+              "links": [
+                {
+                  "tipo": "folder",
+                  "nome": "PARA ILHA SP",
+                  "caminho": "//10.236.72.2/ifs/GDC_SP_MAM_JORN_M1/PARA ILHA/GNEWS/"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "HARDNEWS E MAGAZINE SP",
+                  "caminho": "//10.236.72.2/ifs/GDC_SP_MAM_JORN_M1/UPLOAD_MAM/Hardnews_e_Magazine_SP"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "COMPARTILHAMENTO",
+                  "caminho": "//vfx-ml-sp.servicos.corp.tvglobo.com.br/VFX/compartilhamento"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "titulo": "GRUPO PRAÇA",
+          "subgrupos": [
+            {
+              "titulo": "FANTASTICO",
+              "links": [
+                {
+                  "tipo": "folder",
+                  "nome": "FANTASTICO",
+                  "caminho": "T:/JORNALISMO/TVGLOBO/SEMANAIS_REDE/FANTASTICO"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "DIA DIA FANT",
+                  "caminho": "T:/JORNALISMO/TVGLOBO/SEMANAIS_REDE/FANTASTICO/RJ/FACTUAL_DIA A DIA"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "ILHA FANT",
+                  "caminho": "//pamjb.servicos.corp.tvglobo.com.br/Arte_Ilha/PARA_ILHA/Magazine/FANT"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "PEÇAS GRÁFICAS FANT",
+                  "caminho": "T:/JORNALISMO/TVGLOBO/SEMANAIS_REDE/FANTASTICO/_ID/PECAS_GRAFICAS"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "FANT FUTEBOL",
+                  "caminho": "T:/JORNALISMO/TVGLOBO/SEMANAIS_REDE/FANTASTICO/RJ/FUTEBOL"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "FANT MATÉRIA",
+                  "caminho": "T:/JORNALISMO/TVGLOBO/SEMANAIS_REDE/FANTASTICO/RJ/2025S"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "FANT SERIES",
+                  "caminho": "T:/JORNALISMO/TVGLOBO/SEMANAIS_REDE/FANTASTICO/RJ/SERIES/"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "FTP COLUX",
+                  "caminho": "//arteserver/_PRODUCAO_DIA_A_DIA/"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "FTP COOLUX TELÃO",
+                  "caminho": "//10.197.102.2/coolux/TELAO 2024-07-27/MIDIA/"
+                }
+              ]
+            },
+            {
+              "titulo": "ESPORTE",
+              "links": [
+                {
+                  "tipo": "folder",
+                  "nome": "ESPORTE",
+                  "caminho": "T:/ESPORTE/TVGLOBO/FUTEBOL"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "FTP ESPORTE",
+                  "caminho": "//10.3.44.130/edit5/GLOBO/ARTES"
+                }
+              ]
+            },
+            {
+              "titulo": "BDBR",
+              "links": [
+                {
+                  "tipo": "folder",
+                  "nome": "BDBR",
+                  "caminho": "T:/JORNALISMO/TVGLOBO/DIARIOS_REDE/BDBR"
+                }
+              ]
+            },
+            {
+              "titulo": "BOM DIA SÁBADO",
+              "links": [
+                {
+                  "tipo": "folder",
+                  "nome": "BOM DIA SÁBADO",
+                  "caminho": "T:/JORNALISMO/TVGLOBO/SEMANAIS_REDE/BOM_DIA_SABADO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "titulo": "GRUPO OUTROS",
+          "subgrupos": [
+            {
+              "titulo": "CATÁLOGOS",
+              "links": [
+                {
+                  "tipo": "web",
+                  "nome": "CATÁLOGO GNEWS INTERATIVO",
+                  "caminho": "https://www.catalogognews.app"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "CATÁLOGO GNEWS ESTÁTICO",
+                  "caminho": "catalogos/CATALOGO - GNEWS ESTATICO.pdf"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "CATÁLOGO FANT ESPORTE",
+                  "caminho": "/catalogos/CATALOGO - FANT ESPORTE.pdf"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "CATÁLOGO REDE",
+                  "caminho": "/catalogos/CATALOGO - REDE.pdf"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "CATÁLOGO RJ1 TEMPO",
+                  "caminho": "/catalogos/CATALOGO - RJ1 METEOROLOGIA.pdf"
+                }
+              ]
+            },
+            {
+              "titulo": "GUIAS",
+              "links": [
+                {
+                  "tipo": "folder",
+                  "nome": "GUIA FLUXO GNEWS",
+                  "caminho": "/catalogos/GUIA - Capas e Escalada GNEWS.pdf"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "GUIA ONAIR GNEWS",
+                  "caminho": "/catalogos/GUIA - GNEWS ONAIR.pdf"
+                }
+              ]
+            },
+            {
+              "titulo": "IP MÁQUINAS",
+              "links": [
+                {
+                  "tipo": "folder",
+                  "nome": "PABBB",
+                  "caminho": "//10.228.93.91"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "MÃO PELUDA",
+                  "caminho": "//10.228.93.92"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "ZAMBA",
+                  "caminho": "//10.228.93.93"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "PISADEIRA",
+                  "caminho": "//10.228.93.100"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "DROPBOX",
+                  "caminho": "//10.228.93.86"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "GRALHA AZUL",
+                  "caminho": "//10.197.11.26"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "PAPA FIGO",
+                  "caminho": "//10.197.11.5"
+                },
+                {
+                  "tipo": "folder",
+                  "nome": "CHIBAMBA",
+                  "caminho": "//10.228.93.80"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
