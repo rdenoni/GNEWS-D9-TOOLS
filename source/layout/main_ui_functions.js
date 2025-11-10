@@ -145,19 +145,34 @@ function loadProductionData() {
 }
 
 function D9T_ENSURE_BASE_CONFIG_FILES() {
-  function ensureJsonFile(targetPath, defaultObj) {
+  function ensureJsonFile(targetPath, basePath, defaultObj) {
     try {
       var file = new File(targetPath);
       if (file.exists) { return; }
       var parentFolder = file.parent;
       if (parentFolder && !parentFolder.exists) { parentFolder.create(); }
       file.encoding = "UTF-8";
-      if (file.open('w')) {
-        try {
-          file.write(JSON.stringify(defaultObj, null, 2));
-        } catch (jsonErr) {
-          file.write('{}');
+      var payload = null;
+      if (basePath) {
+        var baseFile = new File(basePath);
+        if (baseFile.exists) {
+          baseFile.encoding = "UTF-8";
+          if (baseFile.open('r')) {
+            payload = baseFile.read();
+            baseFile.close();
+          }
         }
+      }
+      if (payload === null && defaultObj) {
+        try {
+          payload = JSON.stringify(defaultObj, null, 2);
+        } catch (jsonErr) {
+          payload = "{}";
+        }
+      }
+      if (payload === null) { payload = "{}"; }
+      if (file.open('w')) {
+        file.write(payload);
         file.close();
       }
     } catch (writeErr) {
@@ -229,11 +244,11 @@ function D9T_ENSURE_BASE_CONFIG_FILES() {
   var dadosConfigUserPath = scriptPreferencesPath + '/Dados_Config.json';
   var dadosConfigMainPath = scriptMainPath + '/Dados_Config.json';
 
-  ensureJsonFile(userPrefsPath, defaultUserPrefs);
-  ensureJsonFile(systemSettingsPath, defaultSystemSettings);
-  ensureJsonFile(dadosConfigUserPath, defaultDadosConfig);
+  ensureJsonFile(userPrefsPath, scriptMainPath + '/User_Preferences.json', defaultUserPrefs);
+  ensureJsonFile(systemSettingsPath, scriptMainPath + '/System_Settings.json', defaultSystemSettings);
+  ensureJsonFile(dadosConfigUserPath, scriptMainPath + '/Dados_Config.json', defaultDadosConfig);
   if (dadosConfigMainPath !== dadosConfigUserPath) {
-    ensureJsonFile(dadosConfigMainPath, defaultDadosConfig);
+    ensureJsonFile(dadosConfigMainPath, null, defaultDadosConfig);
   }
 }
 
