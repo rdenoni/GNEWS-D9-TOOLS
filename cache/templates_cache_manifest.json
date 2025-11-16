@@ -1,0 +1,86 @@
+{
+  "templates_eventos_cache.json": {
+    "file": "templates_eventos_cache.json",
+    "paths": {
+      "/t/JORNALISMO/GLOBONEWS/EVENTOS": {
+        "lastModified": 1759865403000,
+        "lastScan": "Thursday, 13 Nov 2025 16:26:03 GMT",
+        "itemCount": 1767,
+        "metadataCount": 1767,
+        "cacheHash": "10a0f8ed"
+      }
+    }
+  },
+  "templates_jornais_cache.json": {
+    "file": "templates_jornais_cache.json",
+    "paths": {
+      "/t/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS": {
+        "lastModified": 1762803375000,
+        "lastScan": "Thursday, 13 Nov 2025 15:29:45 GMT",
+        "itemCount": 1737,
+        "metadataCount": 1737,
+        "cacheHash": "7a7caa5a"
+      }
+    }
+  },
+  "templates_ilustracoes_cache.json": {
+    "file": "templates_ilustracoes_cache.json",
+    "paths": {
+      "/t/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS/Ilustracoes": {
+        "lastModified": 1762559047000,
+        "lastScan": "Thursday, 13 Nov 2025 16:24:13 GMT",
+        "itemCount": 115,
+        "metadataCount": 115,
+        "cacheHash": "36a41497"
+      }
+    }
+  },
+  "templates_basetematica_cache.json": {
+    "file": "templates_basetematica_cache.json",
+    "paths": {
+      "/t/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS/Bases caracter/_BASES_TEMATICAS": {
+        "lastModified": 1761322248000,
+        "lastScan": "Thursday, 13 Nov 2025 16:24:10 GMT",
+        "itemCount": 41,
+        "metadataCount": 41,
+        "cacheHash": "9bffbe80"
+      }
+    }
+  },
+  "templates_programas_cache.json": {
+    "file": "templates_programas_cache.json",
+    "paths": {
+      "/t/JORNALISMO/GLOBONEWS/PROGRAMAS": {
+        "lastModified": 1755807869000,
+        "lastScan": "Friday, 14 Nov 2025 16:02:26 GMT",
+        "itemCount": 4166,
+        "metadataCount": 4166,
+        "cacheHash": "5912a83c"
+      }
+    }
+  },
+  "templates_marketing_cache.json": {
+    "file": "templates_marketing_cache.json",
+    "paths": {
+      "/t/JORNALISMO/GLOBONEWS/MARKETING": {
+        "lastModified": 1758679227000,
+        "lastScan": "Thursday, 13 Nov 2025 13:34:57 GMT",
+        "itemCount": 281,
+        "metadataCount": 281,
+        "cacheHash": "18eb154"
+      }
+    }
+  },
+  "templates_promo_cache.json": {
+    "file": "templates_promo_cache.json",
+    "paths": {
+      "/t/JORNALISMO/GLOBONEWS/PROMO": {
+        "lastModified": 1744919260000,
+        "lastScan": "Friday, 14 Nov 2025 16:43:12 GMT",
+        "itemCount": 733,
+        "metadataCount": 733,
+        "cacheHash": "bf5a5134"
+      }
+    }
+  }
+}
