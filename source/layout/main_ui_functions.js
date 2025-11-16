@@ -1,113 +1,30 @@
 /*
 ---------------------------------------------------------------
-> main_ui_functions.js - Interface e Layout Completo
-> Versao: 3.0 - Logica responsiva aprimorada
-> Data: 2025
+> ARQUIVO: main_ui_functions.js
+> DESCRIÇÃO: Constrói a interface principal (UI) do GND9TOOLS,
+>            gerencia o layout responsivo e os eventos de clique.
+> VERSÃO: 3.4 (Correção de Layout - Logo como Menu)
+> DATA: 2025
+>
+> MÓDULOS USADOS:
+> - globals.js (para variáveis de tema e preferências)
+> - theme_api.js (para funções de cor e utilitários de tema)
+> - ICON lib.js (para as variáveis de ícone, ex: LOGO_IMG)
+> - Vários scripts de ferramentas (ex: GNEWS_Templates.jsx)
 ---------------------------------------------------------------
 */
-
-// ============================================
-// MOTOR DE TEMA - MAPEAMENTO DE VARI??VEIS GLOBAIS
-// ============================================
-
-var D9T_COLOR_FALLBACKS = {
-  bgColor1: '#161616FF',
-  bgColor2: '#1B1B1BFF',
-  divColor1: '#1D1D1FFF',
-  divColor2: '#080808FF',
-  monoColor0: '#F2F2F2FF',
-  monoColor1: '#C7C8CAFF',
-  monoColor2: '#302B2BFF',
-  monoColor3: '#1A1919FF',
-  normalColor1: '#FFFFFFFF',
-  normalColor2: '#E6E6E6FF',
-  highlightColor1: '#FF0046FF'
-};
-
-function D9T_SAFE_COLOR(name) {
-  if (typeof this[name] !== 'undefined') { return this[name]; }
-  return D9T_COLOR_FALLBACKS[name];
-}
-
-if (typeof bgColor1 === 'undefined') { this.bgColor1 = D9T_COLOR_FALLBACKS.bgColor1; }
-if (typeof bgColor2 === 'undefined') { this.bgColor2 = D9T_COLOR_FALLBACKS.bgColor2; }
-if (typeof divColor1 === 'undefined') { this.divColor1 = D9T_COLOR_FALLBACKS.divColor1; }
-if (typeof divColor2 === 'undefined') { this.divColor2 = D9T_COLOR_FALLBACKS.divColor2; }
-if (typeof monoColor0 === 'undefined') { this.monoColor0 = D9T_COLOR_FALLBACKS.monoColor0; }
-if (typeof monoColor1 === 'undefined') { this.monoColor1 = D9T_COLOR_FALLBACKS.monoColor1; }
-if (typeof monoColor2 === 'undefined') { this.monoColor2 = D9T_COLOR_FALLBACKS.monoColor2; }
-if (typeof monoColor3 === 'undefined') { this.monoColor3 = D9T_COLOR_FALLBACKS.monoColor3; }
-if (typeof normalColor1 === 'undefined') { this.normalColor1 = D9T_COLOR_FALLBACKS.normalColor1; }
-if (typeof normalColor2 === 'undefined') { this.normalColor2 = D9T_COLOR_FALLBACKS.normalColor2; }
-if (typeof highlightColor1 === 'undefined') { this.highlightColor1 = D9T_COLOR_FALLBACKS.highlightColor1; }
-
-var D9T_Theme = {
-  // Mapeia qual variável do globals.js será usada para cada elemento.
-  colors: {
-    background: bgColor1,
-    textNormal: monoColor1,
-    textHighlight: highlightColor1,
-    divider: divColor1,
-    mono0: monoColor0,
-    mono1: monoColor1,
-    mono2: monoColor2,
-    mono3: monoColor3,
-    white: normalColor1
-  },
-  // Layout e Espaçamento (valores diretos)
-  layout: {
-    iconSize: [36, 36],
-    iconSizeCompact: [28, 28],          // Tamanho dos ícones no modo compacto
-    iconSpacingCompact: 15,
-    textSpacingNormal: 5,
-    iconSpacingNormal: 20,
-    labelSpacing: 0,    
-    sectionSpacing: 30,
-    sectionSpacingCompact: 10,          // Espaçamento entre seções no modo compacto
-    mainMargins: [15, 15, 15, 15], 
-    infoMargins: [15, 0, 0, 15],        // Margens do grupo de logo/versão
-    breakpointSafetyMargin: 150,        // breakpoint do grupo de logo/versão
-    verticalBreakpoint: 80,             // Força layout HORIZONTAL se altura for MENOR que este valor
-    horizontalBreakpoint: 550,          // Força layout VERTICAL se largura for MENOR que este valor
-    compactModeWidth: 950,              // Largura para ativar o modo compacto
-    compactModeHeight: 80,              // Altura para ativar o modo compacto
-    searchModeHeight: 44,               // Altura limite para o modo busca
-    iconOnlySpacing: 18,                // Espacamento quando os labels estao ocultos
-    showLabels: true                    // Controla a exibicao dos textos nos modulos
-  },
-  // Texto e Strings
-  text: {
-    lineBreak: lol,
-    click: lClick,
-    rightClick: rClick,
-    doubleClick: dClick
-  }
-};
-
-try { ScriptUI.toolTipDelay = 4000; } catch (toolTipErr) {}
-
-function D9T_REFRESH_THEME_COLORS() {
-  if (!D9T_Theme || !D9T_Theme.colors) { return; }
-  D9T_Theme.colors.background = bgColor1;
-  D9T_Theme.colors.textNormal = monoColor1;
-  D9T_Theme.colors.textHighlight = highlightColor1;
-  D9T_Theme.colors.divider = divColor1;
-  D9T_Theme.colors.mono0 = monoColor0;
-  D9T_Theme.colors.mono1 = monoColor1;
-  D9T_Theme.colors.mono2 = monoColor2;
-  D9T_Theme.colors.mono3 = monoColor3;
-  D9T_Theme.colors.white = normalColor1;
-}
-D9T_REFRESH_THEME_COLORS();
 
 
 // ============================================
 // INICIALIZAÇÃO E CARREGAMENTO DE DADOS
 // ============================================
 
+// Define caminhos essenciais e carrega dados de produção.
 function initializeGlobalVariables() {
+  // Tenta definir o 'scriptMainPath' (caminho raiz do script)
   if (typeof scriptMainPath === 'undefined' || !scriptMainPath) {
     try {
+      // Se executando de um arquivo .jsx, encontra o caminho pai
       if ($.fileName && $.fileName !== '') {
         var currentFile = new File($.fileName);
         scriptMainPath = currentFile.parent.parent.fullName + '/';
@@ -115,18 +32,24 @@ function initializeGlobalVariables() {
         throw new Error("Caminho do script não encontrado");
       }
     } catch (e) {
+      // Fallback para a pasta de dados do usuário (ex: em .jsxbin)
       scriptMainPath = Folder.userData.fullName + '/GND9TOOLS script/';
       var scriptFolder = new Folder(scriptMainPath);
       if (!scriptFolder.exists) scriptFolder.create();
     }
   }
+  
+  // Carrega os dados de produção (lista de templates) se ainda não foram carregados
   if (typeof D9T_prodArray === 'undefined') {
     D9T_prodArray = [];
     loadProductionData();
   }
+  
+  // Garante que os arquivos de configuração JSON básicos existam
   D9T_ENSURE_BASE_CONFIG_FILES();
 }
 
+// Carrega a lista de produções (templates) do arquivo JSON.
 function loadProductionData() {
   try {
     var configFile = new File(scriptMainPath + '/source/config/TEMPLATES_config.json');
@@ -137,22 +60,33 @@ function loadProductionData() {
       var data = JSON.parse(content);
       D9T_prodArray = data.PRODUCTIONS || [];
     } else {
+      // Fallback se o arquivo não existir
       D9T_prodArray = [{ name: "GNEWS", paths: ["T:/JORNALISMO/GLOBONEWS/TEMPLATES"], icon: "GNEWS_ICON" }];
     }
   } catch (e) {
+    // Fallback em caso de erro de leitura ou parse
     D9T_prodArray = [{ name: "GNEWS", paths: ["T:/JORNALISMO/GLOBONEWS/TEMPLATES"], icon: "GNEWS_ICON" }];
   }
 }
 
+// Verifica se os arquivos JSON de configuração existem na pasta de preferências do usuário.
+// Se não existirem, cria-os usando um arquivo base ou um objeto padrão.
 function D9T_ENSURE_BASE_CONFIG_FILES() {
+  
+  // Função auxiliar para criar um arquivo JSON se ele não existir
   function ensureJsonFile(targetPath, basePath, defaultObj) {
     try {
       var file = new File(targetPath);
-      if (file.exists) { return; }
+      if (file.exists) { return; } // Já existe, não faz nada
+      
+      // Cria a pasta pai se necessário
       var parentFolder = file.parent;
       if (parentFolder && !parentFolder.exists) { parentFolder.create(); }
+      
       file.encoding = "UTF-8";
       var payload = null;
+      
+      // Tenta ler de um arquivo base (template)
       if (basePath) {
         var baseFile = new File(basePath);
         if (baseFile.exists) {
@@ -163,14 +97,19 @@ function D9T_ENSURE_BASE_CONFIG_FILES() {
           }
         }
       }
+      
+      // Se não houver arquivo base, usa o objeto padrão
       if (payload === null && defaultObj) {
         try {
           payload = JSON.stringify(defaultObj, null, 2);
         } catch (jsonErr) {
-          payload = "{}";
+          payload = "{}"; // Fallback
         }
       }
-      if (payload === null) { payload = "{}"; }
+      
+      if (payload === null) { payload = "{}"; } // Fallback final
+      
+      // Escreve o arquivo
       if (file.open('w')) {
         file.write(payload);
         file.close();
@@ -180,6 +119,7 @@ function D9T_ENSURE_BASE_CONFIG_FILES() {
     }
   }
 
+  // Objeto padrão para as preferências do usuário
   var defaultUserPrefs = (typeof defaultScriptPreferencesObj !== 'undefined')
     ? JSON.parse(JSON.stringify(defaultScriptPreferencesObj))
     : {
@@ -206,6 +146,7 @@ function D9T_ENSURE_BASE_CONFIG_FILES() {
         }
       };
 
+  // Objeto padrão para configurações do sistema (específicas de cada módulo)
   var defaultSystemSettings = {
     COPYLINKS_Settings: {
       configuracao: {
@@ -231,6 +172,7 @@ function D9T_ENSURE_BASE_CONFIG_FILES() {
     }
   };
 
+  // Objeto padrão para a biblioteca de dados (listas, etc.)
   var defaultDadosConfig = {
     ARTES_GNEWS: { arte: [] },
     PROGRAMACAO_GNEWS: { programacao: [] },
@@ -239,11 +181,13 @@ function D9T_ENSURE_BASE_CONFIG_FILES() {
     COPYLINKS: { grupos: [] }
   };
 
+  // Caminhos dos arquivos de configuração
   var userPrefsPath = scriptPreferencesPath + '/User_Preferences.json';
   var systemSettingsPath = scriptPreferencesPath + '/System_Settings.json';
   var dadosConfigUserPath = scriptPreferencesPath + '/Dados_Config.json';
-  var dadosConfigMainPath = scriptMainPath + '/Dados_Config.json';
+  var dadosConfigMainPath = scriptMainPath + '/Dados_Config.json'; // Também pode estar na raiz
 
+  // Garante que todos os arquivos existam
   ensureJsonFile(userPrefsPath, scriptMainPath + '/User_Preferences.json', defaultUserPrefs);
   ensureJsonFile(systemSettingsPath, scriptMainPath + '/System_Settings.json', defaultSystemSettings);
   ensureJsonFile(dadosConfigUserPath, scriptMainPath + '/Dados_Config.json', defaultDadosConfig);
@@ -252,116 +196,201 @@ function D9T_ENSURE_BASE_CONFIG_FILES() {
   }
 }
 
+// Inicializa as variáveis globais e configurações
 initializeGlobalVariables();
 
+function D9T_COMMIT_PREFERENCES() {
+    if (typeof D9T_Preferences !== "undefined" && typeof D9T_Preferences.save === "function") {
+        try { D9T_Preferences.save(); return; }
+        catch (prefsErr) { $.writeln("[main_ui_functions] Falha ao salvar via D9T_Preferences: " + prefsErr); }
+    }
+    if (typeof saveScriptPreferences === "function") {
+        try { saveScriptPreferences(); return; }
+        catch (legacyErr) { $.writeln("[main_ui_functions] Falha ao salvar via saveScriptPreferences: " + legacyErr); }
+    }
+}
+
+
 
 // ============================================
-// CONSTRUÇÃO DA INTERFACE
+// CONSTRUÇÃO DA INTERFACE (UI)
 // ============================================
 
+/**
+ * Constrói a interface gráfica principal.
+ * @param {Object} structureObj - Objeto que define a estrutura dos módulos (pinGrp, mainGrp).
+ * @param {Object} uiObj - O objeto D9T_ui que armazenará os elementos da UI.
+ */
 function D9T_BUILD_UI(structureObj, uiObj) {
+  // Carrega as preferências do usuário (se ainda não carregadas)
   if (typeof loadScriptPreferences === "function" && !scriptPreferencesObj.__uiLoaded) {
     loadScriptPreferences();
     scriptPreferencesObj.__uiLoaded = true;
   }
+  // Atualiza as cores do tema com base nas preferências
   D9T_REFRESH_THEME_COLORS();
+  // Aplica as configurações de tamanho/espaçamento de ícones
   D9T_APPLY_ICON_SETTINGS(D9T_GET_ICON_SETTINGS(), { refresh: false, deferLayout: true });
+  if (typeof D9T_applyActiveButtonTheme === "function") {
+    D9T_applyActiveButtonTheme(false);
+  }
 
+  // Trava o redimensionamento da janela (se for uma paleta)
   if (uiObj.window) {
     D9T_LOCK_WINDOW_RESIZE(uiObj.window);
   }
 
+  // --- 1. Definições da Janela Principal ---
   uiObj.window.margins = 4;
-  uiObj.window.orientation = "stack";
-  uiObj.headerGrp = uiObj.window.add("group");
+  uiObj.window.orientation = "stack"; // Orientação "stack" para sobrepor o modo de busca
+  uiObj.window.spacing = 0;
+
+  // --- NOVO: Grupo de Conteúdo Principal ---
+  // Este grupo conterá o cabeçalho E os ícones.
+  // Fica na camada inferior do "stack".
+  uiObj.contentGrp = uiObj.window.add("group");
+  uiObj.contentGrp.orientation = "column"; // Começa como coluna
+  uiObj.contentGrp.alignment = ["fill", "fill"];
+  uiObj.contentGrp.spacing = 0;
+  uiObj.contentGrp.margins = 0;
+
+  // --- 2. Grupo do Cabeçalho (Header) ---
+  // Adicionado ao 'contentGrp'
+  uiObj.headerGrp = uiObj.contentGrp.add("group");
   uiObj.headerGrp.orientation = "row";
   uiObj.headerGrp.alignment = ["fill", "top"];
-  uiObj.headerGrp.alignChildren = ["left", "center"];
+  uiObj.headerGrp.alignChildren = ["left", "center"]; // Corrigido para alinhar menu à direita
   uiObj.headerGrp.spacing = 8;
   uiObj.headerGrp.margins = [10, 6, 10, 4];
+
+  // --- 2a. Grupo de Informação (Logo + Versão) ---
   uiObj.infoGrp = uiObj.headerGrp.add("group");
+  uiObj.infoGrp.orientation = "row"; 
+  uiObj.infoGrp.alignChildren = ["left", "center"]; 
   uiObj.infoGrp.alignment = ["left", "center"];
   uiObj.infoGrp.spacing = 6;
   uiObj.mainLogo = uiObj.infoGrp.add("image", undefined, LOGO_IMG.light);
   uiObj.mainLogo.maximumSize = [70, 24];
   uiObj.mainLogo.minimumSize = [50, 24];
-  uiObj.mainLogo.helpTip = [scriptName, scriptVersion, "| D9"].join(" ");
+  uiObj.mainLogo.helpTip = "Abrir Ações e Configurações"; // Dica
+
+ 
+  // Trocado .onClick por .addEventListener("click", ...)
+  uiObj.mainLogo.addEventListener("click", function () { 
+      D9T_SHOW_ACTION_MENU(uiObj); 
+  });
+  
+
   uiObj.vLab = uiObj.infoGrp.add("statictext", undefined, scriptVersion, {
     truncate: "end",
   });
   uiObj.vLab.justify = "center";
-  uiObj.vLab.helpTip = "ajuda | DOCS";
+  uiObj.vLab.helpTip = [scriptName, scriptVersion, "| D9"].join(" "); // Dica de versão
+
+  // --- 2b. Espaçador (Empurra o menu para a direita) ---
   uiObj.headerSpacer = uiObj.headerGrp.add("group");
   uiObj.headerSpacer.alignment = ["fill", "center"];
+
+  // --- 2c. Grupo do Menu (Botão Hamburger) ---
   uiObj.menuBtnGrp = uiObj.headerGrp.add("group");
+  uiObj.menuBtnGrp.orientation = "row";
+  uiObj.menuBtnGrp.alignChildren = ["right", "center"];
   uiObj.menuBtnGrp.alignment = ["right", "center"];
   uiObj.menuBtnGrp.margins = [0, 0, 8, 0];
-  uiObj.hamburgerBtn = uiObj.menuBtnGrp.add("button", undefined, "\u2630");
+  uiObj.menuBtnGrp.visible = false; // Botão de menu removido
+  
+  uiObj.hamburgerBtn = uiObj.menuBtnGrp.add("button", undefined, "\u2630"); 
   uiObj.hamburgerBtn.preferredSize = [32, 24];
   uiObj.hamburgerBtn.helpTip = "Ações e configurações";
-  uiObj.hamburgerBtn.onClick = function () { D9T_SHOW_ACTION_MENU(uiObj); };
-  uiObj.mainGrp = uiObj.window.add("group");
+
+  // --- 3. Grupo Principal de Módulos (mainGrp) ---
+  // Adicionado ao 'contentGrp'
+  uiObj.mainGrp = uiObj.contentGrp.add("group");
   uiObj.mainGrp.alignment = ["fill", "top"];
   uiObj.mainGrp.alignChildren = ["center", "top"];
   uiObj.mainGrp.spacing = 12;
-  uiObj.sectionGrpArray.push(uiObj.mainGrp);
-  uiObj.pinGrp = uiObj.window.add("group");
-  uiObj.pinGrp.alignment = ["fill", "top"];
-  uiObj.pinGrp.alignChildren = ["center", "top"];
-  uiObj.pinGrp.spacing = 16;
-  uiObj.sectionGrpArray.push(uiObj.pinGrp);
-  uiObj.moduleIndex = [];
+  uiObj.sectionGrpArray.push(uiObj.mainGrp); 
+  
+  uiObj.pinGrp = uiObj.contentGrp.add("group"); 
+  uiObj.pinGrp.visible = false; 
+  
+  uiObj.moduleIndex = []; 
+
+  // --- 5. Grupo de Busca (searchGrp) ---
+  // Adicionado à 'window' (camada superior do "stack")
   uiObj.searchGrp = uiObj.window.add("group");
   uiObj.searchGrp.orientation = "row";
-  uiObj.searchGrp.alignment = ["center", "top"];
-  uiObj.searchGrp.alignChildren = ["center", "center"];
-  uiObj.searchGrp.spacing = 6;
-  uiObj.searchGrp.margins = [8, 4, 8, 4];
-  uiObj.searchGrp.visible = false;
+  uiObj.searchGrp.alignment = ["fill", "top"];
+  uiObj.searchGrp.alignChildren = ["left", "center"];
+  uiObj.searchGrp.spacing = 12;
+  uiObj.searchGrp.margins = [10, 4, 10, 6];
+  uiObj.searchGrp.visible = false; 
+  
+  // --- 5a. Subgrupo de Logo/Menu para o modo busca ---
+  uiObj.searchInfoGrp = uiObj.searchGrp.add("group");
+  uiObj.searchInfoGrp.orientation = "row";
+  uiObj.searchInfoGrp.alignChildren = ["left", "center"];
+  uiObj.searchInfoGrp.alignment = ["left", "center"];
+  uiObj.searchInfoGrp.spacing = 6;
+  uiObj.searchInfoGrp.margins = [0, 0, 8, 0];
+
+  uiObj.searchLogo = uiObj.searchInfoGrp.add("image", undefined, LOGO_IMG.light);
+  uiObj.searchLogo.maximumSize = [64, 22];
+  uiObj.searchLogo.minimumSize = [48, 22];
+  uiObj.searchLogo.helpTip = "Abrir Acoes e Configuracoes";
+  uiObj.searchLogo.addEventListener("click", function () {
+    D9T_SHOW_ACTION_MENU(uiObj);
+  });
+
+  uiObj.searchVersionLab = uiObj.searchInfoGrp.add("statictext", undefined, scriptVersion, {
+    truncate: "end",
+  });
+  uiObj.searchVersionLab.justify = "center";
+  uiObj.searchVersionLab.helpTip = [scriptName, scriptVersion, "| D9"].join(" ");
+  setFgColor(uiObj.searchVersionLab, D9T_Theme.colors.textNormal);
+
+  // --- 5b. Elementos da Busca ---
+  uiObj.searchControlsGrp = uiObj.searchGrp.add("group");
+  uiObj.searchControlsGrp.orientation = "row";
+  uiObj.searchControlsGrp.alignChildren = ["center", "center"];
+  uiObj.searchControlsGrp.alignment = ["fill", "center"];
+  uiObj.searchControlsGrp.spacing = 6;
+
   uiObj.searchIcon = null;
   try {
     if (typeof D9T_FINDER_ICON !== "undefined") {
-      uiObj.searchIcon = uiObj.searchGrp.add("image", undefined, D9T_FINDER_ICON);
+      uiObj.searchIcon = uiObj.searchControlsGrp.add("image", undefined, D9T_FINDER_ICON);
       uiObj.searchIcon.preferredSize = [18, 18];
     }
   } catch (iconErr) {}
   if (!uiObj.searchIcon) {
-    uiObj.searchIcon = uiObj.searchGrp.add("statictext", undefined, "[?]");
+    uiObj.searchIcon = uiObj.searchControlsGrp.add("statictext", undefined, "[?]");
     setFgColor(uiObj.searchIcon, D9T_Theme.colors.textNormal);
   }
-  uiObj.searchLabel = uiObj.searchGrp.add("statictext", undefined, "BUSCAR:");
+  uiObj.searchLabel = uiObj.searchControlsGrp.add("statictext", undefined, "BUSCAR:");
   uiObj.searchLabel.helpTip = "Filtra modulos por nome, descricao ou palavra-chave.";
   setFgColor(uiObj.searchLabel, D9T_Theme.colors.textNormal);
-  uiObj.searchField = uiObj.searchGrp.add("edittext", undefined, "");
+  uiObj.searchField = uiObj.searchControlsGrp.add("edittext", undefined, "");
   uiObj.searchField.characters = 16;
   uiObj.searchField.preferredSize = [200, 22];
   uiObj.searchField.helpTip = "Digite para localizar modulos rapidamente.";
-  uiObj.searchDropdown = uiObj.searchGrp.add("dropdownlist", undefined, []);
+  uiObj.searchDropdown = uiObj.searchControlsGrp.add("dropdownlist", undefined, []);
   uiObj.searchDropdown.preferredSize = [170, 22];
   uiObj.searchDropdown.helpTip = "Lista de modulos compativeis com o termo digitado.";
-  uiObj.searchButton = uiObj.searchGrp.add("button", undefined, "OK");
+  uiObj.searchButton = uiObj.searchControlsGrp.add("button", undefined, "OK");
   uiObj.searchButton.preferredSize = [40, 22];
   uiObj.searchButton.helpTip = "Executa o modulo selecionado ou a busca ativa";
   
-  uiObj.iconBtnMainGrp = uiObj.pinGrp.add("group");
-  uiObj.iconBtnMainGrp.alignment = ["center", "top"];
-  uiObj.iconBtnMainGrp.alignChildren = ["center", "top"];
-  uiObj.iconBtnMainGrp.spacing = 12;
-  uiObj.iconBtnGrp0 = uiObj.iconBtnMainGrp.add("group");
-  uiObj.iconBtnGrp0.alignment = ["center", "top"];
-  uiObj.iconBtnGrp0.alignChildren = ["center", "top"];
-  uiObj.sectionGrpArray.push(uiObj.iconBtnGrp0);
-  uiObj.iconBtnGrp1 = uiObj.iconBtnMainGrp.add("group");
-  uiObj.iconBtnGrp1.alignment = ["center", "top"];
-  uiObj.iconBtnGrp1.alignChildren = ["center", "top"];
-  uiObj.sectionGrpArray.push(uiObj.iconBtnGrp1);
+  // --- 7. Loop de Construção dos Módulos ---
   var sectionCounter = 0;
   var ctrlCounter = 0;
+  
+  // Loop para módulos fixados (pinGrp)
   for (var pinSec in structureObj.pinGrp) {
     var pinSection = structureObj["pinGrp"][pinSec];
     if (sectionCounter > 0)
       uiObj.divArray.push(new themeDivider(uiObj.mainGrp));
-    var pinSectionGrp = uiObj.mainGrp.add("group", undefined, {
+    var pinSectionGrp = uiObj.mainGrp.add("group", undefined, { 
       name: "sectionGrp",
     });
     pinSectionGrp.alignment = ["center", "top"];
@@ -380,6 +409,8 @@ function D9T_BUILD_UI(structureObj, uiObj) {
     }
     sectionCounter++;
   }
+  
+  // Loop para módulos principais (mainGrp)
   sectionCounter = 0;
   for (var sec in structureObj.mainGrp) {
     var section = structureObj["mainGrp"][sec];
@@ -403,108 +434,234 @@ function D9T_BUILD_UI(structureObj, uiObj) {
     }
     sectionCounter++;
   }
+  
+  // --- 8. Finalização e Eventos ---
   uiObj.window.layout.layout(true);
-  setCtrlHighlight(uiObj.vLab, monoColor0, highlightColor1);
-  setBgColor(uiObj.window, bgColor1);
+  setCtrlHighlight(uiObj.vLab, monoColor0, highlightColor1); 
+  setBgColor(uiObj.window, bgColor1); 
+  
   uiObj.window.onShow = function () {
     for (var b = 0; b < uiObj.imageButtonArray.length; b++) {
       var btn = uiObj.imageButtonArray[b];
       btn.label.preferredSize = btn.label.size;
     }
-    D9T_LAYOUT(uiObj);
+    D9T_LAYOUT(uiObj); 
   };
+  
   uiObj.window.onResizing = uiObj.window.onResize = function () {
-    D9T_LAYOUT(uiObj);
+    D9T_LAYOUT(uiObj); 
   };
+  
   D9T_UI_EVENTS(uiObj);
   D9T_SETUP_SEARCH(uiObj);
   D9T_APPLY_THEME_TO_ROOT(uiObj);
 }
 
+/**
+ * Aplica as cores de fundo principais à janela e cabeçalho.
+ * @param {Object} uiObj - O objeto D9T_ui.
+ */
 function D9T_APPLY_THEME_TO_ROOT(uiObj) {
   uiObj = uiObj || D9T_ui;
   if (!uiObj || !uiObj.window) { return; }
+  
+  // Cor de fundo da janela
   try { setBgColor(uiObj.window, bgColor1); } catch (e) {}
+  
+  // ALTERADO: A cor de fundo do cabeçalho é necessária novamente
   if (uiObj.headerGrp) {
     try { setBgColor(uiObj.headerGrp, bgColor2); } catch (headerErr) {}
   }
+
+  // Cor de fundo do grupo de busca (continua correto)
   if (uiObj.searchGrp) {
     try { setBgColor(uiObj.searchGrp, bgColor2); } catch (searchErr) {}
   }
-  if (uiObj.searchLabel) { setFgColor(uiObj.searchLabel, D9T_Theme.colors.textNormal); }
-  if (uiObj.vLab) { setFgColor(uiObj.vLab, D9T_Theme.colors.textNormal); }
-}
 
-
-function D9T_LAYOUT(uiObj) {
-  var isRow = uiObj.window.size.width > uiObj.window.size.height;
-  var grpOrientation = isRow ? "row" : "column";
-  var btnOrientation = isRow ? "column" : "row";
-  var iconOrientation = uiObj.window.size.width < 70 ? "column" : "row";
-  var searchModeHeight = (typeof D9T_Theme.layout.searchModeHeight === "number") ? D9T_Theme.layout.searchModeHeight : 44;
-  var useSearchMode = uiObj.window.size.height <= searchModeHeight;
-  var normalSpacing = D9T_Theme.layout.iconSpacingNormal || 20;
-  var compactSpacing = D9T_Theme.layout.iconSpacingCompact || Math.max(4, Math.round(normalSpacing * 0.6));
-  var compactModeWidth = D9T_Theme.layout.compactModeWidth || 950;
-  var compactModeHeight = D9T_Theme.layout.compactModeHeight || 80;
-  var useCompactMode = !useSearchMode && (uiObj.window.size.width <= compactModeWidth || uiObj.window.size.height <= compactModeHeight);
-  var activeSpacing = useCompactMode ? compactSpacing : normalSpacing;
-  var labelSpacing = (typeof D9T_Theme.layout.labelSpacing === "number") ? D9T_Theme.layout.labelSpacing : 8;
-  var showLabelsPref = D9T_Theme.layout.showLabels !== false;
-  var iconOnlySpacingValue = (typeof D9T_Theme.layout.iconOnlySpacing === "number") ? D9T_Theme.layout.iconOnlySpacing : Math.max(4, Math.round(normalSpacing * 0.7));
-  var manualIconOnly = !useSearchMode && !useCompactMode && !showLabelsPref;
-  var labelsVisible = !useSearchMode && !useCompactMode && showLabelsPref;
-  var spacingBaseline = manualIconOnly ? iconOnlySpacingValue : activeSpacing;
-  var normalIconSize = D9T_Theme.layout.iconSize || [32, 32];
-  var compactIconSize = D9T_Theme.layout.iconSizeCompact || normalIconSize;
-  var activeIconSize = useCompactMode ? compactIconSize : normalIconSize;
-
-  if (uiObj.searchGrp) {
-    uiObj.searchGrp.visible = useSearchMode;
+  if (uiObj.infoGrp && D9T_Theme.layout) {
+    D9T_APPLY_GROUP_MARGINS(uiObj.infoGrp, D9T_Theme.layout.infoMargins);
   }
-  if (uiObj.menuBtnGrp) { uiObj.menuBtnGrp.visible = true; }
-  if (uiObj.mainGrp) { uiObj.mainGrp.visible = !useSearchMode; }
-  if (uiObj.pinGrp) { uiObj.pinGrp.visible = !useSearchMode; }
-  if (uiObj.infoGrp) { uiObj.infoGrp.visible = true; }
+  if (uiObj.mainGrp && D9T_Theme.layout) {
+    D9T_APPLY_GROUP_MARGINS(uiObj.mainGrp, D9T_Theme.layout.mainMargins);
+  }
 
+  // Cor do texto dos labels
+    if (uiObj.searchLabel) { setFgColor(uiObj.searchLabel, D9T_Theme.colors.textNormal); }
+    if (uiObj.searchVersionLab) { setFgColor(uiObj.searchVersionLab, D9T_Theme.colors.textNormal); }
+    if (uiObj.vLab) { setFgColor(uiObj.vLab, D9T_Theme.colors.textNormal); }
+
+  // Atualiza divisores existentes para refletir a nova cor global
+  if (uiObj.divArray && uiObj.divArray.length) {
+    for (var d = 0; d < uiObj.divArray.length; d++) {
+      var divider = uiObj.divArray[d];
+      try {
+        setUiCtrlColor(divider, D9T_Theme.colors.divider);
+        if (divider.onDraw) { divider.notify("onDraw"); }
+      } catch (divErr) {}
+    }
+  }
+  }
+
+
+/**
+ * Função principal de layout responsivo.
+ * Chamada sempre que a janela é redimensionada ou exibida.
+ * @param {Object} uiObj - O objeto D9T_ui.
+ */
+function D9T_LAYOUT(uiObj) {
+  // Atalhos para o tema e dimensões da janela
+  var theme = D9T_Theme.layout;
+  var winSize = uiObj.window.size || [];
+  var w = (typeof winSize.width === "number") ? winSize.width : (winSize.length > 0 ? winSize[0] : null);
+  var h = (typeof winSize.height === "number") ? winSize.height : (winSize.length > 1 ? winSize[1] : null);
+  if ((w === null || h === null) && uiObj.window.bounds) {
+      var b = uiObj.window.bounds;
+      if (w === null) { w = (typeof b.width === "number") ? b.width : (b.right - b.left); }
+      if (h === null) { h = (typeof b.height === "number") ? b.height : (b.bottom - b.top); }
+  }
+  w = (typeof w === "number" && !isNaN(w)) ? w : 0;
+  h = (typeof h === "number" && !isNaN(h)) ? h : 0;
+
+  // --- 1. Determinar Orientação (Row vs Column) ---
+  var isRow;
+  if (h <= theme.verticalBreakpoint) {
+      isRow = true; // Forçar horizontal (row) se for muito baixo
+  } else if (w <= theme.horizontalBreakpoint) {
+      isRow = false; // Forçar vertical (column) se for muito estreito
+  } else {
+      isRow = (w > h); // Lógica padrão para painéis maiores
+  }
+
+  // Orientação dos grupos de seção (dentro do mainGrp)
+  var grpOrientation = isRow ? "row" : "column";
+  // Orientação do botão (ícone + texto)
+  var btnOrientation = isRow ? "column" : "row"; 
+  var iconOrientation = w < 70 ? "column" : "row"; 
+  
+  // --- 2. Determinar Modo (Search, Compact, Normal) ---
+  var searchModeHeight = (typeof theme.searchModeHeight === "number") ? theme.searchModeHeight : 44;
+  var useSearchMode = h <= searchModeHeight;
+  
+  var normalSpacing = theme.iconSpacingNormal || 20;
+  var verticalSpacingPref = (typeof theme.iconSpacingVertical === "number") ? theme.iconSpacingVertical : normalSpacing;
+  var compactSpacing = theme.iconSpacingCompact || Math.max(4, Math.round(normalSpacing * 0.6));
+  var compactModeHeight = theme.compactModeHeight || 80;
+  var compactModeWidthPref = (typeof theme.compactModeWidth === "number") ? theme.compactModeWidth : 0;
+  var normalIconSize = theme.iconSize || [32, 32];
+  var verticalIconSizePref = theme.iconSizeVertical || normalIconSize;
+  var compactIconSize = theme.iconSizeCompact || normalIconSize;
+  var autoCompactWidth = Math.max(320, (normalIconSize[0] + normalSpacing) * 4 + 160);
+  var widthThreshold = compactModeWidthPref > 0 ? compactModeWidthPref : autoCompactWidth;
+  var verticalCompactLimit = (typeof theme.verticalCompactWidth === "number" && theme.verticalCompactWidth > 0)
+    ? theme.verticalCompactWidth
+    : Math.min(widthThreshold, Math.max(240, (theme.horizontalBreakpoint || widthThreshold) - 120));
+  var compactByWidth = isRow ? (w <= widthThreshold) : (w <= verticalCompactLimit);
+  var useCompactMode = !useSearchMode && (compactByWidth || h <= compactModeHeight);
+  
+  // --- 3. Definir Espaçamentos e Tamanhos Ativos ---
+  var activeSpacing = useCompactMode ? compactSpacing : (isRow ? normalSpacing : verticalSpacingPref);
+  var labelSpacing = (typeof theme.labelSpacing === "number") ? theme.labelSpacing : 8;
+  var showLabelsPref = theme.showLabels !== false; 
+  var iconOnlySpacingValue = (typeof theme.iconOnlySpacing === "number") ? theme.iconOnlySpacing : Math.max(4, Math.round(normalSpacing * 0.7));
+  
+  var manualIconOnly = !useSearchMode && !useCompactMode && !showLabelsPref;
+  var labelsVisible = !useSearchMode && !useCompactMode && showLabelsPref; 
+  
+  var spacingBaseline = manualIconOnly ? iconOnlySpacingValue : activeSpacing;
+  
+  var activeIconSize = useCompactMode ? compactIconSize : (isRow ? normalIconSize : verticalIconSizePref);
+
+  // --- 4. Aplicar Visibilidade dos Grupos Principais ---
+  // ALTERADO: Controla a visibilidade do 'contentGrp' e 'searchGrp'
+  if (uiObj.searchGrp) {
+    uiObj.searchGrp.visible = useSearchMode; 
+  }
+  if (uiObj.contentGrp) {
+    uiObj.contentGrp.visible = !useSearchMode;
+  }
+
+  // --- 5. Lógica de Entrada/Saída do Modo Busca ---
   if (uiObj.__searchModeActive !== useSearchMode) {
     uiObj.__searchModeActive = useSearchMode;
     if (useSearchMode) {
-      D9T_ENTER_SEARCH_MODE(uiObj);
+      D9T_ENTER_SEARCH_MODE(uiObj); 
       if (uiObj.searchField) {
         try { uiObj.searchField.active = true; } catch (focusErr) {}
       }
     } else {
-      D9T_EXIT_SEARCH_MODE(uiObj);
+      D9T_EXIT_SEARCH_MODE(uiObj); 
     }
   }
 
-  var pinGap = 0;
+  // --- 6. Aplicar Layout aos Elementos ---
   var infoGap = isRow ? 110 : 56;
-  var leftSpacing = Math.max(4, spacingBaseline / 2);
-  var rightSpacing = Math.max(4, spacingBaseline / 2);
+  var halfSpacing = Math.max(0, spacingBaseline / 2);
+  var leftSpacing = halfSpacing;
+  var rightSpacing = halfSpacing;
+  
   try {
+    // *** NOVA LÓGICA DE LAYOUT PRINCIPAL ***
+    if (uiObj.contentGrp) {
+      if (isRow) {
+        // MODO HORIZONTAL: Cabeçalho e Ícones lado a lado
+        uiObj.contentGrp.orientation = "row";
+        uiObj.contentGrp.alignChildren = ["left", "center"];
+        uiObj.headerGrp.alignment = ["left", "center"];
+        uiObj.mainGrp.alignment = ["fill", "center"];
+      } else {
+        // MODO VERTICAL: Cabeçalho acima dos Ícones
+        uiObj.contentGrp.orientation = "column";
+        uiObj.contentGrp.alignChildren = ["fill", "top"];
+        uiObj.headerGrp.alignment = ["fill", "top"];
+        uiObj.mainGrp.alignment = ["fill", "top"];
+      }
+      if (uiObj.mainLogo) {
+        var logoNormalSize = (D9T_Theme.layout && D9T_Theme.layout.logoSize) ? D9T_Theme.layout.logoSize : [70, 24];
+        var logoCompactSize = (D9T_Theme.layout && D9T_Theme.layout.logoSizeCompact) ? D9T_Theme.layout.logoSizeCompact : [52, 18];
+        var targetLogoSize = isRow ? logoNormalSize : logoCompactSize;
+        try {
+          uiObj.mainLogo.minimumSize = targetLogoSize.slice(0);
+          uiObj.mainLogo.maximumSize = targetLogoSize.slice(0);
+          uiObj.mainLogo.preferredSize = targetLogoSize.slice(0);
+        } catch (logoErr) {}
+      }
+    }
+    // ***************************************
+
+    // Aplica orientação aos grupos de seção (dentro do mainGrp)
     for (var s = 0; s < uiObj.sectionGrpArray.length; s++) {
       var sectionGrp = uiObj.sectionGrpArray[s];
-      sectionGrp.orientation = grpOrientation;
-      sectionGrp.spacing = useSearchMode ? 8 : Math.max(8, spacingBaseline / 2);
+      // 'grpOrientation' define se as seções (section1, section2)
+      // ficam lado a lado (row) ou uma sobre a outra (column)
+      sectionGrp.orientation = grpOrientation; 
+      var minSectionSpacing = useSearchMode ? 8 : 0;
+      sectionGrp.spacing = Math.max(minSectionSpacing, halfSpacing);
     }
+    
+    // Aplica orientação aos divisores
     for (var d = 0; d < uiObj.divArray.length; d++) {
       var div = uiObj.divArray[d];
       div.size = [1, 1];
-      div.alignment = isRow ? ["center", "fill"] : ["fill", "center"];
+      div.alignment = grpOrientation === "row" ? ["center", "fill"] : ["fill", "center"];
     }
+    
+    // Loop principal: aplica layout a cada botão de módulo
     for (var b = 0; b < uiObj.imageButtonArray.length; b++) {
       var btn = uiObj.imageButtonArray[b];
       if (btn && btn.btnGroup) { btn.btnGroup.alignment = ["center", "top"]; }
-      btn.btnGroup.orientation = btnOrientation;
+      
+      // 'btnOrientation' define se o ícone fica acima (column) ou ao lado (row) do texto
+      btn.btnGroup.orientation = btnOrientation; 
+      
       if (useSearchMode || !labelsVisible) {
         btn.btnGroup.spacing = 0;
       } else {
         btn.btnGroup.spacing = labelSpacing;
       }
+      
       btn.normalImg.size = btn.hoverImg.size = [activeIconSize[0], activeIconSize[1]];
       btn.label.justify = isRow ? "center" : "left";
+
       if (useSearchMode) {
         btn.hoverImg.size = btn.normalImg.size = [0, 0];
         btn.label.size = btn.label.preferredSize;
@@ -514,41 +671,53 @@ function D9T_LAYOUT(uiObj) {
         btn.label.size = [0, 0];
       } else {
         btn.label.visible = true;
-        btn.label.size = [uiObj.window.size.width - 60, 18];
+        btn.label.size = [w - 60, 18];
       }
     }
+    
+    // Aplica margens e espaçamento ao grupo principal de módulos
     if (!useSearchMode && uiObj.mainGrp.visible) {
-      uiObj.mainGrp.margins = isRow
-      ? [leftSpacing, 0, leftSpacing, 0]
-      : [4, pinGap, 4, infoGap];
-      uiObj.mainGrp.alignment = ["fill", "top"];
-      uiObj.mainGrp.spacing = useCompactMode ? 20 : (labelsVisible ? 16 : Math.max(10, iconOnlySpacingValue));
+      // REMOVIDO: Margem superior 'headerHeight' não é mais necessária
+      if (isRow) {
+          // Se for linha, os ícones ficam ao lado do cabeçalho
+          uiObj.mainGrp.margins = [leftSpacing, 0, leftSpacing, 0];
+          uiObj.mainGrp.alignment = ["fill", "center"];
+      } else {
+          // Se for coluna, os ícones ficam abaixo do cabeçalho
+          uiObj.mainGrp.margins = [4, 0, 4, infoGap]; 
+          uiObj.mainGrp.alignment = ["fill", "top"];
+      }
+      
+      var baseModuleSpacing;
+      if (useCompactMode) {
+        baseModuleSpacing = Math.max(0, compactSpacing);
+      } else if (manualIconOnly) {
+        baseModuleSpacing = Math.max(0, iconOnlySpacingValue);
+      } else {
+        baseModuleSpacing = Math.max(0, spacingBaseline);
+      }
+      uiObj.mainGrp.spacing = baseModuleSpacing;
     }
+    
+    // (A lógica de 'pinGrp' e 'iconBtnMainGrp' é mantida,
+    // embora 'pinGrp' pareça não ser usado para adicionar módulos)
     if (uiObj.pinGrp) {
       uiObj.pinGrp.alignment = ["center", "top"];
-      uiObj.pinGrp.spacing = Math.max(12, spacingBaseline);
+      uiObj.pinGrp.spacing = Math.max(0, spacingBaseline);
     }
     if (uiObj.iconBtnMainGrp) {
       uiObj.iconBtnMainGrp.alignment = ["center", "top"];
       uiObj.iconBtnMainGrp.orientation = iconOrientation;
-      uiObj.iconBtnMainGrp.spacing = Math.max(2, spacingBaseline / 3);
+      uiObj.iconBtnMainGrp.spacing = Math.max(0, spacingBaseline / 3);
     }
-    if (uiObj.iconBtnGrp0) uiObj.iconBtnGrp0.spacing = Math.max(2, spacingBaseline / 3);
-    if (uiObj.iconBtnGrp1) uiObj.iconBtnGrp1.spacing = Math.max(2, spacingBaseline / 3);
-    if (uiObj.headerGrp) {
-      uiObj.headerGrp.alignment = ["fill", "top"];
-      uiObj.headerGrp.orientation = "row";
-    }
-    if (uiObj.infoGrp) {
-      uiObj.infoGrp.alignment = ["left", "center"];
-      uiObj.infoGrp.spacing = 6;
-    }
-    if (uiObj.menuBtnGrp) {
-      uiObj.menuBtnGrp.alignment = ["right", "center"];
-    }
+    if (uiObj.iconBtnGrp0) uiObj.iconBtnGrp0.spacing = Math.max(0, spacingBaseline / 3);
+    if (uiObj.iconBtnGrp1) uiObj.iconBtnGrp1.spacing = Math.max(0, spacingBaseline / 3);
+    
   } catch (err) {
     $.writeln(lol + "#D9T_LAYOUT - " + "" + err.message);
   }
+  
+  // --- 7. Renderiza o Layout ---
   uiObj.window.layout.layout(true);
   uiObj.window.layout.resize();
 }
@@ -557,7 +726,13 @@ function D9T_LAYOUT(uiObj) {
 // EVENTOS DA INTERFACE
 // ============================================
 
+/**
+ * Anexa as funções de clique (vindas dos arquivos de script) aos botões da UI.
+ * @param {Object} uiObj - O objeto D9T_ui.
+ */
 function D9T_UI_EVENTS(uiObj) {
+    
+    // Função auxiliar segura para executar funções, tratando erros.
     function safeExecute(functionName, func) {
       try {
         if (typeof func === 'function') func();
@@ -566,9 +741,13 @@ function D9T_UI_EVENTS(uiObj) {
         var errorMsg = 'Erro ao executar ' + functionName + ':\n\n' + err.toString();
         if (err.line) errorMsg += '\nLinha: ' + err.line;
         $.writeln(errorMsg);
+        alert(errorMsg);
       }
     }
   
+    // Anexa eventos para cada módulo
+    // (O objeto uiObj[nomeDoModulo] é criado em D9T_BUILD_UI)
+    
     if (uiObj.templates) {
       if (uiObj.templates.leftClick) uiObj.templates.leftClick.onClick = function () { safeExecute('d9TemplateDialog', d9TemplateDialog); };
       if (uiObj.templates.rightClick) uiObj.templates.rightClick.onClick = function () { safeExecute('d9ProdFoldersDialog', d9ProdFoldersDialog); };
@@ -613,25 +792,42 @@ function D9T_UI_EVENTS(uiObj) {
 
 
 // ============================================
-// COMPONENTES DE INTERFACE - TODOS
+// COMPONENTES DE INTERFACE (FÁBRICAS)
 // ============================================
 
+/**
+ * Cria um divisor gráfico (linha).
+ * @param {Group} sectionGrp - O grupo pai onde o divisor será adicionado.
+ * @returns {Button} - Um customButton usado como divisor.
+ */
 function themeDivider(sectionGrp) {
-    var newDiv = sectionGrp.add("customButton", [0, 0, 1, 1]);
-    setUiCtrlColor(newDiv, D9T_Theme.colors.divider);
-    newDiv.onDraw = customDraw;
+    var newDiv = sectionGrp.add("customButton", [0, 0, 1, 1]); // Tamanho mínimo
+    setUiCtrlColor(newDiv, D9T_Theme.colors.divider); // Define a cor
+    newDiv.onDraw = customDraw; // Função de desenho customizada
     return newDiv;
 }
 
+/**
+ * Cria um botão de ícone (sem texto).
+ * @param {Group} sectionGrp - O grupo pai.
+ * @param {Object} ctrlProperties - Propriedades (ícone, tips).
+ * @returns {Object} - Objeto contendo leftClick e rightClick.
+ */
 function themeIconButton(sectionGrp, ctrlProperties) {
     var newUiCtrlObj = {};
     var tipTxt = D9T_BUILD_TIP_TEXT(ctrlProperties);
-    if (ctrlProperties.icon.hover == undefined) ctrlProperties.icon.hover = ctrlProperties.icon.normal;
+    if (ctrlProperties.icon.hover == undefined) ctrlProperties.icon.hover = ctrlProperties.icon.normal; // Fallback de ícone hover
+
+    // Grupo principal do botão
     var btnGroup = sectionGrp.add("group");
     btnGroup.helpTip = tipTxt;
+    
+    // Grupo de ícone (empilhado)
     var iconGroup = btnGroup.add("group");
     iconGroup.helpTip = tipTxt;
     iconGroup.orientation = "stack";
+    
+    // Botões invisíveis para capturar cliques (hack do ScriptUI)
     newUiCtrlObj.leftClick = iconGroup.add("button", undefined, "");
     newUiCtrlObj.leftClick.size = [0, 0];
     newUiCtrlObj.leftClick.visible = false;
@@ -640,36 +836,55 @@ function themeIconButton(sectionGrp, ctrlProperties) {
     newUiCtrlObj.rightClick.size = [0, 0];
     newUiCtrlObj.rightClick.visible = false;
     newUiCtrlObj.rightClick.helpTip = tipTxt;
+    
+    // Imagens (Hover e Normal)
     var hoverImg = iconGroup.add("image", undefined, ctrlProperties.icon.hover);
     hoverImg.helpTip = tipTxt;
-    hoverImg.visible = false;
+    hoverImg.visible = false; // Começa invisível
     var normalImg = iconGroup.add("image", undefined, ctrlProperties.icon.normal);
     normalImg.helpTip = tipTxt;
+    
+    // Eventos de Mouseover/Mouseout para trocar as imagens
     btnGroup.addEventListener("mouseover", function () {
-        this.children[0].children[3].visible = false;
-        this.children[0].children[2].visible = true;
+        this.children[0].children[3].visible = false; // Esconde normalImg (índice 3)
+        this.children[0].children[2].visible = true;  // Mostra hoverImg (índice 2)
     });
     btnGroup.addEventListener("mouseout", function () {
-        this.children[0].children[2].visible = false;
-        this.children[0].children[3].visible = true;
+        this.children[0].children[2].visible = false; // Esconde hoverImg
+        this.children[0].children[3].visible = true;  // Mostra normalImg
     });
+    
+    // Evento de clique na imagem (que notifica os botões invisíveis)
     hoverImg.addEventListener("click", function (c) {
-        if (c.button == 0) this.parent.children[0].notify();
-        if (c.button == 2) this.parent.children[1].notify();
+        if (c.button == 0) this.parent.children[0].notify(); // Notifica leftClick (índice 0)
+        if (c.button == 2) this.parent.children[1].notify(); // Notifica rightClick (índice 1)
     });
+    
     return newUiCtrlObj;
 }
 
+/**
+ * Cria um botão de módulo (ícone + texto).
+ * @param {Group} sectionGrp - O grupo pai.
+ * @param {Object} ctrlProperties - Propriedades (ícone, labelTxt, tips).
+ * @returns {Object} - Objeto contendo o botão (btnGroup, iconGroup, etc.).
+ */
 function themeImageButton(sectionGrp, ctrlProperties) {
     var newUiCtrlObj = {};
-    var newBtn = (newUiCtrlObj[ctrlProperties.key] = {});
+    var newBtn = (newUiCtrlObj[ctrlProperties.key] = {}); // Armazena o botão no objeto
     var tipTxt = D9T_BUILD_TIP_TEXT(ctrlProperties);
-    if (ctrlProperties.icon.hover == undefined) ctrlProperties.icon.hover = ctrlProperties.icon.normal;
+    if (ctrlProperties.icon.hover == undefined) ctrlProperties.icon.hover = ctrlProperties.icon.normal; // Fallback
+
+    // Grupo principal (botão + texto)
     newBtn.btnGroup = sectionGrp.add("group");
     newBtn.btnGroup.helpTip = tipTxt;
+    
+    // Grupo do Ícone (empilhado)
     newBtn.iconGroup = newBtn.btnGroup.add("group");
     newBtn.iconGroup.helpTip = tipTxt;
     newBtn.iconGroup.orientation = "stack";
+    
+    // Botões invisíveis de clique
     newBtn.leftClick = newBtn.iconGroup.add("button", undefined, "");
     newBtn.leftClick.size = [0, 0];
     newBtn.leftClick.visible = false;
@@ -678,40 +893,56 @@ function themeImageButton(sectionGrp, ctrlProperties) {
     newBtn.rightClick.size = [0, 0];
     newBtn.rightClick.visible = false;
     newBtn.rightClick.helpTip = tipTxt;
+    
+    // Imagens
     newBtn.hoverImg = newBtn.iconGroup.add("image", undefined, ctrlProperties.icon.hover);
     newBtn.hoverImg.helpTip = tipTxt;
     newBtn.hoverImg.visible = false;
     newBtn.normalImg = newBtn.iconGroup.add("image", undefined, ctrlProperties.icon.normal);
     newBtn.normalImg.helpTip = tipTxt;
+    
+    // Label de Texto
     newBtn.label = newBtn.btnGroup.add("statictext", undefined, ctrlProperties.labelTxt, { truncate: "end" });
     newBtn.label.maximumSize = [70, 18];
     newBtn.label.helpTip = tipTxt;
-    setFgColor(newBtn.label, D9T_Theme.colors.textNormal);
+    setFgColor(newBtn.label, D9T_Theme.colors.textNormal); // Cor normal
+    
+    // Eventos de Mouseover/Mouseout (troca imagem E cor do texto)
     newBtn.btnGroup.addEventListener("mouseover", function () {
-        setFgColor(this.children[1], D9T_Theme.colors.textHighlight);
-        this.children[0].children[3].visible = false;
-        this.children[0].children[2].visible = true;
+        setFgColor(this.children[1], D9T_Theme.colors.textHighlight); // Texto (índice 1)
+        this.children[0].children[3].visible = false; // Imagem normal (índice 0, 3)
+        this.children[0].children[2].visible = true;  // Imagem hover (índice 0, 2)
     });
     newBtn.btnGroup.addEventListener("mouseout", function () {
-        setFgColor(this.children[1], D9T_Theme.colors.textNormal);
-        this.children[0].children[2].visible = false;
-        this.children[0].children[3].visible = true;
+        setFgColor(this.children[1], D9T_Theme.colors.textNormal); // Restaura cor do texto
+        this.children[0].children[2].visible = false; // Esconde hover
+        this.children[0].children[3].visible = true;  // Mostra normal
     });
+    
+    // Eventos de clique (no texto ou na imagem)
     newBtn.label.addEventListener("click", function (c) {
-        if (c.button == 0) this.parent.children[0].children[0].notify();
-        if (c.button == 2) this.parent.children[0].children[1].notify();
+        if (c.button == 0) this.parent.children[0].children[0].notify(); // Notifica leftClick
+        if (c.button == 2) this.parent.children[0].children[1].notify(); // Notifica rightClick
     });
     newBtn.hoverImg.addEventListener("click", function (c) {
-        if (c.button == 0) this.parent.children[0].notify();
-        if (c.button == 2) this.parent.children[1].notify();
+        if (c.button == 0) this.parent.children[0].notify(); // Notifica leftClick
+        if (c.button == 2) this.parent.children[1].notify(); // Notifica rightClick
     });
+    
     return newBtn;
 }
 
+
+// ============================================
+// FUNÇÕES DE TOOLTIP (HELPTIP)
+// ============================================
+
+// Obtém o label de exibição de um módulo.
 function D9T_GET_CTRL_LABEL(ctrlProperties) {
     if (!ctrlProperties) { return ""; }
-    if (ctrlProperties.labelTxt) { return ctrlProperties.labelTxt; }
+    if (ctrlProperties.labelTxt) { return ctrlProperties.labelTxt; } // Usa o label definido
     if (ctrlProperties.key) {
+        // Se não, formata o nome da chave (ex: "Finders")
         var friendly = ctrlProperties.key.replace(/_/g, " ");
         if (typeof friendly.toTitleCase === "function") {
             return friendly.toTitleCase();
@@ -721,22 +952,30 @@ function D9T_GET_CTRL_LABEL(ctrlProperties) {
     return "";
 }
 
+// Normaliza o array de 'tips' (dicas) para um formato consistente.
 function D9T_NORMALIZE_TIPS(tips) {
     var list = [];
     if (!tips) { return list; }
     var tipArray = Array.isArray(tips) ? tips.slice(0) : [tips];
+    
     for (var i = 0; i < tipArray.length; i++) {
         var entry = tipArray[i];
         if (!entry) { continue; }
+        
+        // Se for string, apenas limpa e adiciona
         if (typeof entry === "string") {
             var cleaned = entry.replace(/\s+/g, " ").trim();
             if (cleaned) { list.push(cleaned); }
             continue;
         }
+        
+        // Se for objeto (formato avançado)
         if (typeof entry === "object") {
             var actionKey = "";
             if (entry.action) { actionKey = entry.action.toLowerCase(); }
             else if (entry.type) { actionKey = entry.type.toLowerCase(); }
+            
+            // Adiciona prefixos (ex: "Clique esquerdo")
             var prefix = "";
             if (actionKey === "left" || actionKey === "click" || actionKey === "primary") {
                 prefix = (typeof lClick === "string" && lClick.length) ? lClick : "Clique esquerdo";
@@ -749,12 +988,14 @@ function D9T_NORMALIZE_TIPS(tips) {
             } else if (actionKey === "keyboard") {
                 prefix = entry.shortcut ? entry.shortcut.toUpperCase() : "Atalho";
             }
+            
             var text = entry.text || entry.label || entry.description || "";
             text = (text || "").toString().trim();
             if (!text && entry.shortcut) {
                 text = entry.shortcut;
             }
             if (!text) { continue; }
+            
             var tipLine = prefix ? (prefix + " " + text) : text;
             tipLine = tipLine.replace(/\s+/g, " ").trim();
             if (tipLine) { list.push(tipLine); }
@@ -763,87 +1004,209 @@ function D9T_NORMALIZE_TIPS(tips) {
     return list;
 }
 
+// Constrói as linhas do helpTip (usando fallbacks se 'tips' não for definido).
 function D9T_BUILD_TIP_LINES(ctrlProperties) {
     var lines = D9T_NORMALIZE_TIPS(ctrlProperties ? ctrlProperties.tips : null);
+    
+    // Se nenhuma dica foi definida, cria dicas padrão
     if (!lines.length) {
         var autoLabel = D9T_GET_CTRL_LABEL(ctrlProperties);
-        if (autoLabel) { lines.push(autoLabel); }
+        if (autoLabel) { lines.push(autoLabel); } // "Finders"
         var leftMsg = (typeof lClick === "string" && lClick.length) ? lClick : "Clique esquerdo";
-        lines.push(leftMsg + " para executar.");
+        lines.push(leftMsg + " para executar."); // "Clique esquerdo para executar."
         if (typeof rClick === "string" && rClick.length) {
-            lines.push(rClick + " para ver opções adicionais.");
+            lines.push(rClick + " para ver opções adicionais."); // "Clique direito para..."
         }
     }
     return lines;
 }
 
+// Constrói o texto final do helpTip, juntando as linhas com quebra de linha dupla.
 function D9T_BUILD_TIP_TEXT(ctrlProperties) {
     var lines = D9T_BUILD_TIP_LINES(ctrlProperties);
-    return lines.join("\n\n");
+    return lines.join("\n\n"); // Duas quebras de linha para espaçamento
 }
+
+
+// ============================================
+// LÓGICA DE BUSCA
+// ============================================
+
+var D9T_DEFAULT_SEARCH_CONTEXT = "modules";
+var D9T_SEARCH_CONTEXTS = {
+    modules: {
+        labelText: "BUSCAR | modulos",
+        placeholder: "Buscar modulos...",
+        labelHelpTip: "Filtra modulos por nome, descricao, tags ou seccao.",
+        fieldHelpTip: "Digite um termo ou varias palavras para localizar modulos rapidamente."
+    },
+    projects: {
+        labelText: "BUSCAR | projetos",
+        placeholder: "Buscar arquivos e projetos...",
+        labelHelpTip: "Modo focado em buscas por projetos e arquivos mapeados.",
+        fieldHelpTip: "Pesquise por nome de projeto, pasta ou servidor."
+    },
+    network: {
+        labelText: "BUSCAR | rede",
+        placeholder: "Buscar atalhos de rede...",
+        labelHelpTip: "Modo dedicado para localizar caminhos de rede favoritos.",
+        fieldHelpTip: "Digite parte do caminho, servidor ou apelido salvo."
+    }
+};
+
+function D9T_GET_SEARCH_CONTEXT(uiObj) {
+    var key = (uiObj && uiObj.currentSearchContext) || D9T_DEFAULT_SEARCH_CONTEXT;
+    if (!D9T_SEARCH_CONTEXTS[key]) { key = D9T_DEFAULT_SEARCH_CONTEXT; }
+    return { key: key, data: D9T_SEARCH_CONTEXTS[key] };
+}
+
+function D9T_REFRESH_SEARCH_CONTEXT_UI(uiObj, preserveInput) {
+    if (!uiObj) { return; }
+    var context = D9T_GET_SEARCH_CONTEXT(uiObj);
+    var data = context.data;
+
+    if (uiObj.searchLabel && data.labelText) {
+        uiObj.searchLabel.text = data.labelText;
+        if (data.labelHelpTip) { uiObj.searchLabel.helpTip = data.labelHelpTip; }
+    }
+
+    if (uiObj.searchField) {
+        uiObj.searchPlaceholderText = data.placeholder || "Buscar...";
+        var shouldResetPlaceholder = uiObj.searchField.__placeholder || preserveInput !== true;
+        if (shouldResetPlaceholder) {
+            uiObj.searchField.__placeholder = true;
+            uiObj.searchField.text = uiObj.searchPlaceholderText;
+            setFgColor(uiObj.searchField, D9T_Theme.colors.mono2);
+        }
+        if (data.fieldHelpTip) { uiObj.searchField.helpTip = data.fieldHelpTip; }
+    }
+}
+
+function D9T_SET_SEARCH_CONTEXT(uiObj, contextKey, preserveInput) {
+    if (!uiObj) { return; }
+    if (contextKey && D9T_SEARCH_CONTEXTS[contextKey]) {
+        uiObj.currentSearchContext = contextKey;
+    } else if (!uiObj.currentSearchContext) {
+        uiObj.currentSearchContext = D9T_DEFAULT_SEARCH_CONTEXT;
+    }
+    D9T_REFRESH_SEARCH_CONTEXT_UI(uiObj, preserveInput === true);
+}
+
+/**
+ * Registra um módulo no índice de busca.
+ * @param {Object} uiObj - O objeto D9T_ui.
+ * @param {String} ctrlKey - A chave do controle (ex: "Finders").
+ * @param {Object} ctrlProperties - O objeto de propriedades do módulo.
+ * @param {String} sectionKey - A chave da seção (ex: "section1").
+ */
 
 function D9T_REGISTER_MODULE(uiObj, ctrlKey, ctrlProperties, sectionKey) {
     if (!uiObj.moduleIndex) { uiObj.moduleIndex = []; }
+    
     var displayName = D9T_GET_CTRL_LABEL(ctrlProperties) || ctrlKey;
     var tipTxt = D9T_BUILD_TIP_TEXT(ctrlProperties);
     var sectionText = sectionKey ? sectionKey.replace(/_/g, ' ') : '';
     var description = [tipTxt.replace(/\s+/g, ' '), sectionText].join(' ').trim();
-    var searchBlob = (displayName + ' ' + ctrlKey + ' ' + description).toLowerCase();
+    var tagList = [];
+
+    function D9T_PUSH_TAG_VALUE(value) {
+        if (value === null || value === undefined) { return; }
+        if (value instanceof Array) {
+            for (var t = 0; t < value.length; t++) {
+                D9T_PUSH_TAG_VALUE(value[t]);
+            }
+        } else if (typeof value === "string" && value.length) {
+            tagList.push(value);
+        }
+    }
+
+    D9T_PUSH_TAG_VALUE(ctrlProperties.searchTags);
+    D9T_PUSH_TAG_VALUE(ctrlProperties.tags);
+    D9T_PUSH_TAG_VALUE(ctrlProperties.keywords);
+    
+    var tagBlob = tagList.join(' ');
+    // Cria um blob de texto (tudo em minusculas) para facilitar a busca
+    var searchBlob = (displayName + ' ' + ctrlKey + ' ' + description + ' ' + tagBlob).toLowerCase();
+    
+    // Adiciona ao indice
     uiObj.moduleIndex.push({
         key: ctrlKey,
         keyLower: ctrlKey.toLowerCase(),
         labelLower: displayName.toLowerCase(),
         descriptionLower: description.toLowerCase(),
+        tagsLower: tagBlob.toLowerCase(),
         searchBlob: searchBlob,
+        searchBlobNormalized: D9T_NORMALIZE_TERM(searchBlob),
+        labelNormalized: D9T_NORMALIZE_TERM(displayName),
+        keyNormalized: D9T_NORMALIZE_TERM(ctrlKey),
+        descriptionNormalized: D9T_NORMALIZE_TERM(description),
+        tagsNormalized: D9T_NORMALIZE_TERM(tagBlob),
         displayName: displayName,
-        ctrlRef: uiObj[ctrlKey]
+        ctrlRef: uiObj[ctrlKey] // Referencia direta ao botao
     });
 }
 
+// Normaliza um termo de busca (converte para string, minusculas e remove acentos)
 function D9T_NORMALIZE_TERM(value) {
-    return (value || "").toString().toLowerCase();
+    var normalized = (value || "").toString().toLowerCase();
+    if (!normalized.length) { return ""; }
+    try {
+        normalized = normalized.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    } catch (normErr) {}
+    return normalized;
 }
 
+
+/**
+ * Configura os eventos e o placeholder do campo de busca.
+ * @param {Object} uiObj - O objeto D9T_ui.
+ */
 function D9T_SETUP_SEARCH(uiObj) {
     if (!uiObj.searchField || !uiObj.searchDropdown) { return; }
-    var placeholder = "Buscar modulos...";
-    uiObj.searchPlaceholderText = placeholder;
-    uiObj.searchField.text = placeholder;
-    uiObj.searchField.__placeholder = true;
-    setFgColor(uiObj.searchField, D9T_Theme.colors.mono2);
+    
+    uiObj.searchField.__placeholder = true; // Flag para controlar o placeholder
+    if (!uiObj.currentSearchContext) { uiObj.currentSearchContext = D9T_DEFAULT_SEARCH_CONTEXT; }
+    D9T_SET_SEARCH_CONTEXT(uiObj, uiObj.currentSearchContext);
 
+    // Evento: Ao clicar no campo
     uiObj.searchField.onActivate = function () {
         if (this.__placeholder) {
-            this.text = "";
+            this.text = ""; // Limpa
             this.__placeholder = false;
-            setFgColor(this, D9T_Theme.colors.textNormal);
+            setFgColor(this, D9T_Theme.colors.textNormal); // Cor normal
         }
     };
 
+    // Evento: Ao digitar
     uiObj.searchField.onChanging = function () {
         if (this.__placeholder) {
+            // Se começar a digitar sem clicar, limpa o placeholder
             this.__placeholder = false;
             this.text = "";
             setFgColor(this, D9T_Theme.colors.textNormal);
         }
-        D9T_UPDATE_SEARCH_RESULTS(uiObj, this.text);
+        D9T_UPDATE_SEARCH_RESULTS(uiObj, this.text); // Atualiza a lista dropdown
     };
 
+    // Evento: Ao sair do campo
     uiObj.searchField.onDeactivate = function () {
         if (!this.text.length) {
+            // Se sair e estiver vazio, restaura o placeholder
             this.__placeholder = true;
-            this.text = placeholder;
+            this.text = uiObj.searchPlaceholderText || "";
             setFgColor(this, D9T_Theme.colors.mono2);
             if (!uiObj.__searchModeActive && uiObj.searchDropdown) {
-                uiObj.searchDropdown.removeAll();
+                uiObj.searchDropdown.removeAll(); // Limpa resultados se não estiver no modo busca
             }
         }
     };
 
+    // Eventos de teclado no campo de busca
     uiObj.searchField.addEventListener("keydown", function (evt) {
         if (evt.keyName === "Enter") {
-            D9T_TRIGGER_SEARCH_ACTION(uiObj);
+            D9T_TRIGGER_SEARCH_ACTION(uiObj); // Executa a busca/módulo
         } else if (evt.keyName === "Down") {
+            // Seta para baixo foca no dropdown
             if (uiObj.searchDropdown.items.length) {
                 try { uiObj.searchDropdown.active = true; } catch (focusErr) {}
                 uiObj.searchDropdown.selection = 0;
@@ -851,51 +1214,70 @@ function D9T_SETUP_SEARCH(uiObj) {
         }
     });
 
+    // Evento de clique no botão OK da busca
     if (uiObj.searchButton) {
         uiObj.searchButton.onClick = function () {
             if (uiObj.searchDropdown && uiObj.searchDropdown.selection) {
-                D9T_LAUNCH_SEARCH_SELECTION(uiObj);
+                D9T_LAUNCH_SEARCH_SELECTION(uiObj); // Lança o item selecionado
             } else {
-                D9T_TRIGGER_SEARCH_ACTION(uiObj);
+                D9T_TRIGGER_SEARCH_ACTION(uiObj); // Lança o primeiro item
             }
         };
     }
 
+    // Evento de teclado no dropdown
     uiObj.searchDropdown.addEventListener("keydown", function (evt) {
         if (evt.keyName === "Enter") {
-            D9T_LAUNCH_SEARCH_SELECTION(uiObj);
+            D9T_LAUNCH_SEARCH_SELECTION(uiObj); // Lança o item selecionado
         }
     });
 }
 
+/**
+ * Filtra e pontua os módulos com base no termo de busca e atualiza o dropdown.
+ * @param {Object} uiObj - O objeto D9T_ui.
+ * @param {String} term - O termo de busca.
+ */
 function D9T_UPDATE_SEARCH_RESULTS(uiObj, term) {
     if (!uiObj.moduleIndex || !uiObj.searchDropdown) { return; }
+    
     var dropdown = uiObj.searchDropdown;
     dropdown.removeAll();
-    var cleanTerm = D9T_NORMALIZE_TERM(term);
+    var cleanTerm = D9T_NORMALIZE_TERM(term).replace(/\s+/g, ' ');
+    cleanTerm = cleanTerm.replace(/^\s+|\s+$/g, '');
+    var tokens = cleanTerm.length ? cleanTerm.split(' ') : [];
     var modules = uiObj.moduleIndex.slice(0);
     var scored = [];
+
     for (var i = 0; i < modules.length; i++) {
         var entry = modules[i];
         if (!entry) { continue; }
+
         var score = 5;
-        if (cleanTerm.length) {
-            if (entry.labelLower.indexOf(cleanTerm) === 0) {
-                score = 0;
-            } else if (entry.labelLower.indexOf(cleanTerm) > -1) {
-                score = 1;
-            } else if (entry.keyLower.indexOf(cleanTerm) > -1) {
-                score = 1.5;
-            } else if (entry.descriptionLower && entry.descriptionLower.indexOf(cleanTerm) > -1) {
-                score = 2;
-            } else if (entry.searchBlob && entry.searchBlob.indexOf(cleanTerm) > -1) {
-                score = 2.5;
-            } else {
-                continue;
+        if (tokens.length) {
+            var totalScore = 0;
+            var matchedTokens = 0;
+            var tokenMismatch = false;
+            for (var t = 0; t < tokens.length; t++) {
+                var tokenScore = D9T_SCORE_ENTRY_TOKEN(entry, tokens[t]);
+                if (tokenScore === null) {
+                    tokenMismatch = true;
+                    break;
+                }
+                totalScore += tokenScore;
+                matchedTokens++;
             }
+            if (tokenMismatch) { continue; }
+            score = totalScore / Math.max(matchedTokens, 1);
+        } else if (cleanTerm.length) {
+            var fallbackScore = D9T_SCORE_ENTRY_TOKEN(entry, cleanTerm);
+            if (fallbackScore === null) { continue; }
+            score = fallbackScore;
         }
+
         scored.push({ entry: entry, score: score });
     }
+    
     scored.sort(function (a, b) {
         if (a.score !== b.score) { return a.score - b.score; }
         var aName = a.entry.displayName.toLowerCase();
@@ -908,30 +1290,46 @@ function D9T_UPDATE_SEARCH_RESULTS(uiObj, term) {
     var maxResults = 12;
     for (var j = 0; j < scored.length && dropdown.items.length < maxResults; j++) {
         var itemEntry = scored[j].entry;
-        var item = dropdown.add("item", itemEntry.displayName);
+        var item = dropdown.add('item', itemEntry.displayName);
         item.entryRef = itemEntry;
     }
+    
     if (dropdown.items.length) {
         dropdown.selection = 0;
     }
 }
 
+function D9T_SCORE_ENTRY_TOKEN(entry, token) {
+    if (!entry || !token) { return null; }
+    if (entry.labelNormalized && entry.labelNormalized.indexOf(token) === 0) { return 0; }
+    if (entry.labelNormalized && entry.labelNormalized.indexOf(token) > -1) { return 0.5; }
+    if (entry.keyNormalized && entry.keyNormalized.indexOf(token) === 0) { return 0.75; }
+    if (entry.keyNormalized && entry.keyNormalized.indexOf(token) > -1) { return 1; }
+    if (entry.tagsNormalized && entry.tagsNormalized.indexOf(token) > -1) { return 1.25; }
+    if (entry.descriptionNormalized && entry.descriptionNormalized.indexOf(token) > -1) { return 1.5; }
+    if (entry.searchBlobNormalized && entry.searchBlobNormalized.indexOf(token) > -1) { return 2; }
+    return null;
+}
+
+// Executa o módulo selecionado no dropdown.
 function D9T_LAUNCH_SEARCH_SELECTION(uiObj) {
     if (!uiObj.searchDropdown || !uiObj.searchDropdown.items.length) { return; }
     var selection = uiObj.searchDropdown.selection;
-    if (!selection) { selection = uiObj.searchDropdown.items[0]; }
+    if (!selection) { selection = uiObj.searchDropdown.items[0]; } // Fallback
     if (selection && selection.entryRef) {
         D9T_EXECUTE_MODULE(selection.entryRef);
     }
 }
 
+// Dispara o evento de clique no módulo.
 function D9T_EXECUTE_MODULE(entry) {
     if (!entry || !entry.ctrlRef) { return; }
     try {
         if (entry.ctrlRef.leftClick) {
-            entry.ctrlRef.leftClick.notify();
+            entry.ctrlRef.leftClick.notify(); // Simula clique esquerdo
             return;
         }
+        // Fallback (raro)
         if (entry.ctrlRef.rightClick) {
             entry.ctrlRef.rightClick.notify();
         }
@@ -940,21 +1338,27 @@ function D9T_EXECUTE_MODULE(entry) {
     }
 }
 
+// Limpa o campo de busca e restaura o placeholder.
 function D9T_CLEAR_SEARCH(uiObj, keepDropdown) {
     if (!uiObj || !uiObj.searchField) { return; }
     if (uiObj.searchDropdown && keepDropdown !== true) { uiObj.searchDropdown.removeAll(); }
     if (!uiObj.searchPlaceholderText) { return; }
+    
     uiObj.searchField.__placeholder = true;
     uiObj.searchField.text = uiObj.searchPlaceholderText;
     setFgColor(uiObj.searchField, D9T_Theme.colors.mono2);
 }
 
+// Usado para executar a ação (Enter)
 function D9T_TRIGGER_SEARCH_ACTION(uiObj) {
     if (!uiObj || !uiObj.searchField) { return; }
+    // Atualiza os resultados (caso o usuário tenha digitado e apertado Enter sem esperar)
     D9T_UPDATE_SEARCH_RESULTS(uiObj, uiObj.searchField.__placeholder ? "" : uiObj.searchField.text);
+    // Lança o primeiro resultado
     D9T_LAUNCH_SEARCH_SELECTION(uiObj);
 }
 
+// Chamado ao entrar no modo busca (foca e limpa o campo)
 function D9T_ENTER_SEARCH_MODE(uiObj) {
     if (!uiObj) { return; }
     if (uiObj.searchField) {
@@ -963,16 +1367,25 @@ function D9T_ENTER_SEARCH_MODE(uiObj) {
             uiObj.searchField.__placeholder = false;
             setFgColor(uiObj.searchField, D9T_Theme.colors.textNormal);
         }
-        try { uiObj.searchField.active = true; } catch (e) {}
+        try { uiObj.searchField.active = true; } catch (e) {} // Foca no campo
     }
-    D9T_UPDATE_SEARCH_RESULTS(uiObj, "");
+    D9T_UPDATE_SEARCH_RESULTS(uiObj, ""); // Popula a lista com todos os módulos
 }
 
+// Chamado ao sair do modo busca (limpa o campo)
 function D9T_EXIT_SEARCH_MODE(uiObj) {
     if (!uiObj) { return; }
     D9T_CLEAR_SEARCH(uiObj);
 }
 
+// ============================================
+// JANELA DE AÇÕES E CONFIGURAÇÕES (MENU)
+// ============================================
+
+/**
+ * Constrói e exibe a janela do menu "hamburger".
+ * @param {Object} uiObj - O objeto D9T_ui.
+ */
 function D9T_SHOW_ACTION_MENU(uiObj) {
     uiObj = uiObj || D9T_ui;
     var menuWin = new Window("palette", "Configurações");
@@ -982,6 +1395,7 @@ function D9T_SHOW_ACTION_MENU(uiObj) {
     menuWin.spacing = 10;
     try { setBgColor(menuWin, bgColor1); } catch (e) {}
 
+    // --- 1. Cabeçalho do Menu ---
     var headerGrp = menuWin.add("group");
     headerGrp.alignment = ["fill", "top"];
     headerGrp.alignChildren = ["left", "center"];
@@ -994,40 +1408,45 @@ function D9T_SHOW_ACTION_MENU(uiObj) {
     var helpBtnGrp = headerGrp.add("group");
     helpBtnGrp.alignment = ["right", "center"];
     var helpBtn;
+    
+    // Botão de Ajuda (?)
     if (typeof themeIconButton === "function" && typeof D9T_INFO_ICON !== "undefined") {
         try {
             helpBtn = new themeIconButton(helpBtnGrp, { icon: D9T_INFO_ICON, tips: ["Ajuda sobre este painel"] });
         } catch (err0) {}
     }
-    if (!helpBtn) {
+    if (!helpBtn) { // Fallback
         helpBtn = helpBtnGrp.add("button", undefined, "?");
         helpBtn.preferredSize = [24, 24];
     }
+    // Anexa o evento ao botão de ajuda
     var attachHelp = function(btn) {
         if (!btn) { return; }
         var handler = function() {
-            D9T_SHOW_ACTION_MENU_HELP();
+            D9T_SHOW_ACTION_MENU_HELP(); // Chama a janela de ajuda específica
         };
         if (btn.leftClick) { btn.leftClick.onClick = handler; }
         else { btn.onClick = handler; }
     };
     attachHelp(helpBtn);
 
+    // --- 2. Definição da Estrutura do Menu ---
     var sections = [
         {
             title: "Ferramentas",
             description: "Configurações para manutenção e layout.",
-            column: 0,
+            column: 0, // Coluna da esquerda
             items: [
                 { label: "Alterar cores globais", desc: "Abre o painel ColorChange para redefinir o tema.", action: D9T_OPEN_COLOR_GLOBALS },
                 { label: "Atualizar script (GitHub)", desc: "Executa git pull no diretório do script.", action: D9T_PULL_FROM_GITHUB },
-                { label: "Configurar ícones", desc: "Abre a janela para ajustar tamanho e espaçamentos.", action: function () { D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj); } }
+                { label: "Configurar ícones", desc: "Abre a janela para ajustar tamanho e espaçamentos.", action: function () { D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj); } },
+                { label: "Tema dos botões", desc: "Define largura, cores e arredondamento dos presets reutilizáveis.", action: function () { D9T_OPEN_BUTTON_THEME_WINDOW(uiObj); } }
             ]
         },
         {
             title: "Configurações",
             description: "Arquivos principais e ajustes que afetam todo o GND9TOOLS.",
-            column: 1,
+            column: 1, // Coluna da direita
             items: [
                 { label: "Configuração de usuários", desc: "Edita o User_Preferences.json.", action: function () { D9T_OPEN_JSON_CONFIG("User_Preferences.json"); } },
                 { label: "Configuração de sistema", desc: "Gerencia System_Settings.json.", action: function () { D9T_OPEN_JSON_CONFIG("System_Settings.json"); } },
@@ -1036,6 +1455,7 @@ function D9T_SHOW_ACTION_MENU(uiObj) {
         }
     ];
 
+    // --- 3. Construção do Corpo (Colunas) ---
     var bodyGrp = menuWin.add("group");
     bodyGrp.orientation = "row";
     bodyGrp.alignChildren = ["fill", "top"];
@@ -1048,69 +1468,116 @@ function D9T_SHOW_ACTION_MENU(uiObj) {
     colRight.orientation = "column";
     colRight.alignChildren = ["fill", "top"];
     colRight.spacing = 10;
-    var columns = [colLeft, colRight];
+    var columns = [colLeft, colRight]; // Array de colunas
 
+    // Função auxiliar para criar uma seção (card)
     function createSection(section) {
         var card = columns[Math.min(section.column || 0, columns.length - 1)].add("panel", undefined, section.title.toUpperCase());
         card.alignment = ["fill", "top"];
         card.margins = [12, 18, 12, 12];
         card.spacing = 10;
-        try { setBgColor(card, bgColor2); } catch (cardErr) {}
+        try { setBgColor(card, bgColor2); } catch (cardErr) {} // Cor de fundo do painel
+        
+        // Descrição da seção
         var desc = card.add("statictext", undefined, section.description || "", { multiline: true });
         desc.maximumSize.width = 240;
         setFgColor(desc, D9T_Theme.colors.textNormal);
 
+        // Loop pelos itens (botões) da seção
         for (var i = 0; i < section.items.length; i++) {
             (function(entry) {
                 var entryGrp = card.add("group");
                 entryGrp.orientation = "column";
                 entryGrp.alignChildren = ["fill", "top"];
                 entryGrp.spacing = 4;
-                var btn = entryGrp.add("button", undefined, entry.label);
-                btn.preferredSize = [260, 26];
-                try { setBgColor(btn, D9T_Theme.colors.divider); } catch (bgErr) {}
-                setFgColor(btn, D9T_Theme.colors.textNormal);
-                if (typeof setCtrlHighlight === "function") {
-                    setCtrlHighlight(btn, D9T_Theme.colors.textNormal, D9T_Theme.colors.textHighlight);
+                
+                // Botao estilizado
+                var themedWrapper = null;
+                var btn = null;
+                if (typeof themeButton === "function") {
+                    try {
+                        themedWrapper = new themeButton(entryGrp, { labelTxt: entry.label, width: 260 });
+                        btn = (themedWrapper && themedWrapper.label) ? themedWrapper.label : null;
+                    } catch (themeErr) {
+                        btn = null;
+                    }
                 }
-                btn.onClick = function () {
+                if (!btn) {
+                    btn = entryGrp.add("button", undefined, entry.label);
+                    btn.preferredSize = [260, 26];
+                    try { setBgColor(btn, D9T_Theme.colors.divider); } catch (bgErr) {}
+                    setFgColor(btn, D9T_Theme.colors.textNormal);
+                    if (typeof setCtrlHighlight === "function") {
+                        setCtrlHighlight(btn, D9T_Theme.colors.textNormal, D9T_Theme.colors.textHighlight);
+                    }
+                }
+                var triggerAction = function () {
                     try { entry.action(uiObj); }
                     catch (err) { alert("Falha ao executar '" + entry.label + "': " + err); }
                 };
+                if (themedWrapper && themedWrapper.leftClick) {
+                    themedWrapper.leftClick.onClick = triggerAction;
+                }
+                if (btn) {
+                    btn.helpTip = entry.desc || entry.label;
+                    btn.onClick = triggerAction;
+                }
+                // Descrição do botão (hint)
                 if (entry.desc) {
                     var hint = entryGrp.add("statictext", undefined, entry.desc, { multiline: true });
                     hint.maximumSize.width = 260;
-                    setFgColor(hint, D9T_Theme.colors.mono2);
+                    setFgColor(hint, D9T_Theme.colors.mono2); // Cor cinza
                 }
             })(section.items[i]);
         }
     }
 
+    // Cria as seções definidas no array 'sections'
     for (var s = 0; s < sections.length; s++) {
         createSection(sections[s]);
     }
 
+    // --- 4. Rodapé ---
     var footerGrp = menuWin.add("group");
     footerGrp.alignment = ["fill", "top"];
     var tipTxt = footerGrp.add("statictext", undefined, "Use o ícone ? para consultar a ajuda completa deste menu.");
     setFgColor(tipTxt, D9T_Theme.colors.mono2);
 
-    menuWin.show();
+    menuWin.show(); // Exibe a janela de menu
 }
 
+// Atalho para a janela de cores (chamado pelo menu)
 function D9T_OPEN_COLOR_GLOBALS() {
     D9T_OPEN_THEME_DIALOG(D9T_ui);
 }
 
+function D9T_PICK_COLOR(baseValue) {
+    var seed = 0;
+    if (typeof baseValue === "string" && baseValue.length) {
+        var clean = baseValue.replace(/[^0-9a-fA-F]/g, "");
+        if (clean.length >= 6) {
+            var parsed = parseInt(clean.substring(0, 6), 16);
+            if (!isNaN(parsed)) { seed = parsed; }
+        }
+    }
+    var result = $.colorPicker(seed);
+    if (result < 0 || isNaN(result)) { return null; }
+    return "#" + ("000000" + result.toString(16)).slice(-6).toUpperCase();
+}
+
+// Exibe a janela de ajuda do menu (usando HELP lib.js)
 function D9T_SHOW_ACTION_MENU_HELP() {
+    // Tenta usar a função específica
     if (typeof showActionMenuHelp === "function") {
         showActionMenuHelp();
         return;
     }
+    // Fallback se a função de ajuda não for encontrada
     if (typeof createHelpWindow !== "function") {
         alert("Ajuda indisponível (createHelpWindow não encontrado).");
         return;
     }
+    // Dados de ajuda padrão
     var fallbackData = [
         {
             tabName: "Configurações",
@@ -1137,11 +1604,17 @@ function D9T_SHOW_ACTION_MENU_HELP() {
     );
 }
 
-
+/**
+ * Constrói e exibe a janela de personalização de cores.
+ * @param {Object} uiObj - O objeto D9T_ui (para aplicar o tema ao vivo).
+ */
 function D9T_OPEN_THEME_DIALOG(uiObj) {
   uiObj = uiObj || D9T_ui;
+  // Carrega as cores padrão e as atuais
   var defaults = (defaultScriptPreferencesObj && defaultScriptPreferencesObj.themeColors) ? defaultScriptPreferencesObj.themeColors : {};
   var current = (scriptPreferencesObj && scriptPreferencesObj.themeColors) ? scriptPreferencesObj.themeColors : defaults;
+  
+  // Lista de cores editáveis
   var colorEntries = [
     { label: "Fundo principal (bgColor1)", key: "bgColor1" },
     { label: "Fundo secundário (bgColor2)", key: "bgColor2" },
@@ -1155,6 +1628,7 @@ function D9T_OPEN_THEME_DIALOG(uiObj) {
     { label: "Highlight (highlightColor1)", key: "highlightColor1" }
   ];
 
+  // --- 1. Criação da Janela ---
   var win = new Window("dialog", "Cores globais");
   win.orientation = "column";
   win.alignChildren = "fill";
@@ -1169,8 +1643,11 @@ function D9T_OPEN_THEME_DIALOG(uiObj) {
   info.maximumSize.width = 280;
   setFgColor(info, D9T_Theme.colors.textNormal);
 
-  var fieldMap = {};
+  var fieldMap = {}; // Armazena os campos de texto por chave
 
+  // --- 2. Funções Auxiliares de Cor ---
+  
+  // Valida e formata um string HEX
   function tryParseHex(value) {
     if (typeof value !== "string") { return null; }
     var clean = value.replace(/[^0-9a-fA-F]/g, "");
@@ -1180,6 +1657,7 @@ function D9T_OPEN_THEME_DIALOG(uiObj) {
     return null;
   }
 
+  // Atualiza a cor do 'swatch' (amostra) ao lado do campo
   function updateSwatch(field) {
     if (!field || !field.__swatch) { return; }
     var parsed = tryParseHex(field.text);
@@ -1188,64 +1666,62 @@ function D9T_OPEN_THEME_DIALOG(uiObj) {
     }
   }
 
+  // Define o valor de um campo
   function setFieldValue(field, value) {
     if (!field) { return; }
     field.text = value || "";
     updateSwatch(field);
   }
 
-  function openColorPicker(baseValue) {
-    var parsed = tryParseHex(baseValue) || "#000000";
-    var clean = parsed.replace("#", "");
-    if (clean.length < 6) {
-      clean = ("000000" + clean).slice(-6);
-    }
-    var rgbPart = clean.substring(0, 6);
-    var alphaPart = clean.length === 8 ? clean.substring(6, 8) : "";
-    var seed = parseInt(rgbPart, 16);
-    if (isNaN(seed)) { seed = 0; }
-    var result = $.colorPicker(seed);
-    if (result < 0 || isNaN(result)) { return null; }
-    var rgbHex = ("000000" + result.toString(16)).slice(-6).toUpperCase();
-    return "#" + rgbHex + alphaPart.toUpperCase();
-  }
-
+  // --- 3. Loop de Criação dos Campos ---
   for (var i = 0; i < colorEntries.length; i++) {
     var entry = colorEntries[i];
     var row = win.add("group");
     row.alignment = ["fill", "top"];
     row.spacing = 6;
+    
     var label = row.add("statictext", undefined, entry.label + ":");
     label.preferredSize = [190, 18];
     label.helpTip = entry.label;
     setFgColor(label, D9T_Theme.colors.textNormal);
+    
     var field = row.add("edittext", undefined, current[entry.key] || defaults[entry.key] || "#000000");
     field.characters = 10;
     field.helpTip = "Informe o valor HEX (#RRGGBB ou #RRGGBBAA).";
-    var swatch = row.add("panel");
+    
+    var swatch = row.add("panel"); // Amostra de cor
     swatch.preferredSize = [26, 16];
     swatch.helpTip = "Clique para abrir o seletor de cores.";
-    field.__swatch = swatch;
-    fieldMap[entry.key] = field;
+    
+    field.__swatch = swatch; // Associa a amostra ao campo
+    fieldMap[entry.key] = field; // Salva a referência do campo
+    
+    // Eventos para este campo e amostra
     (function(refField, refSwatch) {
       var refresh = function () { updateSwatch(refField); };
-      refField.onChanging = refresh;
+      refField.onChanging = refresh; // Atualiza amostra ao digitar
       refField.onChange = refresh;
-      refresh();
+      refresh(); // Atualiza na criação
+      
       var launchPicker = function () {
-        var choice = openColorPicker(refField.text);
+        var choice = D9T_PICK_COLOR(refField.text); // Abre o seletor
         if (!choice) { return; }
         refField.text = choice;
         updateSwatch(refField);
+        
+        // Aplica preview ao vivo
         var previewValues = collectValues();
         if (previewValues) {
-          applyTheme(previewValues, false);
+          applyTheme(previewValues, false); // false = não salvar
         }
       };
-      refSwatch.addEventListener("click", launchPicker);
+      refSwatch.addEventListener("click", launchPicker); // Clique na amostra
     })(field, swatch);
   }
 
+  // --- 4. Funções de Ação (Aplicar, Coletar) ---
+  
+  // Lê todos os campos e valida
   function collectValues() {
     var data = {};
     for (var j = 0; j < colorEntries.length; j++) {
@@ -1260,64 +1736,94 @@ function D9T_OPEN_THEME_DIALOG(uiObj) {
     return data;
   }
 
+  // Aplica os valores ao tema global e salva (opcional)
   function applyTheme(values, persist) {
-    scriptPreferencesObj.themeColors = {};
-    for (var key in values) {
-      if (values.hasOwnProperty(key)) {
-        scriptPreferencesObj.themeColors[key] = values[key];
+    if (!values) { return; }
+    var usedCentralHelper = (typeof D9T_Preferences !== "undefined" && typeof D9T_Preferences.updateThemeSettings === "function");
+    if (usedCentralHelper) {
+      try {
+        D9T_Preferences.updateThemeSettings(values, persist);
+        if (typeof D9T_Preferences.get === "function") {
+          scriptPreferencesObj.themeColors = D9T_Preferences.get('themeColors', scriptPreferencesObj.themeColors || {});
+        }
+      } catch (prefsErr) {
+        $.writeln("[main_ui_functions] Falha ao aplicar tema via D9T_Preferences: " + prefsErr);
+        usedCentralHelper = false;
       }
     }
-    if (typeof applyThemeColorOverrides === "function") {
-      applyThemeColorOverrides(scriptPreferencesObj.themeColors);
+    if (!usedCentralHelper) {
+      scriptPreferencesObj.themeColors = {};
+      for (var key in values) {
+        if (values.hasOwnProperty(key)) {
+          scriptPreferencesObj.themeColors[key] = values[key];
+        }
+      }
+      if (typeof applyThemeColorOverrides === "function") {
+        applyThemeColorOverrides(scriptPreferencesObj.themeColors);
+      }
+      D9T_REFRESH_THEME_COLORS();
+      if (persist) { D9T_COMMIT_PREFERENCES(); }
     }
-    D9T_REFRESH_THEME_COLORS();
-    D9T_APPLY_THEME_TO_ROOT(uiObj);
-    if (persist && typeof saveScriptPreferences === "function") {
-      saveScriptPreferences();
+    if (typeof D9T_APPLY_THEME_TO_ROOT === "function") {
+      try { D9T_APPLY_THEME_TO_ROOT(uiObj); } catch (applyErr) {
+        $.writeln("[main_ui_functions] Falha ao aplicar tema na UI principal: " + applyErr);
+      }
     }
-    if (uiObj && uiObj.window) {
-      D9T_LAYOUT(uiObj);
+    if (uiObj && uiObj.window && typeof D9T_LAYOUT === "function") {
+      try { D9T_LAYOUT(uiObj); } catch (layoutErr) {
+        $.writeln("[main_ui_functions] Falha ao redesenhar UI principal: " + layoutErr);
+      }
     }
   }
 
+  // --- 5. Botões de Ação (Resetar, Aplicar) ---
   var btnGrp = win.add("group");
   btnGrp.alignment = ["fill", "top"];
   btnGrp.spacing = 8;
   var resetBtn = btnGrp.add("button", undefined, "Resetar");
   var saveBtn = btnGrp.add("button", undefined, "Aplicar");
 
+  // Restaura os padrões
   resetBtn.onClick = function () {
     for (var r = 0; r < colorEntries.length; r++) {
       var entry = colorEntries[r];
       setFieldValue(fieldMap[entry.key], defaults[entry.key]);
     }
-    applyTheme(defaults, true);
+    applyTheme(defaults, true); // true = salvar
   };
 
+  // Salva os valores atuais
   saveBtn.onClick = function () {
     var values = collectValues();
-    if (!values) { return; }
-    applyTheme(values, true);
+    if (!values) { return; } // Aborta se houver valor inválido
+    applyTheme(values, true); // true = salvar
   };
 
   win.show();
 }
 
-
+/**
+ * Abre um arquivo de configuração JSON no editor padrão do sistema.
+ * @param {String} fileName - O nome do arquivo (ex: "User_Preferences.json").
+ */
 function D9T_OPEN_JSON_CONFIG(fileName) {
     var basePaths = [];
+    // Caminhos onde o arquivo pode estar
     if (typeof scriptPreferencesPath === "string") { basePaths.push(scriptPreferencesPath); }
     if (typeof scriptMainPath !== "undefined") { basePaths.push(scriptMainPath); }
+    
+    // Procura e executa
     for (var i = 0; i < basePaths.length; i++) {
         var target = new File(basePaths[i] + "/" + fileName);
         if (target.exists) {
-            target.execute();
+            target.execute(); // Abre no editor padrão (ex: VS Code, Bloco de Notas)
             return;
         }
     }
     alert("Arquivo nao encontrado em nenhum caminho conhecido:\n" + fileName);
 }
 
+// Executa 'git pull' no diretório do script.
 function D9T_PULL_FROM_GITHUB() {
     try {
         app.system("cmd /c \"cd \"" + scriptMainPath + "\" && git pull\"");
@@ -1327,11 +1833,16 @@ function D9T_PULL_FROM_GITHUB() {
     }
 }
 
+/**
+ * Constrói e exibe a janela de configuração de ícones (tamanho/espaçamento).
+ * @param {Object} uiObj - O objeto D9T_ui.
+ */
 function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
     uiObj = uiObj || D9T_ui;
-    var current = D9T_GET_ICON_SETTINGS();
-    var defaults = D9T_GET_DEFAULT_ICON_SETTINGS();
+    var current = D9T_GET_ICON_SETTINGS(); // Configurações atuais
+    var defaults = D9T_GET_DEFAULT_ICON_SETTINGS(); // Padrões
 
+    // --- 1. Criação da Janela ---
     var win = new Window("palette", "Configuração de ícones");
     win.orientation = "column";
     win.alignChildren = "fill";
@@ -1342,7 +1853,63 @@ function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
     var title = win.add("statictext", undefined, "Tamanho e espaçamento dos módulos");
     setFgColor(title, D9T_Theme.colors.textNormal);
 
-    var sizeGrp = win.add("group");
+    var modeSelectorGrp = win.add("group");
+    modeSelectorGrp.alignment = ["fill", "top"];
+    modeSelectorGrp.spacing = 8;
+    var modeLabel = modeSelectorGrp.add("statictext", undefined, "Editar versão:");
+    modeLabel.helpTip = "Escolha se deseja ajustar os parâmetros do layout horizontal ou vertical.";
+    try { setFgColor(modeLabel, D9T_Theme.colors.textNormal); } catch (modeErr) {}
+    var modeDropdown = modeSelectorGrp.add("dropdownlist", undefined, ["Horizontal", "Vertical"]);
+    modeDropdown.alignment = ["left", "top"];
+    modeDropdown.minimumSize = [160, 22];
+    modeDropdown.selection = 0;
+    modeDropdown.helpTip = "Alterne entre as configurações exibidas para cada orientação.";
+
+    var suppressModeEvent = false;
+    var activeModeKey = "horizontal";
+    var pendingSettings = null;
+    var settingsDirty = false;
+
+    var modeStack = win.add("group");
+    modeStack.alignment = ["fill", "top"];
+    modeStack.orientation = "stack";
+    modeStack.alignChildren = ["fill", "top"];
+
+// O containerWrapper foi removido. Os painéis são adicionados diretamente ao 'modeStack'.
+    var horizontalContainer = modeStack.add("group");
+    horizontalContainer.orientation = "column";
+    horizontalContainer.alignChildren = ["fill", "top"];
+    horizontalContainer.spacing = 8;
+
+    var verticalContainer = modeStack.add("group");
+    verticalContainer.orientation = "column";
+    verticalContainer.alignChildren = ["fill", "top"];
+    verticalContainer.spacing = 8;
+
+    horizontalContainer.visible = true;
+    verticalContainer.visible = false;
+
+    function setModeView(modeKey) {
+        activeModeKey = modeKey === "vertical" ? "vertical" : "horizontal";
+        var showVertical = (activeModeKey === "vertical");
+        horizontalContainer.visible = !showVertical;
+        verticalContainer.visible = showVertical;
+        if (modeDropdown.selection && modeDropdown.selection.index !== (showVertical ? 1 : 0)) {
+            suppressModeEvent = true;
+            modeDropdown.selection = showVertical ? 1 : 0;
+            suppressModeEvent = false;
+        }
+        try {
+            modeStack.layout.layout(true);
+            win.layout.layout(true);
+            try { win.layout.resize(); } catch (resizeErr) {}
+        } catch (layoutErr) {}
+    }
+
+    // --- 2. Campos de Configuração (Modo Normal) ---
+    
+    // Tamanho (Largura, Altura) - visível apenas no modo horizontal
+    var sizeGrp = horizontalContainer.add("group");
     sizeGrp.alignment = ["fill", "top"];
     sizeGrp.spacing = 8;
     sizeGrp.add("statictext", undefined, "Largura:").helpTip = "Define a largura do ícone padrão exibido nos módulos.";
@@ -1353,30 +1920,57 @@ function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
     var heightField = sizeGrp.add("edittext", undefined, current.iconSize[1]);
     heightField.characters = 4;
     heightField.helpTip = "Informe a altura (em pixels) dos ícones principais.";
+    var verticalSizeGrp = verticalContainer.add("group");
+    verticalSizeGrp.alignment = ["fill", "top"];
+    verticalSizeGrp.spacing = 8;
+    verticalSizeGrp.add("statictext", undefined, "Largura (vertical):").helpTip = "Largura dos ícones quando o layout muda para coluna.";
+    var verticalWidthField = verticalSizeGrp.add("edittext", undefined, current.verticalIconSize ? current.verticalIconSize[0] : current.iconSize[0]);
+    verticalWidthField.characters = 4;
+    verticalWidthField.helpTip = "Informe a largura usada no layout vertical.";
+    verticalSizeGrp.add("statictext", undefined, "Altura (vertical):").helpTip = "Altura dos ícones na versão vertical.";
+    var verticalHeightField = verticalSizeGrp.add("edittext", undefined, current.verticalIconSize ? current.verticalIconSize[1] : current.iconSize[1]);
+    verticalHeightField.characters = 4;
+    verticalHeightField.helpTip = "Informe a altura usada no layout vertical.";
 
-    var iconSpacingGrp = win.add("group");
+    // Espaçamento (Entre ícones)
+    var iconSpacingGrp = horizontalContainer.add("group");
     iconSpacingGrp.alignment = ["fill", "top"];
     iconSpacingGrp.spacing = 8;
     iconSpacingGrp.add("statictext", undefined, "Espaçamento dos ícones (px):").helpTip = "Controle a distância horizontal/vertical padrão entre os módulos.";
     var iconSpacingField = iconSpacingGrp.add("edittext", undefined, current.iconSpacing);
     iconSpacingField.characters = 4;
     iconSpacingField.helpTip = "Distância, em pixels, entre os ícones em layout normal.";
-    var iconSpacingSlider = win.add("slider", undefined, current.iconSpacing, 0, 60);
+    var iconSpacingSlider = horizontalContainer.add("slider", undefined, current.iconSpacing, 0, 60);
     iconSpacingSlider.alignment = ["fill", "top"];
     iconSpacingSlider.helpTip = "Arraste para ajustar rapidamente o espaçamento entre ícones.";
 
-    var labelSpacingGrp = win.add("group");
+    var verticalSpacingGrp = verticalContainer.add("group");
+    verticalSpacingGrp.alignment = ["fill", "top"];
+    verticalSpacingGrp.spacing = 8;
+    verticalSpacingGrp.add("statictext", undefined, "Espaçamento vertical (px):").helpTip = "Controle específico para o layout em coluna.";
+    var verticalSpacingField = verticalSpacingGrp.add("edittext", undefined, current.verticalIconSpacing);
+    verticalSpacingField.characters = 4;
+    verticalSpacingField.helpTip = "Distância entre módulos quando o painel está em modo vertical.";
+    var verticalSpacingSlider = verticalContainer.add("slider", undefined, current.verticalIconSpacing, 0, 60);
+    verticalSpacingSlider.alignment = ["fill", "top"];
+    verticalSpacingSlider.helpTip = "Arraste para ajustar o espaçamento da versão vertical.";
+
+    // Espaçamento (Ícone para Label)
+    var labelSpacingGrp = horizontalContainer.add("group");
     labelSpacingGrp.alignment = ["fill", "top"];
     labelSpacingGrp.spacing = 8;
     labelSpacingGrp.add("statictext", undefined, "Espaçamento do label (px):").helpTip = "Define a folga entre o ícone e o texto do módulo.";
     var labelSpacingField = labelSpacingGrp.add("edittext", undefined, current.labelSpacing);
     labelSpacingField.characters = 4;
     labelSpacingField.helpTip = "Distância, em pixels, entre ícone e legenda.";
-    var labelSpacingSlider = win.add("slider", undefined, current.labelSpacing, 0, 40);
+    var labelSpacingSlider = horizontalContainer.add("slider", undefined, current.labelSpacing, 0, 40);
     labelSpacingSlider.alignment = ["fill", "top"];
     labelSpacingSlider.helpTip = "Ajuste visual do respiro entre ícones e labels.";
 
-    var showLabelsGrp = win.add("group");
+    // Tamanho da fonte do label
+
+    // Checkbox (Mostrar Labels)
+    var showLabelsGrp = horizontalContainer.add("group");
     showLabelsGrp.alignment = ["fill", "top"];
     showLabelsGrp.alignChildren = ["left", "center"];
     showLabelsGrp.spacing = 6;
@@ -1385,23 +1979,37 @@ function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
     showLabelsCheckbox.helpTip = "Alterna a exibição dos nomes abaixo dos ícones quando houver espaço disponível.";
     try { setFgColor(showLabelsCheckbox, D9T_Theme.colors.textNormal); } catch (fgErr) {}
 
-    var iconOnlySpacingGrp = win.add("group");
+    // Espaçamento (Modo "Icon Only")
+    var iconOnlySpacingGrp = horizontalContainer.add("group");
     iconOnlySpacingGrp.alignment = ["fill", "top"];
     iconOnlySpacingGrp.spacing = 8;
     iconOnlySpacingGrp.add("statictext", undefined, "Espaçamento só ícones (px):").helpTip = "Define o espaçamento utilizado quando os labels estão ocultos.";
     var iconOnlySpacingField = iconOnlySpacingGrp.add("edittext", undefined, current.iconOnlySpacing);
     iconOnlySpacingField.characters = 4;
     iconOnlySpacingField.helpTip = "Valor em pixels para o layout compacto sem labels.";
-    var iconOnlySpacingSlider = win.add("slider", undefined, current.iconOnlySpacing, 0, 60);
+    var iconOnlySpacingSlider = horizontalContainer.add("slider", undefined, current.iconOnlySpacing, 0, 60);
     iconOnlySpacingSlider.alignment = ["fill", "top"];
     iconOnlySpacingSlider.helpTip = "Arraste para definir a distância entre ícones quando não há texto.";
 
+    setModeView("horizontal");
+    win.onShow = function () {
+        setModeView(activeModeKey);
+    };
+    modeDropdown.onChange = function () {
+        if (suppressModeEvent) { return; }
+        var key = (this.selection && this.selection.index === 1) ? "vertical" : "horizontal";
+        setModeView(key);
+    };
+
+    // --- 3. Painel de Configuração (Modo Compacto) ---
     var compactGrp = win.add("panel", undefined, "Modo compacto");
     compactGrp.alignment = ["fill", "top"];
     compactGrp.margins = [12, 16, 12, 12];
     compactGrp.orientation = "column";
     compactGrp.spacing = 6;
     compactGrp.helpTip = "Configurações aplicadas quando o painel entra em modo compacto.";
+    
+    // Tamanho Compacto
     var compactSizeGrp = compactGrp.add("group");
     compactSizeGrp.alignment = ["fill", "top"];
     compactSizeGrp.spacing = 8;
@@ -1412,6 +2020,8 @@ function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
     var compactHeightField = compactSizeGrp.add("edittext", undefined, current.compactIconSize[1]);
     compactHeightField.characters = 4;
     compactHeightField.helpTip = "Altura dos ícones no modo compacto.";
+    
+    // Espaçamento Compacto
     var compactSpacingGrp = compactGrp.add("group");
     compactSpacingGrp.alignment = ["fill", "top"];
     compactSpacingGrp.spacing = 8;
@@ -1423,6 +2033,9 @@ function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
     compactSpacingSlider.alignment = ["fill", "top"];
     compactSpacingSlider.helpTip = "Arraste para ajustar rapidamente o espaçamento do modo compacto.";
 
+    // --- 4. Presets e Botões de Ação ---
+    
+    // Presets (HD, 4K)
     var presetGrp = win.add("group");
     presetGrp.alignment = ["fill", "top"];
     presetGrp.spacing = 10;
@@ -1431,10 +2044,12 @@ function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
     hdBtn.helpTip = "Aplica um conjunto de valores ideal para telas 1080p.";
     kBtn.helpTip = "Aplica um conjunto de valores ideal para telas 4K.";
 
+    // Texto de ajuda
     var infoText = win.add("statictext", undefined, "Os valores são aplicados como preview automático.\nUse Aplicar para testar e Salvar para gravar nas preferências.", { multiline: true });
     infoText.maximumSize.width = 280;
     setFgColor(infoText, D9T_Theme.colors.textNormal);
 
+    // Botões (Resetar, Aplicar)
     var buttonsGrp = win.add("group");
     buttonsGrp.alignment = ["right", "top"];
     buttonsGrp.spacing = 10;
@@ -1443,6 +2058,7 @@ function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
     resetBtn.helpTip = "Restaura todos os parâmetros para os valores padrão.";
     applyBtn.helpTip = "Aplica as alterações e salva nas preferências.";
 
+    // Estiliza os botões
     function styleBtn(btn) {
         if (!btn) { return; }
         try { setBgColor(btn, D9T_Theme.colors.divider); } catch (err) {}
@@ -1451,18 +2067,21 @@ function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
             setCtrlHighlight(btn, D9T_Theme.colors.textNormal, D9T_Theme.colors.textHighlight);
         }
     }
-
     styleBtn(hdBtn);
     styleBtn(kBtn);
     styleBtn(resetBtn);
     styleBtn(applyBtn);
 
+    // --- 5. Funções Auxiliares e Eventos da Janela ---
+    
+    // Garante que o valor esteja dentro de um range
     function clamp(value, min, max, fallback) {
         var parsed = parseInt(value, 10);
         if (isNaN(parsed)) { parsed = fallback; }
         return Math.min(max, Math.max(min, parsed));
     }
 
+    // Sincroniza um slider com um valor (ajustando o max se necessário)
     function syncSliderValue(slider, value) {
         if (slider.maxvalue < value) {
             slider.maxvalue = value;
@@ -1470,6 +2089,7 @@ function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
         slider.value = value;
     }
 
+    // Define o valor do campo "Icon Only Spacing" e seu slider
     function setIconOnlySpacingUI(value, fallback) {
         var normalized = clamp(value, 0, 60, fallback);
         iconOnlySpacingField.text = normalized;
@@ -1477,28 +2097,58 @@ function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
         return normalized;
     }
 
+    function cloneSettings(settingsObj) {
+        if (!settingsObj) { return null; }
+        return {
+            iconSize: settingsObj.iconSize ? settingsObj.iconSize.slice(0) : [36, 36],
+            iconSpacing: settingsObj.iconSpacing,
+            verticalIconSize: settingsObj.verticalIconSize ? settingsObj.verticalIconSize.slice(0) : (settingsObj.iconSize ? settingsObj.iconSize.slice(0) : [36, 36]),
+            verticalIconSpacing: settingsObj.verticalIconSpacing,
+            labelSpacing: settingsObj.labelSpacing,
+            compactIconSize: settingsObj.compactIconSize ? settingsObj.compactIconSize.slice(0) : [28, 28],
+            compactIconSpacing: settingsObj.compactIconSpacing,
+            showLabels: settingsObj.showLabels !== false,
+            iconOnlySpacing: settingsObj.iconOnlySpacing
+        };
+    }
+
+    // Lê todos os campos da janela e retorna um objeto de configurações
     function readSettingsFromFields() {
         var width = clamp(widthField.text, 24, 96, current.iconSize[0]);
         var height = clamp(heightField.text, 24, 96, current.iconSize[1]);
         var iconSpacing = clamp(iconSpacingField.text, 0, 60, current.iconSpacing);
+        var verticalWidth = clamp(verticalWidthField.text, 24, 96, current.verticalIconSize[0]);
+        var verticalHeight = clamp(verticalHeightField.text, 24, 96, current.verticalIconSize[1]);
+        var verticalSpacing = clamp(verticalSpacingField.text, 0, 60, current.verticalIconSpacing);
         var labelSpacing = clamp(labelSpacingField.text, 0, 40, current.labelSpacing);
         var compactWidth = clamp(compactWidthField.text, 20, 64, current.compactIconSize[0]);
         var compactHeight = clamp(compactHeightField.text, 20, 64, current.compactIconSize[1]);
         var compactSpacing = clamp(compactSpacingField.text, 0, 80, current.compactIconSpacing);
         var iconOnlySpacing = setIconOnlySpacingUI(iconOnlySpacingField.text, current.iconOnlySpacing);
+        
+        // Atualiza os campos (caso o usuário tenha digitado valor fora do range)
         widthField.text = width;
         heightField.text = height;
         iconSpacingField.text = iconSpacing;
+        verticalWidthField.text = verticalWidth;
+        verticalHeightField.text = verticalHeight;
+        verticalSpacingField.text = verticalSpacing;
         labelSpacingField.text = labelSpacing;
         compactWidthField.text = compactWidth;
         compactHeightField.text = compactHeight;
         compactSpacingField.text = compactSpacing;
+        
+        // Sincroniza os sliders
         syncSliderValue(iconSpacingSlider, iconSpacing);
+        syncSliderValue(verticalSpacingSlider, verticalSpacing);
         syncSliderValue(labelSpacingSlider, labelSpacing);
         syncSliderValue(compactSpacingSlider, compactSpacing);
+        
         return {
             iconSize: [width, height],
             iconSpacing: iconSpacing,
+            verticalIconSize: [verticalWidth, verticalHeight],
+            verticalIconSpacing: verticalSpacing,
             labelSpacing: labelSpacing,
             compactIconSize: [compactWidth, compactHeight],
             compactIconSpacing: compactSpacing,
@@ -1507,23 +2157,36 @@ function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
         };
     }
 
+    // Aplica as configurações lidas (sem salvar)
     function applyPreview() {
         var settings = readSettingsFromFields();
         if (!settings) { return; }
         D9T_APPLY_ICON_SETTINGS(settings, { uiObj: uiObj });
+        pendingSettings = cloneSettings(settings);
+        settingsDirty = true;
     }
 
+    // Anexa eventos de "preview ao vivo"
     widthField.onChange = applyPreview;
     heightField.onChange = applyPreview;
     iconSpacingField.onChange = applyPreview;
+    verticalWidthField.onChange = applyPreview;
+    verticalHeightField.onChange = applyPreview;
+    verticalSpacingField.onChange = applyPreview;
     labelSpacingField.onChange = applyPreview;
     compactWidthField.onChange = applyPreview;
     compactHeightField.onChange = applyPreview;
     compactSpacingField.onChange = applyPreview;
     iconOnlySpacingField.onChange = applyPreview;
     showLabelsCheckbox.onClick = applyPreview;
+    
+    // Eventos dos sliders
     iconSpacingSlider.onChanging = function () {
         iconSpacingField.text = Math.round(this.value);
+        applyPreview();
+    };
+    verticalSpacingSlider.onChanging = function () {
+        verticalSpacingField.text = Math.round(this.value);
         applyPreview();
     };
     labelSpacingSlider.onChanging = function () {
@@ -1539,19 +2202,24 @@ function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
         applyPreview();
     };
 
+    // Eventos dos botões de Preset
     hdBtn.onClick = function () {
         widthField.text = 30;
         heightField.text = 30;
-        iconSpacingField.text = 12;
-        labelSpacingField.text = 8;
-        compactWidthField.text = 24;
-        compactHeightField.text = 24;
-        compactSpacingField.text = 8;
-        setIconOnlySpacingUI(10, current.iconOnlySpacing);
+        verticalWidthField.text = 30;
+        verticalHeightField.text = 30;
+        iconSpacingField.text = 1;
+        verticalSpacingField.text = 25;
+        labelSpacingField.text = 3;
+        compactWidthField.text = 28;
+        compactHeightField.text = 28;
+        compactSpacingField.text = 28;
+        setIconOnlySpacingUI(50, current.iconOnlySpacing);
         showLabelsCheckbox.value = true;
-        syncSliderValue(iconSpacingSlider, 12);
-        syncSliderValue(labelSpacingSlider, 8);
-        syncSliderValue(compactSpacingSlider, 8);
+        syncSliderValue(iconSpacingSlider, 1);
+        syncSliderValue(verticalSpacingSlider, 25);
+        syncSliderValue(labelSpacingSlider, 3);
+        syncSliderValue(compactSpacingSlider, 28);
         applyPreview();
     };
     kBtn.onClick = function () {
@@ -1570,6 +2238,7 @@ function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
         applyPreview();
     };
 
+    // Evento: Resetar (Restaura e Salva os padrões)
     resetBtn.onClick = function () {
         widthField.text = defaults.iconSize[0];
         heightField.text = defaults.iconSize[1];
@@ -1583,13 +2252,17 @@ function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
         syncSliderValue(iconSpacingSlider, defaults.iconSpacing);
         syncSliderValue(labelSpacingSlider, defaults.labelSpacing);
         syncSliderValue(compactSpacingSlider, defaults.compactIconSpacing);
+        
         var settings = readSettingsFromFields();
         if (settings) {
             D9T_APPLY_ICON_SETTINGS(settings, { uiObj: uiObj });
-            D9T_SAVE_ICON_SETTINGS(settings);
+            D9T_SAVE_ICON_SETTINGS(settings); // Salva
+            pendingSettings = null;
+            settingsDirty = false;
         }
     };
 
+    // Evento: Aplicar (Aplica e Salva)
     applyBtn.onClick = function () {
         var settings = readSettingsFromFields();
         if (!settings) {
@@ -1597,16 +2270,39 @@ function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
             return;
         }
         D9T_APPLY_ICON_SETTINGS(settings, { uiObj: uiObj });
-        D9T_SAVE_ICON_SETTINGS(settings);
+        D9T_SAVE_ICON_SETTINGS(settings); // Salva
+        pendingSettings = null;
+        settingsDirty = false;
     };
+    
+    win.onClose = function () {
+        if (settingsDirty && pendingSettings) {
+            D9T_APPLY_ICON_SETTINGS(pendingSettings, { uiObj: uiObj });
+            D9T_SAVE_ICON_SETTINGS(pendingSettings);
+            settingsDirty = false;
+            pendingSettings = null;
+        }
+    };
+
     win.show();
 }
+
+/**
+ * Obtém as configurações de ícone PADRÃO (do objeto defaultScriptPreferencesObj).
+ * @returns {Object}
+ */
 function D9T_GET_DEFAULT_ICON_SETTINGS() {
     var defaults = (defaultScriptPreferencesObj && defaultScriptPreferencesObj.uiSettings) ? defaultScriptPreferencesObj.uiSettings : null;
-    if (!defaults) { return { iconSize: [36, 36], iconSpacing: 20, labelSpacing: 8, compactIconSize: [28, 28], compactIconSpacing: 12, showLabels: true, iconOnlySpacing: 18 }; }
+    if (!defaults) { 
+        // Fallback rígido
+        return { iconSize: [36, 36], iconSpacing: 20, verticalIconSize: [36, 36], verticalIconSpacing: 20, labelSpacing: 8, compactIconSize: [28, 28], compactIconSpacing: 12, showLabels: true, iconOnlySpacing: 18 }; 
+    }
+    // Retorna uma cópia dos padrões
     return {
         iconSize: defaults.iconSize ? defaults.iconSize.slice(0) : [36, 36],
         iconSpacing: typeof defaults.iconSpacing === "number" ? defaults.iconSpacing : 20,
+        verticalIconSize: defaults.verticalIconSize ? defaults.verticalIconSize.slice(0) : (defaults.iconSize ? defaults.iconSize.slice(0) : [36, 36]),
+        verticalIconSpacing: typeof defaults.verticalIconSpacing === "number" ? defaults.verticalIconSpacing : (typeof defaults.iconSpacing === "number" ? defaults.iconSpacing : 20),
         labelSpacing: typeof defaults.labelSpacing === "number" ? defaults.labelSpacing : 8,
         compactIconSize: defaults.compactIconSize ? defaults.compactIconSize.slice(0) : [28, 28],
         compactIconSpacing: typeof defaults.compactIconSpacing === "number" ? defaults.compactIconSpacing : 12,
@@ -1615,39 +2311,516 @@ function D9T_GET_DEFAULT_ICON_SETTINGS() {
     };
 }
 
+/**
+ * Obtém as configurações de ícone ATUAIS (do scriptPreferencesObj) e as valida/limpa.
+ * @returns {Object}
+ */
 function D9T_GET_ICON_SETTINGS() {
     if (!scriptPreferencesObj.uiSettings) {
+        // Se não houver, define usando os padrões
         scriptPreferencesObj.uiSettings = D9T_GET_DEFAULT_ICON_SETTINGS();
     }
     var current = scriptPreferencesObj.uiSettings || {};
-    var size = current.iconSize ? current.iconSize.slice(0) : [36, 36];
-    if (size.length < 2) { size = [36, 36]; }
-    size[0] = Math.min(96, Math.max(24, parseInt(size[0], 10) || 36));
-    size[1] = Math.min(96, Math.max(24, parseInt(size[1], 10) || 36));
+    var defaults = D9T_GET_DEFAULT_ICON_SETTINGS(); // Pega os padrões para usar como fallback
+    
+    // Validação e limpeza de cada propriedade
+    var size = current.iconSize ? current.iconSize.slice(0) : defaults.iconSize.slice(0);
+    if (size.length < 2) { size = defaults.iconSize.slice(0); }
+    size[0] = Math.min(96, Math.max(24, parseInt(size[0], 10) || defaults.iconSize[0]));
+    size[1] = Math.min(96, Math.max(24, parseInt(size[1], 10) || defaults.iconSize[1]));
+    
     var spacing = current.iconSpacing;
-    if (typeof spacing !== "number" || isNaN(spacing)) { spacing = 20; }
+    if (typeof spacing !== "number" || isNaN(spacing)) { spacing = defaults.iconSpacing; }
     spacing = Math.min(60, Math.max(0, spacing));
+    
+    var verticalSize = current.verticalIconSize ? current.verticalIconSize.slice(0) : (defaults.verticalIconSize ? defaults.verticalIconSize.slice(0) : defaults.iconSize.slice(0));
+    var verticalDefaults = defaults.verticalIconSize ? defaults.verticalIconSize.slice(0) : defaults.iconSize.slice(0);
+    if (verticalSize.length < 2) { verticalSize = verticalDefaults.slice(0); }
+    verticalSize[0] = Math.min(96, Math.max(24, parseInt(verticalSize[0], 10) || verticalDefaults[0]));
+    verticalSize[1] = Math.min(96, Math.max(24, parseInt(verticalSize[1], 10) || verticalDefaults[1]));
+
+    var verticalSpacing = current.verticalIconSpacing;
+    if (typeof verticalSpacing !== "number" || isNaN(verticalSpacing)) { verticalSpacing = (typeof defaults.verticalIconSpacing === "number") ? defaults.verticalIconSpacing : defaults.iconSpacing; }
+    verticalSpacing = Math.min(60, Math.max(0, verticalSpacing));
+    
     var labelSpacing = current.labelSpacing;
-    if (typeof labelSpacing !== "number" || isNaN(labelSpacing)) { labelSpacing = 8; }
+    if (typeof labelSpacing !== "number" || isNaN(labelSpacing)) { labelSpacing = defaults.labelSpacing; }
     labelSpacing = Math.min(60, Math.max(0, labelSpacing));
-    var compactSize = current.compactIconSize ? current.compactIconSize.slice(0) : [28, 28];
-    if (compactSize.length < 2) { compactSize = [28, 28]; }
-    compactSize[0] = Math.min(64, Math.max(20, parseInt(compactSize[0], 10) || 28));
-    compactSize[1] = Math.min(64, Math.max(20, parseInt(compactSize[1], 10) || 28));
+    
+    
+    var compactSize = current.compactIconSize ? current.compactIconSize.slice(0) : defaults.compactIconSize.slice(0);
+    if (compactSize.length < 2) { compactSize = defaults.compactIconSize.slice(0); }
+    compactSize[0] = Math.min(64, Math.max(20, parseInt(compactSize[0], 10) || defaults.compactIconSize[0]));
+    compactSize[1] = Math.min(64, Math.max(20, parseInt(compactSize[1], 10) || defaults.compactIconSize[1]));
+    
     var compactSpacing = current.compactIconSpacing;
-    if (typeof compactSpacing !== "number" || isNaN(compactSpacing)) { compactSpacing = 12; }
+    if (typeof compactSpacing !== "number" || isNaN(compactSpacing)) { compactSpacing = defaults.compactIconSpacing; }
     compactSpacing = Math.max(0, compactSpacing);
+    
     var showLabels = current.showLabels;
-    if (typeof showLabels !== "boolean") { showLabels = true; }
+    if (typeof showLabels !== "boolean") { showLabels = defaults.showLabels; }
+    
     var iconOnlySpacing = current.iconOnlySpacing;
-    if (typeof iconOnlySpacing !== "number" || isNaN(iconOnlySpacing)) { iconOnlySpacing = 18; }
+    if (typeof iconOnlySpacing !== "number" || isNaN(iconOnlySpacing)) { iconOnlySpacing = defaults.iconOnlySpacing; }
     iconOnlySpacing = Math.min(60, Math.max(0, iconOnlySpacing));
-    return { iconSize: size, iconSpacing: spacing, labelSpacing: labelSpacing, compactIconSize: compactSize, compactIconSpacing: compactSpacing, showLabels: showLabels, iconOnlySpacing: iconOnlySpacing };
+    
+    return {
+        iconSize: size,
+        iconSpacing: spacing,
+        verticalIconSize: verticalSize,
+        verticalIconSpacing: verticalSpacing,
+        labelSpacing: labelSpacing,
+        compactIconSize: compactSize,
+        compactIconSpacing: compactSpacing,
+        showLabels: showLabels,
+        iconOnlySpacing: iconOnlySpacing
+    };
+}
+
+/**
+ * Aplica as configurações de ícone ao objeto D9T_Theme e redesenha a UI.
+ * @param {Object} settings - O objeto de configurações (vindo de D9T_GET_ICON_SETTINGS ou readSettingsFromFields).
+ * @param {Object} options - Opções (deferLayout, uiObj, etc.).
+ */
+function D9T_OPEN_BUTTON_THEME_WINDOW(uiObj) {
+    uiObj = uiObj || D9T_ui;
+    if (!scriptPreferencesObj.uiSettings) { scriptPreferencesObj.uiSettings = {}; }
+    if (!(scriptPreferencesObj.uiSettings.buttonThemes instanceof Array) || !scriptPreferencesObj.uiSettings.buttonThemes.length) {
+        scriptPreferencesObj.uiSettings.buttonThemes = JSON.parse(JSON.stringify(defaultScriptPreferencesObj.uiSettings.buttonThemes || []));
+    }
+    var win = new Window("palette", "Tema dos botoes");
+    win.orientation = "column";
+    win.alignChildren = "fill";
+    win.margins = 18;
+    win.spacing = 10;
+    try { setBgColor(win, bgColor1); } catch (bgErr) {}
+    var desc = win.add("statictext", undefined, "Ajuste largura, altura, cores e arredondamento dos presets reutilizaveis.");
+    desc.maximumSize.width = 320;
+    setFgColor(desc, D9T_Theme.colors.textNormal);
+    var dropdownRow = win.add("group");
+    dropdownRow.alignment = ["fill", "top"];
+    dropdownRow.spacing = 8;
+    var dropdownLabel = dropdownRow.add("statictext", undefined, "Preset disponível:");
+    try { setFgColor(dropdownLabel, D9T_Theme.colors.textNormal); } catch (presetErr) {}
+    var dropdown = dropdownRow.add("dropdownlist", undefined, []);
+    dropdown.alignment = ["fill", "center"];
+    var activeInfo = win.add("statictext", undefined, "");
+    setFgColor(activeInfo, D9T_Theme.colors.mono1);
+    var formGrp = win.add("group");
+    formGrp.orientation = "column";
+    formGrp.alignChildren = ["fill", "top"];
+    formGrp.spacing = 6;
+    var fieldMap = {};
+    var previewPanel = null;
+    var previewNormalWrapper = null;
+    var previewHoverWrapper = null;
+    var previewInfo = null;
+    function updateDropdownSelectionLabel(nameText) {
+        if (!dropdown || !dropdown.selection) { return; }
+        var labelTxt = nameText && nameText.length ? nameText : dropdown.selection.themeId;
+        dropdown.selection.text = labelTxt + " (" + dropdown.selection.themeId + ")";
+    }
+    function createTextField(key, label, chars, parent) {
+        var target = parent || formGrp;
+        var row = target.add("group");
+        row.alignment = ["fill", "top"];
+        row.spacing = 8;
+        var lab = row.add("statictext", undefined, label);
+        lab.preferredSize = [150, 20];
+        try { setFgColor(lab, D9T_Theme.colors.textNormal); } catch (fgErr) {}
+        var field = row.add("edittext", undefined, "");
+        field.characters = chars || 10;
+        field.alignment = ["fill", "center"];
+        field.onChanging = function () {
+            requestPreviewRefresh();
+            if (key === "name") { updateDropdownSelectionLabel(this.text); }
+        };
+        field.onChange = function () {
+            requestPreviewRefresh();
+            if (key === "name") { updateDropdownSelectionLabel(this.text); }
+        };
+        fieldMap[key] = field;
+        return field;
+    }
+    function bindSliderToField(field, slider, minValue, maxValue) {
+        if (!field || !slider) { return; }
+        function clamp(val) {
+            if (isNaN(val)) { return minValue; }
+            return Math.max(minValue, Math.min(maxValue, val));
+        }
+        slider.minvalue = minValue;
+        slider.maxvalue = maxValue;
+        slider.value = minValue;
+        slider.onChanging = function () {
+            var val = Math.round(this.value);
+            field.text = val;
+            requestPreviewRefresh();
+        };
+        slider.onChange = slider.onChanging;
+        function syncSliderFromField(commit) {
+            var parsed = parseInt(field.text, 10);
+            if (isNaN(parsed)) {
+                if (commit) {
+                    var fallback = clamp(slider.value);
+                    field.text = String(fallback);
+                }
+                requestPreviewRefresh();
+                return;
+            }
+            if (parsed >= minValue && parsed <= maxValue) {
+                slider.value = parsed;
+                if (commit) { field.text = String(parsed); }
+            } else if (parsed > maxValue) {
+                slider.value = maxValue;
+                if (commit) { field.text = String(maxValue); }
+            } else if (commit) {
+                slider.value = minValue;
+                field.text = String(minValue);
+            }
+            requestPreviewRefresh();
+        }
+        field.onChanging = function () { syncSliderFromField(false); };
+        field.onChange = function () { syncSliderFromField(true); };
+        field.__slider = slider;
+    }
+    function createNumericField(key, label, minValue, maxValue, parent) {
+        var target = parent || formGrp;
+        var row = target.add("group");
+        row.alignment = ["fill", "top"];
+        row.spacing = 8;
+        var lab = row.add("statictext", undefined, label);
+        lab.preferredSize = [150, 20];
+        try { setFgColor(lab, D9T_Theme.colors.textNormal); } catch (fgErr) {}
+        var slider = row.add("slider", undefined, minValue, minValue, maxValue);
+        slider.preferredSize = [150, 16];
+        var field = row.add("edittext", undefined, "");
+        field.characters = 6;
+        field.preferredSize = [56, 20];
+        bindSliderToField(field, slider, minValue, maxValue);
+        fieldMap[key] = field;
+        return field;
+    }
+    function updateColorPreview(field, fallback) {
+        if (!field || !field.__swatch) { return; }
+        var sanitized = D9T_sanitizeHexColor(field.text, null);
+        var colorToUse = sanitized || fallback || "#2E343B";
+        try { setBgColor(field.__swatch, colorToUse); } catch (swErr) {}
+    }
+    function attachColorPicker(field) {
+        if (!field) { return; }
+        var handler = function () {
+            var selected = D9T_PICK_COLOR(field.text);
+            if (selected) {
+                field.text = selected.toUpperCase();
+                updateColorPreview(field);
+                requestPreviewRefresh();
+            }
+        };
+        field.__pickColor = handler;
+        return handler;
+    }
+    function createColorField(key, label, parent) {
+        var target = parent || formGrp;
+        var row = target.add("group");
+        row.alignment = ["fill", "top"];
+        row.spacing = 8;
+        var lab = row.add("statictext", undefined, label);
+        lab.preferredSize = [150, 20];
+        try { setFgColor(lab, D9T_Theme.colors.textNormal); } catch (fgErr) {}
+        var field = row.add("edittext", undefined, "");
+        field.characters = 10;
+        field.alignment = ["fill", "center"];
+        var swatch = row.add("panel");
+        swatch.preferredSize = [32, 18];
+        swatch.helpTip = "Clique para escolher uma cor";
+        field.__swatch = swatch;
+        var pickerHandler = attachColorPicker(field);
+        swatch.addEventListener("click", pickerHandler);
+        field.onChanging = function () { updateColorPreview(field); requestPreviewRefresh(); };
+        field.onChange = function () { updateColorPreview(field); requestPreviewRefresh(); };
+        updateColorPreview(field);
+        fieldMap[key] = field;
+        return field;
+    }
+    function createTransformField(key, label, parent) {
+        var target = parent || formGrp;
+        var row = target.add("group");
+        row.alignment = ["fill", "top"];
+        row.spacing = 8;
+        var lab = row.add("statictext", undefined, label);
+        lab.preferredSize = [150, 20];
+        try { setFgColor(lab, D9T_Theme.colors.textNormal); } catch (fgErr) {}
+        var dropdown = row.add("dropdownlist", undefined, []);
+        dropdown.alignment = ["fill", "center"];
+        var options = [
+            { label: "Manter texto original", value: "none" },
+            { label: "Forçar MAIÚSCULAS", value: "uppercase" },
+            { label: "Forçar minúsculas", value: "lowercase" }
+        ];
+        dropdown.__values = [];
+        for (var i = 0; i < options.length; i++) {
+            var item = dropdown.add("item", options[i].label);
+            dropdown.__values.push(options[i].value);
+        }
+        dropdown.selection = dropdown.items[0];
+        dropdown.onChange = function () { requestPreviewRefresh(); };
+        fieldMap[key] = dropdown;
+        return dropdown;
+    }
+    function createSectionPanel(title, subtitle) {
+        var panel = formGrp.add("panel", undefined, title);
+        panel.orientation = "column";
+        panel.alignChildren = ["fill", "top"];
+        panel.margins = [12, 18, 12, 10];
+        panel.spacing = 6;
+        try { setBgColor(panel, bgColor2); } catch (panelErr) {}
+        if (subtitle && subtitle.length) {
+            var infoTxt = panel.add("statictext", undefined, subtitle, { multiline: true });
+            infoTxt.alignment = ["fill", "top"];
+            try { setFgColor(infoTxt, D9T_Theme.colors.mono1); } catch (infoErr) {}
+        }
+        return panel;
+    }
+    function setDropdownValue(dropdown, value) {
+        if (!dropdown || !dropdown.__values) { return; }
+        var normalized = (value || "none").toLowerCase();
+        for (var i = 0; i < dropdown.items.length; i++) {
+            if (dropdown.__values[i] === normalized) {
+                dropdown.selection = dropdown.items[i];
+                return;
+            }
+        }
+        dropdown.selection = dropdown.items[0];
+    }
+    var identityPanel = createSectionPanel("Identificação", "Escolha um nome amigável para localizar o preset rapidamente.");
+    createTextField("name", "Nome do preset", 18, identityPanel);
+
+    var sizePanel = createSectionPanel("Dimensões e alinhamento", "Ajuste o tamanho geral e os offsets finos do texto.");
+    createNumericField("width", "Largura (px)", 40, 250, sizePanel);
+    createNumericField("height", "Altura (px)", 24, 120, sizePanel);
+    createNumericField("cornerRadius", "Arredondamento", 0, 120, sizePanel);
+    createNumericField("labelOffset", "Ajuste vertical (px)", -40, 40, sizePanel);
+    createNumericField("labelOffsetX", "Ajuste horizontal (px)", -80, 80, sizePanel);
+
+    var textPanel = createSectionPanel("Tipografia", "Controle tamanho da fonte e transformação automática.");
+    createNumericField("labelFontSize", "Fonte (px)", 8, 48, textPanel);
+    createTransformField("textTransform", "Texto (formatação)", textPanel);
+
+    var colorPanel = createSectionPanel("Cores", "Defina as tonalidades para os estados normal e hover.");
+    createColorField("background", "Cor base (#HEX)", colorPanel);
+    createColorField("hoverBackground", "Cor hover (#HEX)", colorPanel);
+    createColorField("textColor", "Texto base (#HEX)", colorPanel);
+    createColorField("hoverTextColor", "Texto hover (#HEX)", colorPanel);
+    previewPanel = win.add("panel", undefined, "Pr\u00e9-visualizaç\u00e3o");
+    previewPanel.alignChildren = ["fill", "top"];
+    previewPanel.spacing = 6;
+    var previewButtonsGrp = previewPanel.add("group");
+    previewButtonsGrp.orientation = "row";
+    previewButtonsGrp.alignChildren = ["center", "center"];
+    previewButtonsGrp.spacing = 10;
+    function createPreviewButton(parent, label) {
+        if (typeof themeButton === "function") {
+            var wrapper = new themeButton(parent, { labelTxt: label });
+            if (wrapper && wrapper.label) { wrapper.label.enabled = false; }
+            return wrapper;
+        }
+        var fallback = { label: parent.add("button", undefined, label) };
+        fallback.label.enabled = false;
+        return fallback;
+    }
+    previewNormalWrapper = createPreviewButton(previewButtonsGrp, "Exemplo normal");
+    previewHoverWrapper = createPreviewButton(previewButtonsGrp, "Exemplo hover");
+    previewInfo = previewPanel.add("statictext", undefined, "", { multiline: true });
+    previewInfo.alignment = ["fill", "top"];
+    try { setFgColor(previewInfo, D9T_Theme.colors.mono1); } catch (infoErr) {}
+    var buttonRow = win.add("group");
+    buttonRow.alignment = ["fill", "top"];
+    buttonRow.spacing = 8;
+    buttonRow.alignChildren = ["fill", "center"];
+    var leftBtnGroup = buttonRow.add("group");
+    leftBtnGroup.alignment = ["left", "center"];
+    leftBtnGroup.spacing = 6;
+    var saveBtn = leftBtnGroup.add("button", undefined, "Salvar");
+    var useBtn = leftBtnGroup.add("button", undefined, "Aplicar preset");
+    var closeBtn = buttonRow.add("button", undefined, "Fechar");
+    closeBtn.alignment = ["right", "center"];
+    function getThemeById(id) {
+        if (!id) { return null; }
+        var list = D9T_getButtonThemeList();
+        var idxTheme = D9T_findButtonThemeIndex(id);
+        return (idxTheme > -1) ? list[idxTheme] : null;
+    }
+    function updateActiveInfo() {
+        var activeId = scriptPreferencesObj.uiSettings.activeButtonTheme;
+        if (!activeId) {
+            activeInfo.text = "Preset ativo: nenhum";
+            return;
+        }
+        var active = getThemeById(activeId);
+        if (active) {
+            activeInfo.text = "Preset ativo: " + active.name + " (" + active.id + ")";
+        } else {
+            activeInfo.text = "Preset ativo: " + activeId;
+        }
+    }
+    function populateDropdown(selectedId) {
+        var list = D9T_getButtonThemeList();
+        dropdown.removeAll();
+        for (var i = 0; i < list.length; i++) {
+            var label = list[i].name + " (" + list[i].id + ")";
+            var item = dropdown.add("item", label);
+            item.themeId = list[i].id;
+            if (selectedId && selectedId === list[i].id) {
+                dropdown.selection = item;
+            }
+        }
+        if (!dropdown.selection && dropdown.items.length) {
+            dropdown.selection = dropdown.items[0];
+        }
+        updateActiveInfo();
+        loadThemeFromSelection();
+    }
+    function loadThemeFromSelection() {
+        if (!dropdown.selection) { return; }
+        var theme = getThemeById(dropdown.selection.themeId);
+        if (!theme) { return; }
+        var clean = D9T_sanitizeButtonTheme(theme);
+        fieldMap.name.text = clean.name || "";
+        updateDropdownSelectionLabel(fieldMap.name.text);
+        fieldMap.width.text = String(clean.width || "");
+        if (fieldMap.width.__slider) { fieldMap.width.__slider.value = clean.width; }
+        fieldMap.height.text = String(clean.height || "");
+        if (fieldMap.height.__slider) { fieldMap.height.__slider.value = clean.height; }
+        fieldMap.cornerRadius.text = String(clean.cornerRadius || "");
+        if (fieldMap.cornerRadius.__slider) { fieldMap.cornerRadius.__slider.value = clean.cornerRadius; }
+        fieldMap.labelOffset.text = String(clean.labelOffset || "0");
+        if (fieldMap.labelOffset.__slider) { fieldMap.labelOffset.__slider.value = clean.labelOffset; }
+        if (fieldMap.labelOffsetX) {
+            fieldMap.labelOffsetX.text = String(clean.labelOffsetX || "0");
+            if (fieldMap.labelOffsetX.__slider) { fieldMap.labelOffsetX.__slider.value = clean.labelOffsetX; }
+        }
+        fieldMap.labelFontSize.text = String(clean.labelFontSize || "");
+        if (fieldMap.labelFontSize.__slider) { fieldMap.labelFontSize.__slider.value = clean.labelFontSize; }
+        fieldMap.background.text = clean.background;
+        updateColorPreview(fieldMap.background, clean.background);
+        fieldMap.hoverBackground.text = clean.hoverBackground;
+        updateColorPreview(fieldMap.hoverBackground, clean.hoverBackground);
+        fieldMap.textColor.text = clean.textColor;
+        updateColorPreview(fieldMap.textColor, clean.textColor);
+        fieldMap.hoverTextColor.text = clean.hoverTextColor;
+        updateColorPreview(fieldMap.hoverTextColor, clean.hoverTextColor);
+        setDropdownValue(fieldMap.textTransform, clean.textTransform || "none");
+        requestPreviewRefresh();
+    }
+    function collectThemeFromFields() {
+        if (!dropdown.selection) { return null; }
+        var data = {
+            id: dropdown.selection.themeId,
+            name: fieldMap.name.text,
+            width: fieldMap.width.text,
+            height: fieldMap.height.text,
+            cornerRadius: fieldMap.cornerRadius.text,
+            labelOffset: fieldMap.labelOffset.text,
+            labelOffsetX: fieldMap.labelOffsetX ? fieldMap.labelOffsetX.text : 0,
+            labelFontSize: fieldMap.labelFontSize.text,
+            background: fieldMap.background.text,
+            hoverBackground: fieldMap.hoverBackground.text,
+            textColor: fieldMap.textColor.text,
+            hoverTextColor: fieldMap.hoverTextColor.text,
+            textTransform: (function () {
+                if (!fieldMap.textTransform || !fieldMap.textTransform.__values) { return "none"; }
+                var sel = fieldMap.textTransform.selection;
+                if (!sel) { return "none"; }
+                var idx = (typeof sel.index === "number") ? sel.index : -1;
+                if (idx === -1) {
+                    for (var ti = 0; ti < fieldMap.textTransform.items.length; ti++) {
+                        if (fieldMap.textTransform.items[ti] === sel) { idx = ti; break; }
+                    }
+                }
+                if (idx < 0) { idx = 0; }
+                return fieldMap.textTransform.__values[idx] || "none";
+            })()
+        };
+        return D9T_sanitizeButtonTheme(data);
+    }
+    function persistTheme(themeData) {
+        if (!scriptPreferencesObj.uiSettings.buttonThemes) {
+            scriptPreferencesObj.uiSettings.buttonThemes = [];
+        }
+        var idxTheme = D9T_findButtonThemeIndex(themeData.id);
+        if (idxTheme > -1) {
+            scriptPreferencesObj.uiSettings.buttonThemes[idxTheme] = themeData;
+        } else {
+            scriptPreferencesObj.uiSettings.buttonThemes.push(themeData);
+        }
+        if (scriptPreferencesObj.uiSettings.activeButtonTheme === themeData.id) {
+            D9T_applyActiveButtonTheme(false);
+        }
+        D9T_COMMIT_PREFERENCES();
+        populateDropdown(themeData.id);
+    }
+    function applyPreviewTheme(themeData) {
+        if (!themeData) { return; }
+        var clean = D9T_sanitizeButtonTheme(themeData);
+        if (previewNormalWrapper && previewNormalWrapper.label) {
+            var normalCtrl = previewNormalWrapper.label;
+            normalCtrl.__buttonThemeOverrides = {};
+            normalCtrl.__buttonBaseText = "Exemplo normal";
+            normalCtrl.__buttonHover = false;
+            normalCtrl.__buttonActive = false;
+            D9T_applyThemeToButtonControl(normalCtrl, clean);
+        }
+        if (previewHoverWrapper && previewHoverWrapper.label) {
+            var hoverCtrl = previewHoverWrapper.label;
+            hoverCtrl.__buttonThemeOverrides = {};
+            hoverCtrl.__buttonBaseText = "Hover ativo";
+            hoverCtrl.__buttonHover = true;
+            hoverCtrl.__buttonActive = false;
+            D9T_applyThemeToButtonControl(hoverCtrl, clean);
+        }
+        if (previewInfo) {
+            var transformLabel = (clean.textTransform === "uppercase") ? "MAIÚSCULAS" : (clean.textTransform === "lowercase" ? "minúsculas" : "original");
+            previewInfo.text = "Largura: " + clean.width + " | Altura: " + clean.height + " | Canto: " + clean.cornerRadius + "\nFonte: " + clean.labelFontSize + "px | Texto: " + transformLabel + " | Offset V/H: " + clean.labelOffset + "px / " + clean.labelOffsetX + "px";
+        }
+        try { if (previewPanel) { previewPanel.layout.layout(true); } } catch (layoutErr) {}
+        if (dropdown.selection && scriptPreferencesObj && scriptPreferencesObj.uiSettings) {
+            if (dropdown.selection.themeId === scriptPreferencesObj.uiSettings.activeButtonTheme) {
+                D9T_previewThemeOnTargets(clean);
+            }
+        }
+    }
+    function requestPreviewRefresh() {
+        var snapshot = collectThemeFromFields();
+        if (!snapshot) { return; }
+        applyPreviewTheme(snapshot);
+    }
+    dropdown.onChange = loadThemeFromSelection;
+    saveBtn.onClick = function () {
+        var themeData = collectThemeFromFields();
+        if (!themeData) { return; }
+        persistTheme(themeData);
+    };
+    useBtn.onClick = function () {
+        if (!dropdown.selection) { return; }
+        scriptPreferencesObj.uiSettings.activeButtonTheme = dropdown.selection.themeId;
+        D9T_applyActiveButtonTheme(true);
+        updateActiveInfo();
+    };
+    closeBtn.onClick = function () {
+        try { win.close(); } catch (closeErr) {}
+    };
+    populateDropdown(scriptPreferencesObj.uiSettings.activeButtonTheme);
+    try { win.layout.layout(true); } catch (layoutErr) {}
+    try { win.center(); } catch (centerErr) {}
+    D9T_LOCK_WINDOW(win);
+    win.show();
 }
 
 function D9T_APPLY_ICON_SETTINGS(settings, options) {
     settings = settings || D9T_GET_ICON_SETTINGS();
     options = options || {};
+    
+    // Sanitiza os valores (mesmo já tendo sido limpos, é uma segurança)
     var size = settings.iconSize ? settings.iconSize.slice(0) : [36, 36];
     var spacing = typeof settings.iconSpacing === "number" ? settings.iconSpacing : 20;
     var compactSize = settings.compactIconSize ? settings.compactIconSize.slice(0) : [28, 28];
@@ -1655,15 +2828,25 @@ function D9T_APPLY_ICON_SETTINGS(settings, options) {
     var labelSpacing = typeof settings.labelSpacing === "number" ? settings.labelSpacing : 8;
     var showLabels = settings.showLabels !== false;
     var iconOnlySpacing = typeof settings.iconOnlySpacing === "number" ? settings.iconOnlySpacing : Math.max(4, Math.round(Math.max(0, spacing) * 0.7));
+    var verticalSize = settings.verticalIconSize ? settings.verticalIconSize.slice(0) : size.slice(0);
+    var verticalSpacing = typeof settings.verticalIconSpacing === "number" ? settings.verticalIconSpacing : spacing;
+    
+    // Atualiza o objeto D9T_Theme.layout (usado por D9T_LAYOUT)
     D9T_Theme.layout.iconSize = size.slice(0);
+    D9T_Theme.layout.iconSizeVertical = verticalSize.slice(0);
     D9T_Theme.layout.iconSizeCompact = compactSize.slice(0);
     D9T_Theme.layout.iconSpacingNormal = spacing;
+    D9T_Theme.layout.iconSpacingVertical = verticalSpacing;
     D9T_Theme.layout.iconSpacingCompact = Math.max(2, compactSpacing);
     D9T_Theme.layout.labelSpacing = labelSpacing;
     D9T_Theme.layout.showLabels = showLabels;
     D9T_Theme.layout.iconOnlySpacing = Math.max(0, iconOnlySpacing);
-    if (options.deferLayout) { return; }
+    
+    if (options.deferLayout) { return; } // Usado na inicialização (D9T_BUILD_UI)
+    
     var targetUI = options.uiObj || D9T_ui;
+    
+    // Aplica o tamanho do ícone diretamente às imagens (preview ao vivo)
     if (targetUI && targetUI.imageButtonArray && targetUI.imageButtonArray.length) {
         for (var i = 0; i < targetUI.imageButtonArray.length; i++) {
             var ctrl = targetUI.imageButtonArray[i];
@@ -1673,36 +2856,47 @@ function D9T_APPLY_ICON_SETTINGS(settings, options) {
             } catch (err) {}
         }
     }
+    
+    // Redesenha a UI
     if (targetUI && targetUI.window) {
         if (options.refresh !== false) {
             targetUI.window.layout.layout(true);
         }
         if (options.forceLayout !== false && typeof D9T_LAYOUT === "function") {
-            D9T_LAYOUT(targetUI);
+            D9T_LAYOUT(targetUI); // Força o recalculo do layout responsivo
         }
     }
 }
 
+/**
+ * Salva as configurações de ícone no objeto scriptPreferencesObj e chama saveScriptPreferences().
+ * @param {Object} settings - O objeto de configurações validado.
+ */
 function D9T_SAVE_ICON_SETTINGS(settings) {
+    // Garante que apenas dados limpos sejam salvos
     var safe = {
         iconSize: settings.iconSize ? settings.iconSize.slice(0) : [36, 36],
         iconSpacing: settings.iconSpacing,
+        verticalIconSize: settings.verticalIconSize ? settings.verticalIconSize.slice(0) : (settings.iconSize ? settings.iconSize.slice(0) : [36, 36]),
+        verticalIconSpacing: typeof settings.verticalIconSpacing === "number" ? settings.verticalIconSpacing : settings.iconSpacing,
         labelSpacing: settings.labelSpacing,
         compactIconSize: settings.compactIconSize ? settings.compactIconSize.slice(0) : [28, 28],
         compactIconSpacing: settings.compactIconSpacing,
         showLabels: settings.showLabels !== false,
         iconOnlySpacing: typeof settings.iconOnlySpacing === "number" ? settings.iconOnlySpacing : 18
     };
+    
     scriptPreferencesObj.uiSettings = safe;
-    if (typeof saveScriptPreferences === "function") {
-        saveScriptPreferences();
-    }
+    
+    D9T_COMMIT_PREFERENCES();
 }
 
+// Atalho para abrir a janela de ícones (não usado)
 function D9T_ADJUST_ICON_SCALE(uiObj) {
     D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj);
 }
 
+// Atalho para definir o tamanho do ícone (não usado)
 function D9T_SET_ICON_SCALE(uiObj, size) {
     var current = D9T_GET_ICON_SETTINGS();
     current.iconSize = size.slice(0);
@@ -1710,150 +2904,470 @@ function D9T_SET_ICON_SCALE(uiObj, size) {
     D9T_SAVE_ICON_SETTINGS(current);
 }
 
+var BUTTON_THEME_TARGETS = [];
+
+function D9T_getButtonThemeList() {
+    if (!scriptPreferencesObj || !scriptPreferencesObj.uiSettings) { return []; }
+    return scriptPreferencesObj.uiSettings.buttonThemes || [];
+}
+
+function D9T_findButtonThemeIndex(id) {
+    var list = D9T_getButtonThemeList();
+    for (var i = 0; i < list.length; i++) {
+        if (list[i] && list[i].id === id) { return i; }
+    }
+    return -1;
+}
+
+function D9T_getDefaultButtonTheme(id) {
+    if (!defaultScriptPreferencesObj || !defaultScriptPreferencesObj.uiSettings) { return null; }
+    var defaults = defaultScriptPreferencesObj.uiSettings.buttonThemes;
+    if (!(defaults instanceof Array)) { return null; }
+    for (var i = 0; i < defaults.length; i++) {
+        if (defaults[i] && defaults[i].id === id) {
+            return JSON.parse(JSON.stringify(defaults[i]));
+        }
+    }
+    return null;
+}
+
+function D9T_sanitizeHexColor(value, fallback) {
+    if (typeof value !== "string") { return fallback; }
+    var cleaned = value.replace(/[^0-9a-fA-F]/g, "");
+    if (cleaned.length === 3) {
+        cleaned = cleaned[0] + cleaned[0] + cleaned[1] + cleaned[1] + cleaned[2] + cleaned[2];
+    }
+    if (cleaned.length !== 6) { return fallback; }
+    return ("#" + cleaned).toUpperCase();
+}
+
+function D9T_sanitizeButtonTheme(theme) {
+    if (!theme) { return null; }
+    var sanitized = {};
+    sanitized.id = theme.id || ("theme_" + new Date().getTime());
+    sanitized.name = theme.name || "Personalizado";
+    sanitized.width = Math.max(40, Math.min(250, parseInt(theme.width, 10) || 120));
+    sanitized.height = Math.max(24, Math.min(120, parseInt(theme.height, 10) || 36));
+    sanitized.cornerRadius = Math.max(0, Math.min(50, parseInt(theme.cornerRadius, 10) || Math.round(sanitized.height / 2)));
+    sanitized.background = D9T_sanitizeHexColor(theme.background, "#2E343B");
+    sanitized.hoverBackground = D9T_sanitizeHexColor(theme.hoverBackground, "#4E5560");
+    sanitized.textColor = D9T_sanitizeHexColor(theme.textColor || "#FFFFFF", "#FFFFFF");
+    sanitized.hoverTextColor = D9T_sanitizeHexColor(theme.hoverTextColor || theme.textColor || "#FFFFFF", "#FFFFFF");
+    sanitized.labelOffset = Math.max(-40, Math.min(40, parseInt(theme.labelOffset, 10) || 0));
+    sanitized.labelOffsetX = Math.max(-80, Math.min(80, parseInt(theme.labelOffsetX, 10) || 0));
+    var parsedFont = parseInt(theme.labelFontSize, 10);
+    if (isNaN(parsedFont) || parsedFont <= 0) {
+        sanitized.labelFontSize = Math.max(8, Math.min(40, Math.round(sanitized.height * 0.42)));
+    } else {
+        sanitized.labelFontSize = Math.max(8, Math.min(60, parsedFont));
+    }
+    var transform = (theme.textTransform || "none").toString().toLowerCase();
+    if (transform !== "uppercase" && transform !== "lowercase") { transform = "none"; }
+    sanitized.textTransform = transform;
+    return sanitized;
+}
+
+function D9T_getActiveButtonTheme() {
+    var themes = D9T_getButtonThemeList();
+    if (!themes.length) { return D9T_sanitizeButtonTheme(D9T_getDefaultButtonTheme("classic")); }
+    var activeId = (scriptPreferencesObj && scriptPreferencesObj.uiSettings) ? scriptPreferencesObj.uiSettings.activeButtonTheme : null;
+    var activeTheme = null;
+    if (activeId) {
+        var idx = D9T_findButtonThemeIndex(activeId);
+        if (idx > -1) { activeTheme = themes[idx]; }
+    }
+    if (!activeTheme) { activeTheme = themes[0]; }
+    return D9T_sanitizeButtonTheme(activeTheme);
+}
+
+function D9T_applyActiveButtonTheme(savePrefs) {
+    var theme = D9T_getActiveButtonTheme();
+    if (!theme) { return; }
+    D9T_Theme.buttonTheme = theme;
+    D9T_refreshRegisteredThemeButtons();
+    if (savePrefs === true) {
+        D9T_COMMIT_PREFERENCES();
+    }
+}
+
+function D9T_registerThemeButton(control) {
+    if (!control) { return; }
+    if (!control.__buttonThemeRegistered) {
+        BUTTON_THEME_TARGETS.push(control);
+        control.__buttonThemeRegistered = true;
+    }
+    D9T_applyThemeToButtonControl(control, D9T_getActiveButtonTheme());
+}
+
+function D9T_refreshRegisteredThemeButtons() {
+    var theme = D9T_getActiveButtonTheme();
+    for (var i = BUTTON_THEME_TARGETS.length - 1; i >= 0; i--) {
+        var ctrl = BUTTON_THEME_TARGETS[i];
+        if (!ctrl || !ctrl.graphics) {
+            BUTTON_THEME_TARGETS.splice(i, 1);
+            continue;
+        }
+        D9T_applyThemeToButtonControl(ctrl, theme);
+    }
+}
+
+function D9T_previewThemeOnTargets(themeData) {
+    if (!themeData) { return; }
+    var previewTheme = D9T_sanitizeButtonTheme(themeData);
+    for (var i = BUTTON_THEME_TARGETS.length - 1; i >= 0; i--) {
+        var ctrl = BUTTON_THEME_TARGETS[i];
+        if (!ctrl || !ctrl.graphics) {
+            BUTTON_THEME_TARGETS.splice(i, 1);
+            continue;
+        }
+        D9T_applyThemeToButtonControl(ctrl, previewTheme);
+    }
+}
+
+  function D9T_applyThemeToButtonControl(control, theme) {
+      if (!control) { return; }
+      var overrideId = (control.__buttonThemeOverrides && control.__buttonThemeOverrides.themeId) ? control.__buttonThemeOverrides.themeId : null;
+      var baseTheme = theme || D9T_getActiveButtonTheme();
+      if (overrideId) {
+          var list = D9T_getButtonThemeList();
+          var idx = D9T_findButtonThemeIndex(overrideId);
+          if (idx > -1 && list[idx]) {
+              baseTheme = list[idx];
+          }
+      }
+      var resolvedTheme = D9T_sanitizeButtonTheme(baseTheme);
+      if (!resolvedTheme) { return; }
+      var appliedTheme = {
+          id: resolvedTheme.id,
+          name: resolvedTheme.name,
+          width: resolvedTheme.width,
+          height: resolvedTheme.height,
+          cornerRadius: resolvedTheme.cornerRadius,
+          background: resolvedTheme.background,
+          hoverBackground: resolvedTheme.hoverBackground,
+          textColor: resolvedTheme.textColor,
+          hoverTextColor: resolvedTheme.hoverTextColor,
+          labelOffset: resolvedTheme.labelOffset,
+          labelOffsetX: resolvedTheme.labelOffsetX,
+          labelFontSize: resolvedTheme.labelFontSize,
+          textTransform: resolvedTheme.textTransform
+      };
+      var overrides = control.__buttonThemeOverrides;
+      if (overrides) {
+          if (overrides.name) { appliedTheme.name = overrides.name; }
+          if (overrides.width !== undefined) {
+              var ow = parseInt(overrides.width, 10);
+              if (!isNaN(ow)) { appliedTheme.width = Math.max(40, Math.min(250, ow)); }
+          }
+          if (overrides.height !== undefined) {
+              var oh = parseInt(overrides.height, 10);
+              if (!isNaN(oh)) { appliedTheme.height = Math.max(24, Math.min(120, oh)); }
+          }
+          if (overrides.cornerRadius !== undefined) {
+              var or = parseInt(overrides.cornerRadius, 10);
+              if (!isNaN(or)) { appliedTheme.cornerRadius = Math.max(0, Math.min(60, or)); }
+          }
+          if (overrides.background) {
+              appliedTheme.background = D9T_sanitizeHexColor(overrides.background, appliedTheme.background);
+          }
+          if (overrides.hoverBackground) {
+              appliedTheme.hoverBackground = D9T_sanitizeHexColor(overrides.hoverBackground, appliedTheme.hoverBackground);
+          }
+          if (overrides.textColor) {
+              appliedTheme.textColor = D9T_sanitizeHexColor(overrides.textColor, appliedTheme.textColor);
+          }
+          if (overrides.hoverTextColor) {
+              appliedTheme.hoverTextColor = D9T_sanitizeHexColor(overrides.hoverTextColor, appliedTheme.hoverTextColor);
+          }
+          if (overrides.labelOffset !== undefined) {
+              var ol = parseInt(overrides.labelOffset, 10);
+              if (!isNaN(ol)) { appliedTheme.labelOffset = Math.max(-40, Math.min(40, ol)); }
+          }
+          if (overrides.labelOffsetX !== undefined) {
+              var olx = parseInt(overrides.labelOffsetX, 10);
+              if (!isNaN(olx)) { appliedTheme.labelOffsetX = Math.max(-80, Math.min(80, olx)); }
+          }
+          if (overrides.labelFontSize !== undefined) {
+              var ofs = parseInt(overrides.labelFontSize, 10);
+              if (!isNaN(ofs)) { appliedTheme.labelFontSize = Math.max(8, Math.min(60, ofs)); }
+          }
+          if (overrides.textTransform) {
+              var ot = overrides.textTransform.toString().toLowerCase();
+              if (ot === "uppercase" || ot === "lowercase" || ot === "none") { appliedTheme.textTransform = ot; }
+          }
+      }
+      control.__buttonThemeSource = resolvedTheme;
+      control.__buttonThemeData = appliedTheme;
+      control.__buttonHover = control.__buttonHover === true;
+      control.__buttonActive = control.__buttonActive === true;
+      var isHover = (control.__buttonHover === true) || (control.__buttonActive === true);
+      var currentBg = isHover ? appliedTheme.hoverBackground : appliedTheme.background;
+      var currentText = isHover ? appliedTheme.hoverTextColor : appliedTheme.textColor;
+      control.preferredSize = [appliedTheme.width, appliedTheme.height];
+      control.size = [appliedTheme.width, appliedTheme.height];
+      control.minimumSize = [appliedTheme.width, appliedTheme.height];
+      control.__buttonCornerRadius = appliedTheme.cornerRadius;
+      control.buttonColor = hexToRgb(currentBg);
+      control.hoverButtonColor = hexToRgb(appliedTheme.hoverBackground);
+      control.textColor = hexToRgb(currentText);
+      control.hoverTextColor = hexToRgb(appliedTheme.hoverTextColor);
+      control.__buttonLabelOffset = appliedTheme.labelOffset;
+      control.__buttonLabelOffsetX = appliedTheme.labelOffsetX;
+      control.__buttonLabelFontSize = appliedTheme.labelFontSize;
+      control.__buttonTextTransform = appliedTheme.textTransform;
+      if (!control.__buttonDisplayedText) { control.__buttonDisplayedText = control.text || ""; }
+      if (!control.__buttonBaseText) { control.__buttonBaseText = control.__buttonDisplayedText; }
+      if (typeof control.text === "string" && control.text !== control.__buttonDisplayedText) {
+          control.__buttonBaseText = control.text;
+      }
+      var baseLabel = control.__buttonBaseText || "";
+      var displayLabel = baseLabel;
+      if (appliedTheme.textTransform === "uppercase") { displayLabel = baseLabel.toUpperCase(); }
+      else if (appliedTheme.textTransform === "lowercase") { displayLabel = baseLabel.toLowerCase(); }
+      control.__buttonDisplayedText = displayLabel;
+      if (typeof control.text === "string" && control.text !== displayLabel) {
+          control.text = displayLabel;
+      }
+      if (typeof control.notify === "function") {
+          try { control.notify("onDraw"); } catch (drawErr) {}
+      }
+  }
+
+// ============================================
+// COMPONENTES DE BOTÃO LEGADOS (themeButton)
+// ============================================
+// Estas funções parecem ser de uma versão anterior do tema.
+
 function themeButton(sectionGrp, ctrlProperties) {
     try {
-        if (ctrlProperties.buttonColor === undefined) ctrlProperties.buttonColor = D9T_Theme.colors.divider;
-        if (ctrlProperties.textColor === undefined) ctrlProperties.textColor = D9T_Theme.colors.textNormal;
+        ctrlProperties = ctrlProperties || {};
         var newUiCtrlObj = {};
         var tipTxt = D9T_BUILD_TIP_TEXT(ctrlProperties);
+        
         var newBtnGrp = sectionGrp.add("group");
         newBtnGrp.orientation = "stack";
+        
+        // Botoes de clique invisiveis
         newUiCtrlObj.leftClick = newBtnGrp.add("button", undefined, "");
         newUiCtrlObj.leftClick.size = [0, 0];
         newUiCtrlObj.leftClick.visible = false;
         newUiCtrlObj.rightClick = newBtnGrp.add("button", undefined, "");
         newUiCtrlObj.rightClick.size = [0, 0];
         newUiCtrlObj.rightClick.visible = false;
+        
+        // O botao visivel (customButton)
         newUiCtrlObj.label = newBtnGrp.add("customButton");
-        newUiCtrlObj.label.size = [ctrlProperties.width, ctrlProperties.height];
-        newUiCtrlObj.label.text = ctrlProperties.labelTxt;
-        newUiCtrlObj.label.buttonColor = hexToRgb(ctrlProperties.buttonColor);
-        newUiCtrlObj.label.textColor = hexToRgb(ctrlProperties.textColor);
-        newUiCtrlObj.label.minimumSize = [68, 34];
+        newUiCtrlObj.label.text = ctrlProperties.labelTxt || "";
+        newUiCtrlObj.label.__buttonBaseText = newUiCtrlObj.label.text;
+        newUiCtrlObj.label.__buttonDisplayedText = newUiCtrlObj.label.text;
+        var initialTheme = D9T_getActiveButtonTheme();
+        if (initialTheme) {
+            newUiCtrlObj.label.minimumSize = [initialTheme.width, initialTheme.height];
+            newUiCtrlObj.label.preferredSize = [initialTheme.width, initialTheme.height];
+            newUiCtrlObj.label.maximumSize = [initialTheme.width, initialTheme.height];
+        } else {
+            newUiCtrlObj.label.minimumSize = [68, 34];
+        }
         newUiCtrlObj.label.helpTip = tipTxt;
+        var overrides = {};
+        var overrideCount = 0;
+        if (ctrlProperties.width !== undefined) { overrides.width = ctrlProperties.width; overrideCount++; }
+        if (ctrlProperties.height !== undefined) { overrides.height = ctrlProperties.height; overrideCount++; }
+        if (ctrlProperties.cornerRadius !== undefined) { overrides.cornerRadius = ctrlProperties.cornerRadius; overrideCount++; }
+        if (ctrlProperties.buttonColor !== undefined) { overrides.background = ctrlProperties.buttonColor; overrideCount++; }
+        if (ctrlProperties.hoverButtonColor !== undefined) { overrides.hoverBackground = ctrlProperties.hoverButtonColor; overrideCount++; }
+        if (ctrlProperties.textColor !== undefined) { overrides.textColor = ctrlProperties.textColor; overrideCount++; }
+        if (ctrlProperties.hoverTextColor !== undefined) { overrides.hoverTextColor = ctrlProperties.hoverTextColor; overrideCount++; }
+        if (ctrlProperties.labelOffset !== undefined) { overrides.labelOffset = ctrlProperties.labelOffset; overrideCount++; }
+        if (ctrlProperties.labelOffsetX !== undefined) { overrides.labelOffsetX = ctrlProperties.labelOffsetX; overrideCount++; }
+        if (ctrlProperties.labelFontSize !== undefined) { overrides.labelFontSize = ctrlProperties.labelFontSize; overrideCount++; }
+        if (ctrlProperties.textTransform) { overrides.textTransform = ctrlProperties.textTransform; overrideCount++; }
+        if (ctrlProperties.themeId) { overrides.themeId = ctrlProperties.themeId; }
+        if (ctrlProperties.labelOffset !== undefined) { overrides.labelOffset = ctrlProperties.labelOffset; overrideCount++; }
+        if (ctrlProperties.labelOffsetX !== undefined) { overrides.labelOffsetX = ctrlProperties.labelOffsetX; overrideCount++; }
+        if (ctrlProperties.labelFontSize !== undefined) { overrides.labelFontSize = ctrlProperties.labelFontSize; overrideCount++; }
+        if (ctrlProperties.textTransform) { overrides.textTransform = ctrlProperties.textTransform; overrideCount++; }
+        if (ctrlProperties.themeId) { overrides.themeId = ctrlProperties.themeId; }
+        if (ctrlProperties.labelOffset !== undefined) { overrides.labelOffset = ctrlProperties.labelOffset; overrideCount++; }
+        if (ctrlProperties.labelFontSize !== undefined) { overrides.labelFontSize = ctrlProperties.labelFontSize; overrideCount++; }
+        if (ctrlProperties.textTransform) { overrides.textTransform = ctrlProperties.textTransform; overrideCount++; }
+        if (ctrlProperties.themeId) { overrides.themeId = ctrlProperties.themeId; }
+        if (overrideCount > 0) {
+            newUiCtrlObj.label.__buttonThemeOverrides = overrides;
+        }
         drawThemeButton(newUiCtrlObj.label);
+        D9T_registerThemeButton(newUiCtrlObj.label);
+        
+        var refreshState = function (ctrl) {
+            if (!ctrl) { return; }
+            D9T_applyThemeToButtonControl(ctrl, ctrl.__buttonThemeSource || D9T_getActiveButtonTheme());
+        };
         newUiCtrlObj.label.addEventListener("mouseover", function () {
-            this.textColor = [1, 1, 1];
-            this.buttonColor = hexToRgb(D9T_Theme.colors.textHighlight);
-            drawThemeButton(this);
+            this.__buttonHover = true;
+            refreshState(this);
         });
         newUiCtrlObj.label.addEventListener("mouseout", function () {
-            this.textColor = hexToRgb(ctrlProperties.textColor);
-            this.buttonColor = hexToRgb(ctrlProperties.buttonColor);
-            drawThemeButton(this);
+            this.__buttonHover = false;
+            this.__buttonActive = false;
+            refreshState(this);
         });
-        newUiCtrlObj.label.onClick = function () { this.parent.children[0].notify(); };
+        newUiCtrlObj.label.addEventListener("mousedown", function () {
+            this.__buttonActive = true;
+            this.__buttonHover = true;
+            refreshState(this);
+        });
+        newUiCtrlObj.label.addEventListener("mouseup", function () {
+            this.__buttonActive = false;
+            refreshState(this);
+        });
+        
+        // Eventos de clique
+        newUiCtrlObj.label.onClick = function () { this.parent.children[0].notify(); }; // Click esquerdo
         newUiCtrlObj.label.addEventListener("click", function (c) {
-            if (c.button == 2) this.parent.children[1].notify();
+            if (c.button == 2) this.parent.children[1].notify(); // Click direito
         });
+        
         return newUiCtrlObj;
     } catch (err) { alert(err.message); }
 }
 
+
 function themeAltButton(sectionGrp, ctrlProperties) {
     try {
-        var defaultButtonColor = ctrlProperties.buttonColor || D9T_Theme.colors.divider;
-        var defaultTextColor = ctrlProperties.textColor || D9T_Theme.colors.textNormal;
-        var hoverButtonColor = ctrlProperties.hoverButtonColor || D9T_Theme.colors.mono0;
-        var hoverTextColor = ctrlProperties.hoverTextColor || D9T_Theme.colors.mono3;
+        ctrlProperties = ctrlProperties || {};
         var newUiCtrlObj = {};
         var tipTxt = D9T_BUILD_TIP_TEXT(ctrlProperties);
+        
         var newBtnGrp = sectionGrp.add("group");
         newBtnGrp.orientation = "stack";
+        
         newUiCtrlObj.leftClick = newBtnGrp.add("button", undefined, "");
         newUiCtrlObj.leftClick.size = [0, 0];
         newUiCtrlObj.leftClick.visible = false;
         newUiCtrlObj.rightClick = newBtnGrp.add("button", undefined, "");
         newUiCtrlObj.rightClick.size = [0, 0];
         newUiCtrlObj.rightClick.visible = false;
+        
         newUiCtrlObj.label = newBtnGrp.add("customButton");
-        var buttonWidth = ctrlProperties.width || 120;
-        var buttonHeight = ctrlProperties.height || 32;
-        newUiCtrlObj.label.size = [buttonWidth, buttonHeight];
-        newUiCtrlObj.label.text = ctrlProperties.labelTxt || "Botão";
+        newUiCtrlObj.label.text = ctrlProperties.labelTxt || "Botao";
+        newUiCtrlObj.label.__buttonBaseText = newUiCtrlObj.label.text;
+        newUiCtrlObj.label.__buttonDisplayedText = newUiCtrlObj.label.text;
         newUiCtrlObj.label.helpTip = tipTxt;
-        newUiCtrlObj.label.buttonColor = hexToRgb(defaultButtonColor);
-        newUiCtrlObj.label.textColor = hexToRgb(defaultTextColor);
-        newUiCtrlObj.label.hoverButtonColor = hexToRgb(hoverButtonColor);
-        newUiCtrlObj.label.hoverTextColor = hexToRgb(hoverTextColor);
-        newUiCtrlObj.label.isHovered = false;
-        newUiCtrlObj.label.onDraw = function () {
-            var g = this.graphics;
-            var w = this.size.width;
-            var h = this.size.height;
-            var currentButtonColor = this.isHovered ? this.hoverButtonColor : this.buttonColor;
-            var currentTextColor = this.isHovered ? this.hoverTextColor : this.textColor;
-            var fillBrush = g.newBrush(g.BrushType.SOLID_COLOR, currentButtonColor);
-            var textPen = g.newPen(g.PenType.SOLID_COLOR, currentTextColor, 1);
-            g.ellipsePath(0, 0, h, h);
-            g.ellipsePath(w - h, 0, h, h);
-            g.rectPath(h / 2, 0, w - h, h);
-            g.fillPath(fillBrush);
-            var textLinesArray = this.text.split("\n");
-            var totalTextHeight = textLinesArray.length * 12;
-            var startY = (h - totalTextHeight) / 2 + 12;
-            for (var l = 0; l < textLinesArray.length; l++) {
-                var textSize = g.measureString(textLinesArray[l]);
-                var px = (w - textSize.width) / 2;
-                var py = startY + l * 12;
-                g.drawString(textLinesArray[l], textPen, px, py);
-            }
+        var overrides = {};
+        var overrideCount = 0;
+        if (ctrlProperties.width !== undefined) { overrides.width = ctrlProperties.width; overrideCount++; }
+        if (ctrlProperties.height !== undefined) { overrides.height = ctrlProperties.height; overrideCount++; }
+        if (ctrlProperties.cornerRadius !== undefined) { overrides.cornerRadius = ctrlProperties.cornerRadius; overrideCount++; }
+        if (ctrlProperties.buttonColor !== undefined) { overrides.background = ctrlProperties.buttonColor; overrideCount++; }
+        if (ctrlProperties.hoverButtonColor !== undefined) { overrides.hoverBackground = ctrlProperties.hoverButtonColor; overrideCount++; }
+        if (ctrlProperties.textColor !== undefined) { overrides.textColor = ctrlProperties.textColor; overrideCount++; }
+        if (ctrlProperties.hoverTextColor !== undefined) { overrides.hoverTextColor = ctrlProperties.hoverTextColor; overrideCount++; }
+        if (overrideCount > 0) {
+            newUiCtrlObj.label.__buttonThemeOverrides = overrides;
+        }
+        drawThemeAltButton(newUiCtrlObj.label);
+        D9T_registerThemeButton(newUiCtrlObj.label);
+        
+        var refreshAltState = function (ctrl) {
+            if (!ctrl) { return; }
+            D9T_applyThemeToButtonControl(ctrl, ctrl.__buttonThemeSource || D9T_getActiveButtonTheme());
         };
-        newUiCtrlObj.label.addEventListener("mouseover", function () { this.isHovered = true; this.notify("onDraw"); });
-        newUiCtrlObj.label.addEventListener("mouseout", function () { this.isHovered = false; this.notify("onDraw"); });
+        newUiCtrlObj.label.addEventListener("mouseover", function () {
+            this.__buttonHover = true;
+            refreshAltState(this);
+        });
+        newUiCtrlObj.label.addEventListener("mouseout", function () {
+            this.__buttonHover = false;
+            this.__buttonActive = false;
+            refreshAltState(this);
+        });
+        newUiCtrlObj.label.addEventListener("mousedown", function () {
+            this.__buttonActive = true;
+            this.__buttonHover = true;
+            refreshAltState(this);
+        });
+        newUiCtrlObj.label.addEventListener("mouseup", function () {
+            this.__buttonActive = false;
+            refreshAltState(this);
+        });
+        
+        // Eventos de clique
         newUiCtrlObj.label.onClick = function () { this.parent.children[0].notify(); };
         newUiCtrlObj.label.addEventListener("click", function (c) { if (c.button == 2) this.parent.children[1].notify(); });
+        
         return newUiCtrlObj;
     } catch (err) { alert("Erro no themeAltButton: " + err.message); return null; }
 }
 
+
 function drawThemeButton(button) {
-    button.onDraw = function () {
-        var g = this.graphics;
-        var textPen = g.newPen(g.PenType.SOLID_COLOR, this.textColor, 1);
-        var fillBrush = g.newBrush(g.BrushType.SOLID_COLOR, this.buttonColor);
-        var h = this.size.height;
-        var w = this.size.width;
-        g.ellipsePath(0, 0, h, h);
-        g.ellipsePath(w - h, 0, h, h);
-        g.rectPath(h / 2, 0, w - h, h);
-        g.fillPath(fillBrush);
-        var textLinesArray = this.text.split("\n");
-        var pyInc = 12;
-        for (var l = 0; l < textLinesArray.length; l++) {
-            var textSize = g.measureString(textLinesArray[l]);
-            var px = (w - textSize.width) / 2;
-            var py = l == 0 ? (-(textLinesArray.length - 1) / 2) * pyInc : (py += pyInc);
-            if (typeof appV !== "undefined" && appV > 24 && l == 0) py += 8;
-            g.drawString(textLinesArray[l], textPen, px, py);
-        }
-    };
-}
-
-function drawThemeAltButton(button) {
-    var g = button.graphics;
-    var textPen = g.newPen(g.PenType.SOLID_COLOR, button.textColor, 1);
-    var fillBrush = g.newBrush(g.BrushType.SOLID_COLOR, button.buttonColor);
-    button.onDraw = function () {
-        var h = this.size.height;
-        var w = this.size.width;
-        g.ellipsePath(0, 0, h, h);
-        g.ellipsePath(w - h, 0, h, h);
-        g.rectPath(h / 2, 0, w - h, h);
-        g.fillPath(fillBrush);
-        var textLinesArray = this.text.split("\n");
-        var pyInc = 12;
-        for (var l = 0; l < textLinesArray.length; l++) {
-            var textSize = g.measureString(textLinesArray[l]);
-            var px = (w - textSize.width) / 2;
-            var py = l == 0 ? (-(textLinesArray.length - 1) / 2) * pyInc : (py += pyInc);
-            if (typeof appV !== "undefined" && appV > 24 && l == 0) py += 8;
-            g.drawString(textLinesArray[l], textPen, px, py);
-        }
-    };
-}
-
-
+        button.onDraw = function () {
+            var g = this.graphics;
+            var w = this.size.width;
+            var h = this.size.height;
+            var radius = this.__buttonCornerRadius;
+            if (typeof radius !== 'number' || isNaN(radius)) { radius = Math.round(h / 2); }
+            var maxRadius = Math.min(w, h) / 2;
+            radius = Math.max(0, Math.min(maxRadius, radius));
+            var fillBrush = g.newBrush(g.BrushType.SOLID_COLOR, this.buttonColor);
+            var textPen = g.newPen(g.PenType.SOLID_COLOR, this.textColor, 1);
+            g.newPath();
+            if (radius <= 0) {
+                g.rectPath(0, 0, w, h);
+            } else {
+                var diameter = radius * 2;
+                g.ellipsePath(0, 0, diameter, diameter);
+                g.ellipsePath(w - diameter, 0, diameter, diameter);
+                g.ellipsePath(0, h - diameter, diameter, diameter);
+                g.ellipsePath(w - diameter, h - diameter, diameter, diameter);
+                g.rectPath(radius, 0, w - (2 * radius), h);
+                g.rectPath(0, radius, w, h - (2 * radius));
+            }
+            g.fillPath(fillBrush);
+            
+            var textLinesArray = this.text.split("\n");
+            var themeFontSize = (typeof this.__buttonLabelFontSize === "number" && !isNaN(this.__buttonLabelFontSize)) ? this.__buttonLabelFontSize : null;
+            var fontSize = themeFontSize ? themeFontSize : Math.max(10, Math.min(16, Math.round(h * 0.45)));
+            try {
+                var drawFont = ScriptUI.newFont("Arial", "Bold", fontSize);
+                if (drawFont) { g.font = drawFont; }
+            } catch (fontErr) {}
+            var lineSpacing = Math.max(2, Math.round(fontSize * 0.25));
+            var metrics = [];
+            var totalHeight = 0;
+            for (var i = 0; i < textLinesArray.length; i++) {
+                var txt = textLinesArray[i] || "";
+                var measured = g.measureString(txt);
+                var height = Math.max(fontSize, (measured && measured.height) ? measured.height : fontSize);
+                metrics.push({ text: txt, size: measured, height: height });
+                totalHeight += height;
+                if (i < textLinesArray.length - 1) { totalHeight += lineSpacing; }
+            }
+            var offsetY = (typeof this.__buttonLabelOffset === "number" && !isNaN(this.__buttonLabelOffset)) ? this.__buttonLabelOffset : 0;
+            var startY = (h - totalHeight) / 2 + offsetY;
+            var cursorY = startY;
+            for (var l = 0; l < metrics.length; l++) {
+                var data = metrics[l];
+                var textSize = data.size;
+                var baseWidth = textSize ? textSize.width : 0;
+                var offsetX = (typeof this.__buttonLabelOffsetX === "number" && !isNaN(this.__buttonLabelOffsetX)) ? this.__buttonLabelOffsetX : 0;
+                var px = ((w - baseWidth) / 2) + offsetX;
+                var height = data.height;
+                var ascent = (textSize && typeof textSize.ascent === "number")
+                    ? textSize.ascent
+                    : Math.max(1, height * 0.75);
+                var baseline = cursorY + ascent;
+                g.drawString(data.text, textPen, px, baseline);
+                cursorY += height + lineSpacing;
+            }
+        };
+    }
+  
+  // Funcao de desenho para themeAltButton (parece identica a drawThemeButton)
+  function drawThemeAltButton(button) {
+      drawThemeButton(button);
+  }
+  
 function drawRoundedRect(g, brush, width, height, radius, x, y) {
     g.newPath();
     g.ellipsePath(x, y, radius, radius);
@@ -1875,79 +3389,130 @@ function drawRoundedRect(g, brush, width, height, radius, x, y) {
 
 
 // ============================================
-// FUNÇÕES AUXILIARES
+// FUNÇÕES AUXILIARES DE COR E ESTILO
 // ============================================
 
+/**
+ * Converte um string HEX (#RRGGBB) para um array RGB normalizado [r, g, b] (0.0 a 1.0).
+ * @param {String} hex - A cor em formato hexadecimal.
+ * @returns {Array} - [r, g, b]
+ */
 function hexToRgb(hex) {
-    if (typeof hex !== 'string') return [1, 1, 1];
+    if (typeof hex !== 'string') return [1, 1, 1]; // Fallback para branco
     hex = hex.replace('#', '');
-    if (hex.length > 6) hex = hex.substring(0, 6);
+    if (hex.length > 6) hex = hex.substring(0, 6); // Ignora alpha
     var r = parseInt(hex.substring(0, 2), 16) / 255;
     var g = parseInt(hex.substring(2, 4), 16) / 255;
     var b = parseInt(hex.substring(4, 6), 16) / 255;
     return [r, g, b];
 }
 
+// Define a cor de FUNDO (backgroundColor) de um elemento da UI.
 function setBgColor(w, hex) {
     var color = hexToRgb(hex);
     var bType = w.graphics.BrushType.SOLID_COLOR;
     w.graphics.backgroundColor = w.graphics.newBrush(bType, color);
 }
 
+// Define a cor de PREENCHIMENTO (fillBrush) de um customButton.
 function setUiCtrlColor(ctrl, hex) {
     var color = hexToRgb(hex);
     var bType = ctrl.graphics.BrushType.SOLID_COLOR;
     ctrl.fillBrush = ctrl.graphics.newBrush(bType, color);
 }
 
+// Define a cor do TEXTO (foregroundColor) de um elemento da UI.
 function setFgColor(ctrl, hex) {
     var color = hexToRgb(hex);
     var pType = ctrl.graphics.PenType.SOLID_COLOR;
     ctrl.graphics.foregroundColor = ctrl.graphics.newPen(pType, color, 1);
 }
 
+/**
+ * Aplica um efeito de hover (troca de cor do texto) a um controle.
+ * @param {Object} ctrl - O controle (ex: statictext).
+ * @param {String} normalColor - Cor HEX normal.
+ * @param {String} highlightColor - Cor HEX no hover.
+ */
 function setCtrlHighlight(ctrl, normalColor, highlightColor) {
-    setFgColor(ctrl, normalColor);
+    setFgColor(ctrl, normalColor); // Define cor inicial
     ctrl.addEventListener("mouseover", function () {
-        setFgColor(ctrl, highlightColor);
+        setFgColor(ctrl, highlightColor); // Cor de hover
     });
     ctrl.addEventListener("mouseout", function () {
-        setFgColor(ctrl, normalColor);
+        setFgSColor(ctrl, normalColor); // Restaura cor normal
     });
 }
 
+// Função de desenho customizada para 'customButton' (usada por themeDivider).
 function customDraw() {
     with(this) {
-        graphics.drawOSControl();
-        graphics.rectPath(0, 0, size[0], size[1]);
-        graphics.fillPath(fillBrush);
+        graphics.drawOSControl(); // Desenha o fundo padrão
+        graphics.rectPath(0, 0, size[0], size[1]); // Desenha um retângulo
+        graphics.fillPath(fillBrush); // Preenche com a cor definida (fillBrush)
     }
 }
 
+// ============================================
+// FUNÇÕES AUXILIARES (DIVERSAS)
+// ============================================
+
+function D9T_NORMALIZE_MARGINS(margins) {
+    var normalized = [0, 0, 0, 0];
+    if (!(margins instanceof Array)) { return normalized; }
+    for (var i = 0; i < 4; i++) {
+        var value = parseFloat(margins[i]);
+        normalized[i] = isNaN(value) ? 0 : value;
+    }
+    return normalized;
+}
+
+function D9T_ADD_MARGINS(baseMargins, extraMargins) {
+    var base = D9T_NORMALIZE_MARGINS(baseMargins);
+    var extra = D9T_NORMALIZE_MARGINS(extraMargins);
+    for (var i = 0; i < 4; i++) {
+        base[i] += extra[i];
+    }
+    return base;
+}
+
+function D9T_APPLY_GROUP_MARGINS(group, margins) {
+    if (!group) { return; }
+    group.margins = D9T_NORMALIZE_MARGINS(margins);
+}
+
+// Troca o ícone visível em um grupo de imagens (stack)
 function changeIcon(imageIndex, imagesGrp) {
     for (var i = 0; i < imagesGrp.children.length; i++) {
-        imagesGrp.children[i].visible = i == imageIndex;
+        imagesGrp.children[i].visible = (i == imageIndex);
     }
 }
 
+// Popula os ícones de produção (ex: GNEWS) (usado pelo GNEWS_Templates)
 function populateMainIcons(imagesGrp, prodArray, dropdownList) {
     while (imagesGrp.children.length > 0) {
         imagesGrp.remove(imagesGrp.children[0]);
     }
     if (!prodArray || prodArray.length === 0) return;
+    
     for (var i = 0; i < prodArray.length; i++) {
         var newIcon = imagesGrp.add("image", undefined, undefined);
         try {
-            newIcon.image = eval(prodArray[i].icon);
+            newIcon.image = eval(prodArray[i].icon); // 'eval' para converter string (ex: "GNEWS_ICON") na variável
         } catch (err) {}
+        
         newIcon.helpTip = prodArray[i].name + "\n\n" + D9T_Theme.text.doubleClick + " para editar a lista de produções";
         newIcon.preferredSize = [24, 24];
-        newIcon.visible = i == 0;
+        newIcon.visible = (i == 0); // Só o primeiro é visível
+        
+        // Evento de duplo clique para abrir a configuração
         newIcon.addEventListener("click", function (c) {
-            if (c.detail == 2) {
+            if (c.detail == 2) { // Duplo clique
                 if (typeof d9ProdFoldersDialog === 'function') {
-                    d9ProdFoldersDialog(D9T_prodArray);
-                    loadProductionData();
+                    d9ProdFoldersDialog(D9T_prodArray); // Abre a janela de config
+                    loadProductionData(); // Recarrega os dados
+                    
+                    // Atualiza o dropdown associado
                     if (dropdownList) {
                         dropdownList.removeAll();
                         if (typeof populateDropdownList === 'function' && typeof getProdNames === 'function') {
@@ -1956,6 +3521,8 @@ function populateMainIcons(imagesGrp, prodArray, dropdownList) {
                         dropdownList.selection = 0;
                         if (dropdownList.onChange) dropdownList.onChange();
                     }
+                    
+                    // Recarrega os ícones
                     populateMainIcons(imagesGrp, D9T_prodArray, dropdownList);
                     imagesGrp.layout.layout(true);
                 }
@@ -1964,14 +3531,12 @@ function populateMainIcons(imagesGrp, prodArray, dropdownList) {
     }
 }
 
-
+// Trava o redimensionamento da janela, botões de maximizar/minimizar.
 function D9T_LOCK_WINDOW_RESIZE(win) {
     if (!win) { return; }
     try {
         if (typeof win.resizeable !== "undefined") { win.resizeable = false; }
         if (typeof win.maximizeButton !== "undefined") { win.maximizeButton = false; }
         if (typeof win.minimizeButton !== "undefined") { win.minimizeButton = false; }
-    } catch (e) {}
+    } catch (e) {} // Ignora erros (ex: se for painel dockado)
 }
-
-

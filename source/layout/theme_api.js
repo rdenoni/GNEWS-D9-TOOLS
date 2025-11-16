@@ -1,7 +1,11 @@
 /*
 ---------------------------------------------------------------
-> theme_api.js - API de tema e utilitários
-> Data: 2025
+> ARQUIVO: theme_api.js
+> DESCRIÇÃO: API central de tema, aplica cores e ajustes de layout.
+> VERSÃO: 1.0 (Atualizado em 2025)
+> MÓDULOS USADOS:
+>   - globals.js (fonte das cores e strings)
+>   - ScriptUI (API nativa utilizada para manipular controles)
 ---------------------------------------------------------------
 */
 
@@ -26,6 +30,8 @@ var D9T_Theme = {
   layout: {
     iconSize: [36, 36],
     iconSizeCompact: [28, 28],          // Tamanho dos ícones no modo compacto
+    logoSize: [70, 24],                 // Tamanho padrão da logo no cabeçalho
+    logoSizeCompact: [52, 18],          // Tamanho reduzido para cabeçalho vertical
     iconSpacingCompact: 15,
     textSpacingNormal: 5,
     iconSpacingNormal: 20,
@@ -36,11 +42,13 @@ var D9T_Theme = {
     infoMargins: [15, 0, 0, 15],        // Margens do grupo de logo/versão
     breakpointSafetyMargin: 150,        // breakpoint do grupo de logo/versão
     verticalBreakpoint: 80,             // Força layout HORIZONTAL se altura for MENOR que este valor
-    horizontalBreakpoint: 550,          // Força layout VERTICAL se largura for MENOR que este valor
-    compactModeWidth: 950,              // Largura para ativar o modo compacto
+    horizontalBreakpoint: 200,          // Força layout VERTICAL se largura for MENOR que este valor
+    compactModeWidth: 100,              // Largura para ativar o modo compacto
     compactModeHeight: 80,              // Altura para ativar o modo compacto
+    verticalCompactWidth: 120,          // Largura alvo para modo compacto quando a barra esta vertical
     searchModeHeight: 44                // Altura limite para o modo busca
   },
+  buttonTheme: null,
   // Texto e Strings
   text: {
     lineBreak: lol,
@@ -135,10 +143,10 @@ function D9T_APPLY_THEME_TO_ROOT(uiObj) {
   if (!uiObj || !uiObj.window) { return; }
   try { setBgColor(uiObj.window, bgColor1); } catch (e) {}
   if (uiObj.headerGrp) {
-    try { setBgColor(uiObj.headerGrp, bgColor2); } catch (headerErr) {}
+    try { setBgColor(uiObj.headerGrp, bgColor1); } catch (headerErr) {}
   }
   if (uiObj.searchGrp) {
-    try { setBgColor(uiObj.searchGrp, bgColor2); } catch (searchErr) {}
+    try { setBgColor(uiObj.searchGrp, bgColor1); } catch (searchErr) {}
   }
   if (uiObj.searchLabel) { setFgColor(uiObj.searchLabel, D9T_Theme.colors.textNormal); }
   if (uiObj.vLab) { setFgColor(uiObj.vLab, D9T_Theme.colors.textNormal); }
@@ -289,22 +297,48 @@ function D9T_OPEN_THEME_DIALOG(uiObj) {
     }
 
     function applyTheme(values, persist) {
-        scriptPreferencesObj.themeColors = {};
-        for (var key in values) {
-            if (values.hasOwnProperty(key)) {
-                scriptPreferencesObj.themeColors[key] = values[key];
+        if (!values) { return; }
+        var usedCentralHelper = (typeof D9T_Preferences !== "undefined" && typeof D9T_Preferences.updateThemeSettings === "function");
+        if (usedCentralHelper) {
+            try {
+                D9T_Preferences.updateThemeSettings(values, persist);
+                if (typeof D9T_Preferences.get === "function") {
+                    scriptPreferencesObj.themeColors = D9T_Preferences.get('themeColors', scriptPreferencesObj.themeColors || {});
+                }
+            } catch (prefsErr) {
+                $.writeln('[theme_api] Falha ao atualizar tema via D9T_Preferences: ' + prefsErr);
+                usedCentralHelper = false;
             }
         }
-        if (typeof applyThemeColorOverrides === "function") {
-            applyThemeColorOverrides(scriptPreferencesObj.themeColors);
+        if (!usedCentralHelper) {
+            scriptPreferencesObj.themeColors = {};
+            for (var key in values) {
+                if (values.hasOwnProperty(key)) {
+                    scriptPreferencesObj.themeColors[key] = values[key];
+                }
+            }
+            if (typeof applyThemeColorOverrides === "function") {
+                applyThemeColorOverrides(scriptPreferencesObj.themeColors);
+            }
+            D9T_REFRESH_THEME_COLORS();
+            if (persist) {
+                if (typeof D9T_Preferences !== "undefined" && typeof D9T_Preferences.save === "function") {
+                    try { D9T_Preferences.save(); }
+                    catch (prefsErr2) { $.writeln('[theme_api] Falha ao salvar via D9T_Preferences: ' + prefsErr2); }
+                } else if (typeof saveScriptPreferences === "function") {
+                    saveScriptPreferences();
+                }
+            }
         }
-        D9T_REFRESH_THEME_COLORS();
-        D9T_APPLY_THEME_TO_ROOT(uiObj);
-        if (persist && typeof saveScriptPreferences === "function") {
-            saveScriptPreferences();
+        if (typeof D9T_APPLY_THEME_TO_ROOT === "function") {
+            try { D9T_APPLY_THEME_TO_ROOT(uiObj); } catch (applyErr) {
+                $.writeln('[theme_api] Falha ao aplicar tema na UI: ' + applyErr);
+            }
         }
-        if (uiObj && uiObj.window) {
-            D9T_LAYOUT(uiObj);
+        if (uiObj && uiObj.window && typeof D9T_LAYOUT === "function") {
+            try { D9T_LAYOUT(uiObj); } catch (layoutErr) {
+                $.writeln('[theme_api] Falha ao redesenhar UI: ' + layoutErr);
+            }
         }
     }
 
