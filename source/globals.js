@@ -55,6 +55,10 @@ var tempPath = scriptPreferencesPath + '/temp';
 var tempFolder = new Folder(tempPath);
 if (!tempFolder.exists) tempFolder.create();
 
+var scriptLogsPath = scriptPreferencesPath + '/logs';
+var scriptLogsFolder = new Folder(scriptLogsPath);
+if (!scriptLogsFolder.exists) scriptLogsFolder.create();
+
 var templatesLocalPath = scriptPreferencesPath + '/templates';
 var templatesLocalFolder = new Folder(templatesLocalPath);
 if (!templatesLocalFolder.exists) templatesLocalFolder.create();
@@ -384,6 +388,43 @@ function loadScriptPreferences() {
 	devMode = scriptPreferencesObj.devMode;
 
 	return scriptPreferencesObj;
+}
+
+function D9T_sanitizeLogName(name) {
+	var base = (name && name.length) ? ('' + name) : 'gnd9tools';
+	base = base.toLowerCase().replace(/[^a-z0-9_\-]+/g, '_');
+	if (!base || !base.length) { base = 'gnd9tools'; }
+	return base;
+}
+
+function D9T_appendLogEntry(moduleName, level, message) {
+	var logFile = null;
+	try {
+		if (!scriptLogsPath) { return; }
+		var safeName = D9T_sanitizeLogName(moduleName);
+		logFile = new File(scriptLogsPath + '/' + safeName + '.log');
+		var stamp = new Date().toUTCString();
+		var line = '[' + stamp + '][' + (level || 'INFO') + '] ' + (message || '');
+		if (logFile.open('a')) {
+			logFile.encoding = 'UTF-8';
+			logFile.write(line + '\n');
+			logFile.close();
+		}
+	} catch (logErr) {
+		try { logFile.close(); } catch (closeErr) {}
+	}
+}
+
+function D9T_logInfo(moduleName, message) { D9T_appendLogEntry(moduleName, 'INFO', message); }
+function D9T_logWarn(moduleName, message) { D9T_appendLogEntry(moduleName, 'WARN', message); }
+function D9T_logError(moduleName, message) { D9T_appendLogEntry(moduleName, 'ERROR', message); }
+if (!$.global.D9T_Logger) {
+	$.global.D9T_Logger = {
+		info: D9T_logInfo,
+		warn: D9T_logWarn,
+		error: D9T_logError,
+		write: D9T_appendLogEntry
+	};
 }
 
 // Chama a função para carregar as preferências ao iniciar o script
