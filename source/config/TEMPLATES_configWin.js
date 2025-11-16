@@ -12,7 +12,7 @@ function d9ProdFoldersDialog() { // REMOVIDO: "prodArray" como argumento
     // --- Funcoes de Leitura/Escrita do System_Settings.json ---
     // Validacao do caminho principal de preferencias
     if (typeof scriptPreferencesPath === 'undefined') {
-        alert("ERRO CRITICO: A variavel 'scriptPreferencesPath' nao esta definida. Impossivel carregar ou salvar configuracoes.");
+        showConfigAlert("ERRO CRITICO: A variavel 'scriptPreferencesPath' nao esta definida. Impossivel carregar ou salvar configuracoes.", 'Erro critico');
         return;
     }
     var systemSettingsFile = new File(scriptPreferencesPath + "/System_Settings.json");
@@ -38,6 +38,35 @@ function d9ProdFoldersDialog() { // REMOVIDO: "prodArray" como argumento
     function logInfo(message) { writeLogLine('INFO', message); }
     function logWarn(message) { writeLogLine('WARN', message); }
     function logError(message) { writeLogLine('ERROR', message); }
+
+    function showConfigAlert(message, title) {
+        var dialogTitle = title || scriptName;
+        try {
+            var dlg = new Window('dialog', dialogTitle, undefined, { closeButton: true });
+            dlg.orientation = 'column';
+            dlg.alignChildren = 'fill';
+            dlg.spacing = 12;
+            dlg.margins = 16;
+            if (typeof setBgColor === 'function' && typeof bgColor1 !== 'undefined') {
+                try { setBgColor(dlg, bgColor1); } catch (bgErr) {}
+            }
+            var msgBox = dlg.add('statictext', undefined, message || '', { multiline: true });
+            msgBox.minimumSize.width = 360;
+            if (typeof setFgColor === 'function' && typeof normalColor1 !== 'undefined') {
+                try { setFgColor(msgBox, normalColor1); } catch (fgErr) {}
+            }
+            var btnGrp = dlg.add('group');
+            btnGrp.alignment = ['right', 'bottom'];
+            var okBtn = btnGrp.add('button', undefined, 'OK', { name: 'ok' });
+            if (typeof setCtrlHighlight === 'function' && typeof highlightColor1 !== 'undefined' && typeof normalColor2 !== 'undefined') {
+                try { setCtrlHighlight(okBtn, highlightColor1, normalColor2); } catch (setErr) {}
+            }
+            dlg.center();
+            dlg.show();
+        } catch (alertErr) {
+            alert(message);
+        }
+    }
 
     var manifestFile = new File(cacheFolder.fullName + '/templates_cache_manifest.json');
 
@@ -96,7 +125,7 @@ function d9ProdFoldersDialog() { // REMOVIDO: "prodArray" como argumento
                 systemSettingsFile.close();
                 return JSON.parse(content);
             } catch (e) {
-                alert("Erro ao ler ou processar 'System_Settings.json'.\n" + e.toString());
+                showConfigAlert("Erro ao ler ou processar 'System_Settings.json'.\n" + e.toString(), 'Erro ao ler configuracao');
                 return {}; // Retorna objeto vazio em vez de null
             }
         }
@@ -111,7 +140,7 @@ function d9ProdFoldersDialog() { // REMOVIDO: "prodArray" como argumento
             systemSettingsFile.close();
             return true;
         } catch (e) {
-            alert("Falha ao salvar 'System_Settings.json'.\n" + e.toString());
+            showConfigAlert("Falha ao salvar 'System_Settings.json'.\n" + e.toString(), 'Erro ao salvar configuracao');
             return false;
         }
     }
@@ -191,7 +220,7 @@ function d9ProdFoldersDialog() { // REMOVIDO: "prodArray" como argumento
             throw new Error("O array de producoes esta vazio ou indefinido.");
         }
     } catch (e) {
-        alert("ERRO AO PROCESSAR DADOS DE CONFIGURACAO:\n" + e.message + "\n\nCarregando caminhos padrao.");
+        showConfigAlert("ERRO AO PROCESSAR DADOS DE CONFIGURACAO:\n" + e.message + "\n\nCarregando caminhos padrao.", 'Erro de configuracao');
         var desktopPath = Folder.desktop.fullName;
         for (var k = 0; k < categorias.length; k++) {
             categorias[k].caminhos = [desktopPath];
@@ -299,9 +328,9 @@ function d9ProdFoldersDialog() { // REMOVIDO: "prodArray" como argumento
         try { setFgColor(labelCtrl, exists ? '#2E8B57' : '#DC143C'); } catch (colorErr) {}
         if (showDialog) {
             if (exists) {
-                alert("Sucesso! O caminho e valido e a pasta existe.");
+                showConfigAlert("Sucesso! O caminho e valido e a pasta existe.", 'Validar caminho');
             } else {
-                alert("Falha! O caminho nao existe ou esta inacessivel.");
+                showConfigAlert("Falha! O caminho nao existe ou esta inacessivel.", 'Validar caminho');
             }
         }
         return exists;
@@ -662,7 +691,7 @@ function d9ProdFoldersDialog() { // REMOVIDO: "prodArray" como argumento
         setupButtonClick(openBtn, function () {
             var pathStr = getPathLabelValue(pathLab);
             if (!pathStr) {
-                alert('Nenhum caminho configurado para abrir.');
+                showConfigAlert('Nenhum caminho configurado para abrir.', 'Abrir pasta');
                 return;
             }
             var targetFolder = new Folder(pathStr);
@@ -670,7 +699,7 @@ function d9ProdFoldersDialog() { // REMOVIDO: "prodArray" como argumento
                 targetFolder.execute();
             } else {
                 try { setFgColor(pathLab, '#DC143C'); } catch(e) {}
-                alert("Falha! O caminho configurado nao existe ou esta inacessivel:\n" + pathStr);
+                showConfigAlert("Falha! O caminho configurado nao existe ou esta inacessivel:\n" + pathStr, 'Abrir pasta');
             }
         });
 
@@ -716,7 +745,7 @@ function d9ProdFoldersDialog() { // REMOVIDO: "prodArray" como argumento
             var folder = new Folder(pathStr);
             if (!folder.exists) {
                 try { setFgColor(pathLab, '#DC143C'); } catch(e) {}
-                alert("Falha! O caminho nao existe ou esta inacessivel. Impossivel gerar cache.");
+                showConfigAlert("Falha! O caminho nao existe ou esta inacessivel. Impossivel gerar cache.", 'Gerar cache');
                 return;
             }
             setPathLineBusyState(true);
@@ -853,9 +882,9 @@ function d9ProdFoldersDialog() { // REMOVIDO: "prodArray" como argumento
 
             function finalizeFeedback(message) {
                 setPathLineBusyState(false);
-                if (message) { logInfo("Feedback: " + message.replace(/\n/g, ' | ')); }
-                closeProgressWindow();
-                if (message) { alert(message); }
+            if (message) { logInfo("Feedback: " + message.replace(/\n/g, ' | ')); }
+            closeProgressWindow();
+            if (message) { showConfigAlert(message, 'Gerar cache'); }
             }
 
             function startCacheGenerationJob() {
@@ -1012,7 +1041,7 @@ function d9ProdFoldersDialog() { // REMOVIDO: "prodArray" como argumento
             if (parentGrp.children.length > 1) {
                 parentGrp.remove(pathLineGrp);
                 D9T_CONFIG_w.layout.layout(true);
-            } else { alert('Cada categoria deve ter pelo menos um caminho.'); }
+            } else { showConfigAlert('Cada categoria deve ter pelo menos um caminho.', 'Configuracao'); }
         });
     }
     
@@ -1084,9 +1113,9 @@ function d9ProdFoldersDialog() { // REMOVIDO: "prodArray" como argumento
                 configFile.open('w');
                 configFile.write(JSON.stringify(configToExport, null, '\t'));
                 configFile.close();
-                alert('Configuracao exportada com sucesso para:\n' + configFile.fsName);
+                showConfigAlert('Configuracao exportada com sucesso para:\n' + configFile.fsName, 'Exportar configuracao');
             } catch (err) {
-                alert('Erro ao exportar o arquivo: ' + err.message);
+                showConfigAlert('Erro ao exportar o arquivo: ' + err.message, 'Exportar configuracao');
             }
         }
     });
@@ -1161,9 +1190,9 @@ function d9ProdFoldersDialog() { // REMOVIDO: "prodArray" como argumento
                 }
             }
             updateUIWithConfig(currentProductions);
-            alert(selectedFiles.length + ' arquivo(s) importado(s) e mesclado(s) com sucesso!');
+            showConfigAlert(selectedFiles.length + ' arquivo(s) importado(s) e mesclado(s) com sucesso!', 'Importar configuracao');
         } catch (err) {
-            alert('Erro ao importar e mesclar arquivo(s): ' + err.message + (err.line ? ' (linha: ' + err.line + ')' : ''));
+            showConfigAlert('Erro ao importar e mesclar arquivo(s): ' + err.message + (err.line ? ' (linha: ' + err.line + ')' : ''), 'Importar configuracao');
         }
     });
     
@@ -1184,13 +1213,13 @@ function d9ProdFoldersDialog() { // REMOVIDO: "prodArray" como argumento
                 if (typeof D9T_prodArray !== 'undefined') {
                     D9T_prodArray = newProductionsArray;
                 }
-                alert('Configuracao salva com sucesso no System_Settings.json!\n\nUse o botao "Atualizar" (icone Atualizar) na janela de Templates para aplicar as mudancas.');
+                showConfigAlert('Configuracao salva com sucesso no System_Settings.json!\n\nUse o botao "Atualizar" (icone Atualizar) na janela de Templates para aplicar as mudancas.', 'Salvar configuracao');
                 D9T_CONFIG_w.close();
             } else {
                  throw new Error("A funcao writeSystemSettings falhou.");
             }
         } catch (err) { 
-            alert('Erro critico ao salvar a configuracao:\n' + err.message); 
+            showConfigAlert('Erro critico ao salvar a configuracao:\n' + err.message, 'Salvar configuracao'); 
         }
     });
     
