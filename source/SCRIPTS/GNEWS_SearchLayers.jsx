@@ -231,13 +231,17 @@ function findDialog() {
 		}
 
 		// Cria um objeto para passar todas as opções de filtro para a função de busca.
-		var optObj = {
-			sKey: sKey,
-			vis: optCkb5.value,
-			matchCase: optCkb1.value,
-			matchAccent: optCkb2.value,
-			invert: optCkb4.value
-		};
+        var optObj = {
+            sKey: sKey,
+            vis: optCkb5.value,
+            matchCase: optCkb1.value,
+            matchAccent: optCkb2.value,
+            invert: optCkb4.value
+        };
+        setPrefValue("useVisibleOnly", optCkb5.value, true);
+        setPrefValue("matchCase", optCkb1.value, true);
+        setPrefValue("matchAccent", optCkb2.value, true);
+        setPrefValue("invert", optCkb4.value, true);
 
         // As funções 'getComps', 'buildTxtSearchTree' e 'expandNodes' são importadas
         // das bibliotecas ('FUNC lib.js' e 'treeView lib.js').

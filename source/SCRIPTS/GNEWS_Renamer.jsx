@@ -175,6 +175,45 @@ function createRenamerUI(thisObj) {
     // =================================================================================
     // --- FUNÇÕES AUXILIARES DE BOTÕES TEMÁTICOS ---
     // =================================================================================
+    function applyFixedSize(target, width, height) {
+        if (!target || typeof width !== 'number' || typeof height !== 'number') { return; }
+        var sizeArr = [width, height];
+        target.preferredSize = sizeArr;
+        target.minimumSize = sizeArr;
+        target.maximumSize = sizeArr;
+        target.size = sizeArr;
+    }
+
+    function enforceThemeButtonSize(ctrl) {
+        if (!ctrl) { return; }
+        applyFixedSize(ctrl, LARGURA_BOTAO, ALTURA_BOTAO);
+        ctrl.__buttonThemeOverrides = ctrl.__buttonThemeOverrides || {};
+        ctrl.__buttonThemeOverrides.width = LARGURA_BOTAO;
+        ctrl.__buttonThemeOverrides.height = ALTURA_BOTAO;
+        var relock = function () { applyFixedSize(ctrl, LARGURA_BOTAO, ALTURA_BOTAO); };
+        if (typeof ctrl.onDraw === 'function') {
+            var prevDraw = ctrl.onDraw;
+            ctrl.onDraw = function () { relock(); prevDraw.apply(this, arguments); };
+        } else {
+            ctrl.onDraw = relock;
+        }
+        if (typeof ctrl.addEventListener === 'function') {
+            var events = ["mouseover","mouseout","mousedown","mouseup"];
+            for (var i = 0; i < events.length; i++) {
+                try { ctrl.addEventListener(events[i], relock); } catch (evtErr) {}
+            }
+        }
+        if (typeof D9T_applyThemeToButtonControl === 'function') {
+            try {
+                var baseTheme = ctrl.__buttonThemeSource;
+                if (!baseTheme && typeof D9T_getActiveButtonTheme === 'function') {
+                    baseTheme = D9T_getActiveButtonTheme();
+                }
+                D9T_applyThemeToButtonControl(ctrl, baseTheme);
+            } catch(themeErr){}
+        }
+    }
+
     function createActionButton(parent, label, tip, colorOptions) {
         var btnBgColor = (typeof normalColor1 !== 'undefined') ? normalColor1 : '#DDDDDD';
         var btnTextColor = (typeof bgColor1 !== 'undefined') ? bgColor1 : '#000000';
@@ -183,14 +222,15 @@ function createRenamerUI(thisObj) {
         if (colorOptions) { if(colorOptions.bg)btnBgColor=colorOptions.bg; if(colorOptions.text)btnTextColor=colorOptions.text; if(colorOptions.hoverBg)hoverBg=colorOptions.hoverBg; if(colorOptions.hoverText)hoverText=colorOptions.hoverText; }
         var buttonObj;
         if (typeof themeButton === 'function') {
-            buttonObj = new themeButton(parent, { width: LARGURA_BOTAO, height: ALTURA_BOTAO, textColor: btnTextColor, buttonColor: btnBgColor, labelTxt: label, tips: [tip] });
-            var customButton = buttonObj.label;
-            if(customButton) {
-                customButton.addEventListener("mouseover", function () { this.textColor=hexToRgb(hoverText); this.buttonColor=hexToRgb(hoverBg); if(typeof drawThemeButton==='function')drawThemeButton(this); this.notify("onDraw"); });
-                customButton.addEventListener("mouseout", function () { this.textColor=hexToRgb(btnTextColor); this.buttonColor=hexToRgb(btnBgColor); if(typeof drawThemeButton==='function')drawThemeButton(this); this.notify("onDraw"); });
-            }
+            var config = { labelTxt: label, tips: [tip], width: LARGURA_BOTAO, height: ALTURA_BOTAO };
+            if (btnTextColor) { config.textColor = btnTextColor; }
+            if (btnBgColor) { config.buttonColor = btnBgColor; }
+            buttonObj = new themeButton(parent, config);
+            if (buttonObj && buttonObj.label) { enforceThemeButtonSize(buttonObj.label); }
         } else {
-            buttonObj = parent.add('button', undefined, label); buttonObj.preferredSize = [LARGURA_BOTAO, ALTURA_BOTAO]; buttonObj.helpTip = tip;
+            buttonObj = parent.add('button', undefined, label);
+            applyFixedSize(buttonObj, LARGURA_BOTAO, ALTURA_BOTAO);
+            buttonObj.helpTip = tip;
             if(!(thisObj instanceof Panel)) { themedAlert("Erro de Módulo", "A biblioteca 'main_ui_functions.js' não foi carregada.", "error"); }
         }
         return buttonObj;

@@ -17,7 +17,7 @@ var AnchorMaster = {
         subtitleText: "Alinha pontos âncora de camadas e shapes.",
         version: "v1.2.1",
         windowSize: [200, 380],
-        buttonSize: [40, 40],
+        buttonSize: [58, 46], // Ajuste rápido da largura/altura dos botões temáticos
         helpButtonSize: [24, 24], 
         panelMargins: 12,
         panelSpacing: 7,
@@ -363,22 +363,34 @@ var AnchorMaster = {
 
         var headerGrp = win.add("group");
         headerGrp.orientation = "row";
-        headerGrp.alignChildren = ["fill", "center"];
+        headerGrp.alignChildren = ["left", "center"];
+        headerGrp.alignment = ["fill", "top"];
         
-        var titleGroup = headerGrp.add("group");
-        titleGroup.orientation = "column";
-        titleGroup.alignChildren = ["left", "top"];
-        titleGroup.spacing = 2;
+        var prefsApi = (typeof D9T_Preferences !== 'undefined') ? D9T_Preferences : null;
+        var PREFS_KEY = "AnchorAlign";
+        var defaultPrefs = {
+            syncContents: false,
+            considerMasks: false,
+            ignoreLocked: true,
+            ignoreAnimated: true
+        };
+        var modulePrefs = prefsApi ? prefsApi.getModulePrefs(PREFS_KEY) : {};
+        if (typeof modulePrefs !== 'object' || modulePrefs === null) { modulePrefs = {}; }
+        function getPrefValue(key) {
+            return modulePrefs.hasOwnProperty(key) ? modulePrefs[key] : defaultPrefs[key];
+        }
+        function setPrefValue(key, value, persist) {
+            modulePrefs[key] = value;
+            if (prefsApi) { prefsApi.setModulePref(PREFS_KEY, key, value, !!persist); }
+        }
+
+        var subtitleText = headerGrp.add("statictext", undefined, self.config.subtitleText);
+        subtitleText.graphics.font = ScriptUI.newFont("Arial", "Bold", 13);
+        subtitleText.alignment = ["left", "center"];
+        if (typeof setFgColor === 'function') { setFgColor(subtitleText, self.config.colors.highlight); }
         
-
-
-        var subtitleText = titleGroup.add("statictext", undefined, self.config.subtitleText);
-        if (typeof setFgColor === 'function') { setFgColor(subtitleText, self.config.colors.text); }
-        
-        headerGrp.add("statictext", undefined, ""); 
-
         var helpButton;
-        var helpBtnGrp = headerGrp.add('group'); 
+        var helpBtnGrp = headerGrp.add('group');
         helpBtnGrp.alignment = ['right', 'center'];
         if (typeof themeIconButton === 'function' && typeof D9T_INFO_ICON !== 'undefined') {
             helpButton = new themeIconButton(helpBtnGrp, { icon: D9T_INFO_ICON, tips: ['Ajuda | Documentação'] });
@@ -387,32 +399,114 @@ var AnchorMaster = {
             helpButton.preferredSize = self.config.helpButtonSize;
         }
 
+
+        function lockButtonSize(ctrl, width, height) {
+            if (!ctrl) { return; }
+            if (typeof width === 'number' && typeof height === 'number') {
+                var sizeArray = [width, height];
+                ctrl.preferredSize = sizeArray;
+                ctrl.minimumSize = sizeArray;
+                ctrl.maximumSize = sizeArray;
+                ctrl.size = sizeArray;
+            }
+            ctrl.__buttonThemeOverrides = ctrl.__buttonThemeOverrides || {};
+            if (typeof width === 'number') { ctrl.__buttonThemeOverrides.width = width; }
+            if (typeof height === 'number') { ctrl.__buttonThemeOverrides.height = height; }
+        }
+
+        function enforceButtonSizeGuards(ctrl, width, height) {
+            if (!ctrl) { return; }
+            lockButtonSize(ctrl, width, height);
+            if (typeof ctrl.onDraw === 'function') {
+                var originalDraw = ctrl.onDraw;
+                ctrl.onDraw = function() {
+                    lockButtonSize(this, width, height);
+                    originalDraw.apply(this, arguments);
+                };
+            } else {
+                ctrl.onDraw = function() { lockButtonSize(this, width, height); };
+            }
+            if (typeof ctrl.addEventListener === 'function') {
+                var relock = function() { lockButtonSize(this, width, height); };
+                var events = ["mouseover", "mouseout", "mousedown", "mouseup"];
+                for (var e = 0; e < events.length; e++) {
+                    try { ctrl.addEventListener(events[e], relock); } catch (evtErr) {}
+                }
+            }
+            if (typeof D9T_applyThemeToButtonControl === 'function') {
+                try {
+                    var baseTheme = ctrl.__buttonThemeSource;
+                    if (!baseTheme && typeof D9T_getActiveButtonTheme === 'function') {
+                        baseTheme = D9T_getActiveButtonTheme();
+                    }
+                    D9T_applyThemeToButtonControl(ctrl, baseTheme);
+                } catch (themeErr) {}
+            }
+        }
+
+        function createAnchorButton(parent, glyph, tip, key) {
+            var buttonCtrl;
+            var btnWidth = self.config.buttonSize[0];
+            var btnHeight = self.config.buttonSize[1];
+            if (typeof themeButton === 'function') {
+                var btnWrapper = new themeButton(parent, { labelTxt: glyph, width: btnWidth, height: btnHeight });
+                buttonCtrl = btnWrapper.label;
+            } else {
+                buttonCtrl = parent.add("button", undefined, glyph);
+            }
+            enforceButtonSizeGuards(buttonCtrl, btnWidth, btnHeight);
+            buttonCtrl.alignment = ['center','center'];
+            buttonCtrl.helpTip = tip;
+            buttonCtrl.onClick = function() { self.handleButtonClick(key); };
+            return buttonCtrl;
+        }
+
         var panel = win.add("panel", undefined);
         panel.orientation = "column"; panel.alignChildren = ["center", "center"]; panel.spacing = self.config.panelSpacing; panel.margins = self.config.panelMargins;
         
-        var btnRow1 = panel.add("group"); btnRow1.spacing = self.config.buttonRowSpacing;
-        var btnTL = btnRow1.add("button", undefined, "\u2196"); var btnUp = btnRow1.add("button", undefined, "\u2191"); var btnTR = btnRow1.add("button", undefined, "\u2197");
+        var btnRow1 = panel.add("group"); btnRow1.spacing = self.config.buttonRowSpacing; btnRow1.alignChildren = ['center','center'];
+        var btnTL = createAnchorButton(btnRow1, "↖", "Âncora no canto superior esquerdo", "topLeft");
+        var btnUp = createAnchorButton(btnRow1, "↑", "Âncora no topo", "up");
+        var btnTR = createAnchorButton(btnRow1, "↗", "Âncora no canto superior direito", "topRight");
         
-        var btnRow2 = panel.add("group"); btnRow2.spacing = self.config.buttonRowSpacing;
-        var btnLeft = btnRow2.add("button", undefined, "\u2190"); var btnCenter = btnRow2.add("button", undefined, "\u2022"); var btnRight = btnRow2.add("button", undefined, "\u2192");
+        var btnRow2 = panel.add("group"); btnRow2.spacing = self.config.buttonRowSpacing; btnRow2.alignChildren = ['center','center'];
+        var btnLeft = createAnchorButton(btnRow2, "←", "Âncora à esquerda", "left");
+        var btnCenter = createAnchorButton(btnRow2, "•", "Âncora central", "center");
+        var btnRight = createAnchorButton(btnRow2, "→", "Âncora à direita", "right");
 
-        var btnRow3 = panel.add("group"); btnRow3.spacing = self.config.buttonRowSpacing;
-        var btnBL = btnRow3.add("button", undefined, "\u2199"); var btnDown = btnRow3.add("button", undefined, "\u2193"); var btnBR = btnRow3.add("button", undefined, "\u2198");
-
-        var allGridButtons = [btnTL, btnUp, btnTR, btnLeft, btnCenter, btnRight, btnBL, btnDown, btnBR];
-        for (var i = 0; i < allGridButtons.length; i++) { allGridButtons[i].preferredSize = self.config.buttonSize; }
-
+        var btnRow3 = panel.add("group"); btnRow3.spacing = self.config.buttonRowSpacing; btnRow3.alignChildren = ['center','center'];
+        var btnBL = createAnchorButton(btnRow3, "↙", "Âncora no canto inferior esquerdo", "bottomLeft");
+        var btnDown = createAnchorButton(btnRow3, "↓", "Âncora na parte inferior", "down");
+        var btnBR = createAnchorButton(btnRow3, "↘", "Âncora no canto inferior direito", "bottomRight");
         var optionsGroup = win.add("panel", undefined, "Opções");
         optionsGroup.orientation = "column"; optionsGroup.alignChildren = ["left", "top"];
         
+        var prefsApi = (typeof D9T_Preferences !== 'undefined') ? D9T_Preferences : null;
+        var PREFS_KEY = "AnchorAlign";
+        var defaultPrefs = {
+            syncContents: false,
+            considerMasks: false,
+            ignoreLocked: true,
+            ignoreAnimated: true
+        };
+        var modulePrefs = prefsApi ? prefsApi.getModulePrefs(PREFS_KEY) : {};
+        if (typeof modulePrefs !== 'object' || modulePrefs === null) { modulePrefs = {}; }
+        function getPrefValue(key) {
+            return modulePrefs.hasOwnProperty(key) ? modulePrefs[key] : defaultPrefs[key];
+        }
+        function setPrefValue(key, value, persist) {
+            modulePrefs[key] = value;
+            if (prefsApi) { prefsApi.setModulePref(PREFS_KEY, key, value, !!persist); }
+        }
+
         self.ui.chkSincronizarContents = optionsGroup.add("checkbox", undefined, "Sincronizar Contents");
         self.ui.chkSincronizarContents.helpTip = "Se marcado, alinha a âncora da camada e do Contents simultaneamente.";
-        self.ui.chkSincronizarContents.value = false;
+        self.ui.chkSincronizarContents.value = getPrefValue("syncContents");
         
         self.ui.chkConsiderarMascaras = optionsGroup.add("checkbox", undefined, "Considerar máscaras");
         self.ui.chkIgnorarBloqueadas = optionsGroup.add("checkbox", undefined, "Ignorar bloqueadas");
         self.ui.chkIgnorarAnimadas = optionsGroup.add("checkbox", undefined, "Ignorar com animação");
-        self.ui.chkConsiderarMascaras.value = false; self.ui.chkIgnorarBloqueadas.value = true; self.ui.chkIgnorarAnimadas.value = true;
+        self.ui.chkConsiderarMascaras.value = getPrefValue("considerMasks"); self.ui.chkIgnorarBloqueadas.value = getPrefValue("ignoreLocked"); self.ui.chkIgnorarAnimadas.value = getPrefValue("ignoreAnimated");
         
         if (typeof setFgColor === 'function') {
             setFgColor(self.ui.chkSincronizarContents, self.config.colors.text);
@@ -420,6 +514,11 @@ var AnchorMaster = {
             setFgColor(self.ui.chkIgnorarBloqueadas, self.config.colors.text);
             setFgColor(self.ui.chkIgnorarAnimadas, self.config.colors.text);
         }
+
+        self.ui.chkSincronizarContents.onClick = function () { setPrefValue("syncContents", !!this.value, true); };
+        self.ui.chkConsiderarMascaras.onClick = function () { setPrefValue("considerMasks", !!this.value, true); };
+        self.ui.chkIgnorarBloqueadas.onClick = function () { setPrefValue("ignoreLocked", !!this.value, true); };
+        self.ui.chkIgnorarAnimadas.onClick = function () { setPrefValue("ignoreAnimated", !!this.value, true); };
 
         var statusGroup = win.add("panel", undefined, "Status");
         statusGroup.alignChildren = ["fill", "fill"];
@@ -432,15 +531,6 @@ var AnchorMaster = {
             helpButton.onClick = function() { self.showHelp(); };
         }
         
-        btnLeft.onClick = function() { self.handleButtonClick("left"); };
-        btnUp.onClick = function() { self.handleButtonClick("up"); };
-        btnRight.onClick = function() { self.handleButtonClick("right"); };
-        btnTL.onClick = function() { self.handleButtonClick("topLeft"); };
-        btnCenter.onClick = function() { self.handleButtonClick("center"); };
-        btnTR.onClick = function() { self.handleButtonClick("topRight"); };
-        btnBL.onClick = function() { self.handleButtonClick("bottomLeft"); };
-        btnDown.onClick = function() { self.handleButtonClick("down"); };
-        btnBR.onClick = function() { self.handleButtonClick("bottomRight"); };
 
         win.onResizing = win.onResize = function() { if(this.layout) this.layout.resize(); };
         if (win instanceof Window) { win.center(); win.show(); } else { win.layout.layout(true); }

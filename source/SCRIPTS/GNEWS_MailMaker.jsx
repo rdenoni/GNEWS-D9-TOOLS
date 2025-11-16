@@ -22,6 +22,8 @@ function launchMailMaker() {
         dataConfigFile: "Dados_Config.json"
     };
     
+    var themeButtonSize = { width: 100, height: 40 }; // Ajuste rápido para largura/altura dos botões temáticos
+
     var symbols = {
         folder: "\uD83D\uDCC2", email: "\uD83D\uDCE9", config: "\u2699", preview: "\uD83D\uDD0D",
         capture: "\uD83D\uDCF7", detect: "\uD83D\uDD0E", image: "\uD83C\uDFDE", copy: "\uD83D\uDCCB",
@@ -63,6 +65,7 @@ function launchMailMaker() {
     var fontConfig = { defaultFont: "Arial", size: 10, titleSize: 15 };
     
     // === DADOS E VARIÁVEIS GLOBAIS ===
+    var prefsApi = (typeof D9T_Preferences !== 'undefined') ? D9T_Preferences : null;
     var appData = { capturedCompNames: [], capturedEditorName: "", emailMessage: "", selectedSaudacao: "Oi", selectedDespedida: "Abs,", selectedEmoji: symbols.metalHorn, selectedTemplate: "Padrão Simples", selectedDestination: null, customDestinationName: "", customDestinationPath: "", showFullPath: true, showTeamData: false };
     var ui = {};
     var caminhosData = {};
@@ -164,10 +167,22 @@ function launchMailMaker() {
     function isSecurityPrefEnabled() { try { return app.preferences.getPrefAsLong("Main Pref Section", "Pref_SCRIPTING_FILE_NETWORK_SECURITY") === 1; } catch(e) { return false; } }
 
     function saveSettings() {
+        var mailMakerPrefs = {
+            saudacao: appData.selectedSaudacao,
+            despedida: appData.selectedDespedida,
+            emoji: appData.selectedEmoji,
+            template: appData.selectedTemplate,
+            emailMessage: appData.emailMessage,
+            showFullPath: appData.showFullPath,
+            showTeamData: appData.showTeamData
+        };
+        if (prefsApi && prefsApi.set) {
+            prefsApi.set('MAILMAKER_config', mailMakerPrefs, true);
+            return;
+        }
         var prefsFile = new File(mainPath + config.userPreferencesFile);
         try {
             var allPreferences = readJsonFile(prefsFile.fsName) || {};
-            var mailMakerPrefs = { saudacao: appData.selectedSaudacao, despedida: appData.selectedDespedida, emoji: appData.selectedEmoji, template: appData.selectedTemplate, emailMessage: appData.emailMessage, showFullPath: appData.showFullPath, showTeamData: appData.showTeamData };
             allPreferences.MAILMAKER_config = mailMakerPrefs;
             prefsFile.encoding = "UTF-8";
             if (prefsFile.open("w")) {
@@ -178,24 +193,34 @@ function launchMailMaker() {
     }
 
     function loadSettings() {
-        var prefsFile = new File(mainPath + config.userPreferencesFile);
-        try {
-            if (prefsFile.exists) {
-                var allPreferences = readJsonFile(prefsFile.fsName);
-                if (allPreferences && allPreferences.MAILMAKER_config) {
-                    var loaded = allPreferences.MAILMAKER_config;
-                    appData.selectedSaudacao = loaded.saudacao || appData.selectedSaudacao;
-                    appData.selectedDespedida = loaded.despedida || appData.selectedDespedida;
-                    appData.selectedEmoji = loaded.emoji || appData.selectedEmoji;
-                    appData.selectedTemplate = loaded.template || appData.selectedTemplate;
-                    appData.emailMessage = loaded.emailMessage || templates[appData.selectedTemplate] || "";
-                    appData.showFullPath = (loaded.showFullPath !== undefined) ? loaded.showFullPath : true;
-                    appData.showTeamData = (loaded.showTeamData !== undefined) ? loaded.showTeamData : false;
-                    if (appData.selectedTemplate === "Personalizado" && !loaded.emailMessage) { appData.emailMessage = "";
-                    } else if (appData.selectedTemplate !== "Personalizado" && loaded.emailMessage !== templates[appData.selectedTemplate]) { appData.selectedTemplate = "Personalizado"; }
+        var loaded = null;
+        if (prefsApi && prefsApi.get) {
+            loaded = prefsApi.get('MAILMAKER_config', null);
+        } else {
+            var prefsFile = new File(mainPath + config.userPreferencesFile);
+            try {
+                if (prefsFile.exists) {
+                    var allPreferences = readJsonFile(prefsFile.fsName);
+                    if (allPreferences && allPreferences.MAILMAKER_config) {
+                        loaded = allPreferences.MAILMAKER_config;
+                    }
                 }
+            } catch(e) { logDebug("Erro ao carregar configurações: " + e.toString()); }
+        }
+        if (loaded) {
+            appData.selectedSaudacao = loaded.saudacao || appData.selectedSaudacao;
+            appData.selectedDespedida = loaded.despedida || appData.selectedDespedida;
+            appData.selectedEmoji = loaded.emoji || appData.selectedEmoji;
+            appData.selectedTemplate = loaded.template || appData.selectedTemplate;
+            appData.emailMessage = loaded.emailMessage || templates[appData.selectedTemplate] || "";
+            appData.showFullPath = (loaded.showFullPath !== undefined) ? loaded.showFullPath : true;
+            appData.showTeamData = (loaded.showTeamData !== undefined) ? loaded.showTeamData : false;
+            if (appData.selectedTemplate === "Personalizado" && !loaded.emailMessage) {
+                appData.emailMessage = "";
+            } else if (appData.selectedTemplate !== "Personalizado" && loaded.emailMessage !== templates[appData.selectedTemplate]) {
+                appData.selectedTemplate = "Personalizado";
             }
-        } catch(e) { logDebug("Erro ao carregar configurações: " + e.toString()); }
+        }
     }
 
     // === LÓGICA PRINCIPAL ===
@@ -420,15 +445,62 @@ function launchMailMaker() {
         try { ui.previewText.graphics.font = ScriptUI.newFont(fontConfig.defaultFont, undefined, fontConfig.size); } catch (e) {}
         
         var buttonGroup = previewPanel.add("group"); buttonGroup.orientation = "row"; buttonGroup.alignChildren = ["fill", "center"]; buttonGroup.spacing = 5;
-        ui.captureBtn = buttonGroup.add("button", undefined, (symbols.capture ? symbols.capture + " " : "") + "Capturar");
-        ui.captureBtn.helpTip = "Lê as comps selecionadas e preenche dados para o email.";
-        ui.detectBtn = buttonGroup.add("button", undefined, (symbols.detect ? symbols.detect + " " : "") + "Detectar");
-        ui.detectBtn.helpTip = "Detecta automaticamente caminhos/destinos com base na programação.";
-        ui.previewBtn = buttonGroup.add("button", undefined, (symbols.image ? symbols.image + " " : "") + "Preview");
-        ui.previewBtn.helpTip = "Gera previews e atualiza a mensagem com os arquivos salvos.";
-        ui.copyBtn = buttonGroup.add("button", undefined, (symbols.copy ? symbols.copy + " " : "") + "Copiar");
-        ui.copyBtn.helpTip = "Copia o texto completo do email para a área de transferência.";
-        ui.captureBtn.preferredSize.height = ui.detectBtn.preferredSize.height = ui.previewBtn.preferredSize.height = ui.copyBtn.preferredSize.height = 35;
+
+        function applyFixedSize(target, width, height) {
+            if (!target || typeof width !== 'number' || typeof height !== 'number') { return; }
+            var sizeArr = [width, height];
+            target.preferredSize = sizeArr;
+            target.minimumSize = sizeArr;
+            target.maximumSize = sizeArr;
+            target.size = sizeArr;
+        }
+
+        function enforceThemeButtonSize(ctrl) {
+            if (!ctrl) { return; }
+            applyFixedSize(ctrl, themeButtonSize.width, themeButtonSize.height);
+            ctrl.__buttonThemeOverrides = ctrl.__buttonThemeOverrides || {};
+            ctrl.__buttonThemeOverrides.width = themeButtonSize.width;
+            ctrl.__buttonThemeOverrides.height = themeButtonSize.height;
+            var relock = function () { applyFixedSize(ctrl, themeButtonSize.width, themeButtonSize.height); };
+            if (typeof ctrl.onDraw === 'function') {
+                var prevDraw = ctrl.onDraw;
+                ctrl.onDraw = function () { relock(); prevDraw.apply(this, arguments); };
+            } else {
+                ctrl.onDraw = relock;
+            }
+            if (typeof ctrl.addEventListener === 'function') {
+                var events = ["mouseover","mouseout","mousedown","mouseup"];
+                for (var i = 0; i < events.length; i++) {
+                    try { ctrl.addEventListener(events[i], relock); } catch (evtErr) {}
+                }
+            }
+            if (typeof D9T_applyThemeToButtonControl === 'function') {
+                try {
+                    var baseTheme = ctrl.__buttonThemeSource;
+                    if (!baseTheme && typeof D9T_getActiveButtonTheme === 'function') { baseTheme = D9T_getActiveButtonTheme(); }
+                    D9T_applyThemeToButtonControl(ctrl, baseTheme);
+                } catch (themeErr) {}
+            }
+        }
+
+        function createActionButton(parent, label, tip) {
+            var ctrl;
+            if (typeof themeButton === 'function') {
+                var btnObj = new themeButton(parent, { labelTxt: label, tips: tip ? [tip] : [], width: themeButtonSize.width, height: themeButtonSize.height });
+                ctrl = btnObj.label;
+                ctrl.alignment = ['fill', 'center'];
+                enforceThemeButtonSize(ctrl);
+            } else {
+                ctrl = parent.add("button", undefined, label);
+                applyFixedSize(ctrl, themeButtonSize.width, themeButtonSize.height);
+            }
+            if (ctrl && tip) { ctrl.helpTip = tip; }
+            return ctrl;
+        }
+        ui.captureBtn = createActionButton(buttonGroup, (symbols.capture ? symbols.capture + " " : "") + "Capturar", "Lê as comps selecionadas e preenche dados para o email.");
+        ui.detectBtn = createActionButton(buttonGroup, (symbols.detect ? symbols.detect + " " : "") + "Detectar", "Detecta automaticamente caminhos/destinos com base na programação.");
+        ui.previewBtn = createActionButton(buttonGroup, (symbols.image ? symbols.image + " " : "") + "Preview", "Gera previews e atualiza a mensagem com os arquivos salvos.");
+        ui.copyBtn = createActionButton(buttonGroup, (symbols.copy ? symbols.copy + " " : "") + "Copiar", "Copia o texto completo do email para a área de transferência.");
         
         var statusPanel = w.add("panel", undefined, "Status"); allStaticLabels.push(statusPanel); statusPanel.alignment = "fill"; statusPanel.margins = 10;
         var statusGroup = statusPanel.add("group"); statusGroup.alignment = "fill"; statusGroup.orientation = "row";

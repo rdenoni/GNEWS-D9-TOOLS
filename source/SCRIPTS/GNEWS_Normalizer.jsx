@@ -31,14 +31,28 @@ function launchNormalizerUI(thisObj) {
 
 	// Configurações de Tamanho da Interface
 	var LARGURA_JANELA = 400; // Largura inicial da janela
-	var LARGURA_BOTAO_PRINCIPAL = 180; // Largura dos botões de ação
-	var ALTURA_BOTAO_PRINCIPAL = 25; // Altura dos botões de ação
+	var LARGURA_BOTAO_TEMATICO = 200; // Ajuste rápido para a largura dos botões temáticos
+	var ALTURA_BOTAO_TEMATICO = 40; // Ajuste rápido para a altura dos botões temáticos
+	var LARGURA_BOTAO_PRINCIPAL = LARGURA_BOTAO_TEMATICO;
+	var ALTURA_BOTAO_PRINCIPAL = ALTURA_BOTAO_TEMATICO;
 	var ALTURA_PAINEL_STATUS = 40; // Altura da área de feedback de status
 	var TAMANHO_BOTAO_AJUDA = 25; // Tamanho (largura e altura) do botão de interrogação
 
 	// Configurações de Layout
 	var MARGENS_JANELA = 16; // Espaçamento nas bordas da janela
 	var ESPACAMENTO_ELEMENTOS = 10; // Espaçamento vertical entre os painéis
+	var prefsApi = (typeof D9T_Preferences !== 'undefined') ? D9T_Preferences : null;
+	var PREFS_KEY = "Normalizer";
+	var defaultPrefs = { includeStrokeScale: true };
+	var modulePrefs = prefsApi ? prefsApi.getModulePrefs(PREFS_KEY) : {};
+	if (typeof modulePrefs !== 'object' || modulePrefs === null) { modulePrefs = {}; }
+	function getPrefValue(key) {
+		return modulePrefs.hasOwnProperty(key) ? modulePrefs[key] : defaultPrefs[key];
+	}
+	function setPrefValue(key, value, persist) {
+		modulePrefs[key] = value;
+		if (prefsApi) { prefsApi.setModulePref(PREFS_KEY, key, value, !!persist); }
+	}
 
 
 	// =================================================================================
@@ -106,12 +120,14 @@ function launchNormalizerUI(thisObj) {
 	headerGroup.alignment = 'fill';
 	headerGroup.margins = [0, 0, 0, 10]; // Adiciona uma margem inferior para separar do resto do conteúdo.
 
-	// Grupo para o título (alinhado à esquerda).
+		// Grupo para o tA-tulo (alinhado A� esquerda).
+
 	var titleGroup = headerGroup.add('group');
 	titleGroup.alignment = 'left';
 	var subtitleText = titleGroup.add("statictext", undefined, SCRIPT_SUBTITLE);
-	subtitleText.graphics.font = ScriptUI.newFont("Arial", "Bold", 14); // Define a fonte do subtítulo.
+	subtitleText.graphics.font = ScriptUI.newFont("Arial", "Bold", 13); // Define a fonte do subtA-tulo.
 	setFgColor(subtitleText, highlightColor1); // Usa a cor de destaque global.
+
 
 	// Grupo para o botão de ajuda (alinhado à direita).
 	var helpBtn;
@@ -138,6 +154,79 @@ function launchNormalizerUI(thisObj) {
 		helpBtn.onClick = showHelp;
 	}
 
+	function applyFixedSize(target, width, height) {
+		if (!target || typeof width !== 'number' || typeof height !== 'number') { return; }
+		var sizeArr = [width, height];
+		target.preferredSize = sizeArr;
+		target.minimumSize = sizeArr;
+		target.maximumSize = sizeArr;
+		target.size = sizeArr;
+	}
+
+	function lockButtonSize(ctrl, width, height) {
+		if (!ctrl) { return; }
+		if (typeof width === 'number' && typeof height === 'number') {
+			applyFixedSize(ctrl, width, height);
+			if (ctrl.parent && ctrl.parent.type === "group") {
+				applyFixedSize(ctrl.parent, width, height);
+			}
+		}
+		ctrl.__buttonThemeOverrides = ctrl.__buttonThemeOverrides || {};
+		if (typeof width === 'number') { ctrl.__buttonThemeOverrides.width = width; }
+		if (typeof height === 'number') { ctrl.__buttonThemeOverrides.height = height; }
+	}
+
+	function enforceButtonSize(ctrl, width, height) {
+		if (!ctrl) { return; }
+		lockButtonSize(ctrl, width, height);
+		if (typeof ctrl.onDraw === 'function') {
+			var originalDraw = ctrl.onDraw;
+			ctrl.onDraw = function() {
+				lockButtonSize(this, width, height);
+				originalDraw.apply(this, arguments);
+			};
+		} else {
+			ctrl.onDraw = function() { lockButtonSize(this, width, height); };
+		}
+		if (typeof ctrl.addEventListener === 'function') {
+			var relock = function() { lockButtonSize(this, width, height); };
+			var evtNames = ["mouseover", "mouseout", "mousedown", "mouseup"];
+			for (var e = 0; e < evtNames.length; e++) {
+				try { ctrl.addEventListener(evtNames[e], relock); } catch (evtErr) {}
+			}
+		}
+		if (typeof D9T_applyThemeToButtonControl === 'function') {
+			try {
+				var baseTheme = ctrl.__buttonThemeSource;
+				if (!baseTheme && typeof D9T_getActiveButtonTheme === 'function') {
+					baseTheme = D9T_getActiveButtonTheme();
+				}
+				D9T_applyThemeToButtonControl(ctrl, baseTheme);
+			} catch (themeErr) {}
+		}
+	}
+
+	function createThemedButton(parent, label, tip, options) {
+		options = options || {};
+		var targetWidth = (typeof options.width === 'number') ? options.width : LARGURA_BOTAO_PRINCIPAL;
+		var targetHeight = (typeof options.height === 'number') ? options.height : ALTURA_BOTAO_PRINCIPAL;
+		var buttonCtrl;
+		if (typeof themeButton === 'function') {
+			var cfg = { labelTxt: label };
+			if (tip) { cfg.tips = [tip]; }
+			if (options.width) { cfg.width = options.width; }
+			if (options.height) { cfg.height = options.height; }
+			buttonCtrl = new themeButton(parent, cfg).label;
+		} else {
+			buttonCtrl = parent.add("button", undefined, label);
+			if (options.width) { buttonCtrl.preferredSize.width = options.width; }
+			if (options.height) { buttonCtrl.preferredSize.height = options.height; }
+		}
+		if (buttonCtrl && tip) { buttonCtrl.helpTip = tip; }
+		enforceButtonSize(buttonCtrl, targetWidth, targetHeight);
+		return buttonCtrl;
+	}
+
 
 	// --- PAINÉIS E BOTÕES DE AÇÃO ---
 
@@ -146,12 +235,11 @@ function launchNormalizerUI(thisObj) {
 	scalePanel.alignChildren = 'fill';
 	setFgColor(scalePanel, monoColor1); // Cor do título do painel.
 	var cbIncludeStrokeScale = scalePanel.add("checkbox", undefined, "Ajustar Largura do Stroke");
-	cbIncludeStrokeScale.value = true;
+	cbIncludeStrokeScale.value = getPrefValue("includeStrokeScale");
 	cbIncludeStrokeScale.helpTip = "Quando ativado, o stroke/contorno acompanha o novo valor de escala.";
 	setFgColor(cbIncludeStrokeScale, monoColor1); // Cor do texto da checkbox.
-	var normalizeScaleBtn = scalePanel.add("button", undefined, " Normalizar Escala 100%");
-	normalizeScaleBtn.preferredSize.width = LARGURA_BOTAO_PRINCIPAL;
-	normalizeScaleBtn.helpTip = "Aplica escala 100% às layers selecionadas preservando proporções.";
+	var normalizeScaleBtn = createThemedButton(scalePanel, " Normalizar Escala 100%", "Aplica escala 100% às layers selecionadas preservando proporções.", { width: LARGURA_BOTAO_PRINCIPAL });
+	cbIncludeStrokeScale.onClick = function() { setPrefValue("includeStrokeScale", !!this.value, true); };
 
 	// Painel de Âncora
 	var anchorPanel = pal.add("panel", undefined, "Âncora");
@@ -159,12 +247,8 @@ function launchNormalizerUI(thisObj) {
 	setFgColor(anchorPanel, monoColor1);
 	var anchorBtnsGroup = anchorPanel.add("group");
 	anchorBtnsGroup.orientation = "row";
-	var normalizeAnchorBtn = anchorBtnsGroup.add("button", undefined, " Normalizar Ancora");
-	normalizeAnchorBtn.preferredSize.width = LARGURA_BOTAO_PRINCIPAL;
-	normalizeAnchorBtn.helpTip = "Reposiciona o ponto de âncora para o centro geométrico da layer.";
-	var AnchorAlignBtn = anchorBtnsGroup.add("button", undefined, " Centralizar Ancora");
-	AnchorAlignBtn.preferredSize.width = LARGURA_BOTAO_PRINCIPAL;
-	AnchorAlignBtn.helpTip = "Executa o comando nativo para centralizar o ponto de âncora baseado no conteúdo.";
+	var normalizeAnchorBtn = createThemedButton(anchorBtnsGroup, " Normalizar Ancora", "Reposiciona o ponto de Âncora para o centro geométrico da layer.", { width: LARGURA_BOTAO_PRINCIPAL });
+	var AnchorAlignBtn = createThemedButton(anchorBtnsGroup, " Centralizar Ancora", "Executa o comando nativo para centralizar o ponto de Âncora baseado no conteúdo.", { width: LARGURA_BOTAO_PRINCIPAL });
 
 	// Painel de Posição
 	var posPanel = pal.add("panel", undefined, "Posição");
@@ -172,12 +256,8 @@ function launchNormalizerUI(thisObj) {
 	setFgColor(posPanel, monoColor1);
 	var posGroup = posPanel.add("group");
 	posGroup.orientation = "row";
-	var positionZeroBtn = posGroup.add("button", undefined, " Posição [0,0] via Âncora");
-	positionZeroBtn.preferredSize.width = LARGURA_BOTAO_PRINCIPAL;
-	positionZeroBtn.helpTip = "Move as layers para a origem (0,0) compensando pelo ponto de âncora.";
-	var centerObjectBtn = posGroup.add("button", undefined, " Centralizar Objeto");
-	centerObjectBtn.preferredSize.width = LARGURA_BOTAO_PRINCIPAL;
-	centerObjectBtn.helpTip = "Centraliza visualmente as layers na composição atual.";
+	var positionZeroBtn = createThemedButton(posGroup, " Posição [0,0] via Âncora", "Move as layers para a origem (0,0) compensando pelo ponto de Âncora.", { width: LARGURA_BOTAO_PRINCIPAL });
+	var centerObjectBtn = createThemedButton(posGroup, " Centralizar Objeto", "Centraliza visualmente as layers na composição atual.", { width: LARGURA_BOTAO_PRINCIPAL });
 
 	// Painel de Rotação
 	var rotPanel = pal.add("panel", undefined, "Rotação");
@@ -185,20 +265,14 @@ function launchNormalizerUI(thisObj) {
 	setFgColor(rotPanel, monoColor1);
 	var rotBtnsGroup = rotPanel.add("group");
 	rotBtnsGroup.orientation = "row";
-	var normalizeRotBtn = rotBtnsGroup.add("button", undefined, " Normalizar Rotação");
-	normalizeRotBtn.preferredSize.width = LARGURA_BOTAO_PRINCIPAL;
-	normalizeRotBtn.helpTip = "Zera valores de rotação mantendo a orientação atual.";
-	var zeroRotationBtn = rotBtnsGroup.add("button", undefined, " Resetar Rotação");
-	zeroRotationBtn.preferredSize.width = LARGURA_BOTAO_PRINCIPAL;
-	zeroRotationBtn.helpTip = "Define rotação em 0° sem ajustes adicionais.";
+	var normalizeRotBtn = createThemedButton(rotBtnsGroup, " Normalizar Rotação", "Zera valores de rotação mantendo a orientação atual.", { width: LARGURA_BOTAO_PRINCIPAL });
+	var zeroRotationBtn = createThemedButton(rotBtnsGroup, " Resetar Rotação", "Define rotação em 0° sem ajustes adicionais.", { width: LARGURA_BOTAO_PRINCIPAL });
 
 	// Painel para Resetar Propriedades
-	var shapePanel = pal.add("panel", undefined, "Transformações"); // ATUALIZADO
+	var shapePanel = pal.add("panel", undefined, "Transformações");
 	shapePanel.alignChildren = 'fill';
 	setFgColor(shapePanel, monoColor1);
-	var resetShapeTransformsBtn = shapePanel.add("button", undefined, "Resetar Transformações");
-	resetShapeTransformsBtn.preferredSize.width = LARGURA_BOTAO_PRINCIPAL;
-	resetShapeTransformsBtn.helpTip = "Reinicia posição, escala e rotação de shapes/textos para valores padrão.";
+	var resetShapeTransformsBtn = createThemedButton(shapePanel, "Resetar Transformações", "Reinicia posição, escala e rotação de shapes/textos para valores padrão.", { width: LARGURA_BOTAO_PRINCIPAL });
 
 
 	// Painel de Status (feedback para o usuário)

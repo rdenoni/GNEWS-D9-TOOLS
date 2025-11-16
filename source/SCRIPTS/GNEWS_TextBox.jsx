@@ -610,140 +610,127 @@ function createUI(thisObj) {
         setBgColor(win, bgColor1);
     }
 
-	// --- CABEÇALHO ---
+    var statusText = null;
+
+    function setStatusMessage(message) {
+        if (statusText) { statusText.text = message || "Pronto."; }
+    }
+
+		var statusText;
+
+	// --- CABECALHO ---
     var headerGrp = win.add('group');
     headerGrp.orientation = 'row';
-    headerGrp.alignChildren = ["fill", "center"];
-    
+    headerGrp.alignChildren = ['fill', 'center'];
     var title = headerGrp.add('statictext', undefined, SCRIPT_SUBTITLE);
     title.alignment = 'left';
-    if (typeof setFgColor === 'function' && typeof highlightColor1 !== 'undefined') {
-        setFgColor(title, highlightColor1);
-    }
+    if (typeof setFgColor === 'function' && typeof highlightColor1 !== 'undefined') { setFgColor(title, highlightColor1); }
 
-	// --- BOTÃO DE AJUDA ---
+	// --- BOTAO DE AJUDA ---
     var helpBtn;
-	var helpBtnGroup = headerGrp.add('group');
-	helpBtnGroup.alignment = ['right', 'center'];
+    var helpBtnGroup = headerGrp.add('group');
+    helpBtnGroup.alignment = ['right', 'center'];
     if (typeof themeIconButton !== 'undefined' && typeof D9T_INFO_ICON !== 'undefined') {
-		try {
-			helpBtn = new themeIconButton(helpBtnGroup, { icon: D9T_INFO_ICON, tips: ['Ajuda'] });
-		} catch (e) {
-			helpBtn = helpBtnGroup.add("button", undefined, "?");
-			helpBtn.preferredSize = [LARGURA_BOTAO_AJUDA, LARGURA_BOTAO_AJUDA];
-		}
-	} else {
-		helpBtn = helpBtnGroup.add("button", undefined, "?");
-		helpBtn.preferredSize = [LARGURA_BOTAO_AJUDA, LARGURA_BOTAO_AJUDA];
-	}
-
-	// --- PAINEL DE AÇÕES ---
-    var actionsPanel = win.add("panel", undefined, "Funções");
-    actionsPanel.alignChildren = "center";
-    actionsPanel.spacing = 8;
-    if (typeof setFgColor === 'function' && typeof monoColor1 !== 'undefined') {
-        setFgColor(actionsPanel, monoColor1);
+        try { helpBtn = new themeIconButton(helpBtnGroup, { icon: D9T_INFO_ICON, tips: ['Ajuda'] }); }
+        catch (e) {
+            helpBtn = helpBtnGroup.add('button', undefined, '?');
+            helpBtn.preferredSize = [LARGURA_BOTAO_AJUDA, LARGURA_BOTAO_AJUDA];
+        }
+    } else {
+        helpBtn = helpBtnGroup.add('button', undefined, '?');
+        helpBtn.preferredSize = [LARGURA_BOTAO_AJUDA, LARGURA_BOTAO_AJUDA];
     }
-    
-    // --- FUNÇÃO CORRIGIDA ---
+
+	// --- PAINEL DE ACOES ---
+    var actionsPanel = win.add('panel', undefined, 'Conversao e separacao');
+    actionsPanel.alignChildren = 'center';
+    actionsPanel.spacing = 8;
+    if (typeof setFgColor === 'function' && typeof monoColor1 !== 'undefined') { setFgColor(actionsPanel, monoColor1); }
+
+    // --- FUNCAO CORRIGIDA ---
     function createActionButton(parent, label, tip, colorOptions) {
         var btnBgColor = (typeof normalColor1 !== 'undefined') ? normalColor1 : '#DDDDDD';
         var btnTextColor = (typeof bgColor1 !== 'undefined') ? bgColor1 : '#000000';
-        var hoverBg = (typeof highlightColor1 !== 'undefined') ? highlightColor1 : '#D4003C';
-        var hoverText = (typeof normalColor1 !== 'undefined') ? normalColor1 : '#FFFFFF';
-
         if (colorOptions) {
-            if (colorOptions.bg) btnBgColor = colorOptions.bg;
-            if (colorOptions.text) btnTextColor = colorOptions.text;
-            if (colorOptions.hoverBg) hoverBg = colorOptions.hoverBg;
-            if (colorOptions.hoverText) hoverText = colorOptions.hoverText;
+            if (colorOptions.bg) { btnBgColor = colorOptions.bg; }
+            if (colorOptions.text) { btnTextColor = colorOptions.text; }
         }
-
-        var buttonObj; // Objeto para armazenar o botão criado
-
         if (typeof themeButton === 'function') {
-            buttonObj = new themeButton(parent, {
-                width: LARGURA_BOTAO_ACAO, height: ALTURA_BOTAO_ACAO,
-                textColor: btnTextColor, buttonColor: btnBgColor,
-                labelTxt: label, tips: [tip]
-            });
-            
-            // Sobrescreve os eventos de hover para usar as cores corretas
-            // Acessa o 'label' que é o elemento 'customButton'
-            var customButton = buttonObj.label;
-            if(customButton) {
-                customButton.addEventListener("mouseover", function () {
-                    this.textColor = hexToRgb(hoverText);
-                    this.buttonColor = hexToRgb(hoverBg);
-                    if(typeof drawThemeButton === 'function') drawThemeButton(this);
-                    this.notify("onDraw");
-                });
-                customButton.addEventListener("mouseout", function () {
-                    this.textColor = hexToRgb(btnTextColor);
-                    this.buttonColor = hexToRgb(btnBgColor);
-                    if(typeof drawThemeButton === 'function') drawThemeButton(this);
-                    this.notify("onDraw");
-                });
-            }
-
-        } else {
-            buttonObj = parent.add('button', undefined, label);
-            buttonObj.preferredSize = [LARGURA_BOTAO_ACAO, ALTURA_BOTAO_ACAO];
-            buttonObj.helpTip = tip;
+            var config = { labelTxt: label, tips: [tip] };
+            if (btnTextColor) { config.textColor = btnTextColor; }
+            if (btnBgColor) { config.buttonColor = btnBgColor; }
+            return new themeButton(parent, config);
         }
-        return buttonObj;
+        var fallbackBtn = parent.add('button', undefined, label);
+        fallbackBtn.preferredSize = [LARGURA_BOTAO_ACAO, ALTURA_BOTAO_ACAO];
+        fallbackBtn.helpTip = tip;
+        return fallbackBtn;
     }
-    
-    var buttonColumnsGrp = actionsPanel.add("group");
-    buttonColumnsGrp.orientation = "row";
-    buttonColumnsGrp.alignChildren = ["fill", "top"];
+
+    var buttonColumnsGrp = actionsPanel.add('group');
+    buttonColumnsGrp.orientation = 'row';
+    buttonColumnsGrp.alignChildren = ['fill', 'top'];
     buttonColumnsGrp.spacing = 10;
-    var column1Grp = buttonColumnsGrp.add("group");
-    column1Grp.orientation = "column";
-    column1Grp.alignChildren = "center";
+    var column1Grp = buttonColumnsGrp.add('group');
+    column1Grp.orientation = 'column';
+    column1Grp.alignChildren = 'center';
     column1Grp.spacing = 8;
-    var btnConverter = createActionButton(column1Grp, "CONVERTER", "Converte para uma única camada Point Text.");
-    var btnSepararPalavras = createActionButton(column1Grp, "SEPARAR PALAVRAS", "Cria uma camada de texto para cada palavra.");
-    var btnMaiusculas = createActionButton(column1Grp, "MAIÚSCULAS", "Transforma o texto em maiúsculas.", {
-        bg: (typeof highlightColor1 !== 'undefined') ? highlightColor1 : '#D4003C',
-        text: (typeof normalColor1 !== 'undefined') ? normalColor1 : '#FFFFFF',
-        hoverBg: (typeof normalColor1 !== 'undefined') ? normalColor1 : '#FFFFFF',
-        hoverText: (typeof bgColor1 !== 'undefined') ? bgColor1 : '#000000'
-    });
-    var column2Grp = buttonColumnsGrp.add("group");
-    column2Grp.orientation = "column";
-    column2Grp.alignChildren = "center";
+    var btnConverter = createActionButton(column1Grp, 'CONVERTER', 'Converte para uma unica camada Point Text.');
+    var btnSepararPalavras = createActionButton(column1Grp, 'SEPARAR PALAVRAS', 'Cria uma camada de texto para cada palavra.');
+    var column2Grp = buttonColumnsGrp.add('group');
+    column2Grp.orientation = 'column';
+    column2Grp.alignChildren = 'center';
     column2Grp.spacing = 8;
-    var btnSepararLinhas = createActionButton(column2Grp, "SEPARAR LINHAS", "Cria uma camada de texto para cada linha.");
-    var btnSepararLetras = createActionButton(column2Grp, "SEPARAR LETRAS", "Cria uma camada de texto para cada caractere.");
-    var btnMinusculas = createActionButton(column2Grp, "MINÚSCULAS", "Transforma o texto em minúsculas.", {
-        bg: (typeof highlightColor1 !== 'undefined') ? highlightColor1 : '#D4003C',
-        text: (typeof normalColor1 !== 'undefined') ? normalColor1 : '#FFFFFF',
-        hoverBg: (typeof normalColor1 !== 'undefined') ? normalColor1 : '#FFFFFF',
-        hoverText: (typeof bgColor1 !== 'undefined') ? bgColor1 : '#000000'
-    });
+    var btnSepararLinhas = createActionButton(column2Grp, 'SEPARAR LINHAS', 'Cria uma camada de texto para cada linha.');
+    var btnSepararLetras = createActionButton(column2Grp, 'SEPARAR LETRAS', 'Cria uma camada de texto para cada caractere.');
 
-    // =================================================================================
-	// --- EVENTOS DA INTERFACE ---
+    var formatPanel = win.add('panel', undefined, 'Formatacao');
+    formatPanel.alignChildren = ['fill', 'top'];
+    formatPanel.spacing = 6;
+    var formatRow = formatPanel.add('group');
+    formatRow.orientation = 'row';
+    formatRow.alignChildren = ['fill', 'center'];
+    formatRow.spacing = 10;
+    var btnMaiusculas = createActionButton(formatRow, 'MAIUSCULAS', 'Transforma o texto em maiusculas.', { bg: (typeof highlightColor1 !== 'undefined') ? highlightColor1 : '#D4003C', text: (typeof normalColor1 !== 'undefined') ? normalColor1 : '#FFFFFF' });
+    var btnMinusculas = createActionButton(formatRow, 'MINUSCULAS', 'Transforma o texto em minusculas.', { bg: (typeof highlightColor1 !== 'undefined') ? highlightColor1 : '#D4003C', text: (typeof normalColor1 !== 'undefined') ? normalColor1 : '#FFFFFF' });
+
+    var statusPanel = win.add('panel', undefined, 'Status');
+    statusPanel.alignChildren = ['fill', 'top'];
+    statusPanel.spacing = 4;
+    statusText = statusPanel.add('statictext', undefined, 'Pronto.', { multiline: true });
     // =================================================================================
     
-    function assignClick(buttonObj, clickFunction) {
-        if (buttonObj && buttonObj.leftClick) { buttonObj.leftClick.onClick = clickFunction; } 
-        else if (buttonObj) { buttonObj.onClick = clickFunction; }
+    function assignClick(buttonObj, clickFunction, description) {
+        if (!buttonObj) { return; }
+        var labelText = description || (buttonObj.label && buttonObj.label.text) || buttonObj.text || "acao";
+        var handler = function () {
+            setStatusMessage("Executando " + labelText + "...");
+            try {
+                clickFunction();
+                setStatusMessage("Concluido: " + labelText + ".");
+            } catch (err) {
+                setStatusMessage("Erro em " + labelText + ": " + err.message);
+                throw err;
+            }
+        };
+        if (buttonObj.leftClick) { buttonObj.leftClick.onClick = handler; } 
+        else if (buttonObj) { buttonObj.onClick = handler; }
     }
 
-    assignClick(btnConverter, function() { runConversion("INTEIRO"); });
-    assignClick(btnSepararLinhas, function() { runConversion("POR_LINHA"); });
-    assignClick(btnSepararPalavras, function() { runConversion("POR_PALAVRA"); });
-    assignClick(btnSepararLetras, function() { runConversion("POR_LETRA"); });
-    assignClick(btnMaiusculas, function() { changeCase('upper'); });
-    assignClick(btnMinusculas, function() { changeCase('lower'); });
+    assignClick(btnConverter, function() { runConversion("INTEIRO"); }, "Converter");
+    assignClick(btnSepararLinhas, function() { runConversion("POR_LINHA"); }, "Separar linhas");
+    assignClick(btnSepararPalavras, function() { runConversion("POR_PALAVRA"); }, "Separar palavras");
+    assignClick(btnSepararLetras, function() { runConversion("POR_LETRA"); }, "Separar letras");
+    assignClick(btnMaiusculas, function() { changeCase('upper'); }, "Maiusculas");
+    assignClick(btnMinusculas, function() { changeCase('lower'); }, "Minusculas");
     
 	function showHelp() {
 		if (typeof showTextBoxHelp === 'function') { showTextBoxHelp(); } 
         else { themedAlert("Erro de Módulo", "A biblioteca de ajuda (HELP lib.js) não foi encontrada."); }
 	}
     assignClick(helpBtn, showHelp);
+
+    setStatusMessage("Pronto.");
 
     if (win instanceof Window) {
         win.center();

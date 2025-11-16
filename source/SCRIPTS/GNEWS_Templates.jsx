@@ -5,6 +5,7 @@
 //    versao anterior. O carregamento de cache, busca, paginacao e todas
 //    as outras funcionalidades estao novamente presentes e operacionais.
 // =============================================================================
+#targetengine "GND9_GNEWS_TEMPLATES"
 $.encoding = "UTF-8";
 
 function d9TemplateDialog(thisObj) {
@@ -12,6 +13,7 @@ function d9TemplateDialog(thisObj) {
 
     var scriptName = 'GNEWS TEMPLATES';
     var scriptVersion = '9.1';
+    var TEMPLATE_BUTTON_SIZE = { width: 150, height: 34 }; // Ajuste rápido da largura/altura dos botões temáticos
 
         // Variaveis de escopo
     var searchDebounceTimer = null;
@@ -24,12 +26,21 @@ function d9TemplateDialog(thisObj) {
     var productionCodeIndex = sharedCacheStore.codeIndex;
     var previewInfoCache = sharedCacheStore.previewInfo || {};
     sharedCacheStore.previewInfo = previewInfoCache;
+    var previewVersionCache = sharedCacheStore.previewVersionCache || {};
+    sharedCacheStore.previewVersionCache = previewVersionCache;
+    var previewInfoOrder = sharedCacheStore.previewInfoOrder || [];
+    sharedCacheStore.previewInfoOrder = previewInfoOrder;
     var lazyMetadataEnabled = true;
+    var forceNetworkLoading = false;
     var productions = [];
     var filteredDataCache = [];
-    var treeFlatCache = [];
     var itemsPerPage = 50;
     var currentPage = 0;
+    var normalizationJobsByProduction = sharedCacheStore.normalizationJobs || {};
+    sharedCacheStore.normalizationJobs = normalizationJobsByProduction;
+    var activeProductionName = null;
+    var CACHE_BRANCH_SLICE_SIZE = 12;
+    var CACHE_PREFETCH_PADDING = 0;
     var productionLoadHealth = {};
     var productionBaseNames = [];
     var productionStatus = [];
@@ -42,7 +53,10 @@ function d9TemplateDialog(thisObj) {
     var manifestFileHandle = null;
     var manifestCacheData = null;
     var manifestCacheTimestamp = 0;
+    var forcedManifestSnapshot = null;
+    var forcedManifestTimestamp = 0;
     var MANIFEST_REFRESH_INTERVAL = 4000;
+    var MANIFEST_FORCE_BURST_TTL = 1000;
     var CONFIG_CACHE_TTL = 15000;
     var pendingPopulateProduction = null;
     var pendingInitTaskName = '__gnewsTemplatesInitTask';
@@ -61,6 +75,33 @@ function d9TemplateDialog(thisObj) {
     var previewTaskName = '__gnewsPreviewPipeline';
     var previewTaskId = null;
     var currentPreviewFile = null;
+    var PREVIEW_CACHE_MAX = 60;
+    var prefetchPaused = false;
+    var PREFETCH_RESUME_TASK_NAME = '__gnewsPrefetchResume';
+    var prefetchResumeTaskId = null;
+    var cacheNormalizationQueue = [];
+    var cacheNormalizationTaskId = null;
+    var CACHE_NORMALIZE_TASK_NAME = '__gnewsCacheNormalize';
+    var CACHE_NORMALIZE_NODE_BUDGET = 150;
+    var SNAPSHOT_FOLDER_SUFFIX = '/cache/gnews_snapshots';
+    var SNAPSHOT_FILE_EXTENSION = '.snapshot.json';
+    var SNAPSHOT_WRITE_THRESHOLD = 250;
+    var SNAPSHOT_MAX_AGE = 1000 * 60 * 60 * 72; // 72 horas
+    var VIRTUAL_TREE_BUCKET_THRESHOLD = 150;
+    var VIRTUAL_TREE_BUCKET_SIZE = 160;
+    var SNAPSHOT_META_EXTENSION = '.meta.json';
+    var snapshotSignatureRegistry = sharedCacheStore.snapshotSignatures || {};
+    sharedCacheStore.snapshotSignatures = snapshotSignatureRegistry;
+    var backgroundWarmupQueue = sharedCacheStore.backgroundWarmupQueue || [];
+    sharedCacheStore.backgroundWarmupQueue = backgroundWarmupQueue;
+    var backgroundWarmupTaskId = null;
+    var BACKGROUND_WARMUP_TASK_NAME = '__gnewsBackgroundWarmup';
+    var BACKGROUND_WARMUP_INTERVAL = 800;
+    var BACKGROUND_WARMUP_IDLE_DELAY = 2600;
+    var backgroundWarmupPausedUntil = 0;
+    var BACKGROUND_WARMUP_ENABLED = false;
+    var productionItemCounts = [];
+    var DEFAULT_MAX_AUTO_ITEMS = 1500;
     (function initTemplatesLog() {
         try {
             if (typeof scriptPreferencesPath === 'string' && scriptPreferencesPath.length) {
@@ -85,6 +126,19 @@ function d9TemplateDialog(thisObj) {
     function logInfo(message) { appendLogLine('INFO', message); }
     function logWarn(message) { appendLogLine('WARN', message); }
     function logError(message) { appendLogLine('ERROR', message); }
+
+    function safeParseJSON(raw, fallback, contextLabel) {
+        if (!raw || !raw.length) { return fallback; }
+        try {
+            return JSON.parse(raw);
+        } catch (parseErr) {
+            var label = contextLabel ? (' [' + contextLabel + ']') : '';
+            var msg = 'Falha ao interpretar JSON' + label + ': ' + parseErr;
+            logWarn(msg);
+            try { $.writeln('[GNEWS_Templates]' + label + ' ' + parseErr); } catch (logConsoleErr) {}
+            return fallback;
+        }
+    }
 
     function startTelemetrySpan(label) {
         return { label: label || 'telemetry', start: new Date().getTime() };
@@ -155,6 +209,15 @@ function d9TemplateDialog(thisObj) {
         productionQuickIndex = sharedCacheStore.index;
         productionCodeIndex = sharedCacheStore.codeIndex;
         previewInfoCache = sharedCacheStore.previewInfo = {};
+        snapshotSignatureRegistry = sharedCacheStore.snapshotSignatures = {};
+        backgroundWarmupQueue = sharedCacheStore.backgroundWarmupQueue = [];
+        stopBackgroundWarmupTask();
+        normalizationJobsByProduction = sharedCacheStore.normalizationJobs = {};
+        cacheNormalizationQueue = [];
+        if (cacheNormalizationTaskId) {
+            try { app.cancelTask(cacheNormalizationTaskId); } catch (normCancelErr) {}
+            cacheNormalizationTaskId = null;
+        }
     }
 
     function rebuildPrefetchQueue(skipIndex) {
@@ -188,6 +251,11 @@ function d9TemplateDialog(thisObj) {
             pendingPrefetchTaskId = null;
         }
         try { if ($.global[PREFETCH_TASK_NAME]) { delete $.global[PREFETCH_TASK_NAME]; } } catch (delErr) {}
+        if (prefetchResumeTaskId) {
+            try { app.cancelTask(prefetchResumeTaskId); } catch (resumeErr) {}
+            prefetchResumeTaskId = null;
+        }
+        try { if ($.global[PREFETCH_RESUME_TASK_NAME]) { delete $.global[PREFETCH_RESUME_TASK_NAME]; } } catch (resumeDelErr) {}
     }
 
     function cancelListRenderTask() {
@@ -212,14 +280,33 @@ function d9TemplateDialog(thisObj) {
         } catch (cleanupErr) {}
     }
 
+    function resolveDynamicTreeChunkSize(nodeEstimate) {
+        if (!nodeEstimate || nodeEstimate <= 0) { return TREE_RENDER_CHUNK_SIZE; }
+        if (nodeEstimate > 2000) { return 60; }
+        if (nodeEstimate > 1200) { return 45; }
+        if (nodeEstimate > 600) { return 30; }
+        return Math.max(TREE_RENDER_CHUNK_SIZE, 20);
+    }
+
+    function determinePrefetchDelay(delay) {
+        if (typeof delay === 'number' && delay > 0) { return delay; }
+        var backlog = pendingPrefetchQueue ? pendingPrefetchQueue.length : 0;
+        if (backlog > 12) { return Math.max(180, Math.round(PREFETCH_INTERVAL * 0.25)); }
+        if (backlog > 6) { return Math.max(260, Math.round(PREFETCH_INTERVAL * 0.45)); }
+        if (backlog > 0) { return Math.max(360, Math.round(PREFETCH_INTERVAL * 0.65)); }
+        return PREFETCH_INTERVAL;
+    }
+
     function schedulePrefetchCycle(delay) {
+        if (prefetchPaused) { return; }
         stopPrefetchCycle();
         $.global[PREFETCH_TASK_NAME] = function () {
             pendingPrefetchTaskId = null;
             runPrefetchCycle();
         };
         try {
-            pendingPrefetchTaskId = app.scheduleTask('if ($.global.' + PREFETCH_TASK_NAME + ') { $.global.' + PREFETCH_TASK_NAME + '(); }', delay || PREFETCH_INTERVAL, false);
+            var resolvedDelay = determinePrefetchDelay(delay);
+            pendingPrefetchTaskId = app.scheduleTask('if ($.global.' + PREFETCH_TASK_NAME + ') { $.global.' + PREFETCH_TASK_NAME + '(); }', resolvedDelay, false);
         } catch (prefetchErr) {
             try { if ($.global[PREFETCH_TASK_NAME]) { $.global[PREFETCH_TASK_NAME](); } } catch (prefetchRunErr) {}
         }
@@ -245,6 +332,397 @@ function d9TemplateDialog(thisObj) {
         schedulePrefetchCycle(PREFETCH_INTERVAL);
     }
 
+    function pausePrefetchCycle() {
+        if (prefetchPaused) { return; }
+        prefetchPaused = true;
+        stopPrefetchCycle();
+    }
+
+    function resumePrefetchCycle(delay) {
+        var resumeDelay = typeof delay === 'number' ? delay : PREFETCH_INTERVAL;
+        if (!prefetchPaused) {
+            if (!pendingPrefetchTaskId) {
+                schedulePrefetchCycle(resumeDelay);
+            }
+            return;
+        }
+        prefetchPaused = false;
+        if (prefetchResumeTaskId) {
+            try { app.cancelTask(prefetchResumeTaskId); } catch (resumeErr) {}
+            prefetchResumeTaskId = null;
+        }
+        $.global[PREFETCH_RESUME_TASK_NAME] = function () {
+            try { delete $.global[PREFETCH_RESUME_TASK_NAME]; } catch (delErr) {}
+            schedulePrefetchCycle();
+        };
+        try {
+            prefetchResumeTaskId = app.scheduleTask('if ($.global.' + PREFETCH_RESUME_TASK_NAME + ') { $.global.' + PREFETCH_RESUME_TASK_NAME + '(); }', resumeDelay, false);
+        } catch (resumeErr) {
+            try {
+                if ($.global[PREFETCH_RESUME_TASK_NAME]) { $.global[PREFETCH_RESUME_TASK_NAME](); }
+            } catch (resumeRunErr) {}
+        }
+    }
+
+    function createCacheSliceQueue(masterCacheData, orderedKeys, sliceSize) {
+        var slices = [];
+        if (!masterCacheData || !(orderedKeys instanceof Array)) { return slices; }
+        var chunk = Math.max(1, sliceSize || CACHE_BRANCH_SLICE_SIZE);
+        for (var i = 0; i < orderedKeys.length; i++) {
+            var cacheKey = orderedKeys[i];
+            if (!masterCacheData.hasOwnProperty(cacheKey)) { continue; }
+            var branch = masterCacheData[cacheKey];
+            if (!(branch instanceof Array) || branch.length === 0) { continue; }
+            for (var start = 0; start < branch.length; start += chunk) {
+                slices.push({
+                    key: cacheKey,
+                    start: start,
+                    end: Math.min(branch.length, start + chunk)
+                });
+            }
+        }
+        return slices;
+    }
+
+    function registerNormalizationJob(job) {
+        if (!job || !job.prodName) { return; }
+        normalizationJobsByProduction[job.prodName] = job;
+        cacheNormalizationQueue.push(job);
+    }
+
+    function removeNormalizationJob(job) {
+        if (!job) { return; }
+        for (var i = cacheNormalizationQueue.length - 1; i >= 0; i--) {
+            if (cacheNormalizationQueue[i] === job) {
+                cacheNormalizationQueue.splice(i, 1);
+                break;
+            }
+        }
+        if (job.prodName && normalizationJobsByProduction[job.prodName]) {
+            delete normalizationJobsByProduction[job.prodName];
+        }
+    }
+
+    function jobNeedsWork(job) {
+        if (!job || job.finalized) { return false; }
+        if (!job.remainingSlices || !job.remainingSlices.length) { return true; }
+        if (job.desiredCount === Number.MAX_VALUE || job.requestedCount === Number.MAX_VALUE) { return true; }
+        return job.aggregatedTree.length < job.desiredCount;
+    }
+
+    function hasPendingNormalizationWork() {
+        for (var i = 0; i < cacheNormalizationQueue.length; i++) {
+            if (jobNeedsWork(cacheNormalizationQueue[i])) { return true; }
+        }
+        return false;
+    }
+
+    function pickNormalizationJob() {
+        for (var i = 0; i < cacheNormalizationQueue.length; i++) {
+            var candidate = cacheNormalizationQueue[i];
+            if (!jobNeedsWork(candidate)) { continue; }
+            if (i !== 0) {
+                cacheNormalizationQueue.splice(i, 1);
+                cacheNormalizationQueue.unshift(candidate);
+            }
+            return candidate;
+        }
+        return null;
+    }
+
+    function requestAdditionalData(prodName, targetCount) {
+        if (!prodName) { return; }
+        var job = normalizationJobsByProduction[prodName];
+        if (!job || job.finalized) { return; }
+        if (targetCount === Number.MAX_VALUE) {
+            job.desiredCount = Number.MAX_VALUE;
+            job.requestedCount = Number.MAX_VALUE;
+            job.lastSatisfiedDemand = 0;
+            scheduleCacheNormalizationTask();
+            return;
+        }
+        var normalizedTarget = Math.max(itemsPerPage, targetCount);
+        var updated = false;
+        if (!job.desiredCount || job.desiredCount < normalizedTarget) {
+            job.desiredCount = normalizedTarget;
+            updated = true;
+        }
+        if (job.requestedCount === Number.MAX_VALUE) { return; }
+        var padded = job.desiredCount + (job.prefetchPadding || CACHE_PREFETCH_PADDING);
+        if (job.requestedCount < padded) {
+            job.requestedCount = padded;
+        }
+        if (updated && job.lastSatisfiedDemand && job.lastSatisfiedDemand >= job.desiredCount) {
+            job.lastSatisfiedDemand = Math.max(0, job.desiredCount - 1);
+        }
+        scheduleCacheNormalizationTask();
+    }
+
+    function updateProductionLoadingStatus(job) {
+        if (!job || !productionStatus || !productionStatus.length) { return; }
+        if (typeof job.prodIndex !== 'number' || job.prodIndex < 0) { return; }
+        var currentCount = job.aggregatedTree.length;
+        var progressText = job.expectedTotal ? (currentCount + '/' + job.expectedTotal) : (currentCount + ' itens');
+        setProductionStatus(job.prodIndex, 'loading', 'Carregando ' + job.prodName + ' (' + progressText + ')');
+    }
+
+    function requestActiveRefreshFor(prodName) {
+        if (!prodName || prodName !== activeProductionName) { return; }
+        if ($.global.__gnewsPendingViewRefresh) { return; }
+        $.global.__gnewsPendingViewRefresh = function () {
+            if (!isTemplatesUIReady()) {
+                try { delete $.global.__gnewsPendingViewRefresh; } catch (cleanupErr) {}
+                return;
+            }
+            try { delete $.global.__gnewsPendingViewRefresh; } catch (delErr) {}
+            var term = (searchBox && !searchBox.isPlaceholderActive) ? searchBox.text : '';
+            safePerformSearch(term);
+        };
+        try {
+            app.scheduleTask('if ($.global.__gnewsPendingViewRefresh) { $.global.__gnewsPendingViewRefresh(); }', 40, false);
+        } catch (refreshErr) {
+            try {
+                if ($.global.__gnewsPendingViewRefresh) { $.global.__gnewsPendingViewRefresh(); }
+            } catch (refreshRunErr) {}
+        }
+    }
+
+    function ensureActiveProductionBudgetForPage(pageIndex) {
+        if (!activeProductionName) { return; }
+        var required = Math.max(1, (pageIndex + 1) * itemsPerPage);
+        requestAdditionalData(activeProductionName, required);
+    }
+
+    function requestFullNormalization(prodName) {
+        var job = normalizationJobsByProduction[prodName];
+        if (!job || job.finalized) { return; }
+        job.desiredCount = Number.MAX_VALUE;
+        job.requestedCount = Number.MAX_VALUE;
+        job.prefetchPadding = 0;
+        job.lastSatisfiedDemand = 0;
+        scheduleCacheNormalizationTask();
+    }
+
+    function pauseBackgroundWarmup(duration) {
+        var pauseMs = typeof duration === 'number' ? duration : BACKGROUND_WARMUP_IDLE_DELAY;
+        backgroundWarmupPausedUntil = Math.max(backgroundWarmupPausedUntil, new Date().getTime() + pauseMs);
+    }
+
+    function scheduleBackgroundWarmup(delay) {
+        if (!BACKGROUND_WARMUP_ENABLED) { return; }
+        if (backgroundWarmupTaskId || !backgroundWarmupQueue.length) { return; }
+        $.global[BACKGROUND_WARMUP_TASK_NAME] = function () {
+            backgroundWarmupTaskId = null;
+            runBackgroundWarmupTick();
+        };
+        try {
+            backgroundWarmupTaskId = app.scheduleTask(
+                'if ($.global.' + BACKGROUND_WARMUP_TASK_NAME + ') { $.global.' + BACKGROUND_WARMUP_TASK_NAME + '(); }',
+                typeof delay === 'number' ? delay : BACKGROUND_WARMUP_INTERVAL,
+                false
+            );
+        } catch (warmErr) {
+            try {
+                if ($.global[BACKGROUND_WARMUP_TASK_NAME]) { $.global[BACKGROUND_WARMUP_TASK_NAME](); }
+            } catch (warmRunErr) {}
+        }
+    }
+
+    function stopBackgroundWarmupTask() {
+        if (backgroundWarmupTaskId) {
+            try { app.cancelTask(backgroundWarmupTaskId); } catch (cancelErr) {}
+            backgroundWarmupTaskId = null;
+        }
+        try { delete $.global[BACKGROUND_WARMUP_TASK_NAME]; } catch (delErr) {}
+    }
+
+    function enqueueBackgroundWarmup(prodName, priority) {
+        if (!BACKGROUND_WARMUP_ENABLED) { return; }
+        if (!prodName) { return; }
+        for (var i = 0; i < backgroundWarmupQueue.length; i++) {
+            if (backgroundWarmupQueue[i] === prodName) { return; }
+        }
+        if (priority) {
+            backgroundWarmupQueue.unshift(prodName);
+        } else {
+            backgroundWarmupQueue.push(prodName);
+        }
+        scheduleBackgroundWarmup(BACKGROUND_WARMUP_INTERVAL);
+    }
+
+    function isProductionWarm(prodName, productionObject, manifestSummary) {
+        var cached = templatesCache[prodName];
+        if (cached && cached.length && !cached.__pending) { return true; }
+        return hasSnapshotForSignature(prodName, productionObject, manifestSummary);
+    }
+
+    function runBackgroundWarmupTick() {
+        if (!BACKGROUND_WARMUP_ENABLED) { return; }
+        if (!backgroundWarmupQueue.length) { stopBackgroundWarmupTask(); return; }
+        if (!productions || !productions.length) { scheduleBackgroundWarmup(BACKGROUND_WARMUP_INTERVAL * 2); return; }
+        var now = new Date().getTime();
+        if (now < backgroundWarmupPausedUntil) {
+            scheduleBackgroundWarmup(backgroundWarmupPausedUntil - now);
+            return;
+        }
+        var processed = false;
+        while (backgroundWarmupQueue.length > 0) {
+            var prodName = backgroundWarmupQueue.shift();
+            var prodObj = getProductionByName(prodName);
+            if (!prodObj) { continue; }
+            var manifestSummary = summarizeManifestForProduction(prodObj, getManifestSnapshot());
+            if (isProductionWarm(prodName, prodObj, manifestSummary)) {
+                continue;
+            }
+            safeLoadCache(prodObj);
+            requestFullNormalization(prodName);
+            processed = true;
+            break;
+        }
+        if (!backgroundWarmupQueue.length) {
+            stopBackgroundWarmupTask();
+            return;
+        }
+        scheduleBackgroundWarmup(processed ? BACKGROUND_WARMUP_IDLE_DELAY : BACKGROUND_WARMUP_INTERVAL);
+    }
+
+    function removeFromBackgroundWarmup(prodName) {
+        if (!prodName) { return; }
+        for (var i = backgroundWarmupQueue.length - 1; i >= 0; i--) {
+            if (backgroundWarmupQueue[i] === prodName) {
+                backgroundWarmupQueue.splice(i, 1);
+            }
+        }
+    }
+
+    function notifyUserActivity(extraDelay) {
+        pauseBackgroundWarmup(extraDelay || BACKGROUND_WARMUP_IDLE_DELAY);
+    }
+
+    function scheduleCacheNormalizationTask() {
+        if (cacheNormalizationTaskId || !hasPendingNormalizationWork()) { return; }
+        $.global[CACHE_NORMALIZE_TASK_NAME] = function () {
+            cacheNormalizationTaskId = null;
+            runCacheNormalizationChunk();
+        };
+        try {
+            cacheNormalizationTaskId = app.scheduleTask(
+                'if ($.global.' + CACHE_NORMALIZE_TASK_NAME + ') { $.global.' + CACHE_NORMALIZE_TASK_NAME + '(); }',
+                20,
+                false
+            );
+        } catch (cacheTaskErr) {
+            try {
+                if ($.global[CACHE_NORMALIZE_TASK_NAME]) { $.global[CACHE_NORMALIZE_TASK_NAME](); }
+            } catch (cacheRunErr) {}
+        }
+    }
+
+    function runCacheNormalizationChunk() {
+        try { delete $.global[CACHE_NORMALIZE_TASK_NAME]; } catch (delErr) {}
+        var job = pickNormalizationJob();
+        if (!job) { return; }
+        var budget = job.nodeBudget || CACHE_NORMALIZE_NODE_BUDGET;
+        var processed = 0;
+        try {
+            while (job.remainingSlices && job.remainingSlices.length > 0 && processed < budget) {
+                var slice = job.remainingSlices.shift();
+                if (!slice) { continue; }
+                var branchData = job.masterCacheData ? job.masterCacheData[slice.key] : null;
+                if (!(branchData instanceof Array) || branchData.length === 0) {
+                    processed++;
+                    continue;
+                }
+                var portion = branchData.slice(slice.start, slice.end);
+                var normalizedBranch = normalizeCacheEntries(portion);
+                if (normalizedBranch && normalizedBranch.length) {
+                    for (var i = 0; i < normalizedBranch.length; i++) {
+                        job.aggregatedTree.push(normalizedBranch[i]);
+                    }
+                    processed += normalizedBranch.length;
+                } else {
+                    processed++;
+                }
+                if (job.desiredCount !== Number.MAX_VALUE && job.aggregatedTree.length >= job.desiredCount) {
+                    break;
+                }
+            }
+        } catch (normErr) {
+            handleCacheNormalizationError(job, normErr);
+            removeNormalizationJob(job);
+            scheduleCacheNormalizationTask();
+            return;
+        }
+        updateProductionLoadingStatus(job);
+        var demandThreshold = (job.desiredCount === Number.MAX_VALUE) ? null : job.desiredCount;
+        if (demandThreshold !== null && job.aggregatedTree.length >= demandThreshold) {
+            if (job.lastSatisfiedDemand !== demandThreshold) {
+                job.lastSatisfiedDemand = demandThreshold;
+                requestActiveRefreshFor(job.prodName);
+            }
+        }
+        maybePersistJobSnapshot(job, false);
+        if (!job.remainingSlices || !job.remainingSlices.length) {
+            finalizeCacheNormalizationJob(job);
+            removeNormalizationJob(job);
+        }
+        if (hasPendingNormalizationWork()) {
+            scheduleCacheNormalizationTask();
+        }
+    }
+
+    function handleCacheNormalizationError(job, err) {
+        if (!job) { return; }
+        var prodName = job.prodName || 'desconhecido';
+        var errMsg = 'Erro ao processar o cache de ' + prodName + ': ' + (err && err.message ? err.message : err);
+        cacheErrorPlaceholder(prodName, errMsg);
+        markProductionFailure(prodName, errMsg);
+        logError(errMsg);
+        notifyCacheIssue(errMsg);
+        if (job.telemetry) {
+            endTelemetrySpan(job.telemetry, { status: 'exception', prod: prodName });
+        }
+        purgeSnapshot(prodName, job.productionObject);
+    }
+
+    function finalizeCacheNormalizationJob(job) {
+        if (!job || job.finalized) { return; }
+        job.finalized = true;
+        var prodName = job.prodName;
+        var aggregatedTree = job.aggregatedTree || [];
+        var productionObject = job.productionObject;
+        if (!aggregatedTree.length) {
+            var emptyMsg = 'Nenhum template valido encontrado para ' + prodName + '.';
+            cacheErrorPlaceholder(prodName, emptyMsg);
+            markProductionFailure(prodName, emptyMsg);
+            logWarn(emptyMsg);
+            notifyCacheIssue(emptyMsg);
+            if (job.telemetry) {
+                endTelemetrySpan(job.telemetry, { status: 'empty', prod: prodName });
+            }
+            return;
+        }
+        maybePersistJobSnapshot(job, true);
+        templatesCache[prodName] = aggregatedTree;
+        if (templatesCache[prodName].__error) { delete templatesCache[prodName].__error; }
+        delete templatesCache[prodName].__pending;
+        buildProductionIndex(prodName, aggregatedTree);
+        var manifestSummary = job.manifestSummary || summarizeManifestForProduction(productionObject, getManifestSnapshot({ force: true }));
+        var successMsg = manifestSummary ? formatManifestSummary(manifestSummary) : (aggregatedTree.length + (aggregatedTree.length === 1 ? ' item carregado' : ' itens carregados'));
+        markProductionSuccess(prodName, successMsg);
+        if (typeof job.prodIndex === 'number' && job.prodIndex > -1) {
+            setProductionStatus(job.prodIndex, 'ok', successMsg);
+        }
+        logInfo('Cache carregado para ' + prodName + ' (' + aggregatedTree.length + ' itens)');
+        if (job.telemetry) {
+            endTelemetrySpan(job.telemetry, { status: 'ok', prod: prodName, items: aggregatedTree.length });
+        }
+        job.masterCacheData = null;
+        job.remainingSlices = null;
+        requestActiveRefreshFor(prodName);
+        removeFromBackgroundWarmup(prodName);
+    }
+
     function runCachePipelineWarmup() {
         var telemetry = startTelemetrySpan('pipelineWarmup');
         try {
@@ -260,7 +738,7 @@ function d9TemplateDialog(thisObj) {
                     manifestFile.encoding = 'UTF-8';
                     var raw = manifestFile.read();
                     manifestFile.close();
-                    manifestSnapshot = (raw && raw.length) ? JSON.parse(raw) : {};
+                    manifestSnapshot = (raw && raw.length) ? safeParseJSON(raw, {}, 'manifestSnapshot') : {};
                 } catch (manifestErr) {
                     try { manifestFile.close(); } catch (closeErr) {}
                     manifestSnapshot = {};
@@ -311,7 +789,8 @@ function d9TemplateDialog(thisObj) {
         var state = $.global.__gnewsTreeRenderState;
         if (!state || !state.stack || !state.treeView) { cancelTreeRenderTask(); return; }
         var iterations = 0;
-        while (state.stack.length > 0 && iterations < TREE_RENDER_CHUNK_SIZE) {
+        var chunkBudget = state.chunkSize || TREE_RENDER_CHUNK_SIZE;
+        while (state.stack.length > 0 && iterations < chunkBudget) {
             var current = state.stack.pop();
             var entry = current.entry;
             var parentNode = current.parent;
@@ -359,7 +838,7 @@ function d9TemplateDialog(thisObj) {
     }
 
     function queuePreviewComputation(filePath, templateName, selectionMeta) {
-        if (!filePath) { return; }
+        if (!filePath || !isTemplatesWindowActive()) { return; }
         for (var i = 0; i < previewTaskQueue.length; i++) {
             if (previewTaskQueue[i].filePath === filePath) { return; }
         }
@@ -374,8 +853,19 @@ function d9TemplateDialog(thisObj) {
     }
 
     function schedulePreviewTask(delay) {
+        if (!isTemplatesWindowActive()) {
+            previewTaskQueue = [];
+            previewTaskId = null;
+            return;
+        }
         if (previewTaskId) { try { app.cancelTask(previewTaskId); } catch (cancelErr) {} previewTaskId = null; }
         $.global[previewTaskName] = function () {
+            if (!isTemplatesWindowActive()) {
+                previewTaskQueue = [];
+                previewTaskId = null;
+                try { delete $.global[previewTaskName]; } catch (delErr) {}
+                return;
+            }
             previewTaskId = null;
             runPreviewPipeline();
         };
@@ -387,6 +877,11 @@ function d9TemplateDialog(thisObj) {
     }
 
     function runPreviewPipeline() {
+        if (!isTemplatesWindowActive()) {
+            previewTaskQueue = [];
+            previewTaskId = null;
+            return;
+        }
         if (!previewTaskQueue.length) { previewTaskId = null; return; }
         var job = previewTaskQueue.shift();
         if (!job || !job.filePath) {
@@ -396,7 +891,7 @@ function d9TemplateDialog(thisObj) {
         var telemetry = startTelemetrySpan('previewPipeline');
         try {
             var info = computePreviewInfo(job.filePath, job.templateName);
-            previewInfoCache[job.filePath] = info;
+            storePreviewInfo(job.filePath, info);
             endTelemetrySpan(telemetry, { status: 'ok', file: job.filePath });
             if (currentPreviewFile === job.filePath) {
                 applyPreviewInfo(info);
@@ -426,6 +921,41 @@ function d9TemplateDialog(thisObj) {
         info.versao = getAepVersion(fileObj);
         if (fileObj.exists && fileObj.modified) {
             info.modDate = new Date(fileObj.modified);
+        }
+        return info;
+    }
+
+    function storePreviewInfo(filePath, info) {
+        if (!filePath || !info) { return; }
+        previewInfoCache[filePath] = info;
+        var existingIndex = -1;
+        for (var i = 0; i < previewInfoOrder.length; i++) {
+            if (previewInfoOrder[i] === filePath) { existingIndex = i; break; }
+        }
+        if (existingIndex > -1) {
+            previewInfoOrder.splice(existingIndex, 1);
+        }
+        previewInfoOrder.push(filePath);
+        while (previewInfoOrder.length > PREVIEW_CACHE_MAX) {
+            var evictKey = previewInfoOrder.shift();
+            if (evictKey && previewInfoCache[evictKey]) {
+                delete previewInfoCache[evictKey];
+            }
+        }
+    }
+
+    function getPreviewInfo(filePath) {
+        if (!filePath) { return null; }
+        var info = previewInfoCache[filePath];
+        if (info) {
+            var idx = -1;
+            for (var i = 0; i < previewInfoOrder.length; i++) {
+                if (previewInfoOrder[i] === filePath) { idx = i; break; }
+            }
+            if (idx > -1) {
+                previewInfoOrder.splice(idx, 1);
+            }
+            previewInfoOrder.push(filePath);
         }
         return info;
     }
@@ -471,7 +1001,7 @@ function d9TemplateDialog(thisObj) {
             manifestFile.encoding = 'UTF-8';
             var raw = manifestFile.read();
             manifestFile.close();
-            manifestCacheData = (raw && raw.length) ? JSON.parse(raw) : {};
+            manifestCacheData = (raw && raw.length) ? safeParseJSON(raw, {}, 'manifestCache') : {};
             warmupState.manifest = manifestCacheData;
             warmupState.timestamp = now;
         } catch (manifestErr) {
@@ -481,6 +1011,62 @@ function d9TemplateDialog(thisObj) {
         }
         manifestCacheTimestamp = now;
         return manifestCacheData;
+    }
+
+    function getManifestSnapshot(options) {
+        var useForce = !!(options && options.force);
+        var now = new Date().getTime();
+        if (useForce) {
+            if (forcedManifestSnapshot && (now - forcedManifestTimestamp) < MANIFEST_FORCE_BURST_TTL) {
+                return forcedManifestSnapshot;
+            }
+            forcedManifestSnapshot = readCacheManifest(true);
+            forcedManifestTimestamp = now;
+            return forcedManifestSnapshot;
+        }
+        if (manifestCacheData && (now - manifestCacheTimestamp) < MANIFEST_REFRESH_INTERVAL) {
+            return manifestCacheData;
+        }
+        return readCacheManifest(false);
+    }
+
+    function writeCacheManifestData(data) {
+        var manifestFile = getManifestFileHandle();
+        if (!manifestFile) { return false; }
+        try {
+            manifestFile.open('w');
+            manifestFile.encoding = 'UTF-8';
+            manifestFile.write(JSON.stringify(data, null, 2));
+            manifestFile.close();
+            manifestCacheData = data;
+            manifestCacheTimestamp = new Date().getTime();
+            return true;
+        } catch (writeErr) {
+            try { manifestFile.close(); } catch (closeErr) {}
+            logWarn('Nao foi possivel salvar templates_cache_manifest.json: ' + writeErr);
+            return false;
+        }
+    }
+
+    function computeTreeHash(treeData) {
+        var hash = 0;
+        function walk(entries) {
+            if (!(entries instanceof Array)) { return; }
+            for (var i = 0; i < entries.length; i++) {
+                var entry = entries[i];
+                if (!entry || typeof entry !== 'object') { continue; }
+                var base = (entry.text || '') + '|' + (entry.filePath || '') + '|' + (entry.signature || '');
+                for (var j = 0; j < base.length; j++) {
+                    hash = ((hash << 5) - hash) + base.charCodeAt(j);
+                    hash = hash & hash;
+                }
+                if (entry.children && entry.children.length) {
+                    walk(entry.children);
+                }
+            }
+        }
+        walk(treeData);
+        return (hash >>> 0).toString(16);
     }
 
     function getCachedSystemConfigs() {
@@ -534,6 +1120,228 @@ function d9TemplateDialog(thisObj) {
         return pad(dateObj.getDate()) + '/' + pad(dateObj.getMonth() + 1) + ' ' + pad(dateObj.getHours()) + ':' + pad(dateObj.getMinutes());
     }
 
+    function getSnapshotFolder(createIfMissing) {
+        if (!scriptPreferencesPath || typeof scriptPreferencesPath !== 'string') { return null; }
+        var folder = new Folder(scriptPreferencesPath + SNAPSHOT_FOLDER_SUFFIX);
+        if (createIfMissing && !folder.exists) {
+            try { folder.create(); } catch (folderErr) { return null; }
+        }
+        if (!folder.exists) { return null; }
+        return folder;
+    }
+
+    function deriveSnapshotFileName(prodName, productionObject) {
+        if (productionObject && productionObject.cacheFile) {
+            return productionObject.cacheFile.replace(/\.[^\.]+$/i, '') + SNAPSHOT_FILE_EXTENSION;
+        }
+        var derived = prodName ? deriveCacheFileFromName(prodName) : null;
+        if (derived) { return derived.replace(/\.[^\.]+$/i, '') + SNAPSHOT_FILE_EXTENSION; }
+        var slug = slugifyProductionName(prodName || '');
+        if (slug && slug.length) { return 'templates_' + slug + SNAPSHOT_FILE_EXTENSION; }
+        return null;
+    }
+
+    function getSnapshotFileHandle(prodName, productionObject, ensureFolder) {
+        var folder = getSnapshotFolder(ensureFolder);
+        if (!folder) { return null; }
+        var fileName = deriveSnapshotFileName(prodName, productionObject);
+        if (!fileName) { return null; }
+        return new File(folder.fullName + '/' + fileName);
+    }
+
+    function getSnapshotMetaHandle(prodName, productionObject, ensureFolder) {
+        var folder = getSnapshotFolder(ensureFolder);
+        if (!folder) { return null; }
+        var baseName = deriveSnapshotFileName(prodName, productionObject);
+        if (!baseName) { return null; }
+        var metaName = baseName.replace(SNAPSHOT_FILE_EXTENSION, SNAPSHOT_META_EXTENSION);
+        return new File(folder.fullName + '/' + metaName);
+    }
+
+    function computeSnapshotSignature(summary, productionObject) {
+        if (!summary) { return null; }
+        var parts = [
+            summary.itemCount || 0,
+            summary.metadataCount || 0,
+            summary.paths ? summary.paths.length : 0,
+            summary.lastScan || '',
+            productionObject && productionObject.cacheFile ? productionObject.cacheFile : ''
+        ];
+        return parts.join('|');
+    }
+
+    function readSilentJsonFile(fileHandle) {
+        if (!fileHandle || !fileHandle.exists) { return null; }
+        try {
+            fileHandle.open('r');
+            fileHandle.encoding = 'UTF-8';
+            var raw = fileHandle.read();
+            fileHandle.close();
+            if (!raw || !raw.length) { return null; }
+            if (raw.charCodeAt(0) === 0xFEFF) { raw = raw.substring(1); }
+            var contextLabel = fileHandle && fileHandle.fsName ? fileHandle.fsName : 'snapshotFile';
+            return safeParseJSON(raw, null, contextLabel);
+        } catch (readErr) {
+            try { fileHandle.close(); } catch (closeErr) {}
+            return null;
+        }
+    }
+
+    function writeSilentJsonFile(fileHandle, dataObj) {
+        if (!fileHandle) { return false; }
+        var folder = fileHandle.parent;
+        if (!folder.exists) {
+            try { folder.create(); } catch (folderErr) { return false; }
+        }
+        var tempFile = new File(fileHandle.fullName + '.tmp');
+        try {
+            tempFile.open('w');
+            tempFile.encoding = 'UTF-8';
+            tempFile.write(JSON.stringify(dataObj));
+            tempFile.close();
+            if (fileHandle.exists) {
+                try { fileHandle.remove(); } catch (removeErr) {}
+            }
+            tempFile.rename(fileHandle.name);
+            return true;
+        } catch (writeErr) {
+            try { tempFile.close(); } catch (closeErr) {}
+            try { tempFile.remove(); } catch (rmErr) {}
+            return false;
+        }
+    }
+
+    function purgeSnapshot(prodName, productionObject) {
+        if (!productionObject && prodName && productions && productions.length) {
+            var idx = getProductionIndexByName(prodName);
+            if (idx > -1) { productionObject = productions[idx]; }
+        }
+        var fileHandle = getSnapshotFileHandle(prodName, productionObject, false);
+        if (!fileHandle || !fileHandle.exists) { return; }
+        try { fileHandle.remove(); } catch (purgeErr) {}
+        var metaHandle = getSnapshotMetaHandle(prodName, productionObject, false);
+        if (metaHandle && metaHandle.exists) {
+            try { metaHandle.remove(); } catch (purgeMetaErr) {}
+        }
+        if (snapshotSignatureRegistry[prodName]) {
+            delete snapshotSignatureRegistry[prodName];
+        }
+    }
+
+    function readSnapshotMetadata(prodName, productionObject) {
+        var metaHandle = getSnapshotMetaHandle(prodName, productionObject, false);
+        if (!metaHandle || !metaHandle.exists) { return null; }
+        return readSilentJsonFile(metaHandle);
+    }
+
+    function persistSnapshotMetadata(prodName, productionObject, meta) {
+        if (!meta) { return false; }
+        var metaHandle = getSnapshotMetaHandle(prodName, productionObject, true);
+        if (!metaHandle) { return false; }
+        return writeSilentJsonFile(metaHandle, meta);
+    }
+
+    function tryRestoreNormalizedSnapshot(prodName, productionObject, manifestSummary) {
+        var signature = computeSnapshotSignature(manifestSummary, productionObject);
+        if (!signature) { return null; }
+        var fileHandle = getSnapshotFileHandle(prodName, productionObject, false);
+        if (!fileHandle || !fileHandle.exists) { return null; }
+        if (SNAPSHOT_MAX_AGE && fileHandle.modified) {
+            var age = new Date().getTime() - fileHandle.modified.getTime();
+            if (age > SNAPSHOT_MAX_AGE) {
+                purgeSnapshot(prodName, productionObject);
+                return null;
+            }
+        }
+        var payload = readSilentJsonFile(fileHandle);
+        if (!payload || !payload.meta || payload.meta.signature !== signature) {
+            purgeSnapshot(prodName, productionObject);
+            return null;
+        }
+        if (!payload.meta.complete) {
+            return null;
+        }
+        snapshotSignatureRegistry[prodName] = payload.meta.signature;
+        persistSnapshotMetadata(prodName, productionObject, payload.meta);
+        if (!(payload.items instanceof Array) || !payload.items.length) {
+            return null;
+        }
+        return payload.items;
+    }
+
+    function persistNormalizedSnapshot(prodName, productionObject, manifestSummary, items, isComplete) {
+        if (!manifestSummary || !items || !items.length) { return false; }
+        var signature = computeSnapshotSignature(manifestSummary, productionObject);
+        if (!signature) { return false; }
+        var fileHandle = getSnapshotFileHandle(prodName, productionObject, true);
+        if (!fileHandle) { return false; }
+        var payload = {
+            meta: {
+                prodName: prodName,
+                signature: signature,
+                generatedAt: new Date().getTime(),
+                cacheFile: productionObject && productionObject.cacheFile ? productionObject.cacheFile : null,
+                complete: !!isComplete
+            },
+            items: items
+        };
+        var writeOk = writeSilentJsonFile(fileHandle, payload);
+        if (!writeOk) { return false; }
+        persistSnapshotMetadata(prodName, productionObject, payload.meta);
+        if (isComplete) {
+            snapshotSignatureRegistry[prodName] = signature;
+        }
+        return true;
+    }
+
+    function maybePersistJobSnapshot(job, force) {
+        if (!job || !job.manifestSummary) { return; }
+        if (!job.aggregatedTree || !job.aggregatedTree.length) { return; }
+        if (!force) {
+            var lastCount = job.lastPersistCount || 0;
+            if ((job.aggregatedTree.length - lastCount) < SNAPSHOT_WRITE_THRESHOLD) {
+                return;
+            }
+        }
+        var markComplete = !!(force && job.finalized);
+        if (persistNormalizedSnapshot(job.prodName, job.productionObject, job.manifestSummary, job.aggregatedTree, markComplete)) {
+            job.lastPersistCount = job.aggregatedTree.length;
+        }
+    }
+
+    (function bootstrapSnapshotRegistry() {
+        var folder = getSnapshotFolder(false);
+        if (!folder || !folder.exists) { return; }
+        var metaFiles;
+        try {
+            metaFiles = folder.getFiles(function (f) {
+                return (f instanceof File) && f.name.match(/\.meta\.json$/i);
+            });
+        } catch (listErr) {
+            return;
+        }
+        for (var i = 0; i < metaFiles.length; i++) {
+            var meta = readSilentJsonFile(metaFiles[i]);
+            if (!meta || !meta.prodName || !meta.signature) { continue; }
+            snapshotSignatureRegistry[meta.prodName] = meta.signature;
+        }
+    })();
+
+    function hasSnapshotForSignature(prodName, productionObject, manifestSummary) {
+        if (!prodName) { return false; }
+        var summary = manifestSummary || summarizeManifestForProduction(productionObject, getManifestSnapshot());
+        if (!summary) { return false; }
+        var signature = computeSnapshotSignature(summary, productionObject);
+        if (!signature) { return false; }
+        if (snapshotSignatureRegistry[prodName] === signature) { return true; }
+        var meta = readSnapshotMetadata(prodName, productionObject);
+        if (meta && meta.signature === signature && meta.complete) {
+            snapshotSignatureRegistry[prodName] = signature;
+            return true;
+        }
+        return false;
+    }
+
     function pushUniqueValue(list, value) {
         if (!(list instanceof Array)) { return; }
         for (var i = 0; i < list.length; i++) {
@@ -562,7 +1370,7 @@ function d9TemplateDialog(thisObj) {
     function summarizeManifestForProduction(productionObject, manifestSnapshot) {
         if (!productionObject) { return null; }
         ensureProductionFileReferences(productionObject, false);
-        var snapshot = manifestSnapshot || readCacheManifest(false);
+        var snapshot = manifestSnapshot || getManifestSnapshot();
         if (!snapshot) { return null; }
         var cacheFileName = productionObject.cacheFile;
         if (!cacheFileName || !snapshot[cacheFileName] || !snapshot[cacheFileName].paths) { return null; }
@@ -612,17 +1420,23 @@ function d9TemplateDialog(thisObj) {
 
     function readJsonFile(file) {
         if (!file || !file.exists) return null;
+        var content = '';
         try {
             file.open("r", "TEXT", "????");
             file.encoding = "UTF-8";
-            var content = file.read();
+            content = file.read();
             file.close();
-            if (content.charCodeAt(0) === 0xFEFF) { content = content.substring(1); }
-            return JSON.parse(content);
         } catch (e) {
-             showThemedAlert("ERRO: Falha ao processar o arquivo JSON:\n" + file.fsName, 'Erro de leitura');
+            showThemedAlert("ERRO: Falha ao processar o arquivo JSON:\n" + file.fsName, 'Erro de leitura');
             return null;
         }
+        if (!content || !content.length) { return null; }
+        if (content.charCodeAt(0) === 0xFEFF) { content = content.substring(1); }
+        var parsed = safeParseJSON(content, null, file.fsName || 'config');
+        if (parsed === null) {
+            showThemedAlert("ERRO: Conteúdo JSON inválido:\n" + file.fsName, 'Erro de leitura');
+        }
+        return parsed;
     }
 
     function loadCentralConfigs(forceReload) {
@@ -679,7 +1493,7 @@ function d9TemplateDialog(thisObj) {
     function showThemedAlert(message, title) {
         var dialogTitle = title || scriptName;
         try {
-            var alertWin = new Window('dialog', dialogTitle, undefined, { closeButton: true });
+            var alertWin = new Window('palette', dialogTitle, undefined, { closeButton: true, borderless: false });
             alertWin.orientation = 'column';
             alertWin.alignChildren = 'fill';
             alertWin.spacing = 12;
@@ -701,12 +1515,48 @@ function d9TemplateDialog(thisObj) {
             if (typeof setCtrlHighlight === 'function' && typeof highlightColor1 !== 'undefined' && typeof normalColor2 !== 'undefined') {
                 try { setCtrlHighlight(okBtn, highlightColor1, normalColor2); } catch (setBtnErr) {}
             }
+            okBtn.onClick = function () { alertWin.close(); };
 
             alertWin.center();
             alertWin.show();
         } catch (alertErr) {
             alert(message);
         }
+    }
+
+    function showThemedConfirm(message, title, okLabel, cancelLabel) {
+        var dialogTitle = title || scriptName;
+        var result = false;
+        try {
+            var dlg = new Window('dialog', dialogTitle, undefined, { closeButton: true });
+            dlg.orientation = 'column';
+            dlg.alignChildren = 'fill';
+            dlg.spacing = 12;
+            dlg.margins = 16;
+            if (typeof setBgColor === 'function' && typeof bgColor1 !== 'undefined') {
+                try { setBgColor(dlg, bgColor1); } catch (bgErr) {}
+            }
+            var msgTxt = dlg.add('statictext', undefined, message || '', { multiline: true });
+            msgTxt.minimumSize.width = 360;
+            if (typeof setFgColor === 'function' && typeof normalColor1 !== 'undefined') {
+                try { setFgColor(msgTxt, normalColor1); } catch (fgErr) {}
+            }
+            var btnGrp = dlg.add('group');
+            btnGrp.alignment = ['right', 'bottom'];
+            btnGrp.spacing = 8;
+            var okBtn = btnGrp.add('button', undefined, okLabel || 'OK', { name: 'ok' });
+            var cancelBtn = btnGrp.add('button', undefined, cancelLabel || 'Cancelar', { name: 'cancel' });
+            if (typeof setCtrlHighlight === 'function' && typeof highlightColor1 !== 'undefined' && typeof normalColor2 !== 'undefined') {
+                try { setCtrlHighlight(okBtn, highlightColor1, normalColor2); } catch (setErr) {}
+            }
+            okBtn.onClick = function () { result = true; dlg.close(); };
+            cancelBtn.onClick = function () { result = false; dlg.close(); };
+            dlg.center();
+            dlg.show();
+        } catch (confirmErr) {
+            result = confirm(message);
+        }
+        return result;
     }
 
     // =============================================================================
@@ -736,14 +1586,12 @@ function d9TemplateDialog(thisObj) {
     var templatesHeaderGrp = vGrp1.add('group'); templatesHeaderGrp.alignment = 'fill'; templatesHeaderGrp.orientation = 'row';
     var templateLab = templatesHeaderGrp.add('statictext', undefined, 'BUSCA:'); templateLab.alignment = ['left', 'center']; setFgColor(templateLab, (typeof normalColor1 !== 'undefined') ? normalColor1 : '#FFFFFF');
     var itemCounterLab = templatesHeaderGrp.add('statictext', undefined, '', { justify: 'left' }); itemCounterLab.alignment = ['fill', 'center']; setFgColor(itemCounterLab, (typeof monoColor1 !== 'undefined') ? monoColor1 : '#C7C8CA');
-    var listViewChk = templatesHeaderGrp.add('checkbox', undefined, 'Exibir em lista'); listViewChk.alignment = ['right', 'center']; listViewChk.value = true; listViewChk.enabled = false; setFgColor(listViewChk, (typeof normalColor1 !== 'undefined') ? normalColor1 : '#FFFFFF');
-    var treeGrp = vGrp1.add('group'); treeGrp.orientation = 'column'; treeGrp.spacing = 4;
+    var networkModeChk = templatesHeaderGrp.add('checkbox', undefined, 'Carregar da rede'); networkModeChk.alignment = ['right', 'center']; networkModeChk.value = false; networkModeChk.enabled = false; setFgColor(networkModeChk, (typeof normalColor1 !== 'undefined') ? normalColor1 : '#FFFFFF');
+    var listGrp = vGrp1.add('group'); listGrp.orientation = 'column'; listGrp.spacing = 4; listGrp.alignment = ['fill', 'fill'];
     var placeholderText = '>>  Digite para Buscar...';
-    var searchBox = treeGrp.add('edittext', [0, 0, 320, 24], placeholderText); searchBox.isPlaceholderActive = true; searchBox.enabled = false; setFgColor(searchBox, (typeof monoColor0 !== 'undefined') ? monoColor0 : '#F2F2F2');
-    var treeContainerGrp = treeGrp.add('group', [0, 0, 320, 390]); treeContainerGrp.orientation = 'stack'; treeContainerGrp.alignment = ['fill', 'fill'];
-    var templateTree = treeContainerGrp.add('treeview', [0, 0, 320, 390]); setFgColor(templateTree, (typeof monoColor1 !== 'undefined') ? monoColor1 : '#C7C8CA'); templateTree.visible = false;
-    var templateList = treeContainerGrp.add('listbox', [0, 0, 320, 390]); setFgColor(templateList, (typeof monoColor1 !== 'undefined') ? monoColor1 : '#C7C8CA'); templateList.visible = true;
-    var loadingGrp = treeContainerGrp.add('group'); loadingGrp.alignChildren = ['center', 'center']; loadingGrp.add('statictext', undefined, 'Carregando, por favor aguarde...'); loadingGrp.visible = true;
+    var searchBox = listGrp.add('edittext', [0, 0, 320, 24], placeholderText); searchBox.isPlaceholderActive = true; searchBox.enabled = false; setFgColor(searchBox, (typeof monoColor0 !== 'undefined') ? monoColor0 : '#F2F2F2');
+    var templateList = listGrp.add('listbox', [0, 0, 320, 390]); setFgColor(templateList, (typeof monoColor1 !== 'undefined') ? monoColor1 : '#C7C8CA');
+    var loadingGrp = listGrp.add('group'); loadingGrp.alignChildren = ['center', 'center']; loadingGrp.add('statictext', undefined, 'Carregando, por favor aguarde...'); loadingGrp.visible = true;
     
     var paginationGrp = vGrp1.add('group'); paginationGrp.orientation = 'row'; paginationGrp.alignment = 'fill'; paginationGrp.alignChildren = 'center'; paginationGrp.spacing = 10; paginationGrp.margins.top = 5;
     var prevBtn = paginationGrp.add('button', undefined, '<< Anterior'); prevBtn.preferredSize.width = 80;
@@ -755,10 +1603,11 @@ function d9TemplateDialog(thisObj) {
     var lBtnGrp1 = mainBtnGrp1.add('group'); lBtnGrp1.alignment = 'left'; lBtnGrp1.spacing = 16;
     var refreshBtn, openFldBtn;
     if (typeof themeIconButton === 'function' && typeof D9T_ATUALIZAR_ICON !== 'undefined') {
-        refreshBtn = new themeIconButton(lBtnGrp1, { icon: D9T_ATUALIZAR_ICON, tips: ['Forcar recarga do cache'] });
+        refreshBtn = new themeIconButton(lBtnGrp1, { icon: D9T_ATUALIZAR_ICON, tips: ['Recarregar cache'] });
         openFldBtn = new themeIconButton(lBtnGrp1, { icon: D9T_PASTA_ICON, tips: ['Abrir pasta de templates'] });
     } else {
-        refreshBtn = new themeIconButton(lBtnGrp1, { icon: D9T_ATUALIZAR_ICON, tips: ['Forcar recarga do cache'] });
+        refreshBtn = lBtnGrp1.add('button', undefined, 'Recarregar');
+        openFldBtn = lBtnGrp1.add('button', undefined, 'Abrir pasta');
     }
     var previewHeaderGrp = vGrp2.add('group'); previewHeaderGrp.alignment = 'fill';
     var previewLab = previewHeaderGrp.add('statictext', undefined, 'PREVIEW:'); setFgColor(previewLab, (typeof normalColor1 !== 'undefined') ? normalColor1 : '#FFFFFF');
@@ -779,13 +1628,57 @@ function d9TemplateDialog(thisObj) {
         var value = infoRow.add('statictext', undefined, infoRows[r].value, { truncate: 'middle' }); value.preferredSize.width = 480; setFgColor(value, (typeof normalColor2 !== 'undefined') ? normalColor2 : '#e6e6e6ff');
         infoValues.push(value);
     }
+    function applyFixedSize(ctrl, width, height) {
+        if (!ctrl || typeof width !== 'number' || typeof height !== 'number') { return; }
+        var sizeArr = [width, height];
+        ctrl.preferredSize = sizeArr;
+        ctrl.minimumSize = sizeArr;
+        ctrl.maximumSize = sizeArr;
+        ctrl.size = sizeArr;
+    }
+
+    function enforceTemplateButtonSize(ctrl) {
+        if (!ctrl) { return; }
+        applyFixedSize(ctrl, TEMPLATE_BUTTON_SIZE.width, TEMPLATE_BUTTON_SIZE.height);
+        ctrl.__buttonThemeOverrides = ctrl.__buttonThemeOverrides || {};
+        ctrl.__buttonThemeOverrides.width = TEMPLATE_BUTTON_SIZE.width;
+        ctrl.__buttonThemeOverrides.height = TEMPLATE_BUTTON_SIZE.height;
+        var relock = function () { applyFixedSize(ctrl, TEMPLATE_BUTTON_SIZE.width, TEMPLATE_BUTTON_SIZE.height); };
+        if (typeof ctrl.onDraw === 'function') {
+            var prevDraw = ctrl.onDraw;
+            ctrl.onDraw = function () { relock(); prevDraw.apply(this, arguments); };
+        } else {
+            ctrl.onDraw = relock;
+        }
+        if (typeof ctrl.addEventListener === 'function') {
+            var events = ["mouseover","mouseout","mousedown","mouseup"];
+            for (var i = 0; i < events.length; i++) {
+                try { ctrl.addEventListener(events[i], relock); } catch (evtErr) {}
+            }
+        }
+        if (typeof D9T_applyThemeToButtonControl === 'function') {
+            try {
+                var baseTheme = ctrl.__buttonThemeSource;
+                if (!baseTheme && typeof D9T_getActiveButtonTheme === 'function') {
+                    baseTheme = D9T_getActiveButtonTheme();
+                }
+                D9T_applyThemeToButtonControl(ctrl, baseTheme);
+            } catch (themeErr) {}
+        }
+    }
+
     var rBtnGrp2 = vGrp2.add('group'); rBtnGrp2.alignment = 'right'; rBtnGrp2.spacing = 16;
     var openBtn, importBtn;
     if (typeof themeButton === 'function') {
-        openBtn = new themeButton(rBtnGrp2, { width: 120, height: 32, labelTxt: 'abrir', tips: ['Abrir o projeto selecionado'] });
-        importBtn = new themeButton(rBtnGrp2, { width: 120, height: 32, textColor: (typeof bgColor1 !== 'undefined') ? bgColor1 : '#0B0D0E', buttonColor: (typeof normalColor1 !== 'undefined') ? normalColor1 : '#FFFFFF', labelTxt: 'importar', tips: ['Importar o template selecionado'] });
+        openBtn = new themeButton(rBtnGrp2, { labelTxt: 'abrir', width: TEMPLATE_BUTTON_SIZE.width, height: TEMPLATE_BUTTON_SIZE.height, tips: ['Abrir o projeto selecionado'] });
+        importBtn = new themeButton(rBtnGrp2, { labelTxt: 'importar', width: TEMPLATE_BUTTON_SIZE.width, height: TEMPLATE_BUTTON_SIZE.height, textColor: (typeof bgColor1 !== 'undefined') ? bgColor1 : '#0B0D0E', buttonColor: (typeof normalColor1 !== 'undefined') ? normalColor1 : '#FFFFFF', tips: ['Importar o template selecionado'] });
+        if (openBtn && openBtn.label) { enforceTemplateButtonSize(openBtn.label); }
+        if (importBtn && importBtn.label) { enforceTemplateButtonSize(importBtn.label); }
     } else {
-        openBtn = rBtnGrp2.add('button', undefined, 'Abrir'); importBtn = rBtnGrp2.add('button', undefined, 'Importar');
+        openBtn = rBtnGrp2.add('button', undefined, 'Abrir'); 
+        importBtn = rBtnGrp2.add('button', undefined, 'Importar');
+        applyFixedSize(openBtn, TEMPLATE_BUTTON_SIZE.width, TEMPLATE_BUTTON_SIZE.height);
+        applyFixedSize(importBtn, TEMPLATE_BUTTON_SIZE.width, TEMPLATE_BUTTON_SIZE.height);
     }
 
     // =============================================================================
@@ -796,12 +1689,16 @@ function d9TemplateDialog(thisObj) {
         if (!loadCentralConfigs()) { showThemedAlert("Erro fatal: Nao foi possivel carregar os arquivos de configuracao.", 'Erro critico'); D9T_TEMPLATES_w.close(); return; }
         productions = GNEWS_TEMPLATES_CONFIG.system.TEMPLATES_Settings.PRODUCTIONS;
         var templateSettings = (GNEWS_TEMPLATES_CONFIG.system && GNEWS_TEMPLATES_CONFIG.system.TEMPLATES_Settings) ? GNEWS_TEMPLATES_CONFIG.system.TEMPLATES_Settings : {};
-        var runtimeTemplatePrefs = templateSettings.gnews_templates || {};
+        if (!templateSettings.gnews_templates) { templateSettings.gnews_templates = {}; }
+        var runtimeTemplatePrefs = templateSettings.gnews_templates;
         if (runtimeTemplatePrefs.hasOwnProperty('lazyMetadata')) {
             lazyMetadataEnabled = runtimeTemplatePrefs.lazyMetadata !== false;
         } else {
             lazyMetadataEnabled = true;
         }
+        forceNetworkLoading = runtimeTemplatePrefs.directNetworkMode === true;
+        networkModeChk.value = forceNetworkLoading;
+        networkModeChk.enabled = true;
         for (var prodIdx = 0; prodIdx < productions.length; prodIdx++) {
             ensureProductionFileReferences(productions[prodIdx], false);
         }
@@ -817,6 +1714,17 @@ function d9TemplateDialog(thisObj) {
             productionStatusMessage[j] = 'Aguardando carregamento...';
             prodDrop.add('item', formatProductionLabel(productionBaseNames[j], productionStatus[j]));
         }
+        if (BACKGROUND_WARMUP_ENABLED) {
+            backgroundWarmupQueue.length = 0;
+            var manifestSnapshot = getManifestSnapshot();
+            for (var warmIdx = 0; warmIdx < productions.length; warmIdx++) {
+                var prodNameWarm = productions[warmIdx].name;
+                var warmSummary = summarizeManifestForProduction(productions[warmIdx], manifestSnapshot);
+                if (isProductionWarm(prodNameWarm, productions[warmIdx], warmSummary)) { continue; }
+                backgroundWarmupQueue.push(prodNameWarm);
+            }
+            scheduleBackgroundWarmup(BACKGROUND_WARMUP_IDLE_DELAY);
+        }
         prodDrop.selection = (lastIndex >= 0 && lastIndex < prodDrop.items.length) ? lastIndex : 0;
         hydrateProductionStatusesFromManifest();
         var requestedIndex = (prodDrop.selection && prodDrop.selection.index >= 0) ? prodDrop.selection.index : 0;
@@ -829,31 +1737,22 @@ function d9TemplateDialog(thisObj) {
         var currentSelectionIndex = (prodDrop.selection && prodDrop.selection.index >= 0) ? prodDrop.selection.index : 0;
         var currentProduction = productions[currentSelectionIndex] || null;
         pendingPopulateProduction = currentProduction ? currentProduction.name : null;
+        activeProductionName = currentProduction ? currentProduction.name : null;
         queueProductionPreload(currentSelectionIndex, 200);
-        var priorityProductions = ['JORNAIS', 'BASE TEMATICA', 'ILUSTRACOES'];
-        var staggerDelay = 800;
-        for (var k = 0; k < productions.length; k++) {
-            if (k === currentSelectionIndex) { continue; }
-            if (priorityProductions.indexOf(productions[k].name.toUpperCase()) > -1) {
-                queueProductionPreload(k, staggerDelay);
-                staggerDelay += 400;
-            }
-        }
         rebuildPrefetchQueue(currentSelectionIndex);
-        schedulePrefetchCycle(staggerDelay + 600);
+        schedulePrefetchCycle();
         updateProductionStatusLabel(prodDrop.selection ? prodDrop.selection.index : -1);
         vGrp2.visible = true; if (newDiv) newDiv.visible = true;
         D9T_TEMPLATES_w.layout.layout(true);
         currentPage = 0;
         filteredDataCache = [];
-        templateTree.removeAll();
         templateList.removeAll();
         updateItemCounter(0);
         searchBox.active = false;
         searchBox.text = placeholderText;
         searchBox.isPlaceholderActive = true;
         updateArteInfo(null);
-        prodDrop.enabled = true; searchBox.enabled = true; listViewChk.enabled = true;
+        prodDrop.enabled = true; searchBox.enabled = true;
     };
     function scheduleInitializationRun(delay) {
         try { delete $.global[pendingInitTaskName]; } catch (clearErr) {}
@@ -1069,6 +1968,7 @@ function d9TemplateDialog(thisObj) {
         var placeholder = [{ type: 'item', text: message }];
         placeholder.__error = true;
         templatesCache[prodName] = placeholder;
+        purgeSnapshot(prodName);
     }
 
     function getProductionIndexByName(prodName) {
@@ -1084,6 +1984,12 @@ function d9TemplateDialog(thisObj) {
     function getProductionIndexFromObject(productionObject) {
         if (!productionObject || !productionObject.name) { return -1; }
         return getProductionIndexByName(productionObject.name);
+    }
+
+    function getProductionByName(prodName) {
+        var idx = getProductionIndexByName(prodName);
+        if (idx === -1 || !productions) { return null; }
+        return productions[idx];
     }
 
     function formatProductionLabel(baseName, state) {
@@ -1135,9 +2041,28 @@ function d9TemplateDialog(thisObj) {
         }
     }
 
+    function updateProductionStatus(index, state, message) {
+        setProductionStatus(index, state, message);
+    }
+
+    function isTemplatesWindowActive() {
+        if (!D9T_TEMPLATES_w) { return false; }
+        if (D9T_TEMPLATES_w instanceof Window) {
+            try { return !!D9T_TEMPLATES_w.visible; }
+            catch (visibilityErr) { return false; }
+        }
+        return true;
+    }
+
+    function isTemplatesUIReady() {
+        if (!isTemplatesWindowActive()) { return false; }
+        if (!prodDrop || !templateList) { return false; }
+        return true;
+    }
+
     function hydrateProductionStatusesFromManifest() {
         if (!productions || !productions.length) { return; }
-        var manifestSnapshot = readCacheManifest(false);
+        var manifestSnapshot = getManifestSnapshot();
         if (!manifestSnapshot) { return; }
         for (var idx = 0; idx < productions.length; idx++) {
             var summary = summarizeManifestForProduction(productions[idx], manifestSnapshot);
@@ -1273,7 +2198,12 @@ function d9TemplateDialog(thisObj) {
         pendingPreloadRegistry[index] = taskName;
         $.global[taskName] = function () {
             try {
-                if (productions[index]) { preloadProductionData(productions[index]); }
+                var prod = productions[index];
+                if (prod) {
+                    setProductionStatus(index, 'loading', 'Carregando ' + prod.name + '...');
+                    if (!lazyMetadataEnabled) { safeLoadMetadata(prod); }
+                    safeLoadCache(prod);
+                }
             } catch (preloadErr) {
                 logWarn('Falha ao processar preload da categoria #' + index + ': ' + preloadErr);
             }
@@ -1281,19 +2211,7 @@ function d9TemplateDialog(thisObj) {
             try { delete $.global[taskName]; } catch (delErr) {}
         };
         var taskCode = 'if ($.global["' + taskName + '"]) { $.global["' + taskName + '"](); }';
-        app.scheduleTask(taskCode, delay || 150, false);
-    }
-
-    function preloadProductionData(productionObject) {
-        if (!productionObject) { return; }
-        var prodIndex = getProductionIndexFromObject(productionObject);
-        if (prodIndex > -1) {
-            setProductionStatus(prodIndex, 'loading', 'Carregando ' + productionObject.name + '...');
-        }
-        if (!lazyMetadataEnabled) {
-            safeLoadMetadata(productionObject);
-        }
-        safeLoadCache(productionObject);
+        app.scheduleTask(taskCode, typeof delay === 'number' ? delay : 150, false);
     }
 
     function ensureHealthySelection(preferredIndex) {
@@ -1316,8 +2234,9 @@ function d9TemplateDialog(thisObj) {
     }
 
     function loadMetadataInBackground(productionObject) {
+        if (!productionObject) { return; }
         var prodName = productionObject.name;
-        if (metadataCache[prodName] || !productionObject) { return; }
+        if (metadataCache[prodName]) { return; }
         var telemetry = startTelemetrySpan('loadMetadata:' + prodName);
         var metadataFileName = getMetadataFileName(productionObject);
         if (!metadataFileName) {
@@ -1346,22 +2265,53 @@ function d9TemplateDialog(thisObj) {
         }
         var metadataData = readJsonFile(metadataFile);
         if (metadataData && typeof metadataData === 'object') {
-            var mergedEntries = [];
             var orderedMetaKeys = getOrderedCacheKeysForProduction(productionObject, metadataData);
-            for (var m = 0; m < orderedMetaKeys.length; m++) {
-                var metaKey = orderedMetaKeys[m];
-                var pathEntries = metadataData[metaKey];
-                if (!(pathEntries instanceof Array)) { continue; }
-                for (var e = 0; e < pathEntries.length; e++) {
-                    mergedEntries.push(pathEntries[e]);
-                }
-            }
             metadataCache[prodName] = {
                 raw: metadataData,
-                orderedKeys: orderedMetaKeys,
+                orderedKeys: orderedMetaKeys.slice(0),
                 sanitized: null
             };
-            endTelemetrySpan(telemetry, { entries: mergedEntries.length, prod: prodName });
+
+            var countTaskName = '__gnewsMetaCount_' + prodName.replace(/\W/g, '_');
+            var chunkState = {
+                keys: orderedMetaKeys.slice(0),
+                index: 0,
+                total: 0,
+                prod: prodName,
+                telemetry: telemetry
+            };
+
+            function processMetadataChunk() {
+                var iterations = 0;
+                while (chunkState.index < chunkState.keys.length && iterations < 10) {
+                    var currentKey = chunkState.keys[chunkState.index];
+                    var entries = metadataData[currentKey];
+                    if (entries instanceof Array) {
+                        chunkState.total += entries.length;
+                    }
+                    chunkState.index++;
+                    iterations++;
+                }
+                if (chunkState.index < chunkState.keys.length) {
+                    try { app.scheduleTask(processorCode, 5, false); }
+                    catch (chunkErr) {
+                        $.writeln('[GNEWS_Templates] scheduleTask falhou ao contar metadados de ' + prodName + ': ' + chunkErr);
+                        processMetadataChunk();
+                    }
+                } else {
+                    endTelemetrySpan(chunkState.telemetry, { entries: chunkState.total, prod: chunkState.prod });
+                    try { delete $.global[countTaskName]; } catch (delErr) {}
+                }
+            }
+
+            var processorCode = 'if ($.global["' + countTaskName + '"]) { $.global["' + countTaskName + '"](); }';
+            $.global[countTaskName] = function () { processMetadataChunk(); };
+            try {
+                app.scheduleTask(processorCode, 1, false);
+            } catch (scheduleErr) {
+                $.writeln('[GNEWS_Templates] scheduleTask falhou para ' + prodName + ': ' + scheduleErr);
+                $.global[countTaskName]();
+            }
         } else {
             metadataCache[prodName] = { raw: null, sanitized: [] };
             logWarn('Falha ao interpretar metadados de ' + prodName + ' (' + metadataFileName + ')');
@@ -1379,6 +2329,31 @@ function d9TemplateDialog(thisObj) {
             metadataCache[prodName] = { raw: null, sanitized: [] };
             notifyCacheIssue('Erro ao carregar metadados de ' + prodName + ': ' + (metadataErr && metadataErr.message ? metadataErr.message : metadataErr));
             logError('Erro ao carregar metadados de ' + prodName + ': ' + metadataErr);
+        }
+    }
+
+    function scheduleMetadataLoad(productionObject) {
+        if (!productionObject || !productionObject.name) { return; }
+        var prodName = productionObject.name;
+        if (metadataCache[prodName]) { return; }
+        var taskKey = '__gnewsMetadataLoad_' + prodName.replace(/\W/g, '_');
+        if ($.global[taskKey]) { return; }
+        $.global[taskKey] = function () {
+            try {
+                safeLoadMetadata(productionObject);
+            } catch (asyncErr) {
+                logWarn('Falha ao carregar metadados (lazy) de ' + prodName + ': ' + asyncErr);
+            }
+            try { delete $.global[taskKey]; } catch (delErr) {}
+        };
+        var runner = 'if ($.global["' + taskKey + '"]) { $.global["' + taskKey + '"](); }';
+        try {
+            app.scheduleTask(runner, 50, false);
+        } catch (scheduleErr) {
+            logWarn('Fallback sincronizado ao carregar metadados de ' + prodName + ': ' + scheduleErr);
+            try { $.global[taskKey](); } catch (fallbackErr) {
+                logWarn('Falha no fallback de metadados para ' + prodName + ': ' + fallbackErr);
+            }
         }
     }
 
@@ -1450,6 +2425,10 @@ function d9TemplateDialog(thisObj) {
     }
 
     function safePerformSearch(searchTerm) {
+        if (!isTemplatesUIReady()) { return; }
+        pausePrefetchCycle();
+        notifyUserActivity();
+        ensureActiveProductionBudgetForPage(currentPage);
         var startedLoading = false;
         if (!loadingGrp.visible) {
             setLoadingState(true, 'Atualizando resultados');
@@ -1462,9 +2441,10 @@ function d9TemplateDialog(thisObj) {
             completed = true;
             notifyCacheIssue('Erro ao atualizar a lista de templates: ' + (searchErr && searchErr.message ? searchErr.message : searchErr));
         }
-        if (startedLoading && completed) {
+        if (completed) {
             setLoadingState(false);
         }
+        resumePrefetchCycle(PREFETCH_INTERVAL + 300);
     }
 
     function flattenTreeForPagination(treeArray, parentChain, sink, parentKey) {
@@ -1480,9 +2460,12 @@ function d9TemplateDialog(thisObj) {
                 flattenTreeForPagination(entry.children || [], nextChain, sink, nodeKey);
             } else if (entry.type === 'item') {
                 if (metadataEntryShouldBeIgnored(entry)) { continue; }
+                var normalizedSearchText = entry.__normalizedSearchText || normalizeSearchText(entry.text || '');
+                entry.__normalizedSearchText = normalizedSearchText;
                 sink.push({
                     item: entry,
-                    parents: baseChain.slice(0)
+                    parents: baseChain.slice(0),
+                    searchText: normalizedSearchText
                 });
             }
         }
@@ -1593,7 +2576,8 @@ function d9TemplateDialog(thisObj) {
         cancelTreeRenderTask();
         treeView.removeAll();
         if (!flatItems || flatItems.length === 0) { return; }
-        var start = pageIndex * itemsPerPage;
+        resolveTotalPages(flatItems.length);
+        var start = currentPage * itemsPerPage;
         var end = Math.min(start + itemsPerPage, flatItems.length);
         var slice = flatItems.slice(start, end);
         var subsetTree = buildTreeFromFlatSlice(slice);
@@ -1604,9 +2588,353 @@ function d9TemplateDialog(thisObj) {
         $.global.__gnewsTreeRenderState = {
             stack: stack,
             treeView: treeView,
-            mode: 'search'
+            mode: 'search',
+            chunkSize: resolveDynamicTreeChunkSize(stack.length)
         };
         runTreeRenderChunk();
+    }
+
+    function scanProductionPaths(productionObject, progressUpdater, onComplete) {
+        var paths = (productionObject && productionObject.paths) ? productionObject.paths : [];
+        if (!paths || !paths.length) {
+            if (typeof onComplete === 'function') { onComplete(null, 'Nenhum caminho configurado para esta producao.'); }
+            return;
+        }
+        var allowedExtensions = ['.aep', '.aet'];
+        var ignoreFolderNames = ['auto-save', 'old', 'adobe after effects auto-save', 'versoes antigas', 'backup', 'old versions', '__macosx'];
+        var ignoreNameContains = ['auto-save', 'tmpaetoame'];
+        var ignoreFileNames = ['thumbs.db'];
+        function toLowerArray(arr) {
+            for (var i = 0; i < arr.length; i++) { arr[i] = arr[i].toLowerCase(); }
+            return arr;
+        }
+        toLowerArray(ignoreFolderNames);
+        toLowerArray(ignoreFileNames);
+        toLowerArray(ignoreNameContains);
+        var masterCacheData = {};
+        var metadataMap = {};
+        var metadataList = [];
+        var rootStats = {};
+        var skippedFolders = [];
+        var pending = [];
+        var visited = {};
+        var MAX_FOLDER_ITERATIONS_PER_CHUNK = 4;
+        var MAX_ITEMS_PER_PASS = 40;
+        var SLOW_FOLDER_THRESHOLD_MS = 2000;
+        var slowFolderTracker = {};
+
+        function decodePercentString(value) {
+            if (typeof value !== 'string' || value === '') { return ''; }
+            var result = value;
+            if (result.indexOf('%') !== -1) {
+                try { result = decodeURIComponent(result); } catch (decodeErr) {}
+                try { result = Folder.decode(result); } catch (decodeErr2) {}
+            }
+            return result;
+        }
+
+        function hasIgnoredSubstring(valueLower) {
+            if (!valueLower) { return false; }
+            for (var i = 0; i < ignoreNameContains.length; i++) {
+                if (valueLower.indexOf(ignoreNameContains[i]) !== -1) { return true; }
+            }
+            return false;
+        }
+
+        function shouldIgnoreFolder(folderNameLower) {
+            if (!folderNameLower) { return false; }
+            if (hasIgnoredSubstring(folderNameLower)) { return true; }
+            for (var i = 0; i < ignoreFolderNames.length; i++) {
+                if (folderNameLower === ignoreFolderNames[i]) { return true; }
+            }
+            return false;
+        }
+
+        function shouldIgnoreFile(fileNameLower) {
+            if (!fileNameLower) { return true; }
+            if (hasIgnoredSubstring(fileNameLower)) { return true; }
+            for (var i = 0; i < ignoreFileNames.length; i++) {
+                if (fileNameLower === ignoreFileNames[i]) { return true; }
+            }
+            return false;
+        }
+
+        function fileMatchesFilter(fileName) {
+            if (!fileName || typeof fileName !== 'string') { return false; }
+            if (!allowedExtensions.length) { return true; }
+            var lower = fileName.toLowerCase();
+            for (var i = 0; i < allowedExtensions.length; i++) {
+                if (lower.indexOf(allowedExtensions[i]) !== -1) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function enqueueFolder(folder, targetArray, parents, rootKey) {
+            if (!(folder instanceof Folder)) { return; }
+            var folderKey = folder.fsName || folder.fullName || folder.absoluteURI || folder.displayName;
+            if (!folderKey) { return; }
+            if (visited[folderKey]) { return; }
+            visited[folderKey] = true;
+            pending.push({
+                folder: folder,
+                folderKey: folderKey,
+                targetArray: targetArray,
+                parents: parents ? parents.slice(0) : [],
+                rootKey: rootKey,
+                items: null,
+                nextIndex: 0
+            });
+        }
+
+        for (var p = 0; p < paths.length; p++) {
+            var pathStr = paths[p];
+            var folder = new Folder(pathStr);
+            if (!folder.exists) {
+                skippedFolders.push(pathStr);
+                continue;
+            }
+            var children = [];
+            masterCacheData[pathStr] = children;
+            metadataMap[pathStr] = [];
+            rootStats[pathStr] = {
+                itemCount: 0,
+                metadataCount: 0,
+                lastModified: folder.modified ? folder.modified.getTime() : null
+            };
+            enqueueFolder(folder, children, [], pathStr);
+        }
+
+        if (!pending.length) {
+            if (typeof onComplete === 'function') {
+                onComplete(null, 'Nenhum caminho valido encontrado para esta producao.');
+            }
+            return;
+        }
+
+        var taskName = '__gnewsScan_' + (new Date().getTime()) + '_' + Math.floor(Math.random() * 1000);
+
+        function finalize(errorMessage) {
+            try { delete $.global[taskName]; } catch (deleteErr) {}
+            if (typeof onComplete === 'function') {
+                if (errorMessage) {
+                    onComplete(null, errorMessage);
+                } else {
+                    onComplete({
+                        masterCache: masterCacheData,
+                        metadataMap: metadataMap,
+                        metadataList: metadataList,
+                        rootStats: rootStats,
+                        skipped: skippedFolders
+                    }, null);
+                }
+            }
+        }
+
+        function processChunk() {
+            if (progressUpdater && typeof progressUpdater === 'function') {
+                progressUpdater('Escaneando caminhos... (' + (pending.length) + ' fila)');
+            }
+            var iterations = 0;
+            while (pending.length > 0 && iterations < MAX_FOLDER_ITERATIONS_PER_CHUNK) {
+                var entry = pending.pop();
+                if (!entry || !(entry.folder instanceof Folder) || !entry.folder.exists) {
+                    continue;
+                }
+                var folder = entry.folder;
+                var targetArray = entry.targetArray;
+                var parents = entry.parents || [];
+                var rootKey = entry.rootKey;
+                if (!entry.items) {
+                    var startRead = $.hiresTimer;
+                    try { entry.items = folder.getFiles(); } catch (fsErr) { entry.items = []; }
+                    entry.nextIndex = 0;
+                    var elapsedMs = ($.hiresTimer - startRead) / 1000;
+                    if (elapsedMs > SLOW_FOLDER_THRESHOLD_MS) {
+                        var count = (slowFolderTracker[entry.folderKey] || 0) + 1;
+                        slowFolderTracker[entry.folderKey] = count;
+                        if (count > 1) {
+                            skippedFolders.push(folder.fsName || folder.displayName || entry.folderKey);
+                            entry.items = [];
+                        }
+                    }
+                }
+                var items = entry.items || [];
+                var processedInThisFolder = 0;
+                while (entry.nextIndex < items.length) {
+                    var item = items[entry.nextIndex++];
+                    if (!item) { continue; }
+                    if (item instanceof Folder) {
+                        var rawName = item.name || item.displayName || item.fsName || '';
+                        var folderLower = rawName.toLowerCase();
+                        if (!folderLower) { folderLower = (item.fsName || '').toLowerCase(); }
+                        if (shouldIgnoreFolder(folderLower)) { continue; }
+                        var decodedFolderName = decodePercentString(rawName);
+                        var node = { type: 'node', text: decodedFolderName, children: [] };
+                        targetArray.push(node);
+                        var nextParents = parents.slice(0);
+                        nextParents.push(decodedFolderName);
+                        enqueueFolder(item, node.children, nextParents, rootKey);
+                    } else if (item instanceof File) {
+                        var fileName = item.name || '';
+                        var fileNameLower = fileName.toLowerCase();
+                        if (shouldIgnoreFile(fileNameLower)) { continue; }
+                        if (!fileMatchesFilter(fileName)) { continue; }
+                        var decodedName = decodePercentString(fileName);
+                        var decodedPath = decodePercentString(item.fsName);
+                        var modDate = item.modified ? item.modified.toUTCString() : '';
+                        var size = item.length || 0;
+                        var entryData = {
+                            type: 'item',
+                            text: decodedName,
+                            filePath: decodedPath,
+                            modDate: modDate,
+                            size: size
+                        };
+                        targetArray.push(entryData);
+                        if (!metadataMap[rootKey]) { metadataMap[rootKey] = []; }
+                        var metadataEntry = {
+                            text: decodedName,
+                            filePath: decodedPath,
+                            parents: parents.slice(0),
+                            modDate: modDate,
+                            size: size
+                        };
+                        metadataMap[rootKey].push(metadataEntry);
+                        metadataList.push(metadataEntry);
+                        if (!rootStats[rootKey]) {
+                            rootStats[rootKey] = { itemCount: 0, metadataCount: 0, lastModified: null };
+                        }
+                        rootStats[rootKey].itemCount++;
+                        rootStats[rootKey].metadataCount++;
+                    }
+                    processedInThisFolder++;
+                    if (processedInThisFolder >= MAX_ITEMS_PER_PASS) {
+                        break;
+                    }
+                }
+                if (entry.nextIndex < (entry.items || []).length) {
+                    pending.push(entry);
+                }
+                iterations++;
+            }
+            if (!pending.length) {
+                finalize(null);
+                return;
+            }
+            try {
+                $.global[taskName] = processChunk;
+                app.scheduleTask('if ($.global["' + taskName + '"]) { $.global["' + taskName + '"](); }', 30, false);
+            } catch (scheduleErr) {
+                finalize(scheduleErr && scheduleErr.message ? scheduleErr.message : 'Falha ao agendar varredura de rede.');
+            }
+        }
+
+        processChunk();
+    }
+
+    function persistCacheFromScan(productionObject, masterCacheData, metadataMap, rootStats) {
+        try {
+            var cacheFile = new File(scriptPreferencesPath + '/cache/' + productionObject.cacheFile);
+            cacheFile.open('w');
+            cacheFile.encoding = 'UTF-8';
+            cacheFile.write(JSON.stringify(masterCacheData, null, 2));
+            cacheFile.close();
+            var metadataFileName = productionObject.metadataFile || productionObject.cacheFile.replace('_cache', '_metadata');
+            var metadataFile = new File(scriptPreferencesPath + '/cache/' + metadataFileName);
+            metadataFile.open('w');
+            metadataFile.encoding = 'UTF-8';
+            metadataFile.write(JSON.stringify(metadataMap, null, 2));
+            metadataFile.close();
+            productionObject.metadataFile = metadataFileName;
+        } catch (writeErr) {
+            logError('Falha ao salvar cache gerado da rede: ' + writeErr);
+            return false;
+        }
+        var manifestData = readCacheManifest(true);
+        var cacheFileName = productionObject.cacheFile;
+        if (!manifestData[cacheFileName]) { manifestData[cacheFileName] = { file: cacheFileName, paths: {} }; }
+        var manifestEntry = manifestData[cacheFileName];
+        manifestEntry.paths = manifestEntry.paths || {};
+        var nowUTC = new Date().toUTCString();
+        for (var pathKey in masterCacheData) {
+            if (!masterCacheData.hasOwnProperty(pathKey)) { continue; }
+            var stats = rootStats[pathKey] || {};
+            manifestEntry.paths[pathKey] = {
+                lastModified: stats.lastModified ? new Date(stats.lastModified).toUTCString() : nowUTC,
+                lastScan: nowUTC,
+                itemCount: stats.itemCount || 0,
+                metadataCount: stats.metadataCount || stats.itemCount || 0,
+                cacheHash: computeTreeHash(masterCacheData[pathKey])
+            };
+        }
+        writeCacheManifestData(manifestData);
+        return true;
+    }
+
+    function startNetworkFallbackLoad(productionObject, telemetry, options) {
+        options = options || {};
+        var prodName = productionObject.name;
+        var directMode = options.reason === 'forceDirect';
+        var loadingMessage = directMode ? ('Carregando ' + prodName + ' da rede (modo direto)...') : ('Carregando ' + prodName + ' diretamente da rede...');
+        setLoadingState(true, loadingMessage);
+        scanProductionPaths(productionObject, function (statusText) {
+            if (loadingGrp && loadingGrp.children && loadingGrp.children[0]) {
+                loadingGrp.children[0].text = statusText;
+            }
+        }, function (result, errorMessage) {
+            if (errorMessage || !result) {
+                var errMsg = errorMessage || ('Nao foi possivel carregar dados para ' + prodName + '.');
+                cacheErrorPlaceholder(prodName, errMsg);
+                markProductionFailure(prodName, errMsg);
+                logError(errMsg);
+                setLoadingState(false);
+                if (telemetry) { endTelemetrySpan(telemetry, { status: 'networkError', prod: prodName }); }
+                return;
+            }
+            var aggregatedTree = [];
+            var orderPaths = productionObject.paths || [];
+            for (var i = 0; i < orderPaths.length; i++) {
+                var key = orderPaths[i];
+                var entries = result.masterCache[key];
+                if (!entries || !entries.length) { continue; }
+                for (var e = 0; e < entries.length; e++) {
+                    aggregatedTree.push(entries[e]);
+                }
+            }
+            if (!aggregatedTree.length) {
+                var emptyMsg = 'Nao foi possivel localizar arquivos para ' + prodName + ' nos caminhos configurados.';
+                cacheErrorPlaceholder(prodName, emptyMsg);
+                markProductionFailure(prodName, emptyMsg);
+                logWarn(emptyMsg);
+                setLoadingState(false);
+                if (telemetry) { endTelemetrySpan(telemetry, { status: 'networkEmpty', prod: prodName }); }
+                return;
+            }
+            templatesCache[prodName] = aggregatedTree;
+            if (templatesCache[prodName].__error) { delete templatesCache[prodName].__error; }
+            delete templatesCache[prodName].__pending;
+            metadataCache[prodName] = { raw: null, sanitized: result.metadataList };
+            buildProductionIndex(prodName, aggregatedTree);
+            var successMsg = aggregatedTree.length + (aggregatedTree.length === 1 ? ' item carregado da rede' : ' itens carregados da rede');
+            markProductionSuccess(prodName, successMsg);
+            logInfo('Carregado diretamente da rede: ' + prodName + ' (' + aggregatedTree.length + ' itens)');
+            setLoadingState(false);
+            requestActiveRefreshFor(prodName);
+            if (telemetry) { endTelemetrySpan(telemetry, { status: 'network', prod: prodName, items: aggregatedTree.length }); }
+            if (!options.skipPrompt) {
+                var promptMsg = 'Deseja gerar o cache local para "' + prodName + '" e evitar novas leituras diretas?';
+                if (showThemedConfirm(promptMsg, 'Gerar cache', 'Gerar cache', 'Agora nao')) {
+                    var persisted = persistCacheFromScan(productionObject, result.masterCache, result.metadataMap, result.rootStats);
+                    if (persisted) {
+                        showThemedAlert('Cache gerado com sucesso para "' + prodName + '".', 'Gerar cache');
+                    } else {
+                        showThemedAlert('Nao foi possivel salvar o cache para "' + prodName + '".', 'Gerar cache');
+                    }
+                }
+            }
+        });
     }
 
     function loadCacheInBackground(productionObject) {
@@ -1614,6 +2942,10 @@ function d9TemplateDialog(thisObj) {
         ensureProductionFileReferences(productionObject, false);
         if ((templatesCache[prodName] && templatesCache[prodName].__error !== true) || !productionObject.cacheFile) return;
         var telemetry = startTelemetrySpan('loadCache:' + prodName);
+        if (forceNetworkLoading) {
+            startNetworkFallbackLoad(productionObject, telemetry, { skipPrompt: true, reason: 'forceDirect' });
+            return;
+        }
         var cacheFile = new File(scriptPreferencesPath + '/cache/' + productionObject.cacheFile);
         if (!cacheFile || !cacheFile.exists) {
             var derivedCacheName = deriveCacheFileFromName(prodName);
@@ -1631,11 +2963,21 @@ function d9TemplateDialog(thisObj) {
         }
         if (!cacheFile || !cacheFile.exists) {
             var missingMsg = 'Cache para ' + prodName + ' nao encontrado (' + productionObject.cacheFile + ').';
-            cacheErrorPlaceholder(prodName, missingMsg);
-            markProductionFailure(prodName, missingMsg);
-            logWarn(missingMsg);
-            notifyCacheIssue(missingMsg);
-            endTelemetrySpan(telemetry, { status: 'missing', prod: prodName });
+            logWarn(missingMsg + ' Tentando carregamento direto.');
+            startNetworkFallbackLoad(productionObject, telemetry);
+            return;
+        }
+        var manifestSummary = summarizeManifestForProduction(productionObject, getManifestSnapshot());
+        var restoredSnapshot = tryRestoreNormalizedSnapshot(prodName, productionObject, manifestSummary);
+        if (restoredSnapshot && restoredSnapshot.length) {
+            templatesCache[prodName] = restoredSnapshot;
+            if (templatesCache[prodName].__error) { delete templatesCache[prodName].__error; }
+            delete templatesCache[prodName].__pending;
+            buildProductionIndex(prodName, restoredSnapshot);
+            var restoredMsg = manifestSummary ? formatManifestSummary(manifestSummary) : (restoredSnapshot.length + (restoredSnapshot.length === 1 ? ' item carregado' : ' itens carregados'));
+            markProductionSuccess(prodName, restoredMsg);
+            logInfo('Snapshot restaurado para ' + prodName + ' (' + restoredSnapshot.length + ' itens)');
+            endTelemetrySpan(telemetry, { status: 'snapshot', prod: prodName, items: restoredSnapshot.length });
             return;
         }
         var masterCacheData = readJsonFile(cacheFile);
@@ -1645,56 +2987,115 @@ function d9TemplateDialog(thisObj) {
             markProductionFailure(prodName, readMsg);
             logError(readMsg);
             notifyCacheIssue(readMsg);
-            endTelemetrySpan(telemetry, { status: 'readError', prod: prodName });
+            purgeSnapshot(prodName, productionObject);
+            startNetworkFallbackLoad(productionObject, telemetry);
             return;
         }
-        try {
-            var aggregatedTree = [];
-            var orderedCacheKeys = getOrderedCacheKeysForProduction(productionObject, masterCacheData);
-            if (!orderedCacheKeys.length) {
-                for (var fallbackKey in masterCacheData) {
-                    if (masterCacheData.hasOwnProperty(fallbackKey)) {
-                        pushUniqueValue(orderedCacheKeys, fallbackKey);
-                    }
+        var orderedCacheKeys = getOrderedCacheKeysForProduction(productionObject, masterCacheData);
+        if (!orderedCacheKeys.length) {
+            for (var fallbackKey in masterCacheData) {
+                if (masterCacheData.hasOwnProperty(fallbackKey)) {
+                    pushUniqueValue(orderedCacheKeys, fallbackKey);
                 }
             }
-            for (var i = 0; i < orderedCacheKeys.length; i++) {
-                var cacheKey = orderedCacheKeys[i];
-                var normalizedBranch = normalizeCacheEntries(masterCacheData[cacheKey]);
-                if (!normalizedBranch || !normalizedBranch.length) { continue; }
-                for (var c = 0; c < normalizedBranch.length; c++) {
-                    aggregatedTree.push(normalizedBranch[c]);
-                }
-            }
-            if (!aggregatedTree.length) {
-                var emptyMsg = 'Nenhum template valido encontrado para ' + prodName + '.';
-                cacheErrorPlaceholder(prodName, emptyMsg);
-                markProductionFailure(prodName, emptyMsg);
-                logWarn(emptyMsg);
-                notifyCacheIssue(emptyMsg);
-                return;
-            }
-            templatesCache[prodName] = aggregatedTree;
-            buildProductionIndex(prodName, aggregatedTree);
-            if (templatesCache[prodName].__error) { delete templatesCache[prodName].__error; }
-            var manifestSummary = summarizeManifestForProduction(productionObject, readCacheManifest(true));
-            var successMsg = manifestSummary ? formatManifestSummary(manifestSummary) : (aggregatedTree.length + (aggregatedTree.length === 1 ? ' item carregado' : ' itens carregados'));
-            markProductionSuccess(prodName, successMsg);
-            logInfo('Cache carregado para ' + prodName + ' (' + aggregatedTree.length + ' itens)');
-            endTelemetrySpan(telemetry, { status: 'ok', prod: prodName, items: aggregatedTree.length });
-        } catch (cacheErr) {
-            var processMsg = 'Erro ao processar o cache de ' + prodName + ': ' + (cacheErr && cacheErr.message ? cacheErr.message : cacheErr);
-            cacheErrorPlaceholder(prodName, processMsg);
-            markProductionFailure(prodName, processMsg);
-            logError(processMsg);
-            notifyCacheIssue(processMsg);
-            endTelemetrySpan(telemetry, { status: 'exception', prod: prodName });
+        }
+        if (!orderedCacheKeys.length) {
+            var emptyMsg = 'Nenhum template valido encontrado para ' + prodName + '.';
+            cacheErrorPlaceholder(prodName, emptyMsg);
+            markProductionFailure(prodName, emptyMsg);
+            logWarn(emptyMsg);
+            notifyCacheIssue(emptyMsg);
+            endTelemetrySpan(telemetry, { status: 'empty', prod: prodName });
+            purgeSnapshot(prodName, productionObject);
             return;
         }
+        var sliceQueue = createCacheSliceQueue(masterCacheData, orderedCacheKeys, CACHE_BRANCH_SLICE_SIZE);
+        if (!sliceQueue.length) {
+            var emptySliceMsg = 'Nao ha dados suficientes para processar o cache de ' + prodName + '.';
+            cacheErrorPlaceholder(prodName, emptySliceMsg);
+            markProductionFailure(prodName, emptySliceMsg);
+            logWarn(emptySliceMsg);
+            notifyCacheIssue(emptySliceMsg);
+            endTelemetrySpan(telemetry, { status: 'empty', prod: prodName });
+            purgeSnapshot(prodName, productionObject);
+            return;
+        }
+        var job = {
+            prodName: prodName,
+            prodIndex: getProductionIndexFromObject(productionObject),
+            productionObject: productionObject,
+            masterCacheData: masterCacheData,
+            remainingSlices: sliceQueue,
+            aggregatedTree: [],
+            telemetry: telemetry,
+            desiredCount: itemsPerPage,
+            requestedCount: Math.max(itemsPerPage + CACHE_PREFETCH_PADDING, itemsPerPage),
+            prefetchPadding: CACHE_PREFETCH_PADDING,
+            lastSatisfiedDemand: 0,
+            manifestSummary: manifestSummary,
+            expectedTotal: (manifestSummary && manifestSummary.itemCount) ? manifestSummary.itemCount : null,
+            nodeBudget: CACHE_NORMALIZE_NODE_BUDGET
+        };
+        templatesCache[prodName] = job.aggregatedTree;
+        templatesCache[prodName].__pending = true;
+        registerNormalizationJob(job);
+        updateProductionStatus(job.prodIndex, 'loading', 'Carregando ' + prodName + '...');
+        scheduleCacheNormalizationTask();
+        return;
+    }
+
+    function startManualCacheRebuild(productionObject) {
+        if (!productionObject || !productionObject.name) {
+            showThemedAlert('Selecione uma producao valida antes de recriar o cache.', 'Recriar cache');
+            return;
+        }
+        ensureProductionFileReferences(productionObject, false);
+        var prodName = productionObject.name;
+        var cacheFile = new File(scriptPreferencesPath + '/cache/' + productionObject.cacheFile);
+        if (!cacheFile || !cacheFile.exists) {
+            showThemedAlert('O arquivo de cache para "' + prodName + '" nao foi encontrado.\nExecute a geracao de cache no configurador.', 'Recriar cache');
+            return;
+        }
+        var masterCacheData = readJsonFile(cacheFile);
+        if (!masterCacheData || typeof masterCacheData !== 'object') {
+            showThemedAlert('Falha ao ler o cache existente de "' + prodName + '".', 'Recriar cache');
+            return;
+        }
+        var orderedCacheKeys = getOrderedCacheKeysForProduction(productionObject, masterCacheData);
+        if (!orderedCacheKeys.length) {
+            showThemedAlert('Nenhum dado valido encontrado no cache de "' + prodName + '".', 'Recriar cache');
+            return;
+        }
+        var sliceQueue = createCacheSliceQueue(masterCacheData, orderedCacheKeys, CACHE_BRANCH_SLICE_SIZE);
+        if (!sliceQueue.length) {
+            showThemedAlert('Nao ha dados suficientes para recriar o cache de "' + prodName + '".', 'Recriar cache');
+            return;
+        }
+        var job = {
+            prodName: prodName,
+            prodIndex: getProductionIndexFromObject(productionObject),
+            productionObject: productionObject,
+            masterCacheData: masterCacheData,
+            remainingSlices: sliceQueue,
+            aggregatedTree: [],
+            telemetry: startTelemetrySpan('manualRebuild:' + prodName),
+            desiredCount: Number.MAX_VALUE,
+            requestedCount: Number.MAX_VALUE,
+            prefetchPadding: 0,
+            manifestSummary: summarizeManifestForProduction(productionObject, getManifestSnapshot()),
+            expectedTotal: null
+        };
+        templatesCache[prodName] = job.aggregatedTree;
+        templatesCache[prodName].__pending = true;
+        registerNormalizationJob(job);
+        updateProductionStatus(job.prodIndex, 'loading', 'Recriando cache de ' + prodName + '...');
+        scheduleCacheNormalizationTask();
+        requestActiveRefreshFor(prodName);
     }
 
     function populateListPage(listBox, allItems) {
         listBox.removeAll();
+        resolveTotalPages(allItems.length);
         var startIndex = currentPage * itemsPerPage;
         var endIndex = startIndex + itemsPerPage;
         var itemsToDisplay = allItems.slice(startIndex, endIndex);
@@ -1726,6 +3127,69 @@ function d9TemplateDialog(thisObj) {
         }
     }
 
+    function shouldVirtualizeChildren(count) {
+        return typeof count === 'number' && count >= VIRTUAL_TREE_BUCKET_THRESHOLD;
+    }
+
+    function determineVirtualBucketSize(childCount) {
+        if (!childCount || childCount <= 0) { return VIRTUAL_TREE_BUCKET_SIZE; }
+        if (childCount > 2000) { return Math.max(200, Math.round(childCount / 12)); }
+        if (childCount > 1000) { return Math.max(160, Math.round(childCount / 10)); }
+        if (childCount > 600) { return Math.max(140, Math.round(childCount / 8)); }
+        return VIRTUAL_TREE_BUCKET_SIZE;
+    }
+
+    function formatVirtualBucketLabel(start, end, total) {
+        return 'Itens ' + (start + 1) + ' - ' + end + (total ? ' / ' + total : '');
+    }
+
+    function createVirtualBucketPlaceholders(treeNode, entryData) {
+        if (!treeNode || !entryData || !entryData.children || !entryData.children.length) { return; }
+        treeNode.removeAll();
+        var total = entryData.children.length;
+        var bucketSize = determineVirtualBucketSize(total);
+        treeNode.__childState = 'virtualBucketsReady';
+        treeNode.__virtualInfo = {
+            entry: entryData,
+            bucketSize: bucketSize,
+            total: total
+        };
+        for (var start = 0; start < total; start += bucketSize) {
+            var end = Math.min(total, start + bucketSize);
+            var bucketNode = treeNode.add('node', formatVirtualBucketLabel(start, end, total));
+            bucketNode.__childState = 'virtualBucketPending';
+            bucketNode.__bucketRange = {
+                entry: entryData,
+                start: start,
+                end: end
+            };
+            bucketNode.onExpand = function () { materializeBucketChildren(this); };
+        }
+    }
+
+    function materializeBucketChildren(bucketNode) {
+        if (!bucketNode || bucketNode.__childState !== 'virtualBucketPending') { return; }
+        var range = bucketNode.__bucketRange;
+        if (!range || !range.entry || !range.entry.children) {
+            bucketNode.__childState = 'empty';
+            return;
+        }
+        bucketNode.__childState = 'loading';
+        bucketNode.removeAll();
+        var children = range.entry.children;
+        for (var i = range.start; i < range.end && i < children.length; i++) {
+            var child = children[i];
+            if (!child) { continue; }
+            if (child.type === 'node') {
+                createLazyTreeNode(bucketNode, child);
+            } else if (child.type === 'item') {
+                createLazyTreeItem(bucketNode, child);
+            }
+        }
+        bucketNode.__childState = 'loaded';
+        bucketNode.onExpand = null;
+    }
+
     function createLazyTreeItem(parentNode, itemData) {
         var newItem = parentNode.add('item', itemData.text);
         if (typeof D9T_AE_ICON !== 'undefined') { newItem.image = D9T_AE_ICON; }
@@ -1740,17 +3204,29 @@ function d9TemplateDialog(thisObj) {
         if (typeof D9T_FOLDER_AE_ICON !== 'undefined') { node.image = D9T_FOLDER_AE_ICON; }
         node.__dataRef = entryData;
         if (entryData.children && entryData.children.length) {
-            node.__childState = 'pending';
-            node.__placeholder = node.add('item', '...');
+            if (shouldVirtualizeChildren(entryData.children.length)) {
+                createVirtualBucketPlaceholders(node, entryData);
+            } else {
+                node.__childState = 'pending';
+                node.__placeholder = node.add('item', '...');
+            }
         } else {
             node.__childState = 'empty';
         }
-        node.onExpand = function () { ensureNodeChildrenLoaded(this); };
+        node.onExpand = function () {
+            if (this.__childState === 'virtualBucketsReady') { return; }
+            ensureNodeChildrenLoaded(this);
+        };
         return node;
     }
 
     function ensureNodeChildrenLoaded(treeNode) {
-        if (!treeNode || treeNode.__childState !== 'pending' || !treeNode.__dataRef) { return; }
+        if (!treeNode) { return; }
+        if (treeNode.__childState === 'virtualBucketPending') {
+            materializeBucketChildren(treeNode);
+            return;
+        }
+        if (treeNode.__childState !== 'pending' || !treeNode.__dataRef) { return; }
         treeNode.__childState = 'loading';
         var entry = treeNode.__dataRef;
         treeNode.removeAll();
@@ -1779,7 +3255,8 @@ function d9TemplateDialog(thisObj) {
         $.global.__gnewsTreeRenderState = {
             stack: stack,
             treeView: treeView,
-            mode: 'lazy'
+            mode: 'lazy',
+            chunkSize: resolveDynamicTreeChunkSize(stack.length)
         };
         runTreeRenderChunk();
     }
@@ -1799,32 +3276,66 @@ function d9TemplateDialog(thisObj) {
         return total;
     }
 
+    function extractVersionFromContent(content) {
+        if (!content) { return null; }
+        var version = null;
+        var creatorMatch = content.match(/<xmp:CreatorTool>(.*?)<\/xmp:CreatorTool>/i);
+        var agentMatch = content.match(/<stEvt:softwareAgent>(.*?)<\/stEvt:softwareAgent>/i);
+        var candidate = null;
+        if (creatorMatch && creatorMatch[1]) { candidate = creatorMatch[1]; }
+        else if (agentMatch && agentMatch[1]) { candidate = agentMatch[1]; }
+        if (candidate) {
+            version = candidate.replace(/^\s+|\s+$/g, '');
+        } else {
+            var genericMatch = content.match(/Adobe After Effects \d{2,4}\.\d/);
+            if (genericMatch && genericMatch[0]) {
+                version = genericMatch[0];
+            }
+        }
+        if (version && version.indexOf("Photoshop") > -1) {
+            version = version.replace("Photoshop", "After Effects");
+        }
+        if (!version) { return null; }
+        if (version.match(/24\.\d/)) { return "After Effects 2024"; }
+        if (version.match(/23\.\d/)) { return "After Effects 2023"; }
+        if (version.match(/22\.\d/)) { return "After Effects 2022"; }
+        if (version.match(/18\.\d/)) { return "After Effects 2021"; }
+        if (version.match(/17\.\d/)) { return "After Effects 2020"; }
+        return version;
+    }
+
     function getAepVersion(aepFile) {
         if (!aepFile || !aepFile.exists) { return "N/A"; }
+        var cacheKey = aepFile.fsName || aepFile.fullName || '';
+        var modStamp = aepFile.modified ? aepFile.modified.getTime() : 0;
+        if (cacheKey && previewVersionCache[cacheKey] && previewVersionCache[cacheKey].stamp === modStamp) {
+            return previewVersionCache[cacheKey].version;
+        }
         try {
-            aepFile.encoding = "BINARY"; aepFile.open('r'); var fileContent = aepFile.read(4000000); aepFile.close();
-            var version = "Desconhecida";
-            var lastCreatorToolIndex = fileContent.lastIndexOf("<xmp:CreatorTool>");
-            var lastAgentIndex = fileContent.lastIndexOf("<stEvt:softwareAgent>");
-            var searchIndex = -1; var regexToUse = null;
-            if (lastCreatorToolIndex > lastAgentIndex) { searchIndex = lastCreatorToolIndex; regexToUse = /<xmp:CreatorTool>(.*?)<\/xmp:CreatorTool>/i; }
-            else if (lastAgentIndex > -1) { searchIndex = lastAgentIndex; regexToUse = /<stEvt:softwareAgent>(.*?)<\/stEvt:softwareAgent>/i; }
-            if (searchIndex > -1) {
-                var match = regexToUse.exec(fileContent.substring(searchIndex));
-                if (match && match[1]) { version = match[1].replace(/^\s+|\s+$/g, ''); }
+            var CHUNK_BYTES = 65536; // 64 KB
+            var MAX_CHUNKS = 2;
+            aepFile.encoding = "BINARY";
+            aepFile.open('r');
+            var buffer = '';
+            var version = null;
+            var chunks = 0;
+            while (!aepFile.eof && chunks < MAX_CHUNKS) {
+                buffer += aepFile.read(CHUNK_BYTES);
+                version = extractVersionFromContent(buffer);
+                if (version) { break; }
+                buffer = buffer.length > 1024 ? buffer.substr(buffer.length - 1024) : buffer;
+                chunks++;
             }
-            if (version === "Desconhecida") {
-                 var genericMatch = fileContent.match(/Adobe After Effects \d{2,4}\.\d/);
-                 if (genericMatch) { version = genericMatch[0]; }
+            aepFile.close();
+            if (!version) { version = "Desconhecida"; }
+            if (cacheKey) {
+                previewVersionCache[cacheKey] = { version: version, stamp: modStamp };
             }
-            if (version.indexOf("Photoshop") > -1) { version = version.replace("Photoshop", "After Effects"); }
-            if (version.match(/24\.\d/)) return "After Effects 2024";
-            if (version.match(/23\.\d/)) return "After Effects 2023";
-            if (version.match(/22\.\d/)) return "After Effects 2022";
-            if (version.match(/18\.\d/)) return "After Effects 2021";
-            if (version.match(/17\.\d/)) return "After Effects 2020";
             return version;
-        } catch (e) { return "Erro de leitura"; }
+        } catch (e) {
+            try { aepFile.close(); } catch (closeErr) {}
+            return "Erro de leitura";
+        }
     }
 
     function generateCodigoFromTemplate(templateName) {
@@ -1908,7 +3419,7 @@ function d9TemplateDialog(thisObj) {
         loadingAnimationBaseText = baseText || 'Carregando, por favor aguarde';
         loadingAnimationFrame = 0;
         $.global.__gnewsLoadingAnimation = function () {
-            if (!loadingGrp || !loadingGrp.visible) {
+            if (!isTemplatesWindowActive() || !loadingGrp || !loadingGrp.visible) {
                 stopLoadingAnimation();
                 return;
             }
@@ -1917,16 +3428,24 @@ function d9TemplateDialog(thisObj) {
             for (var i = 0; i < loadingAnimationFrame; i++) { dots += '.'; }
             loadingGrp.children[0].text = loadingAnimationBaseText + dots;
             try { loadingGrp.update(); } catch (updErr) {}
-            loadingAnimationTaskId = app.scheduleTask('$.global.__gnewsLoadingAnimation()', 250, false);
+            try {
+                loadingAnimationTaskId = app.scheduleTask('$.global.__gnewsLoadingAnimation()', 250, false);
+            } catch (animErr) {
+                stopLoadingAnimation();
+            }
         };
-        $.global.__gnewsLoadingAnimation();
+        if (isTemplatesWindowActive()) {
+            $.global.__gnewsLoadingAnimation();
+        } else {
+            try { delete $.global.__gnewsLoadingAnimation; } catch (animDelErr) {}
+        }
     }
 
     function setLoadingState(isLoading, message) {
+        if (!isTemplatesWindowActive() || !loadingGrp || !templateList) { return; }
         loadingGrp.children[0].text = message || 'Carregando, por favor aguarde...';
         loadingGrp.visible = isLoading;
-        templateTree.visible = !isLoading && !listViewChk.value;
-        templateList.visible = !isLoading && listViewChk.value;
+        templateList.visible = !isLoading;
         if (isLoading) {
             startLoadingAnimation(message || 'Carregando, por favor aguarde');
         } else {
@@ -1934,10 +3453,25 @@ function d9TemplateDialog(thisObj) {
         }
     }
     
-    function updatePaginationControls(totalItems) {
+    function resolveTotalPages(totalItems) {
+        if (!itemsPerPage || itemsPerPage <= 0) { itemsPerPage = 50; }
+        if (!totalItems || totalItems <= 0) {
+            currentPage = 0;
+            return 0;
+        }
         var totalPages = Math.ceil(totalItems / itemsPerPage);
+        var maxIndex = Math.max(0, totalPages - 1);
+        if (currentPage > maxIndex) { currentPage = maxIndex; }
+        if (currentPage < 0) { currentPage = 0; }
+        return totalPages;
+    }
+
+    function updatePaginationControls(totalItems) {
+        var totalPages = resolveTotalPages(totalItems);
         if (totalPages <= 1) {
             paginationGrp.visible = false;
+            pageInfo.text = totalItems ? "Pagina 1 de 1" : "Pagina 0 de 0";
+            prevBtn.enabled = nextBtn.enabled = false;
             return;
         }
         paginationGrp.visible = true;
@@ -1951,6 +3485,7 @@ function d9TemplateDialog(thisObj) {
     }
 
     function performSearch(searchTerm) {
+        if (!isTemplatesUIReady()) { return false; }
         var telemetry = startTelemetrySpan('performSearch');
         var isSearch = searchTerm !== '';
         var prodName = (prodDrop.selection) ? prodDrop.selection.text : "";
@@ -1964,154 +3499,55 @@ function d9TemplateDialog(thisObj) {
             endTelemetrySpan(telemetry, { status: 'invalidProduction' });
             return false;
         }
-        if (!templatesCache[prodName]) {
-            pendingPopulateProduction = productionObject.name;
-            queueProductionPreload(prodDrop.selection ? prodDrop.selection.index : 0, 50);
-            templateTree.removeAll();
+        if (lazyMetadataEnabled) {
+            scheduleMetadataLoad(productionObject);
+        } else {
+            safeLoadMetadata(productionObject);
+        }
+        var metadataItems = getSanitizedMetadataEntries(prodName);
+        if (!metadataItems || !metadataItems.length) {
+            requestAdditionalData(prodName, Math.max(itemsPerPage, 1));
+            setProductionStatus(prodDrop.selection ? prodDrop.selection.index : -1, 'loading', 'Carregando ' + prodName + '...');
             templateList.removeAll();
             updateItemCounter(0);
-            setLoadingState(true, 'Carregando ' + productionObject.name + '...');
+            setLoadingState(false);
             endTelemetrySpan(telemetry, { status: 'pendingLoad', prod: prodName });
             return false;
         }
-
-        if (listViewChk.value) {
-            safeLoadMetadata(productionObject);
-            var metadataItems = getSanitizedMetadataEntries(prodName);
-            if (!metadataItems || !metadataItems.length) {
-                if (!templatesCache[prodName]) { safeLoadCache(productionObject); }
-                var fallbackTree = templatesCache[prodName] || [];
-                metadataItems = [];
-                collectItemsFromTree(fallbackTree, metadataItems);
-                setSanitizedMetadataEntries(prodName, metadataItems);
-            }
-            metadataItems = metadataItems || [];
-            var cleanTerm = normalizeSearchText(searchTerm);
-            for (var metaIndex = 0; metaIndex < metadataItems.length; metaIndex++) {
-                var metaItem = metadataItems[metaIndex];
-                if (metaItem && !metaItem.searchText) {
-                    var metaSource = (metaItem.text || '') + ' ' + ((metaItem.parents || []).join(' '));
-                    metaItem.searchText = normalizeSearchText(metaSource);
-                }
-            }
-
-            var listItems = metadataItems.slice(0);
-            if (isSearch) {
-                listItems = [];
-                for (var m = 0; m < metadataItems.length; m++) {
-                    var meta = metadataItems[m];
-                    var searchSource = meta.searchText || normalizeSearchText((meta.text || '') + ' ' + ((meta.parents || []).join(' ')));
-                    if (searchSource.indexOf(cleanTerm) !== -1) { listItems.push(meta); }
-                }
-            }
-
-            paginationGrp.visible = true;
-            filteredDataCache = listItems;
-            updateItemCounter(filteredDataCache.length);
-            updatePaginationControls(filteredDataCache.length);
-            populateListPage(templateList, filteredDataCache);
-            setLoadingState(false);
-            endTelemetrySpan(telemetry, { mode: 'list', results: filteredDataCache.length, search: isSearch, prod: prodName });
-            return true;
-        }
-
-        var masterData = templatesCache[prodName];
-        if (!masterData) {
-            templateTree.removeAll();
-            updateItemCounter(0);
-            endTelemetrySpan(telemetry, { mode: 'tree', results: 0, status: 'noCache', prod: prodName });
-            return false;
-        }
-
-        if (!isSearch) {
-            treeFlatCache = [];
-            paginationGrp.visible = false;
-            var manifestSummary = summarizeManifestForProduction(productionObject, readCacheManifest(false));
-            if (manifestSummary && manifestSummary.itemCount) {
-                updateItemCounter(manifestSummary.itemCount);
-            } else {
-                updateItemCounter(quickCountItemsFromTree(masterData));
-            }
-            populateTreeLazy(templateTree, masterData);
-            setLoadingState(false);
-            endTelemetrySpan(telemetry, { mode: 'tree', search: false, prod: prodName });
-            return true;
-        }
-
-        treeFlatCache = [];
-        var cleanSearchTerm = normalizeSearchText(searchTerm);
-        var indexEntries = productionQuickIndex[prodName];
-        if ((!indexEntries || !indexEntries.length) && masterData) {
-            buildProductionIndex(prodName, masterData);
-            indexEntries = productionQuickIndex[prodName];
-        }
-        var codeKey = detectCodeFromTerm(searchTerm);
-        if (codeKey && productionCodeIndex[prodName] && productionCodeIndex[prodName][codeKey]) {
-            var codeMatches = productionCodeIndex[prodName][codeKey];
-            treeFlatCache = [];
-            for (var cm = 0; cm < codeMatches.length; cm++) {
-                var matchEntry = codeMatches[cm];
-                treeFlatCache.push({
-                    item: matchEntry.item,
-                    parents: matchEntry.parents
-                });
-            }
-        } else if (indexEntries && indexEntries.length) {
-            for (var idx = 0; idx < indexEntries.length; idx++) {
-                var entryInfo = indexEntries[idx];
-                if (!entryInfo || !entryInfo.item) { continue; }
-                var entrySearchText = entryInfo.searchText || normalizeSearchText(entryInfo.item.text || '');
-                if (entrySearchText.indexOf(cleanSearchTerm) !== -1) {
-                    treeFlatCache.push({
-                        item: entryInfo.item,
-                        parents: entryInfo.parents || []
-                    });
-                }
+        metadataItems = metadataItems || [];
+        var cleanTerm = normalizeSearchText(searchTerm);
+        for (var metaIndex = 0; metaIndex < metadataItems.length; metaIndex++) {
+            var metaItem = metadataItems[metaIndex];
+            if (metaItem && !metaItem.searchText) {
+                var metaSource = (metaItem.text || '') + ' ' + ((metaItem.parents || []).join(' '));
+                metaItem.searchText = normalizeSearchText(metaSource);
             }
         }
 
-        if (treeFlatCache.length === 0) {
-            function filterTreeData(data) {
-                var filteredList = [];
-                for (var i = 0; i < data.length; i++) {
-                    var item = data[i];
-                    if (!item) { continue; }
-                    var itemText = normalizeSearchText(item.text || '');
-                    if (item.type === 'item') {
-                        if (itemText.indexOf(cleanSearchTerm) !== -1) { filteredList.push(item); }
-                    } else if (item.type === 'node') {
-                        var filteredChildren = filterTreeData(item.children || []);
-                        if (itemText.indexOf(cleanSearchTerm) !== -1 || filteredChildren.length > 0) {
-                            var nodeCopy = JSON.parse(JSON.stringify(item));
-                            nodeCopy.children = filteredChildren;
-                            filteredList.push(nodeCopy);
-                        }
-                    }
-                }
-                return filteredList;
+        var listItems = metadataItems.slice(0);
+        if (isSearch) {
+            listItems = [];
+            for (var m = 0; m < metadataItems.length; m++) {
+                var meta = metadataItems[m];
+                var searchSource = meta.searchText || normalizeSearchText((meta.text || '') + ' ' + ((meta.parents || []).join(' ')));
+                if (searchSource.indexOf(cleanTerm) !== -1) { listItems.push(meta); }
             }
-            var fallbackResults = filterTreeData(masterData || []);
-            treeFlatCache = [];
-            flattenTreeForPagination(fallbackResults, [], treeFlatCache, '');
         }
 
-        var totalTreeItems = treeFlatCache.length;
-        updateItemCounter(totalTreeItems);
-        templateTree.removeAll();
-        if (totalTreeItems > 0) {
-            populateTreePage(templateTree, treeFlatCache, currentPage);
-        }
-        updatePaginationControls(totalTreeItems);
+        paginationGrp.visible = true;
+        filteredDataCache = listItems;
+        updateItemCounter(filteredDataCache.length);
+        updatePaginationControls(filteredDataCache.length);
+        populateListPage(templateList, filteredDataCache);
         setLoadingState(false);
-        endTelemetrySpan(telemetry, { mode: 'tree', search: true, results: totalTreeItems, prod: prodName });
+        endTelemetrySpan(telemetry, { mode: 'list', results: filteredDataCache.length, search: isSearch, prod: prodName });
         return true;
     }
 
 
 
     function getSelectedFile() {
-        var view = listViewChk.value ? templateList : templateTree;
-        return (view.selection && view.selection.filePath) ? new File(view.selection.filePath) : null;
+        return (templateList.selection && templateList.selection.filePath) ? new File(templateList.selection.filePath) : null;
     }
     
     function executeOpen() {
@@ -2132,13 +3568,18 @@ function d9TemplateDialog(thisObj) {
     
         // --- LIGACAO DOS EVENTOS ---
     prodDrop.onChange = function () {
+        notifyUserActivity(BACKGROUND_WARMUP_IDLE_DELAY * 1.5);
         GNEWS_TEMPLATES_CONFIG.system.TEMPLATES_Settings.gnews_templates.lastProductionIndex = this.selection.index;
         var selectedIndex = (this.selection) ? this.selection.index : -1;
         if (selectedIndex > -1 && productions[selectedIndex]) {
             pendingPopulateProduction = productions[selectedIndex].name;
+            activeProductionName = productions[selectedIndex].name;
+            setProductionStatus(selectedIndex, 'loading', 'Carregando ' + productions[selectedIndex].name + '...');
             queueProductionPreload(selectedIndex, 50);
             rebuildPrefetchQueue(selectedIndex);
-            schedulePrefetchCycle(PREFETCH_INTERVAL);
+            resumePrefetchCycle(PREFETCH_INTERVAL);
+        } else {
+            activeProductionName = null;
         }
         updateProductionStatusLabel(selectedIndex);
         saveSystemConfigs(); 
@@ -2156,42 +3597,102 @@ function d9TemplateDialog(thisObj) {
         };
         searchDebounceTimer = app.scheduleTask('$.global.executeScheduledSearch()', 350, false);
     };
-    listViewChk.onClick = function () {
-        templateList.visible = this.value; 
-        templateTree.visible = !this.value; 
+    networkModeChk.onClick = function () {
+        notifyUserActivity(BACKGROUND_WARMUP_IDLE_DELAY * 1.5);
+        forceNetworkLoading = this.value === true;
+        if (GNEWS_TEMPLATES_CONFIG.system && GNEWS_TEMPLATES_CONFIG.system.TEMPLATES_Settings) {
+            if (!GNEWS_TEMPLATES_CONFIG.system.TEMPLATES_Settings.gnews_templates) {
+                GNEWS_TEMPLATES_CONFIG.system.TEMPLATES_Settings.gnews_templates = {};
+            }
+            GNEWS_TEMPLATES_CONFIG.system.TEMPLATES_Settings.gnews_templates.directNetworkMode = forceNetworkLoading;
+            saveSystemConfigs();
+        }
+        for (var purgeIdx = 0; purgeIdx < productionBaseNames.length; purgeIdx++) {
+            var purgeName = productionBaseNames[purgeIdx];
+            if (!purgeName) { continue; }
+            if (templatesCache.hasOwnProperty(purgeName)) { delete templatesCache[purgeName]; }
+            if (metadataCache.hasOwnProperty(purgeName)) { delete metadataCache[purgeName]; }
+            if (productionQuickIndex.hasOwnProperty(purgeName)) { delete productionQuickIndex[purgeName]; }
+            if (productionCodeIndex.hasOwnProperty(purgeName)) { delete productionCodeIndex[purgeName]; }
+        }
+        var activeProduction = activeProductionName ? getProductionByName(activeProductionName) : null;
+        if (activeProduction) {
+            if (forceNetworkLoading) {
+                startNetworkFallbackLoad(activeProduction, null, { skipPrompt: true, reason: 'directToggle' });
+            } else {
+                safeLoadCache(activeProduction);
+            }
+        }
         currentPage = 0;
         safePerformSearch(searchBox.isPlaceholderActive ? "" : searchBox.text);
     };
     
     prevBtn.onClick = function() {
-        if (currentPage > 0) {
-            currentPage--;
-            if (listViewChk.value) {
-                populateListPage(templateList, filteredDataCache);
-                updatePaginationControls(filteredDataCache.length);
-            } else {
-                populateTreePage(templateTree, treeFlatCache, currentPage);
-                updatePaginationControls(treeFlatCache.length);
-            }
-        }
+        if (currentPage <= 0) { return; }
+        currentPage--;
+        notifyUserActivity();
+        ensureActiveProductionBudgetForPage(currentPage);
+        populateListPage(templateList, filteredDataCache);
+        updatePaginationControls(filteredDataCache.length);
     };
     nextBtn.onClick = function() {
-        var totalItems = listViewChk.value ? filteredDataCache.length : treeFlatCache.length;
-        var totalPages = Math.ceil(totalItems / itemsPerPage);
-        if (currentPage < totalPages - 1) {
-            currentPage++;
-            if (listViewChk.value) {
-                populateListPage(templateList, filteredDataCache);
-                updatePaginationControls(filteredDataCache.length);
-            } else {
-                populateTreePage(templateTree, treeFlatCache, currentPage);
-                updatePaginationControls(treeFlatCache.length);
-            }
-        }
+        var totalItems = filteredDataCache.length;
+        var totalPages = resolveTotalPages(totalItems);
+        if (!totalPages || currentPage >= totalPages - 1) { return; }
+        currentPage++;
+        notifyUserActivity();
+        ensureActiveProductionBudgetForPage(currentPage);
+        populateListPage(templateList, filteredDataCache);
+        updatePaginationControls(filteredDataCache.length);
     };
 
-    var handleRefresh = function () {
+    var handleManualRebuild = function () {
+        notifyUserActivity(BACKGROUND_WARMUP_IDLE_DELAY * 2);
+        if (!prodDrop || !prodDrop.selection || prodDrop.selection.index < 0) {
+            showThemedAlert('Selecione uma producao antes de recriar o cache.', 'Recriar cache');
+            return;
+        }
+        var selectedProduction = productions[prodDrop.selection.index];
+        if (!selectedProduction) {
+            showThemedAlert('Producao invalida.', 'Recriar cache');
+            return;
+        }
+        startManualCacheRebuild(selectedProduction);
+    };
+    
+    function showReloadOptionsDialog() {
+        var dialogTitle = 'Recarregar Cache';
+        var dlg = new Window('dialog', dialogTitle, undefined, { closeButton: true });
+        dlg.orientation = 'column';
+        dlg.alignChildren = 'fill';
+        dlg.spacing = 12;
+        dlg.margins = 16;
+        if (typeof setBgColor === 'function' && typeof bgColor1 !== 'undefined') {
+            try { setBgColor(dlg, bgColor1); } catch (bgErr) {}
+        }
+        var msg = dlg.add('statictext', undefined, 'Escolha o tipo de recarga:');
+        if (typeof setFgColor === 'function' && typeof normalColor1 !== 'undefined') {
+            try { setFgColor(msg, normalColor1); } catch (fgErr) {}
+        }
+        var btnGrp = dlg.add('group');
+        btnGrp.alignment = 'fill';
+        btnGrp.spacing = 10;
+        var simpleBtn = btnGrp.add('button', undefined, 'Simples');
+        var fullBtn = btnGrp.add('button', undefined, 'Completa');
+        var cancelBtn = dlg.add('button', undefined, 'Cancelar', { name: 'cancel' });
+        var result = null;
+        simpleBtn.onClick = function () { result = 'simple'; dlg.close(); };
+        fullBtn.onClick = function () { result = 'full'; dlg.close(); };
+        cancelBtn.onClick = function () { result = null; dlg.close(); };
+        dlg.center();
+        dlg.show();
+        return result;
+    }
+
+    var performSimpleReload = function () {
+        notifyUserActivity(BACKGROUND_WARMUP_IDLE_DELAY * 2);
         resetSharedCaches();
+        activeProductionName = null;
         pendingPopulateProduction = null;
         stopPrefetchCycle();
         invalidateManifestCache();
@@ -2202,7 +3703,30 @@ function d9TemplateDialog(thisObj) {
         D9T_TEMPLATES_w.update();
         kickoffInitialization();
     };
-    if (refreshBtn.leftClick) { refreshBtn.leftClick.onClick = handleRefresh; } else { refreshBtn.onClick = handleRefresh; }
+    var handleReloadAction = function () {
+        var choice = showReloadOptionsDialog();
+        if (!choice) { return; }
+        if (choice === 'simple') {
+            performSimpleReload();
+            return;
+        }
+        notifyUserActivity(BACKGROUND_WARMUP_IDLE_DELAY * 2);
+        if (!prodDrop || !prodDrop.selection || prodDrop.selection.index < 0) {
+            showThemedAlert('Selecione uma producao antes de recriar o cache.', 'Recriar cache');
+            return;
+        }
+        var selectedProduction = productions[prodDrop.selection.index];
+        if (!selectedProduction) {
+            showThemedAlert('Producao invalida.', 'Recriar cache');
+            return;
+        }
+        var warnMsg = 'Esta operacao ira recalcular todo o cache de "' + selectedProduction.name + '".\nPode levar varios minutos e deixar o After Effects lento.\n\nDeseja continuar?';
+        if (!confirm(warnMsg)) { return; }
+        startManualCacheRebuild(selectedProduction);
+        setLoadingState(true, 'Recriando cache de ' + selectedProduction.name + '...');
+    };
+
+    if (refreshBtn.leftClick) { refreshBtn.leftClick.onClick = handleReloadAction; } else { refreshBtn.onClick = handleReloadAction; }
     var openTemplatesFolder = function () {
         var selectedProduction = productions[prodDrop.selection.index];
         var folderToShow = new Folder(selectedProduction.paths[0]); 
@@ -2210,18 +3734,6 @@ function d9TemplateDialog(thisObj) {
     };
     if (openFldBtn.leftClick) { openFldBtn.leftClick.onClick = openTemplatesFolder; } else { openFldBtn.onClick = openTemplatesFolder; }
     var onSelectionChange = function (selection) { updateArteInfo(selection); };
-    templateTree.onChange = function () {
-        var selection = this.selection;
-        if (!selection) { return; }
-        if (selection.type === 'node') {
-            if (selection.__childState === 'pending') {
-                ensureNodeChildrenLoaded(selection);
-            }
-            this.selection = null;
-            return;
-        }
-        onSelectionChange(selection);
-    };
     templateList.onChange = function () { onSelectionChange(this.selection); };
     codigoTxt.onChanging = function() {
         var codeToFind = this.text.trim().toUpperCase();
@@ -2238,8 +3750,7 @@ function d9TemplateDialog(thisObj) {
             infoValues[1].text = arteInfo.servidor_destino; 
         }
     };
-    var onActivateItem = function () { var view = listViewChk.value ? templateList : templateTree; if (view.selection != null && view.selection.filePath) { executeOpen(); } };
-    templateTree.onDoubleClick = onActivateItem; templateList.onDoubleClick = onActivateItem;
+    templateList.onDoubleClick = function () { var selection = this.selection; if (selection && selection.filePath) { executeOpen(); } };
     if (openBtn.leftClick) { openBtn.leftClick.onClick = executeOpen; } else { openBtn.onClick = executeOpen; }
     if (importBtn.leftClick) { importBtn.leftClick.onClick = executeImport; } else { importBtn.onClick = executeImport; }
     

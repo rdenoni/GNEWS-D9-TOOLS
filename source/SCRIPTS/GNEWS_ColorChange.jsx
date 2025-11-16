@@ -57,6 +57,21 @@ function launchColorChange() {
     };
 
     // Variáveis globais do escopo da função para os elementos de UI que precisam ser acessados por outras funções
+    var prefsApi = (typeof D9T_Preferences !== 'undefined') ? D9T_Preferences : null;
+    var PREFS_KEY = "ColorChange";
+    var defaultPrefs = { lastColorHex: "#E53131", lastPreset: "Custom" };
+    var modulePrefs = (prefsApi && prefsApi.getModulePrefs) ? prefsApi.getModulePrefs(PREFS_KEY) : {};
+    if (typeof modulePrefs !== 'object' || modulePrefs === null) { modulePrefs = {}; }
+    function getPrefValue(key) {
+        return modulePrefs.hasOwnProperty(key) ? modulePrefs[key] : defaultPrefs[key];
+    }
+    function setPrefValue(key, value, persist) {
+        modulePrefs[key] = value;
+        if (prefsApi && prefsApi.setModulePref) {
+            prefsApi.setModulePref(PREFS_KEY, key, value, !!persist);
+        }
+    }
+
     var statusField, colorHexField, presetDropdown, colorSwatch;
 
     /**
@@ -302,6 +317,26 @@ function launchColorChange() {
         win.orientation = "column"; win.alignChildren = ["fill", "top"]; win.spacing = ESPACAMENTO_ELEMENTOS; win.margins = MARGENS_JANELA;
         win.preferredSize.width = LARGURA_JANELA;
 
+        function createThemedActionButton(parent, label, tip, options) {
+            options = options || {};
+            var finalBtn = null;
+            if (typeof themeButton === 'function') {
+                var config = { labelTxt: label };
+                if (tip) { config.tips = [tip]; }
+                if (options.buttonColor) { config.buttonColor = options.buttonColor; }
+                if (options.textColor) { config.textColor = options.textColor; }
+                var themedBtn = new themeButton(parent, config);
+                finalBtn = themedBtn.label;
+            } else {
+                finalBtn = parent.add("button", undefined, label);
+                if (options.width) { finalBtn.preferredSize.width = options.width; }
+                if (options.height) { finalBtn.preferredSize.height = options.height; }
+            }
+            if (finalBtn && tip) { finalBtn.helpTip = tip; }
+            if (finalBtn && options.alignment) { finalBtn.alignment = options.alignment; }
+            return finalBtn;
+        }
+
         // Aplica a cor de fundo global, se a função e a variável existirem
         if (typeof setBgColor === 'function' && typeof bgColor1 !== 'undefined') {
             setBgColor(win, bgColor1);
@@ -333,7 +368,7 @@ function launchColorChange() {
         // --- PAINEL DE ANÁLISE ---
         var analysisPanel = win.add("panel", undefined, "\uD83D\uDD0E 1. Análise"); analysisPanel.orientation = "column"; analysisPanel.alignChildren = ["fill", "top"]; analysisPanel.spacing = 10; analysisPanel.margins = 15;
         if (typeof setFgColor === 'function' && typeof monoColor1 !== 'undefined') { setFgColor(analysisPanel, monoColor1); }
-        var analyzeBtn = analysisPanel.add("button", undefined, "Analisar Composição(ões)"); analyzeBtn.helpTip = "Analisa as composições selecionadas no painel de Projeto";
+        var analyzeBtn = createThemedActionButton(analysisPanel, "Analisar Composição(ões)", "Analisa as composições selecionadas no painel de Projeto");
 
         // --- PAINEL DE COR ---
         var colorPanel = win.add("panel", undefined, "\uD83C\uDFA8 2. Seleção de Cor"); colorPanel.orientation = "column"; colorPanel.alignChildren = ["fill", "center"]; colorPanel.spacing = 10; colorPanel.margins = 15;
@@ -361,7 +396,9 @@ function launchColorChange() {
         if (typeof setFgColor === 'function' && typeof monoColor1 !== 'undefined') { setFgColor(actionPanel, monoColor1); }
         
         var targetDropdown = actionPanel.add("dropdownlist", undefined, ["Nenhum alvo"]); targetDropdown.enabled = false; targetDropdown.preferredSize.width = 200; targetDropdown.helpTip = "Selecione o tipo de alvo para aplicar a cor";
-        var applyBtn = actionPanel.add("button", undefined, "Aplicar Cor"); applyBtn.enabled = false; applyBtn.helpTip = "Aplica a cor selecionada"; applyBtn.preferredSize.height = ALTURA_BOTAO_APLICAR;
+        var applyBtn = createThemedActionButton(actionPanel, "Aplicar Cor", "Aplica a cor selecionada");
+        if (typeof themeButton !== 'function' && applyBtn) { applyBtn.preferredSize.height = ALTURA_BOTAO_APLICAR; }
+        applyBtn.enabled = false;
 
         // --- PAINEL DE STATUS ---
         var statusPanel = win.add("panel", undefined, "Status"); statusPanel.alignment = "fill"; statusPanel.margins = 10; statusPanel.preferredSize.height = ALTURA_PAINEL_STATUS;
@@ -378,7 +415,15 @@ function launchColorChange() {
             // Atualiza o campo de texto hexadecimal, exceto se a mudança veio dele mesmo
             if (source !== 'hex') { colorHexField.text = rgbToHex(selectedColor[0], selectedColor[1], selectedColor[2]); }
             // Atualiza a cor de fundo da amostra (swatch)
-            if (colorSwatch.graphics) { var newBrush = colorSwatch.graphics.newBrush(colorSwatch.graphics.BrushType.SOLID_COLOR, selectedColor); colorSwatch.graphics.backgroundColor = newBrush; colorSwatch.notify("onDraw"); }
+            if (colorSwatch.graphics) { 
+                var newBrush = colorSwatch.graphics.newBrush(colorSwatch.graphics.BrushType.SOLID_COLOR, selectedColor);
+                colorSwatch.graphics.backgroundColor = newBrush;
+                if (typeof colorSwatch.notify === 'function') {
+                    colorSwatch.notify("onDraw");
+                } else if (typeof colorSwatch.onDraw === 'function') {
+                    try { colorSwatch.onDraw(); } catch (drawErr) {}
+                }
+            }
             // Atualiza a seleção do dropdown
             if (source === 'hex' || source === 'swatch') { 
                 presetDropdown.selection = 0; // Se a cor for customizada, seleciona "Custom"
@@ -393,6 +438,18 @@ function launchColorChange() {
                 } 
                 if (!found) { presetDropdown.selection = 0; } 
             }
+        }
+
+        function persistColorSelection() {
+            if (!prefsApi) { return; }
+            var hexValue = colorHexField && colorHexField.text ? colorHexField.text : rgbToHex(selectedColor[0], selectedColor[1], selectedColor[2]);
+            if (hexValue && hexValue.charAt(0) !== '#') { hexValue = "#" + hexValue; }
+            setPrefValue("lastColorHex", hexValue, true);
+            var presetName = "Custom";
+            if (presetDropdown && presetDropdown.selection && !presetDropdown.selection.isSeparator && presetDropdown.selection.index > 0) {
+                presetName = presetDropdown.selection.text;
+            }
+            setPrefValue("lastPreset", presetName, true);
         }
 
         // --- DEFINIÇÃO DOS EVENTOS DA UI ---
@@ -410,6 +467,7 @@ function launchColorChange() {
                 var b = (newColorHex & 0xFF) / 255; 
                 updateAllColorUI([r, g, b], 'swatch'); 
                 updateStatus("Cor selecionada via seletor.", "info"); 
+                persistColorSelection();
             }
         };
 
@@ -418,9 +476,9 @@ function launchColorChange() {
             var selection = this.selection; 
             // Impede a seleção de um separador
             if (!selection || selection.isSeparator) { this.selection = this.lastSelection || 2; return; } 
-            if (selection.index === 0) { this.lastSelection = selection; return; } // Ignora se "Custom" for selecionado
+            if (selection.index === 0) { this.lastSelection = selection; persistColorSelection(); return; } // Ignora se "Custom" for selecionado
             var preset = colorPresets[selection.index - 1]; 
-            if(preset && preset.color){ updateAllColorUI(preset.color, 'dropdown'); this.lastSelection = selection; updateStatus("Preset '" + preset.name + "' selecionado.", "info"); }
+            if(preset && preset.color){ updateAllColorUI(preset.color, 'dropdown'); this.lastSelection = selection; updateStatus("Preset '" + preset.name + "' selecionado.", "info"); persistColorSelection(); }
         };
 
         // Evento de mudança ou Enter no campo de texto hexadecimal
@@ -432,8 +490,39 @@ function launchColorChange() {
                 updateStatus("Hex inválido. Cor revertida.", "warning"); return; 
             } 
             var newRGB = hexToRgb(this.text); 
-            if (newRGB) { updateAllColorUI(newRGB, 'hex'); updateStatus("Cor atualizada via código Hex.", "info"); }
+            if (newRGB) { updateAllColorUI(newRGB, 'hex'); updateStatus("Cor atualizada via código Hex.", "info"); persistColorSelection(); }
         };
+
+        applyInitialColorFromPrefs();
+
+        function applyInitialColorFromPrefs() {
+            var storedPreset = getPrefValue("lastPreset");
+            var storedHex = getPrefValue("lastColorHex");
+            var applied = false;
+            if (storedPreset && storedPreset !== "Custom") {
+                for (var i = 0; i < colorPresets.length; i++) {
+                    if (colorPresets[i].isSeparator) { continue; }
+                    if (colorPresets[i].name === storedPreset) {
+                        presetDropdown.selection = i + 1;
+                        updateAllColorUI(colorPresets[i].color, 'dropdown');
+                        applied = true;
+                        break;
+                    }
+                }
+            }
+            if (!applied && typeof storedHex === 'string') {
+                var rgb = hexToRgb(storedHex);
+                if (rgb) {
+                    presetDropdown.selection = 0;
+                    updateAllColorUI(rgb, 'hex');
+                    applied = true;
+                }
+            }
+            if (!applied) {
+                presetDropdown.selection = 0;
+                updateAllColorUI(selectedColor, 'hex');
+            }
+        }
 
         // Evento de clique no botão de Análise
         analyzeBtn.onClick = function() {

@@ -526,6 +526,45 @@ function launchLayerOrderUI(thisObj) {
 		// --- FUNÇÃO DE CRIAR BOTÃO (Padrão GNEWS_TextBox.jsx) ---
 		//
 		createActionButton: function(parent, label, tip, colorOptions) {
+			function applyFixedSize(target) {
+				if (!target) { return; }
+				var sizeArr = [LARGURA_BOTAO_ORGANIZAR, ALTURA_BOTAO_ORGANIZAR];
+				target.preferredSize = sizeArr;
+				target.minimumSize = sizeArr;
+				target.maximumSize = sizeArr;
+				target.size = sizeArr;
+			}
+
+			function enforceThemeButtonSize(ctrl) {
+				if (!ctrl) { return; }
+				applyFixedSize(ctrl);
+				ctrl.__buttonThemeOverrides = ctrl.__buttonThemeOverrides || {};
+				ctrl.__buttonThemeOverrides.width = LARGURA_BOTAO_ORGANIZAR;
+				ctrl.__buttonThemeOverrides.height = ALTURA_BOTAO_ORGANIZAR;
+				var relock = function () { applyFixedSize(ctrl); };
+				if (typeof ctrl.onDraw === 'function') {
+					var prevDraw = ctrl.onDraw;
+					ctrl.onDraw = function () { relock(); prevDraw.apply(this, arguments); };
+				} else {
+					ctrl.onDraw = relock;
+				}
+				if (typeof ctrl.addEventListener === 'function') {
+					var events = ["mouseover", "mouseout", "mousedown", "mouseup"];
+					for (var i = 0; i < events.length; i++) {
+						try { ctrl.addEventListener(events[i], relock); } catch (evtErr) {}
+					}
+				}
+				if (typeof D9T_applyThemeToButtonControl === 'function') {
+					try {
+						var baseTheme = ctrl.__buttonThemeSource;
+						if (!baseTheme && typeof D9T_getActiveButtonTheme === 'function') {
+							baseTheme = D9T_getActiveButtonTheme();
+						}
+						D9T_applyThemeToButtonControl(ctrl, baseTheme);
+					} catch (themeErr) {}
+				}
+			}
+
 			// Define cores padrão baseadas nas variáveis globais
 			var btnBgColor = (typeof normalColor1 !== 'undefined') ? normalColor1 : '#DDDDDD'; // Base Branca
 			var btnTextColor = (typeof bgColor1 !== 'undefined') ? bgColor1 : '#000000'; // Texto Preto
@@ -542,32 +581,21 @@ function launchLayerOrderUI(thisObj) {
 			var buttonObj;
 	
 			if (typeof themeButton === 'function') {
-				buttonObj = new themeButton(parent, {
-					// Usa as larguras e alturas definidas no topo do script
-					width: LARGURA_BOTAO_ORGANIZAR, height: ALTURA_BOTAO_ORGANIZAR,
-					textColor: btnTextColor, buttonColor: btnBgColor,
-					labelTxt: label, tips: [tip]
-				});
-				
-				var customButton = buttonObj.label;
-				if(customButton) {
-					customButton.addEventListener("mouseover", function () {
-						this.textColor = hexToRgb(hoverText);
-						this.buttonColor = hexToRgb(hoverBg);
-						if(typeof drawThemeButton === 'function') drawThemeButton(this);
-						this.notify("onDraw");
-					});
-					customButton.addEventListener("mouseout", function () {
-						this.textColor = hexToRgb(btnTextColor);
-						this.buttonColor = hexToRgb(btnBgColor);
-						if(typeof drawThemeButton === 'function') drawThemeButton(this);
-						this.notify("onDraw");
-					});
+				var cfg = {
+					labelTxt: label,
+					tips: [tip],
+					width: LARGURA_BOTAO_ORGANIZAR,
+					height: ALTURA_BOTAO_ORGANIZAR
+				};
+				if (btnTextColor) { cfg.textColor = btnTextColor; }
+				if (btnBgColor) { cfg.buttonColor = btnBgColor; }
+				buttonObj = new themeButton(parent, cfg);
+				if (buttonObj && buttonObj.label) {
+					enforceThemeButtonSize(buttonObj.label);
 				}
-	
 			} else {
 				buttonObj = parent.add('button', undefined, label);
-				buttonObj.preferredSize = [LARGURA_BOTAO_ORGANIZAR, ALTURA_BOTAO_ORGANIZAR];
+				applyFixedSize(buttonObj);
 				buttonObj.helpTip = tip;
 			}
 			return buttonObj;
@@ -586,6 +614,24 @@ function launchLayerOrderUI(thisObj) {
 		// Constrói a interface gráfica do script.
 		buildUI: function(thisObj) {
 			var self = this;
+			var prefsApi = (typeof D9T_Preferences !== 'undefined') ? D9T_Preferences : null;
+			var modulePrefKey = "LayerOrder";
+			var defaultOptions = {
+				applyColors: true,
+				renameLayers: true,
+				reorderByType: true,
+				reorderByTime: false,
+				deleteHidden: false
+			};
+			var modulePrefs = prefsApi ? prefsApi.getModulePrefs(modulePrefKey) : {};
+			if (typeof modulePrefs !== 'object' || modulePrefs === null) { modulePrefs = {}; }
+			function optionValue(key) {
+				return modulePrefs.hasOwnProperty(key) ? modulePrefs[key] : defaultOptions[key];
+			}
+			function persistOption(key, value) {
+				modulePrefs[key] = value;
+				if (prefsApi) { prefsApi.setModulePref(modulePrefKey, key, value, true); }
+			}
 			
 			// --- JANELA PRINCIPAL ---
 			// Bloqueia o redimensionamento
@@ -633,16 +679,19 @@ function launchLayerOrderUI(thisObj) {
 			
 			self.ui.applyColorsCheck = self.ui.optionsPanel.add("checkbox", undefined, getLocalizedString("applyColorsCheck"));
 			self.ui.applyColorsCheck.helpTip = getLocalizedString("applyColorsTip");
-			self.ui.applyColorsCheck.value = true;
+			self.ui.applyColorsCheck.value = optionValue("applyColors");
 			self.ui.renameLayersCheck = self.ui.optionsPanel.add("checkbox", undefined, getLocalizedString("renameLayersCheck"));
 			self.ui.renameLayersCheck.helpTip = getLocalizedString("renameLayersTip");
-			self.ui.renameLayersCheck.value = true;
+			self.ui.renameLayersCheck.value = optionValue("renameLayers");
 			self.ui.reorderLayersCheck = self.ui.optionsPanel.add("checkbox", undefined, getLocalizedString("reorderLayersCheck"));
 			self.ui.reorderLayersCheck.helpTip = getLocalizedString("reorderLayersTip");
+			self.ui.reorderLayersCheck.value = optionValue("reorderByType");
 			self.ui.reorderByTimeCheck = self.ui.optionsPanel.add("checkbox", undefined, getLocalizedString("reorderByTimeCheck"));
 			self.ui.reorderByTimeCheck.helpTip = getLocalizedString("reorderByTimeTip");
+			self.ui.reorderByTimeCheck.value = optionValue("reorderByTime");
 			self.ui.deleteHiddenCheck = self.ui.optionsPanel.add("checkbox", undefined, getLocalizedString("deleteHiddenCheck"));
 			self.ui.deleteHiddenCheck.helpTip = getLocalizedString("deleteHiddenTip");
+			self.ui.deleteHiddenCheck.value = optionValue("deleteHidden");
 			
 			var allChecks = [self.ui.applyColorsCheck, self.ui.renameLayersCheck, self.ui.reorderLayersCheck, self.ui.reorderByTimeCheck, self.ui.deleteHiddenCheck];
 			if (typeof setFgColor === 'function' && typeof monoColor1 !== 'undefined') {
@@ -651,8 +700,23 @@ function launchLayerOrderUI(thisObj) {
 				}
 			}
 			
-			self.ui.reorderLayersCheck.onClick = function() { if (this.value) self.ui.reorderByTimeCheck.value = false; };
-			self.ui.reorderByTimeCheck.onClick = function() { if (this.value) self.ui.reorderLayersCheck.value = false; };
+			self.ui.applyColorsCheck.onClick = function() { persistOption("applyColors", !!this.value); };
+			self.ui.renameLayersCheck.onClick = function() { persistOption("renameLayers", !!this.value); };
+			self.ui.deleteHiddenCheck.onClick = function() { persistOption("deleteHidden", !!this.value); };
+			self.ui.reorderLayersCheck.onClick = function() {
+				if (this.value) {
+					self.ui.reorderByTimeCheck.value = false;
+					persistOption("reorderByTime", false);
+				}
+				persistOption("reorderByType", !!this.value);
+			};
+			self.ui.reorderByTimeCheck.onClick = function() {
+				if (this.value) {
+					self.ui.reorderLayersCheck.value = false;
+					persistOption("reorderByType", false);
+				}
+				persistOption("reorderByTime", !!this.value);
+			};
 			
 			// --- BOTÃO DE AÇÃO PRINCIPAL (Padrão TextBox) ---
 			var mainBtnPanel = self.ui.win.add("group");

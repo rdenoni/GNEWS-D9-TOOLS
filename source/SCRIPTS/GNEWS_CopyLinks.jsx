@@ -27,7 +27,7 @@
 // Garante que o script seja lido com a codificação correta para acentos.
 $.encoding = "UTF-8";
 
-function launchCopyLinks() {
+    function launchCopyLinks() {
 
     // =================================================================================
 	// --- VARIÁVEIS DE CONFIGURAÇÃO RÁPIDA ---
@@ -36,8 +36,23 @@ function launchCopyLinks() {
     var SCRIPT_VERSION = "2.3";
     var SCRIPT_WINDOW_TITLE = SCRIPT_NAME + " v" + SCRIPT_VERSION;
     var SCRIPT_SUBTITLE = "Acesso Rápido a Pastas e Links"; // Subtítulo padronizado
+    var LARGURA_BOTAO_TEMATICO = 460; // Ajuste rápido da largura padrão dos botões temáticos
+    var ALTURA_BOTAO_TEMATICO = 32;   // Ajuste rápido da altura padrão dos botões temáticos
     
-    var ATIVAR_ACESSO_RAPIDO = true; // Habilita/desabilita o botão "Adicionar ao Acesso Rápido"
+    var prefsApi = (typeof D9T_Preferences !== 'undefined') ? D9T_Preferences : null;
+    var PREFS_KEY = "CopyLinks";
+    var defaultPrefs = { quickAccess: true };
+    var modulePrefs = prefsApi ? prefsApi.getModulePrefs(PREFS_KEY) : {};
+    if (typeof modulePrefs !== 'object' || modulePrefs === null) { modulePrefs = {}; }
+    function getPrefValue(key) {
+        return modulePrefs.hasOwnProperty(key) ? modulePrefs[key] : defaultPrefs[key];
+    }
+    function setPrefValue(key, value, persist) {
+        modulePrefs[key] = value;
+        if (prefsApi) { prefsApi.setModulePref(PREFS_KEY, key, value, !!persist); }
+    }
+
+    var ATIVAR_ACESSO_RAPIDO = getPrefValue("quickAccess"); // Habilita/desabilita o botão "Adicionar ao Acesso Rápido"
     // Define a pasta raiz do script principal para resolver caminhos relativos
     var GNEWS_D9_TOOLS_ROOT = new File($.fileName).parent.parent.parent;
 
@@ -48,6 +63,68 @@ function launchCopyLinks() {
     function hexToRgb(hex) { if (hex == undefined) return [0,0,0]; hex = hex.replace('#', ''); var r = parseInt(hex.substring(0, 2), 16); var g = parseInt(hex.substring(2, 4), 16); var b = parseInt(hex.substring(4, 6), 16); return [r / 255, g / 255, b / 255]; }
     function setBgColor(element, hexColor) { try { if (typeof hexColor !== 'undefined') element.graphics.backgroundColor = element.graphics.newBrush(element.graphics.BrushType.SOLID_COLOR, hexToRgb(hexColor)); } catch (e) {} }
     function setFgColor(element, hexColor) { try { if (typeof hexColor !== 'undefined') element.graphics.foregroundColor = element.graphics.newPen(element.graphics.PenType.SOLID_COLOR, hexToRgb(hexColor), 1); } catch (e) {} }
+
+    function applyFixedSize(target, width, height) {
+        if (!target || typeof width !== 'number' || typeof height !== 'number') { return; }
+        var sizeArr = [width, height];
+        target.minimumSize = sizeArr;
+        target.maximumSize = sizeArr;
+        target.preferredSize = sizeArr;
+        target.size = sizeArr;
+    }
+
+    function enforceThemeButtonSize(ctrl, width, height) {
+        if (!ctrl) { return; }
+        if (typeof width === 'number' && typeof height === 'number') {
+            applyFixedSize(ctrl, width, height);
+            if (ctrl.parent && ctrl.parent.type === "group") {
+                ctrl.parent.alignment = ['fill','center'];
+            }
+        }
+        ctrl.__buttonThemeOverrides = ctrl.__buttonThemeOverrides || {};
+        if (typeof width === 'number') { ctrl.__buttonThemeOverrides.width = width; }
+        if (typeof height === 'number') { ctrl.__buttonThemeOverrides.height = height; }
+        var relock = function () { applyFixedSize(ctrl, width, height); };
+        if (typeof ctrl.onDraw === 'function') {
+            var prevDraw = ctrl.onDraw;
+            ctrl.onDraw = function () { relock(); prevDraw.apply(this, arguments); };
+        } else {
+            ctrl.onDraw = relock;
+        }
+        if (typeof ctrl.addEventListener === 'function') {
+            var events = ["mouseover","mouseout","mousedown","mouseup"];
+            for (var i = 0; i < events.length; i++) {
+                try { ctrl.addEventListener(events[i], relock); } catch (evtErr) {}
+            }
+        }
+        if (typeof D9T_applyThemeToButtonControl === 'function') {
+            try {
+                var baseTheme = ctrl.__buttonThemeSource;
+                if (!baseTheme && typeof D9T_getActiveButtonTheme === 'function') { baseTheme = D9T_getActiveButtonTheme(); }
+                D9T_applyThemeToButtonControl(ctrl, baseTheme);
+            } catch (themeErr) {}
+        }
+    }
+
+    function createThemeButtonCtrl(parent, label, width, height, tip) {
+        var targetWidth = (typeof width === 'number') ? width : LARGURA_BOTAO_TEMATICO;
+        var targetHeight = (typeof height === 'number') ? height : ALTURA_BOTAO_TEMATICO;
+        var ctrl = null;
+        if (typeof themeButton === 'function') {
+            try {
+                var cfg = { labelTxt: label, width: targetWidth, height: targetHeight };
+                var wrapper = new themeButton(parent, cfg);
+                ctrl = (wrapper && wrapper.label) ? wrapper.label : null;
+            } catch (e) { ctrl = null; }
+        }
+        if (!ctrl) {
+            ctrl = parent.add("button", undefined, label);
+            applyFixedSize(ctrl, targetWidth, targetHeight);
+        }
+        if (tip && ctrl) { ctrl.helpTip = tip; }
+        enforceThemeButtonSize(ctrl, targetWidth, targetHeight);
+        return ctrl;
+    }
     function themedAlert(title, message) { var d = new Window("dialog", title); d.orientation="column"; d.alignChildren=["center","center"]; d.spacing=10; d.margins=15; setBgColor(d,typeof bgColor1!='undefined'?bgColor1:'#282828'); var m=d.add('group'); m.orientation='column'; var l=message.split('\n'); for(var i=0;i<l.length;i++){var t=m.add('statictext',undefined,l[i]); setFgColor(t,typeof normalColor1!='undefined'?normalColor1:'#FFFFFF');} var b=d.add("button",undefined,"OK",{name:'ok'}); b.size=[100,25]; d.center(); d.show(); }
 
     // Função para ler JSON, copiada do GNEWS_Renamer.jsx.
@@ -102,6 +179,10 @@ function launchCopyLinks() {
     var isWindows = ($.os.indexOf("Windows") !== -1);
 
     function hasWriteAccess() { return app.preferences.getPrefAsLong("Main Pref Section", "Pref_SCRIPTING_FILE_NETWORK_SECURITY"); }
+    function toggleQuickAccess(enabled) {
+        ATIVAR_ACESSO_RAPIDO = !!enabled;
+        setPrefValue("quickAccess", ATIVAR_ACESSO_RAPIDO, true);
+    }
 
     function copyText(text) {
         try {
@@ -189,6 +270,11 @@ function launchCopyLinks() {
     var helpBtnGroup = headerGrp.add('group');
     helpBtnGroup.alignment = 'right'; // Alinha este grupo à direita do 'stack'
     var helpBtn = new themeIconButton(helpBtnGroup, { icon: D9T_INFO_ICON, tips: [lClick + 'Ajuda'] });
+
+    var quickAccessToggle = win.add("checkbox", undefined, "Habilitar 'Adicionar ao Acesso Rápido'");
+    quickAccessToggle.alignment = ['left', 'top'];
+    quickAccessToggle.value = ATIVAR_ACESSO_RAPIDO;
+    quickAccessToggle.onClick = function () { toggleQuickAccess(!!this.value); };
     
     // --- GRUPO DE SELEÇÃO (DROPDOWNS) ---
     var line2Grp = win.add("group");
@@ -223,8 +309,8 @@ function launchCopyLinks() {
         if (mainGroupIndex < 0 || subGroupIndex < 0) { win.layout.layout(true); return; }
         
         var layout = layoutConfig.configuracao.layout_geral; //
-        var NAME_BTN_HEIGHT = layout.name_btn_height || 30;
-        var NAME_BTN_WIDTH = layout.name_btn_width || 450;
+        var NAME_BTN_HEIGHT = layout.name_btn_height || ALTURA_BOTAO_TEMATICO;
+        var NAME_BTN_WIDTH = layout.name_btn_width || LARGURA_BOTAO_TEMATICO;
         var BOTTOM_ROW_HEIGHT = layout.bottom_row_height || 25;
         var TEXT_WIDTH_NORMAL = layout.text_width_normal || 300;
         var TEXT_WIDTH_CATALOGOS = layout.text_width_catalogos || 590;
@@ -238,19 +324,18 @@ function launchCopyLinks() {
                 var linkGroup = content.add("group");
                 linkGroup.orientation = "column"; linkGroup.spacing = 5; linkGroup.alignChildren = "left";
                 
-                var mainBtn = linkGroup.add("button", undefined, "  " + link.nome);
-                mainBtn.preferredSize.width = NAME_BTN_WIDTH; 
-                mainBtn.preferredSize.height = NAME_BTN_HEIGHT;
+                var mainBtn = createThemeButtonCtrl(linkGroup, "  " + link.nome, NAME_BTN_WIDTH, NAME_BTN_HEIGHT, link.nome);
                 mainBtn.alignment = 'left';
 
                 var controls = linkGroup.add("group");
                 controls.orientation = "row"; controls.spacing = 5; controls.alignment = 'left';
 
                 var pinBtnIcon = null;
-                if (ATIVAR_ACESSO_RAPIDO && !isCatalogos && isWindows && link.tipo === "folder" && link.caminho.indexOf("http") !== 0) {
-                     pinBtnIcon = new themeIconButton(controls, { icon: D9T_ATALHO_ICON, tips: [lClick + 'Adicionar ao Acesso Rápido'] });
+                var quickToggleIcon = null;
+                if (!isCatalogos && isWindows && link.tipo === "folder" && link.caminho.indexOf("http") !== 0) {
+                    pinBtnIcon = new themeIconButton(controls, { icon: D9T_ATALHO_ICON, tips: [lClick + 'Adicionar ao Acesso Rápido'] });
                 } else {
-                     var spacer = controls.add('group'); spacer.preferredSize.width = 30; 
+                    var spacer = controls.add('group'); spacer.preferredSize.width = 30; 
                 }
                 
                 var field = controls.add("edittext", undefined, link.caminho);
@@ -341,7 +426,7 @@ function launchCopyLinks() {
     mainDropdown.onChange();
     
     var layout = layoutConfig.configuracao.layout_geral; //
-    win.size.width = (layout.name_btn_width || 450) + 60; 
+    win.size.width = (layout.name_btn_width || LARGURA_BOTAO_TEMATICO) + 60; 
     
     win.layout.layout(true);
     win.center();
