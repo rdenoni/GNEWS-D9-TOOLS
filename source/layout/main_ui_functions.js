@@ -734,12 +734,29 @@ function D9T_UI_EVENTS(uiObj) {
     
     // Função auxiliar segura para executar funções, tratando erros.
     function safeExecute(functionName, func) {
+      var logName = functionName || 'modulo';
+      if (typeof D9T_logInfo === 'function') {
+        try { D9T_logInfo(logName, 'Execução iniciada'); } catch (logErrStart) {}
+      }
       try {
-        if (typeof func === 'function') func();
-        else alert('A função "' + functionName + '" não está disponível.');
+        if (typeof func === 'function') {
+          func();
+          if (typeof D9T_logInfo === 'function') {
+            try { D9T_logInfo(logName, 'Execução concluída'); } catch (logErrDone) {}
+          }
+        } else {
+          var missingMsg = 'A função "' + functionName + '" não está disponível.';
+          if (typeof D9T_logWarn === 'function') {
+            try { D9T_logWarn(logName, missingMsg); } catch (logWarnErr) {}
+          }
+          alert(missingMsg);
+        }
       } catch (err) {
         var errorMsg = 'Erro ao executar ' + functionName + ':\n\n' + err.toString();
         if (err.line) errorMsg += '\nLinha: ' + err.line;
+        if (typeof D9T_logError === 'function') {
+          try { D9T_logError(logName, errorMsg); } catch (logErr) {}
+        }
         $.writeln(errorMsg);
         alert(errorMsg);
       }
