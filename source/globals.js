@@ -183,7 +183,58 @@ var defaultScriptPreferencesObj = {
 		iconSpacing: 20,
 		labelSpacing: 8,
 		compactIconSize: [28, 28],
-		compactIconSpacing: 12
+		compactIconSpacing: 12,
+		buttonThemes: [
+			{
+				id: "classic",
+				name: "Clássico",
+				width: 130,
+				height: 40,
+				cornerRadius: 8,
+				background: "#2E343B",
+				hoverBackground: "#4E5560",
+				textColor: "#FFFFFF",
+				hoverTextColor: "#FFFFFF",
+				labelOffset: 0,
+				labelOffsetX: 0,
+				labelFontSize: 10,
+				textTransform: "uppercase"
+			},
+			{
+				id: "destacado",
+				name: "Destacado",
+				width: 132,
+				height: 38,
+				cornerRadius: 20,
+				background: "#FF5722",
+				hoverBackground: "#FF7043",
+				textColor: "#FFFFFF",
+				hoverTextColor: "#FFFFFF",
+				labelOffset: 0,
+				labelOffsetX: 0,
+				labelFontSize: 15,
+				textTransform: "none"
+			},
+			{
+				id: "minimal",
+				name: "Minimal",
+				width: 110,
+				height: 32,
+				cornerRadius: 8,
+				background: "#F2F2F2",
+				hoverBackground: "#E0E0E0",
+				textColor: "#1F1F1F",
+				hoverTextColor: "#1F1F1F",
+				labelOffset: 0,
+				labelOffsetX: 0,
+				labelFontSize: 13,
+				textTransform: "none"
+			}
+		],
+		activeButtonTheme: "classic"
+	},
+	moduleSettings: {
+		hiddenKeys: []
 	},
 	selection: {
 		// Preferências de seleção (tipos de camadas null e adjustment, modo de projeto)
@@ -209,68 +260,130 @@ var defaultScriptPreferencesObj = {
 	iconTheme: 'dark' // Tema de ícones (padrão: escuro)
 };
 
+function clonePreferenceValue(value) {
+	if (value === null || typeof value !== 'object') { return value; }
+	if (value instanceof Array) {
+		var arrCopy = [];
+		for (var i = 0; i < value.length; i++) {
+			arrCopy[i] = clonePreferenceValue(value[i]);
+		}
+		return arrCopy;
+	}
+	var clone = {};
+	for (var key in value) {
+		if (value.hasOwnProperty(key)) {
+			clone[key] = clonePreferenceValue(value[key]);
+		}
+	}
+	return clone;
+}
+
+function deepMergePreferences(target, source) {
+	if (!source || typeof source !== 'object') { return target; }
+	for (var key in source) {
+		if (!source.hasOwnProperty(key)) { continue; }
+		var srcVal = source[key];
+		var isObject = srcVal && typeof srcVal === 'object';
+		var isArray = srcVal instanceof Array;
+		if (isObject && !isArray) {
+			if (!target[key] || typeof target[key] !== 'object' || (target[key] instanceof Array)) {
+				target[key] = {};
+			}
+			deepMergePreferences(target[key], srcVal);
+		} else if (isArray) {
+			target[key] = srcVal.slice(0);
+		} else {
+			target[key] = srcVal;
+		}
+	}
+	return target;
+}
+
+function logPreferenceIssue(message, error) {
+	var prefix = '[GND9 Prefs] ';
+	if (error && error.message) {
+		$.writeln(prefix + message + ' :: ' + error.message);
+	} else if (error) {
+		$.writeln(prefix + message + ' :: ' + error);
+	} else {
+		$.writeln(prefix + message);
+	}
+}
+
 // Carrega as preferências do usuário a partir do arquivo 'User_Preferences.json' ou usa os valores padrão.
 function loadScriptPreferences() {
-	// Tenta carregar o arquivo de preferências
 	var tempFile = new File(scriptPreferencesPath + '/User_Preferences.json');
+	var loadedPrefs = {};
 
-	// Se o arquivo existir, tenta ler seu conteúdo
 	if (tempFile.exists) {
-		var tempFileContent = readFileContent(tempFile); // Lê o conteúdo do arquivo JSON
-
+		var tempFileContent = '';
 		try {
-			scriptPreferencesObj = JSON.parse(tempFileContent); // Converte o conteúdo JSON para um objeto JavaScript
-			//
-		} catch (err) {
-			// Exibe um alerta se houver erro ao carregar o JSON
-			alert('Falha ao carregar as preferências... ' + lol + '\n' + err.message);
+			tempFileContent = readFileContent(tempFile) || '';
+		} catch (readErr) {
+			logPreferenceIssue('Falha ao ler User_Preferences.json', readErr);
 		}
+
+		if (tempFileContent && tempFileContent.length) {
+			try {
+				loadedPrefs = JSON.parse(tempFileContent);
+			} catch (parseErr) {
+				logPreferenceIssue('JSON inválido em User_Preferences.json', parseErr);
+				loadedPrefs = {};
+			}
+		}
+	} else {
+		logPreferenceIssue('User_Preferences.json não encontrado, aplicando valores padrão.');
 	}
 
-	// Preenche as preferências com os valores padrão, caso não existam
-	for (var o in defaultScriptPreferencesObj) {
-		if (!scriptPreferencesObj.hasOwnProperty(o))
-			scriptPreferencesObj[o] = defaultScriptPreferencesObj[o];
-	}
-	if (!scriptPreferencesObj.themeColors) {
-		scriptPreferencesObj.themeColors = {};
-	}
-	for (var tc in defaultScriptPreferencesObj.themeColors) {
-		if (!scriptPreferencesObj.themeColors.hasOwnProperty(tc)) {
-			scriptPreferencesObj.themeColors[tc] = defaultScriptPreferencesObj.themeColors[tc];
-		}
+	scriptPreferencesObj = clonePreferenceValue(defaultScriptPreferencesObj);
+	deepMergePreferences(scriptPreferencesObj, loadedPrefs);
+
+	if (!scriptPreferencesObj.themeColors || typeof scriptPreferencesObj.themeColors !== 'object') {
+		scriptPreferencesObj.themeColors = clonePreferenceValue(defaultScriptPreferencesObj.themeColors);
 	}
 	applyThemeColorOverrides(scriptPreferencesObj.themeColors);
-	iconTheme = scriptPreferencesObj.iconTheme; // Define o tema de ícones
+	iconTheme = scriptPreferencesObj.iconTheme || defaultScriptPreferencesObj.iconTheme;
 
 	if (!scriptPreferencesObj.uiSettings) {
-		scriptPreferencesObj.uiSettings = JSON.parse(JSON.stringify(defaultScriptPreferencesObj.uiSettings));
+		scriptPreferencesObj.uiSettings = clonePreferenceValue(defaultScriptPreferencesObj.uiSettings);
 	}
 	if (typeof scriptPreferencesObj.uiSettings.labelSpacing !== 'number') {
 		scriptPreferencesObj.uiSettings.labelSpacing = defaultScriptPreferencesObj.uiSettings.labelSpacing;
 	}
-	if (!scriptPreferencesObj.uiSettings.compactIconSize) {
+	if (!(scriptPreferencesObj.uiSettings.compactIconSize instanceof Array)) {
 		scriptPreferencesObj.uiSettings.compactIconSize = defaultScriptPreferencesObj.uiSettings.compactIconSize.slice(0);
 	}
 	if (typeof scriptPreferencesObj.uiSettings.compactIconSpacing !== 'number') {
 		scriptPreferencesObj.uiSettings.compactIconSpacing = defaultScriptPreferencesObj.uiSettings.compactIconSpacing;
 	}
-
-	// Define as preferências de seleção (nullType, adjType, projectMode)
-	for (var s in defaultScriptPreferencesObj.selection) {
-		if (!scriptPreferencesObj.selection.hasOwnProperty(s))
-			scriptPreferencesObj.selection[s] = defaultScriptPreferencesObj.selection[s];
+	if (!(scriptPreferencesObj.uiSettings.buttonThemes instanceof Array) || !scriptPreferencesObj.uiSettings.buttonThemes.length) {
+		scriptPreferencesObj.uiSettings.buttonThemes = JSON.parse(JSON.stringify(defaultScriptPreferencesObj.uiSettings.buttonThemes));
+	}
+	if (!scriptPreferencesObj.uiSettings.activeButtonTheme) {
+		scriptPreferencesObj.uiSettings.activeButtonTheme = defaultScriptPreferencesObj.uiSettings.activeButtonTheme;
+	}
+	if (!scriptPreferencesObj.moduleSettings || typeof scriptPreferencesObj.moduleSettings !== 'object') {
+		scriptPreferencesObj.moduleSettings = { hiddenKeys: [] };
+	} else if (!(scriptPreferencesObj.moduleSettings.hiddenKeys instanceof Array)) {
+		scriptPreferencesObj.moduleSettings.hiddenKeys = [];
 	}
 
-	// Define variáveis globais com base nas preferências carregadas
+	for (var s in defaultScriptPreferencesObj.selection) {
+		if (defaultScriptPreferencesObj.selection.hasOwnProperty(s) && !scriptPreferencesObj.selection.hasOwnProperty(s)) {
+			scriptPreferencesObj.selection[s] = defaultScriptPreferencesObj.selection[s];
+		}
+	}
+
 	projectMode = scriptPreferencesObj.selection.projectMode;
 	projPath = scriptPreferencesObj.folders.projPath;
 	nullType = scriptPreferencesObj.selection.nullType;
 	adjType = scriptPreferencesObj.selection.adjType;
 
-	ignoreMissing = scriptPreferencesObj.ignoreMissing; // Ignora footage ausente
-	homeOffice = scriptPreferencesObj.homeOffice; // Modo home office
-	devMode = scriptPreferencesObj.devMode; // Modo de desenvolvedor
+	ignoreMissing = scriptPreferencesObj.ignoreMissing;
+	homeOffice = scriptPreferencesObj.homeOffice;
+	devMode = scriptPreferencesObj.devMode;
+
+	return scriptPreferencesObj;
 }
 
 // Chama a função para carregar as preferências ao iniciar o script
