@@ -1728,11 +1728,15 @@ function d9TemplateDialog(thisObj) {
         prodDrop.selection = (lastIndex >= 0 && lastIndex < prodDrop.items.length) ? lastIndex : 0;
         hydrateProductionStatusesFromManifest();
         var requestedIndex = (prodDrop.selection && prodDrop.selection.index >= 0) ? prodDrop.selection.index : 0;
-        var healthyIndex = ensureHealthySelection(requestedIndex);
+        var healthyIndex = pickDefaultProductionIndex(requestedIndex);
         if (healthyIndex !== requestedIndex && healthyIndex > -1) {
             prodDrop.selection = healthyIndex;
             GNEWS_TEMPLATES_CONFIG.system.TEMPLATES_Settings.gnews_templates.lastProductionIndex = healthyIndex;
-            notifyCacheIssue("O ultimo cache selecionado apresentou erro e foi substituido por '" + productions[healthyIndex].name + "'.");
+            if (productionItemCounts[requestedIndex] && productionItemCounts[requestedIndex] > DEFAULT_MAX_AUTO_ITEMS) {
+                logInfo('Selecionado automaticamente "' + productions[healthyIndex].name + '" para agilizar o carregamento inicial.');
+            } else {
+                notifyCacheIssue("O ultimo cache selecionado apresentou erro e foi substituido por '" + productions[healthyIndex].name + "'.");
+            }
         }
         var currentSelectionIndex = (prodDrop.selection && prodDrop.selection.index >= 0) ? prodDrop.selection.index : 0;
         var currentProduction = productions[currentSelectionIndex] || null;
@@ -1927,6 +1931,11 @@ function d9TemplateDialog(thisObj) {
             for (var j = 0; j < cleaned.length; j++) { sanitized.push(cleaned[j]); }
         }
         bucket.sanitized = sanitized;
+        var productionObject = getProductionByName(prodName);
+        if (productionObject) {
+            var metadataFile = new File(scriptPreferencesPath + '/cache/' + (bucket.metaFileName || getMetadataFileName(productionObject)));
+            persistCookedMetadata(productionObject, metadataFile, sanitized, bucket.metaFileStamp);
+        }
         return sanitized;
     }
 
@@ -2067,6 +2076,7 @@ function d9TemplateDialog(thisObj) {
         for (var idx = 0; idx < productions.length; idx++) {
             var summary = summarizeManifestForProduction(productions[idx], manifestSnapshot);
             if (!summary) { continue; }
+            productionItemCounts[idx] = summary.itemCount || 0;
             var summaryText = formatManifestSummary(summary);
             if (summaryText) {
                 setProductionStatus(idx, productionStatus[idx] || 'pending', summaryText);
@@ -2194,9 +2204,15 @@ function d9TemplateDialog(thisObj) {
     function queueProductionPreload(index, delay) {
         if (!productions || index < 0 || index >= productions.length) { return; }
         if (pendingPreloadRegistry[index]) { return; }
+        if (!isTemplatesWindowActive()) { return; }
         var taskName = '__gnewsPreloadTask_' + index;
         pendingPreloadRegistry[index] = taskName;
         $.global[taskName] = function () {
+            if (!isTemplatesWindowActive()) {
+                pendingPreloadRegistry[index] = null;
+                try { delete $.global[taskName]; } catch (delErr) {}
+                return;
+            }
             try {
                 var prod = productions[index];
                 if (prod) {
@@ -2211,7 +2227,11 @@ function d9TemplateDialog(thisObj) {
             try { delete $.global[taskName]; } catch (delErr) {}
         };
         var taskCode = 'if ($.global["' + taskName + '"]) { $.global["' + taskName + '"](); }';
-        app.scheduleTask(taskCode, typeof delay === 'number' ? delay : 150, false);
+        try {
+            app.scheduleTask(taskCode, typeof delay === 'number' ? delay : 150, false);
+        } catch (preloadScheduleErr) {
+            try { $.global[taskName](); } catch (preloadRunErr) {}
+        }
     }
 
     function ensureHealthySelection(preferredIndex) {
@@ -2226,11 +2246,90 @@ function d9TemplateDialog(thisObj) {
         return baseIndex;
     }
 
+    function pickDefaultProductionIndex(preferredIndex) {
+        var healthyIndex = ensureHealthySelection(preferredIndex);
+        if (healthyIndex < 0) { healthyIndex = 0; }
+        var currentCount = productionItemCounts[healthyIndex] || 0;
+        if (currentCount && currentCount > DEFAULT_MAX_AUTO_ITEMS) {
+            for (var i = 0; i < productionItemCounts.length; i++) {
+                if (productionItemCounts[i] > 0 && productionItemCounts[i] <= DEFAULT_MAX_AUTO_ITEMS) {
+                    return i;
+                }
+            }
+        }
+        return healthyIndex;
+    }
+
     function getMetadataFileName(productionObject) {
         if (!productionObject) { return null; }
         if (productionObject.metadataFile) { return productionObject.metadataFile; }
         if (productionObject.cacheFile) { return productionObject.cacheFile.replace('_cache', '_metadata'); }
         return null;
+    }
+
+    function ensureCookedMetadataFolder() {
+        var folder = new Folder(scriptPreferencesPath + '/cache/cooked');
+        if (!folder.exists) {
+            try { folder.create(); } catch (folderErr) {}
+        }
+        return folder;
+    }
+
+    function getCookedMetadataFile(productionObject, ensureFolder) {
+        var folder = ensureFolder ? ensureCookedMetadataFolder() : new Folder(scriptPreferencesPath + '/cache/cooked');
+        if (!folder.exists) { return null; }
+        var baseName = getMetadataFileName(productionObject);
+        if (!baseName) { return null; }
+        var cookedName = baseName.replace(/\.json$/i, '') + '.cooked.json';
+        return new File(folder.fullName + '/' + cookedName);
+    }
+
+    function tryLoadCookedMetadata(productionObject, metadataFile) {
+        var cookedFile = getCookedMetadataFile(productionObject, false);
+        if (!cookedFile || !cookedFile.exists) { return null; }
+        var payload;
+        try {
+            cookedFile.open('r');
+            cookedFile.encoding = 'UTF-8';
+            var raw = cookedFile.read();
+            cookedFile.close();
+            payload = raw && raw.length ? safeParseJSON(raw, null, 'cookedMetadata') : null;
+        } catch (cookErr) {
+            try { cookedFile.close(); } catch (closeErr) {}
+            payload = null;
+        }
+        if (!payload || !(payload.entries instanceof Array)) { return null; }
+        var sourceStamp = payload.sourceModified || 0;
+        var referenceStamp = 0;
+        try {
+            if (metadataFile && metadataFile.exists) {
+                referenceStamp = metadataFile.modified ? metadataFile.modified.valueOf() : metadataFile.created.valueOf();
+            }
+        } catch (stampErr) {}
+        if (referenceStamp && sourceStamp && referenceStamp > sourceStamp) {
+            return null;
+        }
+        return payload;
+    }
+
+    function persistCookedMetadata(productionObject, metadataFile, sanitizedEntries, metaStamp) {
+        if (!productionObject || !sanitizedEntries) { return; }
+        var cookedFile = getCookedMetadataFile(productionObject, true);
+        if (!cookedFile) { return; }
+        var payload = {
+            version: 1,
+            sourceFile: getMetadataFileName(productionObject),
+            sourceModified: metaStamp || (metadataFile && metadataFile.modified ? metadataFile.modified.valueOf() : null),
+            entries: sanitizedEntries
+        };
+        try {
+            cookedFile.open('w');
+            cookedFile.encoding = 'UTF-8';
+            cookedFile.write(JSON.stringify(payload));
+            cookedFile.close();
+        } catch (writeErr) {
+            try { cookedFile.close(); } catch (closeErr) {}
+        }
     }
 
     function loadMetadataInBackground(productionObject) {
@@ -2263,13 +2362,28 @@ function d9TemplateDialog(thisObj) {
             endTelemetrySpan(telemetry, { entries: 0, prod: prodName, status: 'missing' });
             return;
         }
+        var cookedPayload = tryLoadCookedMetadata(productionObject, metadataFile);
+        if (cookedPayload) {
+            var cookedEntries = cookedPayload.entries || [];
+            metadataCache[prodName] = {
+                raw: null,
+                orderedKeys: [],
+                sanitized: cookedEntries.slice(0),
+                metaFileName: metadataFileName,
+                metaFileStamp: cookedPayload.sourceModified || 0
+            };
+            endTelemetrySpan(telemetry, { entries: cookedEntries.length, prod: prodName, status: 'cooked' });
+            return;
+        }
         var metadataData = readJsonFile(metadataFile);
         if (metadataData && typeof metadataData === 'object') {
             var orderedMetaKeys = getOrderedCacheKeysForProduction(productionObject, metadataData);
             metadataCache[prodName] = {
                 raw: metadataData,
                 orderedKeys: orderedMetaKeys.slice(0),
-                sanitized: null
+                sanitized: null,
+                metaFileName: metadataFileName,
+                metaFileStamp: (metadataFile.modified && metadataFile.modified.valueOf) ? metadataFile.modified.valueOf() : null
             };
 
             var countTaskName = '__gnewsMetaCount_' + prodName.replace(/\W/g, '_');
@@ -2426,12 +2540,13 @@ function d9TemplateDialog(thisObj) {
 
     function safePerformSearch(searchTerm) {
         if (!isTemplatesUIReady()) { return; }
+        var hasExistingResults = (templateList && templateList.items && templateList.items.length > 0);
         pausePrefetchCycle();
         notifyUserActivity();
         ensureActiveProductionBudgetForPage(currentPage);
         var startedLoading = false;
         if (!loadingGrp.visible) {
-            setLoadingState(true, 'Atualizando resultados');
+            setLoadingState(true, 'Atualizando resultados', hasExistingResults);
             startedLoading = true;
         }
         var completed = true;
@@ -2442,7 +2557,7 @@ function d9TemplateDialog(thisObj) {
             notifyCacheIssue('Erro ao atualizar a lista de templates: ' + (searchErr && searchErr.message ? searchErr.message : searchErr));
         }
         if (completed) {
-            setLoadingState(false);
+            setLoadingState(false, null, hasExistingResults);
         }
         resumePrefetchCycle(PREFETCH_INTERVAL + 300);
     }
@@ -3441,11 +3556,13 @@ function d9TemplateDialog(thisObj) {
         }
     }
 
-    function setLoadingState(isLoading, message) {
+    function setLoadingState(isLoading, message, preserveList) {
         if (!isTemplatesWindowActive() || !loadingGrp || !templateList) { return; }
         loadingGrp.children[0].text = message || 'Carregando, por favor aguarde...';
         loadingGrp.visible = isLoading;
-        templateList.visible = !isLoading;
+        if (!preserveList) {
+            templateList.visible = !isLoading;
+        }
         if (isLoading) {
             startLoadingAnimation(message || 'Carregando, por favor aguarde');
         } else {
@@ -3508,9 +3625,11 @@ function d9TemplateDialog(thisObj) {
         if (!metadataItems || !metadataItems.length) {
             requestAdditionalData(prodName, Math.max(itemsPerPage, 1));
             setProductionStatus(prodDrop.selection ? prodDrop.selection.index : -1, 'loading', 'Carregando ' + prodName + '...');
-            templateList.removeAll();
-            updateItemCounter(0);
-            setLoadingState(false);
+            if (!templateList || !templateList.items || !templateList.items.length) {
+                templateList.removeAll();
+            }
+            updateItemCounter(templateList && templateList.items ? templateList.items.length : 0);
+            setLoadingState(false, null, true);
             endTelemetrySpan(telemetry, { status: 'pendingLoad', prod: prodName });
             return false;
         }
