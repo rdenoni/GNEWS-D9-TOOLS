@@ -116,7 +116,8 @@
             }
         ],
         "gnews_templates": {
-            "lastProductionIndex": 4
+            "lastProductionIndex": 0,
+            "directNetworkMode": false
         }
     },
     "LIBRARYLIVE_Settings": {

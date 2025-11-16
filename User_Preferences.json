@@ -68,28 +68,83 @@
 	},
 	"uiSettings": {
 		"iconSize": [
-			36,
-			36
+			40,
+			40
 		],
-		"iconSpacing": 20,
-		"labelSpacing": 8,
+		"iconSpacing": 25,
+		"labelSpacing": 4,
 		"compactIconSize": [
-			28,
-			28
+			32,
+			32
 		],
 		"compactIconSpacing": 12,
+		"buttonThemes": [
+			{
+				"id": "classic",
+				"name": "Neutro",
+				"width": 200,
+				"height": 40,
+				"cornerRadius": 8,
+				"background": "#292C2E",
+				"hoverBackground": "#37393E",
+				"textColor": "#FFFFFF",
+				"hoverTextColor": "#E1E1E1",
+				"labelOffset": -18,
+				"labelOffsetX": 0,
+				"labelFontSize": 10,
+				"textTransform": "uppercase"
+			},
+			{
+				"id": "destacado",
+				"name": "Vermelho",
+				"width": 200,
+				"height": 40,
+				"cornerRadius": 8,
+				"background": "#E30039",
+				"hoverBackground": "#FF2036",
+				"textColor": "#F4F4F4",
+				"hoverTextColor": "#FFFFFF",
+				"labelOffset": -18,
+				"labelOffsetX": 0,
+				"labelFontSize": 10,
+				"textTransform": "uppercase"
+			},
+			{
+				"id": "minimal",
+				"name": "Mono",
+				"width": 200,
+				"height": 40,
+				"cornerRadius": 8,
+				"background": "#F2F2F2",
+				"hoverBackground": "#FD0247",
+				"textColor": "#1F1F1F",
+				"hoverTextColor": "#FFFFFF",
+				"labelOffset": -18,
+				"labelOffsetX": 0,
+				"labelFontSize": 10,
+				"textTransform": "uppercase"
+			}
+		],
+		"activeButtonTheme": "classic",
+		"verticalIconSize": [
+			30,
+			30
+		],
+		"verticalIconSpacing": 25,
+		"labelFontSize": 15,
 		"showLabels": true,
-		"iconOnlySpacing": 18
+		"iconOnlySpacing": 15
+	},
+	"moduleSettings": {
+		"hiddenKeys": [
+			
+		]
 	},
 	"selection": {
 		"nullType": 0,
 		"adjType": 0,
 		"projectMode": 0
 	},
-	"ignoreMissing": true,
-	"devMode": false,
-	"homeOffice": false,
-	"iconTheme": "dark",
 	"themeColors": {
 		"bgColor1": "#161616FF",
 		"bgColor2": "#1B1B1BFF",
@@ -101,5 +156,9 @@
 		"normalColor1": "#FFFFFFFF",
 		"normalColor2": "#E6E6E6FF",
 		"highlightColor1": "#FF0046FF"
-	}
+	},
+	"ignoreMissing": true,
+	"devMode": false,
+	"homeOffice": false,
+	"iconTheme": "dark"
 }
