@@ -15,11 +15,13 @@ function d9ProdFoldersDialog() { // REMOVIDO: "prodArray" como argumento
         showConfigAlert("ERRO CRITICO: A variavel 'scriptPreferencesPath' nao esta definida. Impossivel carregar ou salvar configuracoes.", 'Erro critico');
         return;
     }
-    var systemSettingsFile = new File(scriptPreferencesPath + "/System_Settings.json");
-    var cacheFolder = new Folder(scriptPreferencesPath + '/cache');
+    var systemSettingsFile = (typeof runtimeConfigPath !== 'undefined')
+        ? new File(runtimeConfigPath + "/System_Settings.json")
+        : new File(scriptPreferencesPath + "/System_Settings.json");
+    var cacheFolder = new Folder(runtimeCachePath);
     if (!cacheFolder.exists) cacheFolder.create();
 
-    var logsFolder = new Folder(scriptPreferencesPath + '/logs');
+    var logsFolder = new Folder((typeof runtimeLogsPath !== 'undefined' ? runtimeLogsPath : scriptPreferencesPath + '/logs'));
     if (!logsFolder.exists) { try { logsFolder.create(); } catch (logErr) {} }
     var cacheLogFile = new File(logsFolder.fullName + '/templates_cache.log');
 
@@ -68,7 +70,7 @@ function d9ProdFoldersDialog() { // REMOVIDO: "prodArray" como argumento
         }
     }
 
-    var manifestFile = new File(cacheFolder.fullName + '/templates_cache_manifest.json');
+    var manifestFile = new File(runtimeCachePath + '/templates_cache_manifest.json');
 
     function readCacheManifest() {
         if (!manifestFile.exists) { return {}; }
@@ -1070,6 +1072,15 @@ function d9ProdFoldersDialog() { // REMOVIDO: "prodArray" como argumento
         if (typeof themeButton === 'function') {
             try {
                 btn = new themeButton(parent, themeConfig);
+                if (btn && btn.label) {
+                    btn.label.__buttonThemeOverrides = {
+                        width: config.width,
+                        height: config.height,
+                        buttonColor: config.buttonColor,
+                        textColor: config.textColor
+                    };
+                    try { D9T_applyThemeToButtonControl(btn.label, D9T_getActiveButtonTheme()); } catch (themeErr) {}
+                }
                 return btn;
             } catch (e) {}
         }
@@ -1085,6 +1096,17 @@ function d9ProdFoldersDialog() { // REMOVIDO: "prodArray" como argumento
                     hoverButtonColor: (typeof highlightColor1 !== 'undefined') ? highlightColor1 : '#d4003cff',
                     hoverTextColor: '#FFFFFF'
                 });
+                if (btn && btn.label) {
+                    btn.label.__buttonThemeOverrides = {
+                        width: config.width,
+                        height: config.height,
+                        buttonColor: config.buttonColor,
+                        textColor: config.textColor,
+                        hoverBackground: (typeof highlightColor1 !== 'undefined') ? highlightColor1 : '#d4003cff',
+                        hoverTextColor: '#FFFFFF'
+                    };
+                    try { D9T_applyThemeToButtonControl(btn.label, D9T_getActiveButtonTheme()); } catch (themeErr2) {}
+                }
                 return btn;
             } catch (e2) {}
         }
