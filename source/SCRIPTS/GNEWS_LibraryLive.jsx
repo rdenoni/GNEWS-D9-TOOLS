@@ -42,7 +42,7 @@ function launchLibraryLiveUI() {
         PLACEHOLDER_FONT: ScriptUI.newFont("Arial", "Bold", 24)
     };
     var CONFIG = {
-        CACHE_FOLDER: "/cache/",
+        CACHE_FOLDER: "/runtime/cache/",
         CACHE_FILENAME_ICONS: "libraryLive_Icons_Cache.json",
         CACHE_FILENAME_IMAGES: "libraryLive_Images_Cache.json",
     };
@@ -93,6 +93,7 @@ function launchLibraryLiveUI() {
 
     // --- LÓGICA DE CACHE ---
     Logic.getCacheFile = function() {
+        // Usa runtime/cache para manter caches junto dos demais módulos
         var cacheFolderPath = scriptMainPath + CONFIG.CACHE_FOLDER;
         var cacheFolder = new Folder(cacheFolderPath);
         if (!cacheFolder.exists) {

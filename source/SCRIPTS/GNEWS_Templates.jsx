@@ -1124,7 +1124,7 @@ function d9TemplateDialog(thisObj) {
 
     function getSnapshotFolder(createIfMissing) {
         if (!scriptPreferencesPath || typeof scriptPreferencesPath !== 'string') { return null; }
-        var folder = new Folder(scriptPreferencesPath + SNAPSHOT_FOLDER_SUFFIX);
+        var folder = new Folder(runtimeCachePath + '/gnews_snapshots');
         if (createIfMissing && !folder.exists) {
             try { folder.create(); } catch (folderErr) { return null; }
         }
@@ -1935,7 +1935,7 @@ function d9TemplateDialog(thisObj) {
         bucket.sanitized = sanitized;
         var productionObject = getProductionByName(prodName);
         if (productionObject) {
-            var metadataFile = new File(scriptPreferencesPath + '/cache/' + (bucket.metaFileName || getMetadataFileName(productionObject)));
+            var metadataFile = new File(runtimeCachePath + '/' + (bucket.metaFileName || getMetadataFileName(productionObject)));
             persistCookedMetadata(productionObject, metadataFile, sanitized, bucket.metaFileStamp);
         }
         return sanitized;
@@ -2270,7 +2270,7 @@ function d9TemplateDialog(thisObj) {
     }
 
     function ensureCookedMetadataFolder() {
-        var folder = new Folder(scriptPreferencesPath + '/cache/cooked');
+        var folder = new Folder(runtimeCachePath + '/cooked');
         if (!folder.exists) {
             try { folder.create(); } catch (folderErr) {}
         }
@@ -2278,7 +2278,7 @@ function d9TemplateDialog(thisObj) {
     }
 
     function getCookedMetadataFile(productionObject, ensureFolder) {
-        var folder = ensureFolder ? ensureCookedMetadataFolder() : new Folder(scriptPreferencesPath + '/cache/cooked');
+        var folder = ensureFolder ? ensureCookedMetadataFolder() : new Folder(runtimeCachePath + '/cooked');
         if (!folder.exists) { return null; }
         var baseName = getMetadataFileName(productionObject);
         if (!baseName) { return null; }
@@ -2345,11 +2345,11 @@ function d9TemplateDialog(thisObj) {
             endTelemetrySpan(telemetry, { entries: 0, prod: prodName, status: 'noFilename' });
             return;
         }
-        var metadataFile = new File(scriptPreferencesPath + '/cache/' + metadataFileName);
+        var metadataFile = new File(runtimeCachePath + '/' + metadataFileName);
         if (!metadataFile || !metadataFile.exists) {
             var derivedMetaName = deriveMetadataFileFromName(prodName);
             if (derivedMetaName && derivedMetaName !== metadataFileName) {
-                var fallbackMeta = new File(scriptPreferencesPath + '/cache/' + derivedMetaName);
+                var fallbackMeta = new File(runtimeCachePath + '/' + derivedMetaName);
                 if (fallbackMeta.exists) {
                     productionObject.metadataFile = derivedMetaName;
                     metadataFile = fallbackMeta;
@@ -2953,13 +2953,13 @@ function d9TemplateDialog(thisObj) {
 
     function persistCacheFromScan(productionObject, masterCacheData, metadataMap, rootStats) {
         try {
-            var cacheFile = new File(scriptPreferencesPath + '/cache/' + productionObject.cacheFile);
+            var cacheFile = new File(runtimeCachePath + '/' + productionObject.cacheFile);
             cacheFile.open('w');
             cacheFile.encoding = 'UTF-8';
             cacheFile.write(JSON.stringify(masterCacheData, null, 2));
             cacheFile.close();
             var metadataFileName = productionObject.metadataFile || productionObject.cacheFile.replace('_cache', '_metadata');
-            var metadataFile = new File(scriptPreferencesPath + '/cache/' + metadataFileName);
+            var metadataFile = new File(runtimeCachePath + '/' + metadataFileName);
             metadataFile.open('w');
             metadataFile.encoding = 'UTF-8';
             metadataFile.write(JSON.stringify(metadataMap, null, 2));
@@ -3063,11 +3063,11 @@ function d9TemplateDialog(thisObj) {
             startNetworkFallbackLoad(productionObject, telemetry, { skipPrompt: true, reason: 'forceDirect' });
             return;
         }
-        var cacheFile = new File(scriptPreferencesPath + '/cache/' + productionObject.cacheFile);
+        var cacheFile = new File(runtimeCachePath + '/' + productionObject.cacheFile);
         if (!cacheFile || !cacheFile.exists) {
             var derivedCacheName = deriveCacheFileFromName(prodName);
             if (derivedCacheName && derivedCacheName !== productionObject.cacheFile) {
-                var fallbackCache = new File(scriptPreferencesPath + '/cache/' + derivedCacheName);
+                var fallbackCache = new File(runtimeCachePath + '/' + derivedCacheName);
                 if (fallbackCache.exists) {
                     productionObject.cacheFile = derivedCacheName;
                     var derivedMetaName = deriveMetadataFileFromName(prodName);
@@ -3168,7 +3168,7 @@ function d9TemplateDialog(thisObj) {
         }
         ensureProductionFileReferences(productionObject, false);
         var prodName = productionObject.name;
-        var cacheFile = new File(scriptPreferencesPath + '/cache/' + productionObject.cacheFile);
+        var cacheFile = new File(runtimeCachePath + '/' + productionObject.cacheFile);
         if (!cacheFile || !cacheFile.exists) {
             showThemedAlert('O arquivo de cache para "' + prodName + '" nao foi encontrado.\nExecute a geracao de cache no configurador.', 'Recriar cache');
             return;
