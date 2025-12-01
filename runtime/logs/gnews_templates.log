@@ -1,0 +1,201 @@
+
+[Sunday, 16 Nov 2025 22:29:11 GMT][INFO] [telemetry] pipelineWarmup 89ms | status=ok
+[Sunday, 16 Nov 2025 22:29:11 GMT][INFO] [telemetry] loadCentralConfigs 0ms | cached=true warm=true success=true
+[Sunday, 16 Nov 2025 22:29:40 GMT][INFO] [telemetry] loadMetadata:JORNAIS 28784ms | entries=1738 prod=JORNAIS
+[Sunday, 16 Nov 2025 22:29:40 GMT][INFO] [telemetry] performSearch 29339ms | mode=list results=1738 search=false prod=JORNAIS
+[Sunday, 16 Nov 2025 22:52:48 GMT][INFO] [telemetry] pipelineWarmup 133ms | status=ok
+[Sunday, 16 Nov 2025 22:52:48 GMT][INFO] [telemetry] loadCentralConfigs 0ms | cached=true warm=true success=true
+[Sunday, 16 Nov 2025 22:52:48 GMT][INFO] [telemetry] performSearch 0ms | status=pendingLoad prod=JORNAIS
+[Sunday, 16 Nov 2025 22:54:06 GMT][ERROR] Erro inesperado ao carregar o cache de JORNAIS: Function updateProductionStatus is undefined
+[Sunday, 16 Nov 2025 22:54:06 GMT][WARN] Erro inesperado ao carregar o cache de JORNAIS: Function updateProductionStatus is undefined
+[Sunday, 16 Nov 2025 22:54:35 GMT][INFO] [telemetry] loadMetadata:JORNAIS 28295ms | entries=1738 prod=JORNAIS
+[Sunday, 16 Nov 2025 22:54:35 GMT][ERROR] Erro inesperado ao carregar o cache de ILUSTRACOES: Function updateProductionStatus is undefined
+[Sunday, 16 Nov 2025 22:54:35 GMT][WARN] Erro inesperado ao carregar o cache de ILUSTRACOES: Function updateProductionStatus is undefined
+[Sunday, 16 Nov 2025 22:54:36 GMT][ERROR] Erro inesperado ao carregar o cache de BASE TEMATICA: Function updateProductionStatus is undefined
+[Sunday, 16 Nov 2025 22:54:36 GMT][WARN] Erro inesperado ao carregar o cache de BASE TEMATICA: Function updateProductionStatus is undefined
+[Sunday, 16 Nov 2025 22:56:02 GMT][INFO] Snapshot restaurado para PROGRAMAS (15 itens)
+[Sunday, 16 Nov 2025 22:56:02 GMT][INFO] [telemetry] loadCache:PROGRAMAS 85514ms | status=snapshot prod=PROGRAMAS items=15
+[Sunday, 16 Nov 2025 22:59:21 GMT][INFO] [telemetry] pipelineWarmup 134ms | status=ok
+[Sunday, 16 Nov 2025 22:59:21 GMT][INFO] [telemetry] loadCentralConfigs 0ms | cached=true warm=true success=true
+[Sunday, 16 Nov 2025 22:59:21 GMT][INFO] [telemetry] performSearch 0ms | status=pendingLoad prod=JORNAIS
+[Sunday, 16 Nov 2025 23:01:06 GMT][INFO] [telemetry] performSearch 603ms | mode=list results=1738 search=false prod=JORNAIS
+[Sunday, 16 Nov 2025 23:01:06 GMT][INFO] Cache carregado para JORNAIS (52 itens)
+[Sunday, 16 Nov 2025 23:01:06 GMT][INFO] [telemetry] loadCache:JORNAIS 104256ms | status=ok prod=JORNAIS items=52
+[Sunday, 16 Nov 2025 23:01:06 GMT][INFO] [telemetry] loadMetadata:JORNAIS 28856ms | entries=1738 prod=JORNAIS
+[Sunday, 16 Nov 2025 23:01:07 GMT][INFO] [telemetry] performSearch 22ms | mode=list results=1738 search=false prod=JORNAIS
+[Sunday, 16 Nov 2025 23:01:07 GMT][INFO] Cache carregado para ILUSTRACOES (33 itens)
+[Sunday, 16 Nov 2025 23:01:07 GMT][INFO] [telemetry] loadCache:ILUSTRACOES 843ms | status=ok prod=ILUSTRACOES items=33
+[Sunday, 16 Nov 2025 23:01:09 GMT][INFO] Cache carregado para BASE TEMATICA (18 itens)
+[Sunday, 16 Nov 2025 23:01:09 GMT][INFO] [telemetry] loadCache:BASE TEMATICA 166ms | status=ok prod=BASE TEMATICA items=18
+[Sunday, 16 Nov 2025 23:02:29 GMT][INFO] [telemetry] performSearch 19ms | mode=list results=1738 search=false prod=JORNAIS
+[Sunday, 16 Nov 2025 23:02:30 GMT][INFO] Snapshot restaurado para PROGRAMAS (15 itens)
+[Sunday, 16 Nov 2025 23:02:30 GMT][INFO] [telemetry] loadCache:PROGRAMAS 80886ms | status=snapshot prod=PROGRAMAS items=15
+[Sunday, 16 Nov 2025 23:03:51 GMT][INFO] Cache carregado para EVENTOS (52 itens)
+[Sunday, 16 Nov 2025 23:03:51 GMT][INFO] [telemetry] loadCache:EVENTOS 79430ms | status=ok prod=EVENTOS items=52
+[Sunday, 16 Nov 2025 23:03:56 GMT][INFO] Cache carregado para MARKETING (12 itens)
+[Sunday, 16 Nov 2025 23:03:56 GMT][INFO] [telemetry] loadCache:MARKETING 5448ms | status=ok prod=MARKETING items=12
+[Sunday, 16 Nov 2025 23:04:00 GMT][INFO] Snapshot restaurado para PROMO (3 itens)
+[Sunday, 16 Nov 2025 23:04:00 GMT][INFO] [telemetry] loadCache:PROMO 3345ms | status=snapshot prod=PROMO items=3
+[Sunday, 16 Nov 2025 23:07:28 GMT][INFO] [telemetry] performSearch 24ms | mode=list results=1738 search=false prod=JORNAIS
+[Sunday, 16 Nov 2025 23:07:31 GMT][INFO] [telemetry] performSearch 20ms | mode=list results=1738 search=false prod=JORNAIS
+[Sunday, 16 Nov 2025 23:07:34 GMT][INFO] [telemetry] performSearch 25ms | mode=list results=1738 search=false prod=JORNAIS
+[Sunday, 16 Nov 2025 23:07:34 GMT][INFO] [telemetry] performSearch 20ms | mode=list results=1738 search=false prod=JORNAIS
+[Sunday, 16 Nov 2025 23:07:35 GMT][INFO] [telemetry] performSearch 20ms | mode=list results=1738 search=false prod=JORNAIS
+[Sunday, 16 Nov 2025 23:07:35 GMT][INFO] [telemetry] performSearch 20ms | mode=list results=1738 search=false prod=JORNAIS
+[Sunday, 16 Nov 2025 23:07:37 GMT][INFO] [telemetry] performSearch 48ms | mode=list results=1738 search=false prod=JORNAIS
+[Sunday, 16 Nov 2025 23:07:37 GMT][INFO] [telemetry] performSearch 21ms | mode=list results=1738 search=false prod=JORNAIS
+[Sunday, 16 Nov 2025 23:07:38 GMT][INFO] [telemetry] performSearch 21ms | mode=list results=1738 search=false prod=JORNAIS
+[Thursday, 20 Nov 2025 11:46:38 GMT][INFO] [telemetry] pipelineWarmup 58ms | status=ok
+[Thursday, 20 Nov 2025 11:46:38 GMT][INFO] [telemetry] loadCentralConfigs 0ms | cached=true warm=true success=true
+[Thursday, 20 Nov 2025 11:46:38 GMT][INFO] [telemetry] performSearch 0ms | status=pendingLoad prod=JORNAIS
+[Thursday, 20 Nov 2025 11:46:38 GMT][INFO] [telemetry] performSearch 0ms | status=pendingLoad prod=ILUSTRACOES
+[Thursday, 20 Nov 2025 11:46:38 GMT][INFO] Selecionado automaticamente "ILUSTRACOES" para agilizar o carregamento inicial.
+[Thursday, 20 Nov 2025 11:46:53 GMT][INFO] Snapshot restaurado para JORNAIS (52 itens)
+[Thursday, 20 Nov 2025 11:46:53 GMT][INFO] [telemetry] loadCache:JORNAIS 15486ms | status=snapshot prod=JORNAIS items=52
+[Thursday, 20 Nov 2025 11:47:25 GMT][INFO] [telemetry] performSearch 1ms | status=pendingLoad prod=ILUSTRACOES
+[Thursday, 20 Nov 2025 11:47:25 GMT][INFO] Snapshot restaurado para ILUSTRACOES (33 itens)
+[Thursday, 20 Nov 2025 11:47:25 GMT][INFO] [telemetry] loadCache:ILUSTRACOES 89ms | status=snapshot prod=ILUSTRACOES items=33
+[Thursday, 20 Nov 2025 11:47:25 GMT][INFO] [telemetry] loadMetadata:JORNAIS 31672ms | entries=1738 prod=JORNAIS
+[Thursday, 20 Nov 2025 11:47:25 GMT][INFO] [telemetry] loadMetadata:ILUSTRACOES 231ms | entries=115 prod=ILUSTRACOES
+[Thursday, 20 Nov 2025 11:47:26 GMT][INFO] [telemetry] performSearch 58ms | mode=list results=115 search=false prod=ILUSTRACOES
+[Thursday, 20 Nov 2025 11:47:29 GMT][INFO] Snapshot restaurado para BASE TEMATICA (18 itens)
+[Thursday, 20 Nov 2025 11:47:29 GMT][INFO] [telemetry] loadCache:BASE TEMATICA 42ms | status=snapshot prod=BASE TEMATICA items=18
+[Thursday, 20 Nov 2025 11:48:49 GMT][INFO] [telemetry] performSearch 40ms | mode=list results=115 search=false prod=ILUSTRACOES
+[Thursday, 20 Nov 2025 11:48:51 GMT][INFO] Snapshot restaurado para PROGRAMAS (15 itens)
+[Thursday, 20 Nov 2025 11:48:51 GMT][INFO] [telemetry] loadCache:PROGRAMAS 81323ms | status=snapshot prod=PROGRAMAS items=15
+[Thursday, 20 Nov 2025 11:48:52 GMT][INFO] [telemetry] performSearch 765ms | mode=list results=1738 search=false prod=JORNAIS
+[Thursday, 20 Nov 2025 11:48:52 GMT][INFO] [telemetry] performSearch 51ms | mode=list results=1738 search=false prod=JORNAIS
+[Thursday, 20 Nov 2025 11:48:52 GMT][INFO] [telemetry] performSearch 46ms | mode=list results=1738 search=false prod=JORNAIS
+[Thursday, 20 Nov 2025 11:49:16 GMT][INFO] Snapshot restaurado para EVENTOS (52 itens)
+[Thursday, 20 Nov 2025 11:49:16 GMT][INFO] [telemetry] loadCache:EVENTOS 20531ms | status=snapshot prod=EVENTOS items=52
+[Thursday, 20 Nov 2025 11:49:16 GMT][INFO] Snapshot restaurado para MARKETING (12 itens)
+[Thursday, 20 Nov 2025 11:49:16 GMT][INFO] [telemetry] loadCache:MARKETING 347ms | status=snapshot prod=MARKETING items=12
+[Thursday, 20 Nov 2025 11:49:20 GMT][INFO] Snapshot restaurado para PROMO (3 itens)
+[Thursday, 20 Nov 2025 11:49:20 GMT][INFO] [telemetry] loadCache:PROMO 3198ms | status=snapshot prod=PROMO items=3
+[Thursday, 20 Nov 2025 18:32:58 GMT][INFO] [telemetry] pipelineWarmup 88ms | status=ok
+[Thursday, 20 Nov 2025 18:32:58 GMT][INFO] [telemetry] loadCentralConfigs 0ms | cached=true warm=true success=true
+[Thursday, 20 Nov 2025 18:32:58 GMT][INFO] [telemetry] performSearch 1ms | status=pendingLoad prod=JORNAIS
+[Thursday, 20 Nov 2025 18:32:58 GMT][INFO] [telemetry] performSearch 0ms | status=pendingLoad prod=ILUSTRACOES
+[Thursday, 20 Nov 2025 18:32:58 GMT][INFO] Selecionado automaticamente "ILUSTRACOES" para agilizar o carregamento inicial.
+[Thursday, 20 Nov 2025 18:33:15 GMT][INFO] Snapshot restaurado para JORNAIS (52 itens)
+[Thursday, 20 Nov 2025 18:33:15 GMT][INFO] [telemetry] loadCache:JORNAIS 16416ms | status=snapshot prod=JORNAIS items=52
+[Thursday, 20 Nov 2025 18:33:33 GMT][INFO] [telemetry] loadMetadata:JORNAIS 17936ms | entries=1738 prod=JORNAIS status=cooked
+[Thursday, 20 Nov 2025 18:33:33 GMT][INFO] [telemetry] performSearch 1ms | status=pendingLoad prod=ILUSTRACOES
+[Thursday, 20 Nov 2025 18:33:33 GMT][INFO] Snapshot restaurado para ILUSTRACOES (33 itens)
+[Thursday, 20 Nov 2025 18:33:33 GMT][INFO] [telemetry] loadCache:ILUSTRACOES 121ms | status=snapshot prod=ILUSTRACOES items=33
+[Thursday, 20 Nov 2025 18:33:33 GMT][INFO] [telemetry] loadMetadata:ILUSTRACOES 44ms | entries=115 prod=ILUSTRACOES status=cooked
+[Thursday, 20 Nov 2025 18:33:35 GMT][INFO] Snapshot restaurado para BASE TEMATICA (18 itens)
+[Thursday, 20 Nov 2025 18:33:35 GMT][INFO] [telemetry] loadCache:BASE TEMATICA 26ms | status=snapshot prod=BASE TEMATICA items=18
+[Thursday, 20 Nov 2025 18:43:14 GMT][INFO] [telemetry] pipelineWarmup 90ms | status=ok
+[Thursday, 20 Nov 2025 18:43:14 GMT][INFO] [telemetry] loadCentralConfigs 0ms | cached=true warm=true success=true
+[Thursday, 20 Nov 2025 18:43:14 GMT][INFO] [telemetry] performSearch 1ms | status=pendingLoad prod=ILUSTRACOES
+[Thursday, 20 Nov 2025 18:43:14 GMT][INFO] [telemetry] performSearch 0ms | status=pendingLoad prod=ILUSTRACOES
+[Thursday, 20 Nov 2025 18:43:14 GMT][INFO] Snapshot restaurado para ILUSTRACOES (33 itens)
+[Thursday, 20 Nov 2025 18:43:14 GMT][INFO] [telemetry] loadCache:ILUSTRACOES 79ms | status=snapshot prod=ILUSTRACOES items=33
+[Thursday, 20 Nov 2025 18:43:14 GMT][INFO] [telemetry] loadMetadata:ILUSTRACOES 32ms | entries=115 prod=ILUSTRACOES status=cooked
+[Thursday, 20 Nov 2025 18:43:15 GMT][INFO] [telemetry] performSearch 31ms | mode=list results=115 search=false prod=ILUSTRACOES
+[Thursday, 20 Nov 2025 18:58:49 GMT][INFO] [telemetry] loadCentralConfigs 0ms | cached=true warm=true success=true
+[Thursday, 20 Nov 2025 18:58:49 GMT][INFO] [telemetry] performSearch 12ms | mode=list results=115 search=false prod=ILUSTRACOES
+[Thursday, 20 Nov 2025 18:59:07 GMT][INFO] Snapshot restaurado para JORNAIS (52 itens)
+[Thursday, 20 Nov 2025 18:59:07 GMT][INFO] [telemetry] loadCache:JORNAIS 17005ms | status=snapshot prod=JORNAIS items=52
+[Thursday, 20 Nov 2025 18:59:07 GMT][INFO] Snapshot restaurado para BASE TEMATICA (18 itens)
+[Thursday, 20 Nov 2025 18:59:07 GMT][INFO] [telemetry] loadCache:BASE TEMATICA 28ms | status=snapshot prod=BASE TEMATICA items=18
+[Thursday, 20 Nov 2025 19:00:37 GMT][INFO] Snapshot restaurado para PROGRAMAS (15 itens)
+[Thursday, 20 Nov 2025 19:00:37 GMT][INFO] [telemetry] loadCache:PROGRAMAS 89125ms | status=snapshot prod=PROGRAMAS items=15
+[Thursday, 20 Nov 2025 19:00:54 GMT][INFO] Snapshot restaurado para EVENTOS (52 itens)
+[Thursday, 20 Nov 2025 19:00:54 GMT][INFO] [telemetry] loadCache:EVENTOS 16798ms | status=snapshot prod=EVENTOS items=52
+[Thursday, 20 Nov 2025 19:00:55 GMT][INFO] Snapshot restaurado para MARKETING (12 itens)
+[Thursday, 20 Nov 2025 19:00:55 GMT][INFO] [telemetry] loadCache:MARKETING 334ms | status=snapshot prod=MARKETING items=12
+[Thursday, 20 Nov 2025 19:00:59 GMT][INFO] Snapshot restaurado para PROMO (3 itens)
+[Thursday, 20 Nov 2025 19:00:59 GMT][INFO] [telemetry] loadCache:PROMO 3336ms | status=snapshot prod=PROMO items=3
+[Wednesday, 26 Nov 2025 09:09:43 GMT][INFO] [telemetry] pipelineWarmup 272ms | status=ok
+[Wednesday, 26 Nov 2025 09:09:43 GMT][INFO] [telemetry] loadCentralConfigs 0ms | cached=true warm=true success=true
+[Wednesday, 26 Nov 2025 09:09:43 GMT][INFO] [telemetry] performSearch 1ms | status=pendingLoad prod=ILUSTRACOES
+[Wednesday, 26 Nov 2025 09:09:43 GMT][WARN] Cache para ILUSTRACOES nao encontrado (templates_ilustracoes_cache.json). Tentando carregamento direto.
+[Wednesday, 26 Nov 2025 09:09:43 GMT][WARN] Metadados nao encontrados para ILUSTRACOES (templates_ilustracoes_metadata.json)
+[Wednesday, 26 Nov 2025 09:09:43 GMT][INFO] [telemetry] loadMetadata:ILUSTRACOES 0ms | entries=0 prod=ILUSTRACOES status=missing
+[Wednesday, 26 Nov 2025 09:09:44 GMT][WARN] Cache para JORNAIS nao encontrado (templates_jornais_cache.json). Tentando carregamento direto.
+[Wednesday, 26 Nov 2025 09:09:45 GMT][WARN] Cache para BASE TEMATICA nao encontrado (templates_basetematica_cache.json). Tentando carregamento direto.
+[Wednesday, 26 Nov 2025 09:09:46 GMT][WARN] Cache para PROGRAMAS nao encontrado (templates_programas_cache.json). Tentando carregamento direto.
+[Wednesday, 26 Nov 2025 09:09:47 GMT][WARN] Cache para EVENTOS nao encontrado (templates_eventos_cache.json). Tentando carregamento direto.
+[Wednesday, 26 Nov 2025 09:09:48 GMT][WARN] Cache para MARKETING nao encontrado (templates_marketing_cache.json). Tentando carregamento direto.
+[Wednesday, 26 Nov 2025 09:09:50 GMT][WARN] Cache para PROMO nao encontrado (templates_promo_cache.json). Tentando carregamento direto.
+[Wednesday, 26 Nov 2025 09:10:06 GMT][INFO] Carregado diretamente da rede: BASE TEMATICA (24 itens)
+[Wednesday, 26 Nov 2025 09:10:06 GMT][INFO] [telemetry] loadCache:BASE TEMATICA 20928ms | status=network prod=BASE TEMATICA items=24
+[Wednesday, 26 Nov 2025 09:11:48 GMT][INFO] [telemetry] performSearch 30ms | mode=list results=121 search=false prod=ILUSTRACOES
+[Wednesday, 26 Nov 2025 09:11:48 GMT][INFO] Carregado diretamente da rede: ILUSTRACOES (48 itens)
+[Wednesday, 26 Nov 2025 09:11:48 GMT][INFO] [telemetry] loadCache:ILUSTRACOES 125251ms | status=network prod=ILUSTRACOES items=48
+[Wednesday, 26 Nov 2025 09:11:48 GMT][INFO] [telemetry] performSearch 45ms | mode=list results=121 search=false prod=ILUSTRACOES
+[Wednesday, 26 Nov 2025 09:13:58 GMT][INFO] [telemetry] performSearch 53ms | mode=list results=121 search=false prod=ILUSTRACOES
+[Wednesday, 26 Nov 2025 09:14:01 GMT][INFO] [telemetry] performSearch 60ms | mode=list results=121 search=false prod=ILUSTRACOES
+[Wednesday, 26 Nov 2025 09:14:01 GMT][INFO] [telemetry] performSearch 42ms | mode=list results=121 search=false prod=ILUSTRACOES
+[Wednesday, 26 Nov 2025 09:15:58 GMT][INFO] Carregado diretamente da rede: MARKETING (18 itens)
+[Wednesday, 26 Nov 2025 09:15:58 GMT][INFO] [telemetry] loadCache:MARKETING 369573ms | status=network prod=MARKETING items=18
+[Wednesday, 26 Nov 2025 09:23:29 GMT][INFO] Carregado diretamente da rede: JORNAIS (57 itens)
+[Wednesday, 26 Nov 2025 09:23:29 GMT][INFO] [telemetry] loadCache:JORNAIS 825463ms | status=network prod=JORNAIS items=57
+[Thursday, 27 Nov 2025 17:02:58 GMT][INFO] [telemetry] pipelineWarmup 138ms | status=ok
+[Thursday, 27 Nov 2025 17:02:58 GMT][INFO] [telemetry] loadCentralConfigs 0ms | cached=true warm=true success=true
+[Thursday, 27 Nov 2025 17:02:58 GMT][INFO] [telemetry] performSearch 0ms | status=pendingLoad prod=ILUSTRACOES
+[Thursday, 27 Nov 2025 17:02:58 GMT][WARN] Cache para ILUSTRACOES nao encontrado (templates_ilustracoes_cache.json). Tentando carregamento direto.
+[Thursday, 27 Nov 2025 17:02:58 GMT][WARN] Metadados nao encontrados para ILUSTRACOES (templates_ilustracoes_metadata.json)
+[Thursday, 27 Nov 2025 17:02:58 GMT][INFO] [telemetry] loadMetadata:ILUSTRACOES 1ms | entries=0 prod=ILUSTRACOES status=missing
+[Thursday, 27 Nov 2025 17:02:59 GMT][WARN] Cache para JORNAIS nao encontrado (templates_jornais_cache.json). Tentando carregamento direto.
+[Monday, 01 Dec 2025 15:56:18 GMT][INFO] [telemetry] pipelineWarmup 154ms | status=ok
+[Monday, 01 Dec 2025 15:56:18 GMT][INFO] [telemetry] loadCentralConfigs 0ms | cached=true warm=true success=true
+[Monday, 01 Dec 2025 15:56:18 GMT][INFO] [telemetry] performSearch 1ms | status=pendingLoad prod=ILUSTRACOES
+[Monday, 01 Dec 2025 15:56:18 GMT][WARN] Cache para ILUSTRACOES nao encontrado (templates_ilustracoes_cache.json). Tentando carregamento direto.
+[Monday, 01 Dec 2025 15:56:18 GMT][WARN] Metadados nao encontrados para ILUSTRACOES (templates_ilustracoes_metadata.json)
+[Monday, 01 Dec 2025 15:56:18 GMT][INFO] [telemetry] loadMetadata:ILUSTRACOES 1ms | entries=0 prod=ILUSTRACOES status=missing
+[Monday, 01 Dec 2025 15:56:19 GMT][WARN] Cache para JORNAIS nao encontrado (templates_jornais_cache.json). Tentando carregamento direto.
+[Monday, 01 Dec 2025 15:56:20 GMT][WARN] Cache para BASE TEMATICA nao encontrado (templates_basetematica_cache.json). Tentando carregamento direto.
+[Monday, 01 Dec 2025 15:56:21 GMT][WARN] Cache para PROGRAMAS nao encontrado (templates_programas_cache.json). Tentando carregamento direto.
+[Monday, 01 Dec 2025 15:56:23 GMT][WARN] Cache para EVENTOS nao encontrado (templates_eventos_cache.json). Tentando carregamento direto.
+[Monday, 01 Dec 2025 15:56:24 GMT][WARN] Cache para MARKETING nao encontrado (templates_marketing_cache.json). Tentando carregamento direto.
+[Monday, 01 Dec 2025 15:56:25 GMT][WARN] Cache para PROMO nao encontrado (templates_promo_cache.json). Tentando carregamento direto.
+[Monday, 01 Dec 2025 15:57:04 GMT][INFO] Carregado diretamente da rede: BASE TEMATICA (24 itens)
+[Monday, 01 Dec 2025 15:57:04 GMT][INFO] [telemetry] loadCache:BASE TEMATICA 43940ms | status=network prod=BASE TEMATICA items=24
+[Monday, 01 Dec 2025 16:21:07 GMT][INFO] [telemetry] pipelineWarmup 155ms | status=ok
+[Monday, 01 Dec 2025 16:21:08 GMT][INFO] [telemetry] loadCentralConfigs 0ms | cached=true warm=true success=true
+[Monday, 01 Dec 2025 16:21:08 GMT][INFO] [telemetry] performSearch 0ms | status=pendingLoad prod=ILUSTRACOES
+[Monday, 01 Dec 2025 16:21:08 GMT][INFO] [telemetry] loadMetadata:ILUSTRACOES 35ms | entries=115 prod=ILUSTRACOES status=cooked
+[Monday, 01 Dec 2025 16:21:08 GMT][INFO] [telemetry] performSearch 31ms | mode=list results=115 search=false prod=ILUSTRACOES
+[Monday, 01 Dec 2025 16:21:08 GMT][INFO] Cache carregado para ILUSTRACOES (33 itens)
+[Monday, 01 Dec 2025 16:21:08 GMT][INFO] [telemetry] loadCache:ILUSTRACOES 767ms | status=ok prod=ILUSTRACOES items=33
+[Monday, 01 Dec 2025 16:22:24 GMT][INFO] [telemetry] performSearch 35ms | mode=list results=115 search=false prod=ILUSTRACOES
+[Monday, 01 Dec 2025 16:22:25 GMT][INFO] [telemetry] performSearch 53ms | mode=list results=115 search=false prod=ILUSTRACOES
+[Monday, 01 Dec 2025 16:22:26 GMT][INFO] Cache carregado para JORNAIS (52 itens)
+[Monday, 01 Dec 2025 16:22:26 GMT][INFO] [telemetry] loadCache:JORNAIS 77441ms | status=ok prod=JORNAIS items=52
+[Monday, 01 Dec 2025 16:22:27 GMT][INFO] Cache carregado para BASE TEMATICA (18 itens)
+[Monday, 01 Dec 2025 16:22:27 GMT][INFO] [telemetry] loadCache:BASE TEMATICA 262ms | status=ok prod=BASE TEMATICA items=18
+[Monday, 01 Dec 2025 16:28:21 GMT][INFO] Cache carregado para PROGRAMAS (15 itens)
+[Monday, 01 Dec 2025 16:28:21 GMT][INFO] [telemetry] loadCache:PROGRAMAS 353705ms | status=ok prod=PROGRAMAS items=15
+[Monday, 01 Dec 2025 16:29:41 GMT][INFO] Cache carregado para EVENTOS (52 itens)
+[Monday, 01 Dec 2025 16:29:41 GMT][INFO] [telemetry] loadCache:EVENTOS 79623ms | status=ok prod=EVENTOS items=52
+[Monday, 01 Dec 2025 16:29:47 GMT][INFO] Cache carregado para MARKETING (12 itens)
+[Monday, 01 Dec 2025 16:29:47 GMT][INFO] [telemetry] loadCache:MARKETING 5555ms | status=ok prod=MARKETING items=12
+[Monday, 01 Dec 2025 16:30:33 GMT][INFO] Cache carregado para PROMO (3 itens)
+[Monday, 01 Dec 2025 16:30:33 GMT][INFO] [telemetry] loadCache:PROMO 46364ms | status=ok prod=PROMO items=3
+[Monday, 01 Dec 2025 17:43:09 GMT][INFO] [telemetry] performSearch 36ms | mode=list results=115 search=false prod=ILUSTRACOES
+[Monday, 01 Dec 2025 17:43:13 GMT][INFO] [telemetry] performSearch 65ms | mode=list results=115 search=false prod=ILUSTRACOES
+[Monday, 01 Dec 2025 17:43:13 GMT][INFO] [telemetry] performSearch 35ms | mode=list results=115 search=false prod=ILUSTRACOES
+[Monday, 01 Dec 2025 17:43:31 GMT][INFO] [telemetry] loadCentralConfigs 0ms | cached=true warm=true success=true
+[Monday, 01 Dec 2025 17:43:31 GMT][INFO] [telemetry] performSearch 13ms | mode=list results=115 search=false prod=ILUSTRACOES
+[Monday, 01 Dec 2025 18:09:08 GMT][INFO] [telemetry] loadCentralConfigs 0ms | cached=true warm=true success=true
+[Monday, 01 Dec 2025 18:09:08 GMT][INFO] [telemetry] performSearch 11ms | mode=list results=115 search=false prod=ILUSTRACOES
+[Monday, 01 Dec 2025 18:09:13 GMT][INFO] [telemetry] pipelineWarmup 140ms | status=ok
+[Monday, 01 Dec 2025 18:09:13 GMT][INFO] [telemetry] loadCentralConfigs 0ms | cached=true warm=true success=true
+[Monday, 01 Dec 2025 18:09:13 GMT][INFO] [telemetry] performSearch 0ms | status=pendingLoad prod=ILUSTRACOES
+[Monday, 01 Dec 2025 18:09:13 GMT][INFO] [telemetry] performSearch 0ms | status=pendingLoad prod=ILUSTRACOES
+[Monday, 01 Dec 2025 18:09:14 GMT][INFO] Snapshot restaurado para ILUSTRACOES (33 itens)
+[Monday, 01 Dec 2025 18:09:14 GMT][INFO] [telemetry] loadCache:ILUSTRACOES 137ms | status=snapshot prod=ILUSTRACOES items=33
+[Monday, 01 Dec 2025 18:09:14 GMT][INFO] [telemetry] loadMetadata:ILUSTRACOES 58ms | entries=115 prod=ILUSTRACOES status=cooked
+[Monday, 01 Dec 2025 18:09:18 GMT][INFO] [telemetry] performSearch 30ms | mode=list results=115 search=false prod=ILUSTRACOES
+[Monday, 01 Dec 2025 18:09:29 GMT][INFO] [telemetry] performSearch 59ms | mode=list results=115 search=false prod=ILUSTRACOES
+[Monday, 01 Dec 2025 18:09:30 GMT][INFO] [telemetry] performSearch 1ms | status=pendingLoad prod=JORNAIS
+[Monday, 01 Dec 2025 18:09:45 GMT][INFO] [telemetry] performSearch 0ms | status=pendingLoad prod=JORNAIS
+[Monday, 01 Dec 2025 18:09:46 GMT][INFO] [telemetry] performSearch 1ms | status=pendingLoad prod=JORNAIS
+[Monday, 01 Dec 2025 18:09:46 GMT][INFO] Snapshot restaurado para JORNAIS (52 itens)
+[Monday, 01 Dec 2025 18:09:46 GMT][INFO] [telemetry] loadCache:JORNAIS 16002ms | status=snapshot prod=JORNAIS items=52
+[Monday, 01 Dec 2025 18:10:03 GMT][INFO] [telemetry] loadMetadata:JORNAIS 16632ms | entries=1738 prod=JORNAIS status=cooked
+[Monday, 01 Dec 2025 18:10:07 GMT][INFO] [telemetry] performSearch 386ms | mode=list results=1738 search=false prod=JORNAIS
+[Monday, 01 Dec 2025 18:10:07 GMT][INFO] [telemetry] performSearch 66ms | mode=list results=1738 search=false prod=JORNAIS

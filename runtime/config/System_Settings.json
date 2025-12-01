@@ -1,0 +1,144 @@
+{
+    "COPYLINKS_Settings": {
+        "configuracao": {
+            "layout_grupos": {
+                "HARDNEWS SP": {
+                    "altura": 230
+                },
+                "SÃO PAULO": {
+                    "altura": 310
+                },
+                "FANTASTICO": {
+                    "altura": 590
+                },
+                "IP MÁQUINAS": {
+                    "altura": 590
+                },
+                "RIO DE JANEIRO": {
+                    "altura": 590
+                },
+                "ESPORTE": {
+                    "altura": 230
+                },
+                "GUIAS": {
+                    "altura": 310
+                },
+                "HARDNEWS RJ": {
+                    "altura": 590
+                },
+                "PROGRAMAS RJ": {
+                    "altura": 230
+                },
+                "PROMO": {
+                    "altura": 590
+                },
+                "CATÁLOGOS": {
+                    "altura": 550
+                },
+                "PROGRAMAS SP": {
+                    "altura": 310
+                }
+            },
+            "layout_geral": {
+                "name_btn_width": 590,
+                "text_width_normal": 460,
+                "btn_width": 0,
+                "name_btn_height": 42,
+                "bottom_row_height": 24
+            }
+        }
+    },
+    "TEMPLATES_Settings": {
+        "PRODUCTIONS": [
+            {
+                "name": "JORNAIS",
+                "icon": "D9T_TEMPPECAS_ICON",
+                "paths": [
+                    "/t/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS"
+                ],
+                "cacheFile": "templates_jornais_cache.json",
+                "metadataFile": "templates_jornais_metadata.json"
+            },
+            {
+                "name": "ILUSTRACOES",
+                "icon": "D9T_TILUSTRA_ICON",
+                "paths": [
+                    "/t/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS/Ilustracoes"
+                ],
+                "cacheFile": "templates_ilustracoes_cache.json",
+                "metadataFile": "templates_ilustracoes_metadata.json"
+            },
+            {
+                "name": "BASE TEMATICA",
+                "icon": "D9T_TBASE_ICON",
+                "paths": [
+                    "/t/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS/Bases caracter/_BASES_TEMATICAS"
+                ],
+                "cacheFile": "templates_basetematica_cache.json",
+                "metadataFile": "templates_basetematica_metadata.json"
+            },
+            {
+                "name": "PROGRAMAS",
+                "icon": "D9T_PROGRAMAS_ICON",
+                "paths": [
+                    "/t/JORNALISMO/GLOBONEWS/PROGRAMAS"
+                ],
+                "cacheFile": "templates_programas_cache.json",
+                "metadataFile": "templates_programas_metadata.json"
+            },
+            {
+                "name": "EVENTOS",
+                "icon": "D9T_EVENTOS_ICON",
+                "paths": [
+                    "/t/JORNALISMO/GLOBONEWS/EVENTOS"
+                ],
+                "cacheFile": "templates_eventos_cache.json",
+                "metadataFile": "templates_eventos_metadata.json"
+            },
+            {
+                "name": "MARKETING",
+                "icon": "D9T_MARKETING_ICON",
+                "paths": [
+                    "/t/JORNALISMO/GLOBONEWS/MARKETING"
+                ],
+                "cacheFile": "templates_marketing_cache.json",
+                "metadataFile": "templates_marketing_metadata.json"
+            },
+            {
+                "name": "PROMO",
+                "icon": "D9T_PROMO_ICON",
+                "paths": [
+                    "/t/JORNALISMO/GLOBONEWS/PROMO"
+                ],
+                "cacheFile": "templates_promo_cache.json",
+                "metadataFile": "templates_promo_metadata.json"
+            }
+        ],
+        "gnews_templates": {
+            "lastProductionIndex": 0,
+            "directNetworkMode": false
+        }
+    },
+    "LIBRARYLIVE_Settings": {
+        "icon_root_paths": [
+            "D:\\PROJETOS\\SCRIPTS AFTER\\files\\ICONS",
+            "T:\\UTILIDADES\\ICONES"
+        ],
+        "image_root_paths": [
+            "D:\\PROJETOS\\SCRIPTS AFTER\\files\\IMAGENS",
+            "T:\\UTILIDADES\\IMAGENS E VIDEOS AUTORIZADOS"
+        ],
+        "tool_settings": {
+            "LibraryLive": {
+                "icon_root_paths": [
+                    "D:\\PROJETOS\\SCRIPTS AFTER\\files\\ICONS",
+                    "T:\\UTILIDADES\\ICONES"
+                ],
+                "image_root_paths": [
+                    "D:\\PROJETOS\\SCRIPTS AFTER\\files\\IMAGENS",
+                    "T:\\UTILIDADES\\IMAGENS E VIDEOS AUTORIZADOS"
+                ]
+            }
+        }
+    }
+}

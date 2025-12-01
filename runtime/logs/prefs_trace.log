@@ -1,0 +1,723 @@
+Friday, 21 Nov 2025 01:58:47 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\User_Preferences.json
+Friday, 21 Nov 2025 01:58:47 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 21 Nov 2025 01:58:55 GMT [D9T_PREFS_TRACE] icon_settings begin {"iconSize":[30,30],"iconSpacing":1,"verticalIconSize":[30,30],"verticalIconSpacing":25,"labelSpacing":3,"compactIconSize":[28,28],"compactIconSpacing":28,"showLabels":true,"iconOnlySpacing":50}
+Friday, 21 Nov 2025 01:58:55 GMT [D9T_PREFS_TRACE] icon_settings merged | themes=3 | active=classic
+Friday, 21 Nov 2025 01:58:55 GMT [D9T_PREFS_TRACE] icon_settings commit -> saveScriptPreferences
+Friday, 21 Nov 2025 01:58:55 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script
+Friday, 21 Nov 2025 01:58:55 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":10,"textTransform":"uppercase"}
+Friday, 21 Nov 2025 01:58:55 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script/User_Preferences.json
+Friday, 21 Nov 2025 01:58:55 GMT [D9T_PREFS_TRACE] icon_settings commit done
+Friday, 21 Nov 2025 01:58:55 GMT [D9T_PREFS_TRACE] icon_settings commit done
+Friday, 21 Nov 2025 01:59:00 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\User_Preferences.json
+Friday, 21 Nov 2025 01:59:00 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 21 Nov 2025 02:00:45 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\User_Preferences.json
+Friday, 21 Nov 2025 02:00:45 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 21 Nov 2025 02:00:51 GMT [D9T_PREFS_TRACE] icon_settings begin {"iconSize":[40,40],"iconSpacing":25,"verticalIconSize":[30,30],"verticalIconSpacing":25,"labelSpacing":5,"compactIconSize":[32,32],"compactIconSpacing":12,"showLabels":true,"iconOnlySpacing":15}
+Friday, 21 Nov 2025 02:00:51 GMT [D9T_PREFS_TRACE] icon_settings merged | themes=3 | active=classic
+Friday, 21 Nov 2025 02:00:51 GMT [D9T_PREFS_TRACE] icon_settings commit -> saveScriptPreferences
+Friday, 21 Nov 2025 02:00:51 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script
+Friday, 21 Nov 2025 02:00:51 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":10,"textTransform":"uppercase"}
+Friday, 21 Nov 2025 02:00:51 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script/User_Preferences.json
+Friday, 21 Nov 2025 02:00:51 GMT [D9T_PREFS_TRACE] icon_settings commit done
+Friday, 21 Nov 2025 02:00:56 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\User_Preferences.json
+Friday, 21 Nov 2025 02:00:56 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 21 Nov 2025 02:14:32 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 21 Nov 2025 02:14:32 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 21 Nov 2025 02:28:31 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 21 Nov 2025 02:28:31 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 21 Nov 2025 02:29:07 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] persistTheme start | themes=3 | active=classic
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] persistTheme themeData classic -> {"id":"classic","name":"Clássico","width":130,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":10,"textTransform":"uppercase"}
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] pre-saveButtonThemesState | themes=3 | active=classic
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] activeTheme snapshot classic {"id":"classic","name":"Clássico","width":130,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":10,"textTransform":"uppercase"}
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":130,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":10,"textTransform":"uppercase"}
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] saveScriptPreferences direct OK
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] post-saveButtonThemesState | themes=3 | active=classic
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] persistTheme OK
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] persistTheme end | themes=3 | active=classic
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] persistTheme start | themes=3 | active=classic
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] persistTheme themeData classic -> {"id":"classic","name":"Clássico","width":130,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":10,"textTransform":"uppercase"}
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] pre-saveButtonThemesState | themes=3 | active=classic
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] activeTheme snapshot classic {"id":"classic","name":"Clássico","width":130,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":10,"textTransform":"uppercase"}
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":130,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":10,"textTransform":"uppercase"}
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] saveScriptPreferences direct OK
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] post-saveButtonThemesState | themes=3 | active=classic
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] persistTheme OK
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] persistTheme end | themes=3 | active=classic
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] pre-saveButtonThemesState | themes=3 | active=classic
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] activeTheme snapshot classic {"id":"classic","name":"Clássico","width":130,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":10,"textTransform":"uppercase"}
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":130,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":10,"textTransform":"uppercase"}
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] saveScriptPreferences direct OK
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] post-saveButtonThemesState | themes=3 | active=classic
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] pre-saveButtonThemesState | themes=3 | active=classic
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] activeTheme snapshot classic {"id":"classic","name":"Clássico","width":130,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":10,"textTransform":"uppercase"}
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Friday, 21 Nov 2025 02:29:13 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":130,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":10,"textTransform":"uppercase"}
+Friday, 21 Nov 2025 02:29:14 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Friday, 21 Nov 2025 02:29:14 GMT [D9T_PREFS_TRACE] saveScriptPreferences direct OK
+Friday, 21 Nov 2025 02:29:14 GMT [D9T_PREFS_TRACE] post-saveButtonThemesState | themes=3 | active=classic
+Monday, 24 Nov 2025 15:15:11 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 24 Nov 2025 15:15:11 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 24 Nov 2025 15:24:43 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 24 Nov 2025 15:24:43 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 24 Nov 2025 15:35:24 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 24 Nov 2025 15:35:24 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 24 Nov 2025 15:38:55 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 24 Nov 2025 15:38:55 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 24 Nov 2025 15:42:51 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 24 Nov 2025 15:42:51 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 24 Nov 2025 16:01:00 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 24 Nov 2025 16:01:00 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 24 Nov 2025 16:16:30 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 24 Nov 2025 16:16:30 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 24 Nov 2025 16:26:55 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 24 Nov 2025 16:26:55 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 24 Nov 2025 16:33:13 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 24 Nov 2025 16:33:13 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 24 Nov 2025 16:45:21 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 24 Nov 2025 16:45:21 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 24 Nov 2025 16:45:53 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 24 Nov 2025 16:45:53 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 24 Nov 2025 17:04:31 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 24 Nov 2025 17:04:31 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 24 Nov 2025 17:05:14 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 24 Nov 2025 17:05:14 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 24 Nov 2025 17:05:28 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 24 Nov 2025 17:05:28 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 24 Nov 2025 17:08:15 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 24 Nov 2025 17:08:15 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 24 Nov 2025 17:11:44 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 24 Nov 2025 17:11:44 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 24 Nov 2025 17:18:06 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 24 Nov 2025 17:18:06 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 24 Nov 2025 17:22:34 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 24 Nov 2025 17:22:34 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 24 Nov 2025 17:28:45 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 24 Nov 2025 17:28:45 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 24 Nov 2025 17:31:51 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 24 Nov 2025 17:31:51 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 24 Nov 2025 17:38:27 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 24 Nov 2025 17:38:27 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 24 Nov 2025 17:44:24 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 24 Nov 2025 17:44:24 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 24 Nov 2025 17:55:36 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 24 Nov 2025 17:55:36 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Tuesday, 25 Nov 2025 11:10:29 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Tuesday, 25 Nov 2025 11:10:29 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Tuesday, 25 Nov 2025 11:33:14 GMT [D9T_PREFS_TRACE] icon_settings begin {"iconSize":[30,30],"iconSpacing":1,"verticalIconSize":[30,30],"verticalIconSpacing":25,"labelSpacing":3,"compactIconSize":[28,28],"compactIconSpacing":28,"showLabels":true,"iconOnlySpacing":50}
+Tuesday, 25 Nov 2025 11:33:14 GMT [D9T_PREFS_TRACE] icon_settings merged | themes=3 | active=classic
+Tuesday, 25 Nov 2025 11:33:14 GMT [D9T_PREFS_TRACE] icon_settings commit -> saveScriptPreferences
+Tuesday, 25 Nov 2025 11:33:14 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Tuesday, 25 Nov 2025 11:33:14 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":45,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":10,"textTransform":"uppercase"}
+Tuesday, 25 Nov 2025 11:33:14 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Tuesday, 25 Nov 2025 11:33:14 GMT [D9T_PREFS_TRACE] icon_settings commit done
+Tuesday, 25 Nov 2025 11:34:07 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Tuesday, 25 Nov 2025 11:34:07 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Tuesday, 25 Nov 2025 11:59:41 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Tuesday, 25 Nov 2025 11:59:41 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Tuesday, 25 Nov 2025 12:01:00 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Tuesday, 25 Nov 2025 12:01:00 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Tuesday, 25 Nov 2025 12:10:53 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Tuesday, 25 Nov 2025 12:10:53 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Tuesday, 25 Nov 2025 12:36:13 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Tuesday, 25 Nov 2025 12:36:13 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Tuesday, 25 Nov 2025 13:04:16 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Tuesday, 25 Nov 2025 13:04:16 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Tuesday, 25 Nov 2025 14:17:47 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Tuesday, 25 Nov 2025 14:17:47 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Tuesday, 25 Nov 2025 15:59:21 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Tuesday, 25 Nov 2025 15:59:21 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Tuesday, 25 Nov 2025 17:07:42 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Tuesday, 25 Nov 2025 17:07:42 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Tuesday, 25 Nov 2025 17:16:28 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Tuesday, 25 Nov 2025 17:16:28 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Tuesday, 25 Nov 2025 17:17:43 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Tuesday, 25 Nov 2025 17:17:43 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Tuesday, 25 Nov 2025 17:35:19 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Tuesday, 25 Nov 2025 17:35:19 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Tuesday, 25 Nov 2025 17:35:30 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Tuesday, 25 Nov 2025 17:35:30 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Tuesday, 25 Nov 2025 17:45:42 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Tuesday, 25 Nov 2025 17:45:42 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Tuesday, 25 Nov 2025 17:58:57 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Tuesday, 25 Nov 2025 17:58:57 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Tuesday, 25 Nov 2025 18:06:34 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Tuesday, 25 Nov 2025 18:06:34 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Tuesday, 25 Nov 2025 18:24:37 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Tuesday, 25 Nov 2025 18:24:37 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 09:16:37 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 09:16:37 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 09:23:26 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 09:23:26 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 09:23:58 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 09:23:58 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 09:36:31 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 09:36:31 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 09:53:53 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 09:53:53 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 10:04:20 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 10:04:20 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 10:12:27 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 10:12:27 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 11:32:08 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 11:32:08 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 11:37:57 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 11:37:57 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 11:48:46 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 11:48:46 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 12:27:08 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 12:27:08 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 12:42:55 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 12:42:55 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 13:02:28 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 13:02:28 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 13:06:28 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 13:06:28 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 13:06:37 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 13:06:37 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 13:10:06 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 13:10:06 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 13:10:29 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 13:10:29 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 13:19:58 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 13:19:58 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 13:21:18 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 13:21:18 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 13:30:18 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 13:30:18 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 13:30:33 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 13:30:33 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 13:30:46 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 13:30:46 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 13:30:59 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 13:30:59 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 14:28:18 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 14:28:18 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 14:28:50 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 14:28:50 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 14:29:32 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 14:29:32 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 14:35:10 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 14:35:10 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 14:36:03 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 14:36:03 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 14:52:46 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 14:52:46 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 14:53:08 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 14:53:08 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 14:54:08 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 14:54:08 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 15:01:24 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 15:01:24 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 15:23:55 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 15:23:55 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 15:26:18 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 15:26:18 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 15:33:30 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 15:33:30 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 17:07:24 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 17:07:24 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 17:49:08 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 17:49:08 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Wednesday, 26 Nov 2025 18:27:11 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Wednesday, 26 Nov 2025 18:27:11 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Thursday, 27 Nov 2025 16:20:09 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Thursday, 27 Nov 2025 16:20:09 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Thursday, 27 Nov 2025 16:20:19 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Thursday, 27 Nov 2025 16:20:19 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Thursday, 27 Nov 2025 17:02:23 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Thursday, 27 Nov 2025 17:02:23 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Thursday, 27 Nov 2025 17:03:34 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Thursday, 27 Nov 2025 17:03:34 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Thursday, 27 Nov 2025 17:13:34 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Thursday, 27 Nov 2025 17:13:34 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Thursday, 27 Nov 2025 17:24:20 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Thursday, 27 Nov 2025 17:24:20 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Thursday, 27 Nov 2025 17:34:14 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Thursday, 27 Nov 2025 17:34:14 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Thursday, 27 Nov 2025 17:35:23 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Thursday, 27 Nov 2025 17:35:23 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Thursday, 27 Nov 2025 17:38:10 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Thursday, 27 Nov 2025 17:38:10 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Thursday, 27 Nov 2025 17:39:51 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Thursday, 27 Nov 2025 17:39:51 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Thursday, 27 Nov 2025 17:42:23 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Thursday, 27 Nov 2025 17:42:23 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Thursday, 27 Nov 2025 17:46:57 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Thursday, 27 Nov 2025 17:46:57 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Thursday, 27 Nov 2025 17:50:31 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Thursday, 27 Nov 2025 17:50:31 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Thursday, 27 Nov 2025 17:56:26 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Thursday, 27 Nov 2025 17:56:26 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Thursday, 27 Nov 2025 17:57:32 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Thursday, 27 Nov 2025 17:57:32 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Thursday, 27 Nov 2025 17:59:43 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Thursday, 27 Nov 2025 17:59:43 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Thursday, 27 Nov 2025 18:00:54 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Thursday, 27 Nov 2025 18:00:54 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Thursday, 27 Nov 2025 18:26:56 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Thursday, 27 Nov 2025 18:26:56 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 13:11:19 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 13:11:19 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 13:29:07 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 13:29:07 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 13:33:16 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 13:33:16 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 13:40:57 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 13:40:57 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 14:05:47 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 14:05:47 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 14:10:40 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 14:10:40 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 14:17:03 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 14:17:03 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 14:17:44 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 14:17:44 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 14:18:25 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 14:18:25 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 14:19:08 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 14:19:08 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 14:22:00 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 14:22:00 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 14:26:18 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 14:26:18 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 15:00:36 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 15:00:36 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 15:17:37 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 15:17:37 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 16:05:30 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 16:05:30 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 16:29:06 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 16:29:06 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 16:29:29 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 16:29:29 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 16:32:03 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 16:32:03 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 16:40:33 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 16:40:33 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 16:42:23 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 16:42:23 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 17:01:42 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 17:01:42 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 17:11:18 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 17:11:18 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 17:20:53 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 17:20:53 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 17:21:23 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Friday, 28 Nov 2025 17:21:32 GMT [D9T_PREFS_TRACE] persistTheme start | themes=3 | active=classic
+Friday, 28 Nov 2025 17:21:32 GMT [D9T_PREFS_TRACE] persistTheme themeData classic -> {"id":"classic","name":"Clássico","width":120,"height":36,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:21:32 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 17:21:32 GMT [D9T_PREFS_TRACE] pre-saveButtonThemesState | themes=3 | active=classic
+Friday, 28 Nov 2025 17:21:32 GMT [D9T_PREFS_TRACE] activeTheme snapshot classic {"id":"classic","name":"Clássico","width":120,"height":36,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:21:32 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Friday, 28 Nov 2025 17:21:32 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":120,"height":36,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:21:32 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Friday, 28 Nov 2025 17:21:32 GMT [D9T_PREFS_TRACE] saveScriptPreferences direct OK
+Friday, 28 Nov 2025 17:21:32 GMT [D9T_PREFS_TRACE] post-saveButtonThemesState | themes=3 | active=classic
+Friday, 28 Nov 2025 17:21:32 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 17:21:32 GMT [D9T_PREFS_TRACE] persistTheme OK
+Friday, 28 Nov 2025 17:21:32 GMT [D9T_PREFS_TRACE] persistTheme end | themes=3 | active=classic
+Friday, 28 Nov 2025 17:21:36 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Friday, 28 Nov 2025 17:21:43 GMT [D9T_PREFS_TRACE] persistTheme start | themes=3 | active=classic
+Friday, 28 Nov 2025 17:21:43 GMT [D9T_PREFS_TRACE] persistTheme themeData classic -> {"id":"classic","name":"Clássico","width":200,"height":36,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:21:43 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 17:21:43 GMT [D9T_PREFS_TRACE] pre-saveButtonThemesState | themes=3 | active=classic
+Friday, 28 Nov 2025 17:21:43 GMT [D9T_PREFS_TRACE] activeTheme snapshot classic {"id":"classic","name":"Clássico","width":200,"height":36,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:21:43 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Friday, 28 Nov 2025 17:21:43 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":36,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:21:43 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Friday, 28 Nov 2025 17:21:43 GMT [D9T_PREFS_TRACE] saveScriptPreferences direct OK
+Friday, 28 Nov 2025 17:21:43 GMT [D9T_PREFS_TRACE] post-saveButtonThemesState | themes=3 | active=classic
+Friday, 28 Nov 2025 17:21:43 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 17:21:43 GMT [D9T_PREFS_TRACE] persistTheme OK
+Friday, 28 Nov 2025 17:21:43 GMT [D9T_PREFS_TRACE] persistTheme end | themes=3 | active=classic
+Friday, 28 Nov 2025 17:21:44 GMT [D9T_PREFS_TRACE] persistTheme start | themes=3 | active=classic
+Friday, 28 Nov 2025 17:21:44 GMT [D9T_PREFS_TRACE] persistTheme themeData classic -> {"id":"classic","name":"Clássico","width":200,"height":36,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:21:44 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 17:21:44 GMT [D9T_PREFS_TRACE] pre-saveButtonThemesState | themes=3 | active=classic
+Friday, 28 Nov 2025 17:21:44 GMT [D9T_PREFS_TRACE] activeTheme snapshot classic {"id":"classic","name":"Clássico","width":200,"height":36,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:21:44 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Friday, 28 Nov 2025 17:21:44 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":36,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:21:44 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Friday, 28 Nov 2025 17:21:44 GMT [D9T_PREFS_TRACE] saveScriptPreferences direct OK
+Friday, 28 Nov 2025 17:21:44 GMT [D9T_PREFS_TRACE] post-saveButtonThemesState | themes=3 | active=classic
+Friday, 28 Nov 2025 17:21:44 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 17:21:44 GMT [D9T_PREFS_TRACE] persistTheme OK
+Friday, 28 Nov 2025 17:21:44 GMT [D9T_PREFS_TRACE] persistTheme end | themes=3 | active=classic
+Friday, 28 Nov 2025 17:21:44 GMT [D9T_PREFS_TRACE] pre-saveButtonThemesState | themes=3 | active=classic
+Friday, 28 Nov 2025 17:21:44 GMT [D9T_PREFS_TRACE] activeTheme snapshot classic {"id":"classic","name":"Clássico","width":200,"height":36,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:21:44 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Friday, 28 Nov 2025 17:21:44 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":36,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:21:44 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Friday, 28 Nov 2025 17:21:44 GMT [D9T_PREFS_TRACE] saveScriptPreferences direct OK
+Friday, 28 Nov 2025 17:21:44 GMT [D9T_PREFS_TRACE] post-saveButtonThemesState | themes=3 | active=classic
+Friday, 28 Nov 2025 17:21:44 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 17:21:44 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 17:21:44 GMT [D9T_PREFS_TRACE] pre-saveButtonThemesState | themes=3 | active=classic
+Friday, 28 Nov 2025 17:21:44 GMT [D9T_PREFS_TRACE] activeTheme snapshot classic {"id":"classic","name":"Clássico","width":200,"height":36,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:21:44 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Friday, 28 Nov 2025 17:21:44 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":36,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:21:44 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Friday, 28 Nov 2025 17:21:44 GMT [D9T_PREFS_TRACE] saveScriptPreferences direct OK
+Friday, 28 Nov 2025 17:21:44 GMT [D9T_PREFS_TRACE] post-saveButtonThemesState | themes=3 | active=classic
+Friday, 28 Nov 2025 17:21:44 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 17:22:00 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 17:22:00 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 17:34:08 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 17:34:08 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 17:34:54 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 17:34:54 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:02 GMT [D9T_PREFS_TRACE] icon_settings begin {"iconSize":[40,40],"iconSpacing":25,"verticalIconSize":[30,30],"verticalIconSpacing":25,"labelSpacing":5,"compactIconSize":[32,32],"compactIconSpacing":12,"showLabels":true,"iconOnlySpacing":15}
+Friday, 28 Nov 2025 17:35:02 GMT [D9T_PREFS_TRACE] icon_settings merged | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:02 GMT [D9T_PREFS_TRACE] icon_settings commit -> saveScriptPreferences
+Friday, 28 Nov 2025 17:35:02 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Friday, 28 Nov 2025 17:35:02 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":36,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:35:02 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Friday, 28 Nov 2025 17:35:02 GMT [D9T_PREFS_TRACE] icon_settings commit done
+Friday, 28 Nov 2025 17:35:06 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 17:35:06 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] persistTheme start | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] persistTheme themeData classic -> {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":0,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] pre-saveButtonThemesState | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] activeTheme snapshot classic {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":0,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":0,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] saveScriptPreferences direct OK
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] post-saveButtonThemesState | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] persistTheme OK
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] persistTheme end | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] persistTheme start | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] persistTheme themeData classic -> {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":0,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] pre-saveButtonThemesState | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] activeTheme snapshot classic {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":0,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":0,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] saveScriptPreferences direct OK
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] post-saveButtonThemesState | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] persistTheme OK
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] persistTheme end | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] pre-saveButtonThemesState | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] activeTheme snapshot classic {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":0,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":0,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] saveScriptPreferences direct OK
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] post-saveButtonThemesState | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] pre-saveButtonThemesState | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] activeTheme snapshot classic {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":0,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":0,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] saveScriptPreferences direct OK
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] post-saveButtonThemesState | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:20 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 17:35:31 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:36 GMT [D9T_PREFS_TRACE] persistTheme start | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:36 GMT [D9T_PREFS_TRACE] persistTheme themeData classic -> {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:35:36 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:36 GMT [D9T_PREFS_TRACE] pre-saveButtonThemesState | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:36 GMT [D9T_PREFS_TRACE] activeTheme snapshot classic {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:35:36 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Friday, 28 Nov 2025 17:35:36 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:35:36 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Friday, 28 Nov 2025 17:35:36 GMT [D9T_PREFS_TRACE] saveScriptPreferences direct OK
+Friday, 28 Nov 2025 17:35:36 GMT [D9T_PREFS_TRACE] post-saveButtonThemesState | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:36 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 17:35:36 GMT [D9T_PREFS_TRACE] persistTheme OK
+Friday, 28 Nov 2025 17:35:36 GMT [D9T_PREFS_TRACE] persistTheme end | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:37 GMT [D9T_PREFS_TRACE] persistTheme start | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:37 GMT [D9T_PREFS_TRACE] persistTheme themeData classic -> {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:35:37 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:37 GMT [D9T_PREFS_TRACE] pre-saveButtonThemesState | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:37 GMT [D9T_PREFS_TRACE] activeTheme snapshot classic {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:35:37 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Friday, 28 Nov 2025 17:35:37 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:35:37 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Friday, 28 Nov 2025 17:35:37 GMT [D9T_PREFS_TRACE] saveScriptPreferences direct OK
+Friday, 28 Nov 2025 17:35:37 GMT [D9T_PREFS_TRACE] post-saveButtonThemesState | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:37 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 17:35:37 GMT [D9T_PREFS_TRACE] persistTheme OK
+Friday, 28 Nov 2025 17:35:37 GMT [D9T_PREFS_TRACE] persistTheme end | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:37 GMT [D9T_PREFS_TRACE] pre-saveButtonThemesState | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:37 GMT [D9T_PREFS_TRACE] activeTheme snapshot classic {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:35:37 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Friday, 28 Nov 2025 17:35:37 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:35:37 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Friday, 28 Nov 2025 17:35:37 GMT [D9T_PREFS_TRACE] saveScriptPreferences direct OK
+Friday, 28 Nov 2025 17:35:37 GMT [D9T_PREFS_TRACE] post-saveButtonThemesState | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:37 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:37 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 17:35:37 GMT [D9T_PREFS_TRACE] pre-saveButtonThemesState | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:37 GMT [D9T_PREFS_TRACE] activeTheme snapshot classic {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:35:37 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Friday, 28 Nov 2025 17:35:37 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 17:35:37 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Friday, 28 Nov 2025 17:35:37 GMT [D9T_PREFS_TRACE] saveScriptPreferences direct OK
+Friday, 28 Nov 2025 17:35:37 GMT [D9T_PREFS_TRACE] post-saveButtonThemesState | themes=3 | active=classic
+Friday, 28 Nov 2025 17:35:37 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 17:35:42 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 17:35:42 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 18:04:27 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 18:04:27 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 18:05:15 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 18:05:15 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 18:06:00 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 18:06:00 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 18:06:14 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 18:06:14 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 18:36:07 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 18:36:07 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 18:36:21 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 18:36:21 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 18:36:33 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Friday, 28 Nov 2025 18:36:40 GMT [D9T_PREFS_TRACE] persistTheme start | themes=3 | active=classic
+Friday, 28 Nov 2025 18:36:40 GMT [D9T_PREFS_TRACE] persistTheme themeData classic -> {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":0,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 18:36:40 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 18:36:40 GMT [D9T_PREFS_TRACE] pre-saveButtonThemesState | themes=3 | active=classic
+Friday, 28 Nov 2025 18:36:40 GMT [D9T_PREFS_TRACE] activeTheme snapshot classic {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":0,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 18:36:40 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Friday, 28 Nov 2025 18:36:40 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":0,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 18:36:40 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Friday, 28 Nov 2025 18:36:40 GMT [D9T_PREFS_TRACE] saveScriptPreferences direct OK
+Friday, 28 Nov 2025 18:36:40 GMT [D9T_PREFS_TRACE] post-saveButtonThemesState | themes=3 | active=classic
+Friday, 28 Nov 2025 18:36:40 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 18:36:40 GMT [D9T_PREFS_TRACE] persistTheme OK
+Friday, 28 Nov 2025 18:36:40 GMT [D9T_PREFS_TRACE] persistTheme end | themes=3 | active=classic
+Friday, 28 Nov 2025 18:37:06 GMT [D9T_PREFS_TRACE] persistTheme start | themes=3 | active=classic
+Friday, 28 Nov 2025 18:37:06 GMT [D9T_PREFS_TRACE] persistTheme themeData classic -> {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 18:37:06 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Friday, 28 Nov 2025 18:37:06 GMT [D9T_PREFS_TRACE] pre-saveButtonThemesState | themes=3 | active=classic
+Friday, 28 Nov 2025 18:37:06 GMT [D9T_PREFS_TRACE] activeTheme snapshot classic {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 18:37:06 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Friday, 28 Nov 2025 18:37:06 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Friday, 28 Nov 2025 18:37:06 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Friday, 28 Nov 2025 18:37:06 GMT [D9T_PREFS_TRACE] saveScriptPreferences direct OK
+Friday, 28 Nov 2025 18:37:06 GMT [D9T_PREFS_TRACE] post-saveButtonThemesState | themes=3 | active=classic
+Friday, 28 Nov 2025 18:37:06 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Friday, 28 Nov 2025 18:37:06 GMT [D9T_PREFS_TRACE] persistTheme OK
+Friday, 28 Nov 2025 18:37:06 GMT [D9T_PREFS_TRACE] persistTheme end | themes=3 | active=classic
+Friday, 28 Nov 2025 18:37:58 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Monday, 01 Dec 2025 12:01:29 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 12:01:29 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 12:19:41 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 12:19:41 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 12:28:23 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 12:28:23 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 12:28:31 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Monday, 01 Dec 2025 12:28:43 GMT [D9T_PREFS_TRACE] persistTheme start | themes=3 | active=classic
+Monday, 01 Dec 2025 12:28:43 GMT [D9T_PREFS_TRACE] persistTheme themeData classic -> {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-23,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Monday, 01 Dec 2025 12:28:43 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 12:28:43 GMT [D9T_PREFS_TRACE] pre-saveButtonThemesState | themes=3 | active=classic
+Monday, 01 Dec 2025 12:28:43 GMT [D9T_PREFS_TRACE] activeTheme snapshot classic {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-23,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Monday, 01 Dec 2025 12:28:43 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Monday, 01 Dec 2025 12:28:43 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-23,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Monday, 01 Dec 2025 12:28:43 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Monday, 01 Dec 2025 12:28:43 GMT [D9T_PREFS_TRACE] saveScriptPreferences direct OK
+Monday, 01 Dec 2025 12:28:43 GMT [D9T_PREFS_TRACE] post-saveButtonThemesState | themes=3 | active=classic
+Monday, 01 Dec 2025 12:28:43 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 12:28:43 GMT [D9T_PREFS_TRACE] persistTheme OK
+Monday, 01 Dec 2025 12:28:43 GMT [D9T_PREFS_TRACE] persistTheme end | themes=3 | active=classic
+Monday, 01 Dec 2025 12:28:58 GMT [D9T_PREFS_TRACE] persistTheme start | themes=3 | active=classic
+Monday, 01 Dec 2025 12:28:58 GMT [D9T_PREFS_TRACE] persistTheme themeData classic -> {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-40,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Monday, 01 Dec 2025 12:28:58 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 12:28:58 GMT [D9T_PREFS_TRACE] pre-saveButtonThemesState | themes=3 | active=classic
+Monday, 01 Dec 2025 12:28:58 GMT [D9T_PREFS_TRACE] activeTheme snapshot classic {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-40,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Monday, 01 Dec 2025 12:28:58 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Monday, 01 Dec 2025 12:28:58 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-40,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Monday, 01 Dec 2025 12:28:58 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Monday, 01 Dec 2025 12:28:58 GMT [D9T_PREFS_TRACE] saveScriptPreferences direct OK
+Monday, 01 Dec 2025 12:28:58 GMT [D9T_PREFS_TRACE] post-saveButtonThemesState | themes=3 | active=classic
+Monday, 01 Dec 2025 12:28:58 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 12:28:58 GMT [D9T_PREFS_TRACE] persistTheme OK
+Monday, 01 Dec 2025 12:28:58 GMT [D9T_PREFS_TRACE] persistTheme end | themes=3 | active=classic
+Monday, 01 Dec 2025 12:35:06 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 12:35:06 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 12:35:15 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Monday, 01 Dec 2025 12:35:21 GMT [D9T_PREFS_TRACE] persistTheme start | themes=3 | active=classic
+Monday, 01 Dec 2025 12:35:21 GMT [D9T_PREFS_TRACE] persistTheme themeData classic -> {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Monday, 01 Dec 2025 12:35:21 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 12:35:21 GMT [D9T_PREFS_TRACE] pre-saveButtonThemesState | themes=3 | active=classic
+Monday, 01 Dec 2025 12:35:21 GMT [D9T_PREFS_TRACE] activeTheme snapshot classic {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Monday, 01 Dec 2025 12:35:21 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Monday, 01 Dec 2025 12:35:21 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Monday, 01 Dec 2025 12:35:21 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Monday, 01 Dec 2025 12:35:21 GMT [D9T_PREFS_TRACE] saveScriptPreferences direct OK
+Monday, 01 Dec 2025 12:35:21 GMT [D9T_PREFS_TRACE] post-saveButtonThemesState | themes=3 | active=classic
+Monday, 01 Dec 2025 12:35:21 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 12:35:21 GMT [D9T_PREFS_TRACE] persistTheme OK
+Monday, 01 Dec 2025 12:35:21 GMT [D9T_PREFS_TRACE] persistTheme end | themes=3 | active=classic
+Monday, 01 Dec 2025 12:35:21 GMT [D9T_PREFS_TRACE] persistTheme start | themes=3 | active=classic
+Monday, 01 Dec 2025 12:35:21 GMT [D9T_PREFS_TRACE] persistTheme themeData classic -> {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Monday, 01 Dec 2025 12:35:21 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 12:35:21 GMT [D9T_PREFS_TRACE] pre-saveButtonThemesState | themes=3 | active=classic
+Monday, 01 Dec 2025 12:35:21 GMT [D9T_PREFS_TRACE] activeTheme snapshot classic {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Monday, 01 Dec 2025 12:35:21 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Monday, 01 Dec 2025 12:35:21 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Monday, 01 Dec 2025 12:35:21 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Monday, 01 Dec 2025 12:35:21 GMT [D9T_PREFS_TRACE] saveScriptPreferences direct OK
+Monday, 01 Dec 2025 12:35:21 GMT [D9T_PREFS_TRACE] post-saveButtonThemesState | themes=3 | active=classic
+Monday, 01 Dec 2025 12:35:21 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 12:35:21 GMT [D9T_PREFS_TRACE] persistTheme OK
+Monday, 01 Dec 2025 12:35:21 GMT [D9T_PREFS_TRACE] persistTheme end | themes=3 | active=classic
+Monday, 01 Dec 2025 12:35:22 GMT [D9T_PREFS_TRACE] persistTheme start | themes=3 | active=classic
+Monday, 01 Dec 2025 12:35:22 GMT [D9T_PREFS_TRACE] persistTheme themeData classic -> {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Monday, 01 Dec 2025 12:35:22 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 12:35:22 GMT [D9T_PREFS_TRACE] pre-saveButtonThemesState | themes=3 | active=classic
+Monday, 01 Dec 2025 12:35:22 GMT [D9T_PREFS_TRACE] activeTheme snapshot classic {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Monday, 01 Dec 2025 12:35:22 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Monday, 01 Dec 2025 12:35:22 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Monday, 01 Dec 2025 12:35:22 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Monday, 01 Dec 2025 12:35:22 GMT [D9T_PREFS_TRACE] saveScriptPreferences direct OK
+Monday, 01 Dec 2025 12:35:22 GMT [D9T_PREFS_TRACE] post-saveButtonThemesState | themes=3 | active=classic
+Monday, 01 Dec 2025 12:35:22 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 12:35:22 GMT [D9T_PREFS_TRACE] persistTheme OK
+Monday, 01 Dec 2025 12:35:22 GMT [D9T_PREFS_TRACE] persistTheme end | themes=3 | active=classic
+Monday, 01 Dec 2025 12:35:22 GMT [D9T_PREFS_TRACE] pre-saveButtonThemesState | themes=3 | active=classic
+Monday, 01 Dec 2025 12:35:22 GMT [D9T_PREFS_TRACE] activeTheme snapshot classic {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Monday, 01 Dec 2025 12:35:22 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Monday, 01 Dec 2025 12:35:22 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Monday, 01 Dec 2025 12:35:22 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Monday, 01 Dec 2025 12:35:22 GMT [D9T_PREFS_TRACE] saveScriptPreferences direct OK
+Monday, 01 Dec 2025 12:35:22 GMT [D9T_PREFS_TRACE] post-saveButtonThemesState | themes=3 | active=classic
+Monday, 01 Dec 2025 12:35:22 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 12:35:22 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 12:35:22 GMT [D9T_PREFS_TRACE] pre-saveButtonThemesState | themes=3 | active=classic
+Monday, 01 Dec 2025 12:35:22 GMT [D9T_PREFS_TRACE] activeTheme snapshot classic {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Monday, 01 Dec 2025 12:35:22 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Monday, 01 Dec 2025 12:35:22 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Monday, 01 Dec 2025 12:35:22 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Monday, 01 Dec 2025 12:35:22 GMT [D9T_PREFS_TRACE] saveScriptPreferences direct OK
+Monday, 01 Dec 2025 12:35:22 GMT [D9T_PREFS_TRACE] post-saveButtonThemesState | themes=3 | active=classic
+Monday, 01 Dec 2025 12:35:22 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 12:36:58 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 12:36:58 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 12:37:32 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 12:37:32 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 12:37:53 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 12:37:53 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 12:38:26 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 12:38:26 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 12:38:41 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 12:38:41 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 12:38:55 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Monday, 01 Dec 2025 12:42:53 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 12:42:53 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 12:43:29 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 12:43:29 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 12:44:37 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 12:44:37 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 12:45:13 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Monday, 01 Dec 2025 12:57:03 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 12:57:03 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 12:57:08 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Monday, 01 Dec 2025 12:57:32 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Monday, 01 Dec 2025 12:59:26 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 12:59:26 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 12:59:32 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Monday, 01 Dec 2025 13:00:37 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 13:00:37 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 13:10:17 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 13:10:17 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 13:10:20 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Monday, 01 Dec 2025 13:11:39 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 13:11:39 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 13:11:43 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Monday, 01 Dec 2025 13:12:06 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Monday, 01 Dec 2025 13:12:55 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Monday, 01 Dec 2025 13:13:27 GMT [D9T_PREFS_TRACE] icon_settings begin {"iconSize":[40,40],"iconSpacing":13,"verticalIconSize":[30,30],"verticalIconSpacing":25,"labelSpacing":5,"compactIconSize":[32,32],"compactIconSpacing":12,"showLabels":true,"iconOnlySpacing":15}
+Monday, 01 Dec 2025 13:13:27 GMT [D9T_PREFS_TRACE] icon_settings merged | themes=3 | active=classic
+Monday, 01 Dec 2025 13:13:27 GMT [D9T_PREFS_TRACE] icon_settings commit -> saveScriptPreferences
+Monday, 01 Dec 2025 13:13:27 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Monday, 01 Dec 2025 13:13:27 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Monday, 01 Dec 2025 13:13:27 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Monday, 01 Dec 2025 13:13:27 GMT [D9T_PREFS_TRACE] icon_settings commit done
+Monday, 01 Dec 2025 13:13:33 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 13:13:33 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 13:13:37 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Monday, 01 Dec 2025 13:17:02 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 13:17:02 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 13:28:48 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 13:28:48 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 13:28:51 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Monday, 01 Dec 2025 13:29:02 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Monday, 01 Dec 2025 13:29:18 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 13:29:18 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 13:29:24 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Monday, 01 Dec 2025 13:29:48 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 13:29:48 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 13:29:52 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Monday, 01 Dec 2025 13:33:15 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 13:33:15 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 13:33:19 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Monday, 01 Dec 2025 13:40:42 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 13:40:42 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 13:40:45 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Monday, 01 Dec 2025 14:01:35 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 14:01:35 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 14:01:44 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Monday, 01 Dec 2025 14:04:47 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 14:04:47 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 14:04:51 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Monday, 01 Dec 2025 14:05:19 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 14:05:19 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 14:05:28 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Monday, 01 Dec 2025 14:10:57 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 14:10:57 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 14:11:00 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Monday, 01 Dec 2025 14:11:59 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 14:11:59 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 15:25:06 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 15:25:06 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 15:25:08 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Monday, 01 Dec 2025 15:35:29 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 15:35:29 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 15:35:35 GMT [D9T_PREFS_TRACE] open_button_theme_window | themes=3 | active=classic
+Monday, 01 Dec 2025 15:43:33 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Monday, 01 Dec 2025 15:43:33 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Monday, 01 Dec 2025 15:43:33 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Monday, 01 Dec 2025 15:43:58 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Monday, 01 Dec 2025 15:43:58 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Monday, 01 Dec 2025 15:43:58 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Monday, 01 Dec 2025 15:44:07 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 15:45:26 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Monday, 01 Dec 2025 15:45:26 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Monday, 01 Dec 2025 15:45:26 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Monday, 01 Dec 2025 15:45:38 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Monday, 01 Dec 2025 15:45:38 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Monday, 01 Dec 2025 15:45:38 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Monday, 01 Dec 2025 15:45:44 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Monday, 01 Dec 2025 15:45:44 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Monday, 01 Dec 2025 15:45:44 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Monday, 01 Dec 2025 15:45:51 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 15:46:00 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 15:46:00 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 15:46:22 GMT [D9T_PREFS_TRACE] saveScriptPreferences before clean | themes=3 | active=classic | path=~/AppData/Roaming/GND9TOOLS script/runtime/prefs
+Monday, 01 Dec 2025 15:46:22 GMT [D9T_PREFS_TRACE] saveScriptPreferences snapshot theme0 {"id":"classic","name":"Clássico","width":200,"height":40,"cornerRadius":8,"background":"#2E343B","hoverBackground":"#4E5560","textColor":"#FFFFFF","hoverTextColor":"#FFFFFF","labelOffset":-18,"labelOffsetX":0,"labelFontSize":11,"textTransform":"uppercase"}
+Monday, 01 Dec 2025 15:46:22 GMT [D9T_PREFS_TRACE] saveScriptPreferences wrote file | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs/User_Preferences.json
+Monday, 01 Dec 2025 15:46:33 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 15:46:33 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 16:07:42 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 16:07:42 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 17:43:16 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 17:43:16 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 18:08:57 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 18:08:57 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
+Monday, 01 Dec 2025 18:13:18 GMT [D9T_PREFS_TRACE] loadScriptPreferences done | themes=3 | active=classic | file=C:\Users\rdenoni\AppData\Roaming\GND9TOOLS script\runtime\prefs\User_Preferences.json
+Monday, 01 Dec 2025 18:13:18 GMT [D9T_PREFS_TRACE] applyActiveButtonTheme | themes=3 | active=classic
