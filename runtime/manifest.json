@@ -1,0 +1,123 @@
+{
+  "loadedAt": "2025-12-01T18:13:18Z",
+  "source": "C:\\Users\\rdenoni\\AppData\\Roaming\\GND9TOOLS script\\runtime\\prefs\\User_Preferences.json",
+  "uiSettings": {
+    "iconSize": [
+      40,
+      40
+    ],
+    "iconSpacing": 13,
+    "labelSpacing": 5,
+    "compactIconSize": [
+      32,
+      32
+    ],
+    "compactIconSpacing": 12,
+    "buttonThemes": [
+      {
+        "id": "classic",
+        "name": "Clássico",
+        "width": 200,
+        "height": 40,
+        "cornerRadius": 8,
+        "background": "#2E343B",
+        "hoverBackground": "#4E5560",
+        "textColor": "#FFFFFF",
+        "hoverTextColor": "#FFFFFF",
+        "labelOffset": -18,
+        "labelOffsetX": 0,
+        "labelFontSize": 11,
+        "textTransform": "uppercase"
+      },
+      {
+        "id": "destacado",
+        "name": "Destacado",
+        "width": 132,
+        "height": 38,
+        "cornerRadius": 20,
+        "background": "#FF5722",
+        "hoverBackground": "#FF7043",
+        "textColor": "#FFFFFF",
+        "hoverTextColor": "#FFFFFF",
+        "labelOffset": 0,
+        "labelOffsetX": 0,
+        "labelFontSize": 15,
+        "textTransform": "none"
+      },
+      {
+        "id": "minimal",
+        "name": "Minimal",
+        "width": 110,
+        "height": 32,
+        "cornerRadius": 8,
+        "background": "#F2F2F2",
+        "hoverBackground": "#E0E0E0",
+        "textColor": "#1F1F1F",
+        "hoverTextColor": "#1F1F1F",
+        "labelOffset": 0,
+        "labelOffsetX": 0,
+        "labelFontSize": 13,
+        "textTransform": "none"
+      }
+    ],
+    "activeButtonTheme": "classic",
+    "verticalIconSize": [
+      30,
+      30
+    ],
+    "verticalIconSpacing": 25,
+    "showLabels": true,
+    "iconOnlySpacing": 15
+  },
+  "color": {
+    "menu": {
+      "light": "#3E50B4",
+      "dark": "#8FF7A7"
+    },
+    "controls": {
+      "light": "#BF3A48",
+      "dark": "#DA6877"
+    },
+    "animation": {
+      "light": "#CB6259",
+      "dark": "#B7B5E4 "
+    },
+    "tools": {
+      "light": "#6EA57D",
+      "dark": "#E2EE96"
+    },
+    "effects": {
+      "light": "#D68A69",
+      "dark": "#ACCDEC"
+    },
+    "text": {
+      "light": "#C2B6A3",
+      "dark": "#F4E76E"
+    },
+    "brand": {
+      "light": "#3F3F58",
+      "dark": "#BBBBBD"
+    },
+    "project": {
+      "light": "#00B5C2",
+      "dark": "#7CC6FE"
+    },
+    "shortcuts": {
+      "light": "#CD4548",
+      "dark": "#FFB398"
+    },
+    "app": {
+      "light": "#6639B6",
+      "dark": "#FFAFB7"
+    },
+    "dev": {
+      "light": "#202020",
+      "dark": "#F4FAFF"
+    }
+  },
+  "userPrefs": {
+    "path": "C:\\Users\\rdenoni\\AppData\\Roaming\\GND9TOOLS script\\runtime\\prefs\\User_Preferences.json",
+    "size": 3019,
+    "modified": "2025-12-01T15:46:22Z"
+  }
+}
