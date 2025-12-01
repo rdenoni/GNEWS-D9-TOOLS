@@ -1,39 +1,26 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
 
-function GND9TOOLS_UTL(thisObj) {
-    // Declaração da versão do script 'O Padeiro'
-    var scriptName = 'GNEWS D9 TOOLS';
-    var scriptVersion = 'v1'; // Versão incrementada
+// Descobre a pasta base do script (onde este .jsx está) para que #include funcione mesmo fora do root.
+var scriptMainPath = (function () {
+    try { return new File($.fileName).parent.fsName + '/'; }
+    catch (e) { return Folder.userData.fullName + '/GND9TOOLS script/'; }
+})();
 
-    try {
-        scriptMainPath = scriptMainPath;
-    
-  } catch (err) {
-        var startMsg = 'você instalou o arquivo ".jsxbin"!\
-o script funcionará normalmente, mas você não terá:\n\
-    - atualizações automáticas\
-    - lista inicial de produções com templates\
-    - novos recursos e correções de bugs.';
-        alert(startMsg);
-        scriptMainPath = Folder.userData.fullName + '/GND9TOOLS script/';
-    }
+// Identificação do script (usado por libs/configs)
+var scriptName = 'GNEWS D9 TOOLS';
+var scriptVersion = 'v1';
 
-
-        // Themas globais
+// Themas globais e bibliotecas
 #include 'source/globals.js';
-         
-
-         // Bibliotecas  
 #include 'source/libraries/JSON lib.js';
 #include 'source/libraries/PROT lib.js';
 #include 'source/libraries/ICON lib.js';
 #include 'source/libraries/FUNC lib.js';
 #include 'source/libraries/prefs_manager.js';
 #include 'source/libraries/HELP lib.js';
-        
-        
-        // Bibliotecas de funções
+
+// Bibliotecas de funções
 #include 'source/libraries/functions/web lib.js';
 #include 'source/libraries/functions/color lib.js';
 #include 'source/libraries/functions/ctrl anim lib.js';
@@ -46,36 +33,53 @@ o script funcionará normalmente, mas você não terá:\n\
 #include 'source/libraries/functions/func_auto_path_servers.js';
 #include 'source/libraries/functions/func_getPathDayByDay.js';
 
-        // Configurações dos scrips
-
+// Configurações dos scripts
 #include 'source/config/TEMPLATES_configWin.js';
 #include 'source/config/LIBRARYLIVE_configWin.js';
 #include 'source/config/LAYERSORDER_configWin.js';
 
-        // Scripts principais (Ferramentas)
+// Scripts principais (Ferramentas)
 #include 'source/SCRIPTS/GNEWS_Templates.jsx';
 #include 'source/SCRIPTS/GNEWS_Renamer.jsx';
 #include 'source/SCRIPTS/GNEWS_MailMaker.jsx';
 #include 'source/SCRIPTS/GNEWS_LayerOrder.jsx';
 #include 'source/SCRIPTS/GNEWS_TextBox.jsx';
 #include 'source/SCRIPTS/GNEWS_AnchorAlign.jsx';
-#include 'source/SCRIPTS/GNEWS_ColorChange.jsx'; 
+#include 'source/SCRIPTS/GNEWS_ColorChange.jsx';
 #include 'source/SCRIPTS/GNEWS_Normalizer.jsx';
 #include 'source/SCRIPTS/GNEWS_CropComp.jsx';
-#include 'source/SCRIPTS/GNEWS_LibraryLive.jsx';        
+#include 'source/SCRIPTS/GNEWS_LibraryLive.jsx';
 #include 'source/SCRIPTS/GNEWS_SearchLayers.jsx';
 #include 'source/SCRIPTS/GNEWS_FinderProject.jsx';
-#include 'source/SCRIPTS/GNEWS_CopyLinks.jsx'
-       
-        // utilidades com interface 
+#include 'source/SCRIPTS/GNEWS_CopyLinks.jsx';
+
+// Utilidades com interface
 #include 'source/layout/main_ui_functions.js';
-#include 'source/layout/theme_api.js';     
+#include 'source/layout/theme_api.js';
+
+function GND9TOOLS_UTL(thisObj) {
+    // Declaração da versão do script 'O Padeiro'
+    var scriptName = 'GNEWS D9 TOOLS';
+    var scriptVersion = 'v1'; // Versão incrementada
+
+    // Garante scriptMainPath
+    try {
+        scriptMainPath = scriptMainPath;
+    } catch (err) {
+        var startMsg = 'você instalou o arquivo ".jsxbin"!\
+o script funcionará normalmente, mas você não terá:\n\
+    - atualizações automáticas\
+    - lista inicial de produções com templates\
+    - novos recursos e correções de bugs.';
+        alert(startMsg);
+        scriptMainPath = Folder.userData.fullName + '/GND9TOOLS script/';
+    }
 
     // ====== ESTRUTURA DA INTERFACE ========
     var D9T_mainGrpUiStructure = {
         pinGrp: {},
         mainGrp: {
-            section1: { 
+            section1: {
                 Finders: {
                     type: 'imageButton', labelTxt: 'Finders', icon: D9T_FINDER_ICON,
                     tips: [lClick + 'Buscar em layers de texto', rClick + 'Buscar por arquivos de projeto'],
@@ -87,7 +91,7 @@ o script funcionará normalmente, mas você não terá:\n\
                 },
                 templates: {
                     type: 'imageButton', labelTxt: 'Templates', icon: D9T_TEMPLATES_ICON,
-                    tips: [lClick + 'Acessa projetos de Templates, ilustraçoes e base temáticas ', rClick + 'configurações de lista de produções']
+                    tips: [lClick + 'Acessa projetos de Templates, ilustrações e base temáticas ', rClick + 'configurações de lista de produções']
                 },
                 LibraryLive: {
                     type: 'imageButton', labelTxt: 'LibraryLive', icon: D9T_LIBRARY_ICON,
@@ -96,7 +100,7 @@ o script funcionará normalmente, mas você não terá:\n\
             },
             section2: {
                 Renamer: {
-                    type: 'imageButton', labelTxt: 'Renamer', icon: D9T_RENAMER_ICON, 
+                    type: 'imageButton', labelTxt: 'Renamer', icon: D9T_RENAMER_ICON,
                     tips: [lClick + 'Renomei comp, salva e organiza projeto.']
                 },
                 MailMaker: {
@@ -107,9 +111,9 @@ o script funcionará normalmente, mas você não terá:\n\
                     ]
                 },
                 LayerOrder: {
-                    type: 'imageButton', labelTxt: 'LayerOrder', icon: D9T_LAYERS_ICON, 
+                    type: 'imageButton', labelTxt: 'LayerOrder', icon: D9T_LAYERS_ICON,
                     tips: [lClick + 'Organiza Layers', rClick + 'Janela de configurações']
-                },
+                }
             },
             section3: {
                 TextBox: {
@@ -117,22 +121,22 @@ o script funcionará normalmente, mas você não terá:\n\
                     tips: [lClick + 'Converte BoxLayers em LayerTexts, também separa texto em linhas, palavras e letras.']
                 },
                 AnchorAlign: {
-                    type: 'imageButton', labelTxt: 'AnchorAlign', icon: D9T_ANCHOR_ICON, 
+                    type: 'imageButton', labelTxt: 'AnchorAlign', icon: D9T_ANCHOR_ICON,
                     tips: [lClick + 'Alinhar a âncora em qualquer posição do box de uma layer']
                 },
                 colorChange: {
-                    type: 'imageButton', labelTxt: 'ColorChange', icon: D9T_COLOR_ICON, 
+                    type: 'imageButton', labelTxt: 'ColorChange', icon: D9T_COLOR_ICON,
                     tips: [lClick + 'Troca a cor de multiplas layers filtradas na comp']
                 },
                 Normalizer: {
-                    type: 'imageButton', labelTxt: 'Normalizer', icon: D9T_NORMALIZER_ICON, 
+                    type: 'imageButton', labelTxt: 'Normalizer', icon: D9T_NORMALIZER_ICON,
                     tips: [
                         lClick + 'Normaliza tamanho, rotacao, posicao e ancora das layers selecionadas.',
                         'Otimo para padronizar elementos antes de animar ou alinhar em templates.'
                     ]
                 },
                 cropComp: {
-                    type: 'imageButton', labelTxt: 'CropComp', icon: D9T_CROP_ICON, 
+                    type: 'imageButton', labelTxt: 'CropComp', icon: D9T_CROP_ICON,
                     tips: [
                         lClick + 'Recorta a comp usando as extremidades das layers selecionadas.',
                         'Tambem gera novas comps individuais a partir de footages selecionados.'
@@ -148,21 +152,21 @@ o script funcionará normalmente, mas você não terá:\n\
     function D9T_WINDOW(thisObj) {
         D9T_ui.window = thisObj;
         if (!(thisObj instanceof Panel)) D9T_ui.window = new Window('palette');
-        
+
         // Esta função (do arquivo main_ui_functions.js) cria os botões na tela
         D9T_BUILD_UI(D9T_mainGrpUiStructure, D9T_ui);
 
         return D9T_ui.window;
     }
-    
+
     var GND9TOOLS_WINDOW = D9T_WINDOW(thisObj);
-    
+
     if (!netAccess()) {
         alert('Por favor, habilite a opção "' + AE_netConfigName + '" nas preferências.\n\nMenu: Edit > Preferences > Scripting & Expressions\nMarque "Allow Scripts to Write Files and Access Network"');
         try { app.executeCommand(3131); } catch (e) {}
         if (!netAccess()) { alert(lol + '#D9T_012 - Script funcionará com funcionalidades limitadas devido a falta de acesso à rede.'); }
     }
-    
+
     if (!(GND9TOOLS_WINDOW instanceof Panel)) GND9TOOLS_WINDOW.show();
 
     return GND9TOOLS_WINDOW;
