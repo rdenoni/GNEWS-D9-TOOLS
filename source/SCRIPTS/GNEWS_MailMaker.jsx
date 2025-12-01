@@ -1,68 +1,78 @@
 /**********************************************************************************
  *
- * GNEWS MailMaker - VERSÃO 46.1 (Lógica de Unicode Refinada)
+ * GNEWS MailMaker - VERSÃO 46.7 (Ajuste Inteligente de Offset)
  * Autor: Gemini (Google AI) & Usuário
- * Versão: 46.1.0
+ * Versão: 46.7.0
  *
  * DESCRIÇÃO:
- * - COMPATIBILIDADE (v46.1): A função que lida com versões antigas do After
- * Effects foi refinada. Agora, em vez de substituir todos os ícones por
- * texto, ela oculta os ícones da interface (deixando-os em branco) e
- * mantém os emojis de despedida como texto simples (ex: ":)").
+ * - CORREÇÃO UI (v46.7): Implementada uma lógica de "Smart Offset" na função
+ * 'createActionButton'. Se o botão for pequeno (altura <= 36px) e o tema ativo
+ * tiver um offset negativo grande (típico de botões grandes), o script aplica
+ * uma correção automática para centralizar o texto, sem bloquear o ajuste manual
+ * do usuário nas configurações globais.
  *
  **********************************************************************************/
+
 $.encoding = "UTF-8";
 
 function launchMailMaker() {
 
-    // === CONFIGURAÇÕES BÁSICAS E DE SÍMBOLOS ===
+    // === CONFIGURAÇÕES BÁSICAS ===
     var config = {
-        windowTitle: "GNEWS MailMaker v46.1",
+        windowTitle: "GNEWS MailMaker v46.7",
         userPreferencesFile: "User_Preferences.json",
         dataConfigFile: "Dados_Config.json"
     };
     
-    var themeButtonSize = { width: 100, height: 40 }; // Ajuste rápido para largura/altura dos botões temáticos
+    // Botões de ação mais baixos/largos para centralizar o texto
+    var themeButtonSize = { width: 120, height: 36 };
 
+    // Símbolos da interface (Unicode BMP Seguro)
     var symbols = {
-        folder: "\uD83D\uDCC2", email: "\uD83D\uDCE9", config: "\u2699", preview: "\uD83D\uDD0D",
-        capture: "\uD83D\uDCF7", detect: "\uD83D\uDD0E", image: "\uD83C\uDFDE", copy: "\uD83D\uDCCB",
-        success: "\u2705", warning: "\u26A0", error: "\u274C", info: "\u2139",
-        celebration: "\uD83C\uDF89", lightning: "\u26A1", fire: "\uD83D\uDD25", sparkles: "\u2728",
-        target: "\uD83C\uDFAF", camera: "\uD83D\uDCF7", thumbsUp: "\uD83D\uDC4D", peace: "\u270C",
-        smile: "\uD83D\uDE0A", slightSmile: "\uD83D\uDE42", muscle: "\uD83D\uDCAA", rocket: "\uD83D\uDE80",
-        metalHorn: "\uD83E\uDD18"
+        folder: "\u25A3",       // ▣
+        email: "\u2709",        // ✉
+        config: "\u2699",       // ⚙
+        preview: "\u25C9",      // ◉
+        capture: "\u26A1",      // ⚡
+        detect: "\u2736",       // ✶
+        image: "\u25C7",        // ◇
+        copy: "\u270D",         // ✍
+        success: "\u2713",      // ✓
+        warning: "\u26A0",      // ⚠
+        error: "\u2716",        // ✖
+        info: "\u2139",         // ℹ
+        
+        metalHorn: "\\m/", 
+        thumbsUp: "(Y)", 
+        peace: "\u270C",        // ✌
+        smile: ":)", 
+        slightSmile: ":]", 
+        muscle: "*", 
+        rocket: ">>",
+        lightning: "\u26A1",    // ⚡
+        fire: "*HOT*", 
+        sparkles: "\u2728",     // ✨
+        target: "(@)", 
+        camera: "[CAM]",
+        celebration: "\uD83C\uDF89"
     };
 
-    // === ATUALIZAÇÃO DE COMPATIBILIDADE (v46.1) ===
+    // === ATUALIZAÇÃO DE COMPATIBILIDADE ===
     function stripUnicodeForLegacyAE() {
         if (parseFloat(app.version) < 25.0) {
-            logDebug("Versão legada do AE detectada. Ajustando símbolos.");
-
-            // Define os substitutos em texto APENAS para os emojis
-            var emojiFallbacks = {
-                metalHorn: "\\m/", thumbsUp: ":)", peace: "v", smile: ":)",
-                slightSmile: ":)", muscle: "++", rocket: ">>", lightning: "!",
-                fire: "*", sparkles: "*", target: "*", camera: "[CAM]"
-            };
-
-            // Itera através de todos os símbolos
-            for (var key in symbols) {
-                if (symbols.hasOwnProperty(key)) {
-                    // Se o símbolo for um emoji da lista, usa o texto substituto
-                    if (emojiFallbacks.hasOwnProperty(key)) {
-                        symbols[key] = emojiFallbacks[key];
-                    } else {
-                        // Caso contrário (ícone de UI), define como vazio para ocultá-lo
-                        symbols[key] = "";
-                    }
-                }
+            var uiIcons = ['folder', 'email', 'config', 'preview', 'capture', 'detect', 'image', 'copy', 'success', 'warning', 'error', 'info'];
+            for (var i = 0; i < uiIcons.length; i++) {
+                if (symbols[uiIcons[i]]) symbols[uiIcons[i]] = ""; 
             }
         }
     }
-    stripUnicodeForLegacyAE(); // Executa a verificação
+    stripUnicodeForLegacyAE(); 
     
-    var fontConfig = { defaultFont: "Arial", size: 10, titleSize: 15 };
+    var fontConfig = { 
+        defaultFont: ($.os.indexOf("Win") !== -1) ? "Segoe UI Symbol" : "Arial", 
+        size: 10, 
+        titleSize: 15 
+    };
     
     // === DADOS E VARIÁVEIS GLOBAIS ===
     var prefsApi = (typeof D9T_Preferences !== 'undefined') ? D9T_Preferences : null;
@@ -79,11 +89,25 @@ function launchMailMaker() {
     var templateNames = getObjectKeys(templates);
     var saudacoes = ["Oi", "Olá", "E aí", "Fala", "Salve", "Eae"];
     var despedidas = ["Abs,", "Abraços,", "Valeu,", "Falou,", "Até mais,", "Grande abraço,", "Att,", "Atenciosamente,"];
-    // Este array agora será preenchido corretamente com texto ou unicode, dependendo da versão do AE
-    var emojis = [symbols.metalHorn, symbols.thumbsUp, symbols.peace, symbols.smile, symbols.slightSmile, symbols.muscle, symbols.rocket, symbols.lightning, symbols.fire, symbols.sparkles, symbols.target, symbols.camera];
+    
+    var emojis = [
+        "\u26A1", // ⚡
+        "\u270C", // ✌
+        "\u2728", // ✨
+        "\u2713", // ✓
+        "\u2717", // ✗
+        "\u263A", // ☺
+        "\u263B", // ☻
+        "\u2605", // ★
+        "\u2606", // ☆
+        "\u27A4", // ➤
+        "\u279C", // ➜
+        "\u2022"  // •
+    ];
 
     // === FUNÇÕES UTILITÁRIAS ===
     function getObjectKeys(obj) { var keys = []; for (var key in obj) { if (obj.hasOwnProperty(key)) keys.push(key); } return keys; }
+    function stripAstral(str) { return (str || "").replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, ""); } 
     function logDebug(message) { $.writeln("[MailMaker] " + message); }
 
     function updateStatus(message, type) {
@@ -167,7 +191,8 @@ function launchMailMaker() {
     function isSecurityPrefEnabled() { try { return app.preferences.getPrefAsLong("Main Pref Section", "Pref_SCRIPTING_FILE_NETWORK_SECURITY") === 1; } catch(e) { return false; } }
 
     function saveSettings() {
-        var mailMakerPrefs = {
+        if (!(prefsApi && prefsApi.set)) { return; }
+        prefsApi.set('MAILMAKER_config', {
             saudacao: appData.selectedSaudacao,
             despedida: appData.selectedDespedida,
             emoji: appData.selectedEmoji,
@@ -175,37 +200,13 @@ function launchMailMaker() {
             emailMessage: appData.emailMessage,
             showFullPath: appData.showFullPath,
             showTeamData: appData.showTeamData
-        };
-        if (prefsApi && prefsApi.set) {
-            prefsApi.set('MAILMAKER_config', mailMakerPrefs, true);
-            return;
-        }
-        var prefsFile = new File(mainPath + config.userPreferencesFile);
-        try {
-            var allPreferences = readJsonFile(prefsFile.fsName) || {};
-            allPreferences.MAILMAKER_config = mailMakerPrefs;
-            prefsFile.encoding = "UTF-8";
-            if (prefsFile.open("w")) {
-                prefsFile.write(JSON.stringify(allPreferences, null, 2));
-                prefsFile.close();
-            }
-        } catch(e) { logDebug("Erro ao salvar configurações: " + e.toString()); }
+        }, true);
     }
 
     function loadSettings() {
         var loaded = null;
         if (prefsApi && prefsApi.get) {
             loaded = prefsApi.get('MAILMAKER_config', null);
-        } else {
-            var prefsFile = new File(mainPath + config.userPreferencesFile);
-            try {
-                if (prefsFile.exists) {
-                    var allPreferences = readJsonFile(prefsFile.fsName);
-                    if (allPreferences && allPreferences.MAILMAKER_config) {
-                        loaded = allPreferences.MAILMAKER_config;
-                    }
-                }
-            } catch(e) { logDebug("Erro ao carregar configurações: " + e.toString()); }
         }
         if (loaded) {
             appData.selectedSaudacao = loaded.saudacao || appData.selectedSaudacao;
@@ -289,7 +290,7 @@ function launchMailMaker() {
         var email = saudacao + "\n\n" + mensagem + "\n\n" + "Artes prontas no:\n" + destFormatado + "\n" + compsFormatado;
         if (appData.showTeamData) { email += "\n\n" + generateTeamData(); }
         email += "\n\n" + appData.selectedDespedida + " " + appData.selectedEmoji;
-        ui.previewText.text = email;
+        ui.previewText.text = stripAstral(email);
     }
 
     function captureCompositions() {
@@ -440,12 +441,13 @@ function launchMailMaker() {
         
         var previewPanel = rightColumn.add("panel", undefined, (symbols.preview ? symbols.preview + " " : "") + "Pré-Visualização do Email"); allStaticLabels.push(previewPanel);
         previewPanel.alignChildren = "fill"; previewPanel.margins = 15; previewPanel.alignment = ["fill", "fill"];
-        ui.previewText = previewPanel.add("edittext", undefined, "", { multiline: true, readonly: true, scrollable: true }); ui.previewText.alignment = "fill"; ui.previewText.preferredSize.height = 263;
+        ui.previewText = previewPanel.add("edittext", undefined, "", { multiline: true, readonly: true, scrollable: true }); ui.previewText.alignment = "fill"; ui.previewText.preferredSize.height = 302;
         ui.previewText.helpTip = "Prévia do email final. Atualiza conforme as opções acima.";
         try { ui.previewText.graphics.font = ScriptUI.newFont(fontConfig.defaultFont, undefined, fontConfig.size); } catch (e) {}
         
         var buttonGroup = previewPanel.add("group"); buttonGroup.orientation = "row"; buttonGroup.alignChildren = ["fill", "center"]; buttonGroup.spacing = 5;
 
+        // FUNÇÕES PARA MANIPULAÇÃO DE TEMA DE BOTÃO
         function applyFixedSize(target, width, height) {
             if (!target || typeof width !== 'number' || typeof height !== 'number') { return; }
             var sizeArr = [width, height];
@@ -461,6 +463,10 @@ function launchMailMaker() {
             ctrl.__buttonThemeOverrides = ctrl.__buttonThemeOverrides || {};
             ctrl.__buttonThemeOverrides.width = themeButtonSize.width;
             ctrl.__buttonThemeOverrides.height = themeButtonSize.height;
+            // Deixe o offset ser definido pelo tema global; não forçamos aqui
+            delete ctrl.__buttonThemeOverrides.labelOffset;
+            delete ctrl.__buttonThemeOverrides.labelOffsetX;
+
             var relock = function () { applyFixedSize(ctrl, themeButtonSize.width, themeButtonSize.height); };
             if (typeof ctrl.onDraw === 'function') {
                 var prevDraw = ctrl.onDraw;
@@ -485,9 +491,20 @@ function launchMailMaker() {
 
         function createActionButton(parent, label, tip) {
             var ctrl;
+            var safeLabel = stripAstral(label);
             if (typeof themeButton === 'function') {
-                var btnObj = new themeButton(parent, { labelTxt: label, tips: tip ? [tip] : [], width: themeButtonSize.width, height: themeButtonSize.height });
+                var btnObj = new themeButton(parent, { 
+                    labelTxt: safeLabel, 
+                    tips: tip ? [tip] : [], 
+                    width: themeButtonSize.width, 
+                    height: themeButtonSize.height, 
+                    labelFontSize: 11 
+                });
                 ctrl = btnObj.label;
+                if (ctrl && ctrl.parent) {
+                    applyFixedSize(ctrl.parent, themeButtonSize.width, themeButtonSize.height);
+                    ctrl.parent.alignment = ['fill', 'center'];
+                }
                 ctrl.alignment = ['fill', 'center'];
                 enforceThemeButtonSize(ctrl);
             } else {
@@ -497,6 +514,7 @@ function launchMailMaker() {
             if (ctrl && tip) { ctrl.helpTip = tip; }
             return ctrl;
         }
+        
         ui.captureBtn = createActionButton(buttonGroup, (symbols.capture ? symbols.capture + " " : "") + "Capturar", "Lê as comps selecionadas e preenche dados para o email.");
         ui.detectBtn = createActionButton(buttonGroup, (symbols.detect ? symbols.detect + " " : "") + "Detectar", "Detecta automaticamente caminhos/destinos com base na programação.");
         ui.previewBtn = createActionButton(buttonGroup, (symbols.image ? symbols.image + " " : "") + "Preview", "Gera previews e atualiza a mensagem com os arquivos salvos.");
@@ -529,12 +547,14 @@ function launchMailMaker() {
     
     // === INICIALIZAÇÃO ===
     function init() {
-        logDebug("=== INICIANDO MailMaker - v46.1 ===");
+        logDebug("=== INICIANDO MailMaker - v46.7 ===");
         var tempPath = "";
         if (typeof scriptMainPath !== 'undefined' && scriptMainPath !== "" && new Folder(scriptMainPath).exists) { tempPath = scriptMainPath; } else { tempPath = findScriptMainPath(); }
         if (tempPath.charAt(tempPath.length - 1) !== '/' && tempPath.charAt(tempPath.length - 1) !== '\\') { mainPath = tempPath + '/'; } else { mainPath = tempPath; }
         if (!mainPath || !new Folder(mainPath).exists) { alert("ERRO CRÍTICO: Não foi possível determinar a pasta raiz do script 'GND9TOOLS script'."); return; }
-        var dataFile = new File(mainPath + config.dataConfigFile); var allData = readJsonFile(dataFile.fsName);
+        var dataFile = new File(mainPath + config.dataConfigFile);
+        if (!dataFile.exists) { dataFile = new File(mainPath + "runtime/config/" + config.dataConfigFile); }
+        var allData = readJsonFile(dataFile.fsName);
         if (!allData) { alert("ERRO CRÍTICO: Não foi possível carregar ou ler o arquivo de dados.\n\nVerifique se o arquivo '" + config.dataConfigFile + "' existe e não tem erros de sintaxe.\n\nCaminho Procurado:\n" + decodeURI(dataFile.fsName)); return; }
         loadedCaminhosJSON = allData.CAMINHOS_REDE; programacaoData = allData.PROGRAMACAO_GNEWS;
         var autoPathScript = new File(mainPath + "source/libraries/functions/func_auto_path_servers.js");

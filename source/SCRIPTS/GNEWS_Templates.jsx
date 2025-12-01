@@ -92,6 +92,8 @@ function d9TemplateDialog(thisObj) {
     var SNAPSHOT_META_EXTENSION = '.meta.json';
     var snapshotSignatureRegistry = sharedCacheStore.snapshotSignatures || {};
     sharedCacheStore.snapshotSignatures = snapshotSignatureRegistry;
+    // Referência do dropdown de produções (usado em vários handlers)
+    var prodDrop = null;
     var backgroundWarmupQueue = sharedCacheStore.backgroundWarmupQueue || [];
     sharedCacheStore.backgroundWarmupQueue = backgroundWarmupQueue;
     var backgroundWarmupTaskId = null;
@@ -105,7 +107,7 @@ function d9TemplateDialog(thisObj) {
     (function initTemplatesLog() {
         try {
             if (typeof scriptPreferencesPath === 'string' && scriptPreferencesPath.length) {
-                var logsFolder = new Folder(scriptPreferencesPath + '/logs');
+                var logsFolder = new Folder((typeof runtimeLogsPath !== 'undefined' ? runtimeLogsPath : scriptPreferencesPath + '/logs'));
                 if (!logsFolder.exists) { logsFolder.create(); }
                 templatesLogFile = new File(logsFolder.fullName + '/gnews_templates.log');
             }
@@ -164,7 +166,7 @@ function d9TemplateDialog(thisObj) {
     function getManifestFileHandle() {
         if (!scriptPreferencesPath || typeof scriptPreferencesPath !== 'string') { return null; }
         if (!manifestFileHandle) {
-            manifestFileHandle = new File(scriptPreferencesPath + '/cache/templates_cache_manifest.json');
+            manifestFileHandle = new File(runtimeCachePath + '/templates_cache_manifest.json');
         }
         return manifestFileHandle;
     }
@@ -726,8 +728,8 @@ function d9TemplateDialog(thisObj) {
     function runCachePipelineWarmup() {
         var telemetry = startTelemetrySpan('pipelineWarmup');
         try {
-            var systemSettingsFile = new File(scriptPreferencesPath + "/System_Settings.json");
-            var dadosConfigFile = new File(scriptPreferencesPath + "/Dados_Config.json");
+            var systemSettingsFile = new File((typeof runtimeConfigPath !== 'undefined' ? runtimeConfigPath : scriptPreferencesPath) + "/System_Settings.json");
+            var dadosConfigFile = new File(runtimeConfigPath + "/Dados_Config.json");
             var systemData = readJsonFile(systemSettingsFile);
             var dataConfig = readJsonFile(dadosConfigFile);
             var manifestSnapshot = {};
@@ -1457,8 +1459,8 @@ function d9TemplateDialog(thisObj) {
                 return true;
             }
         }
-        var systemSettingsFile = new File(scriptPreferencesPath + "/System_Settings.json");
-        var dadosConfigFile = new File(scriptPreferencesPath + "/Dados_Config.json");
+        var systemSettingsFile = new File((typeof runtimeConfigPath !== 'undefined' ? runtimeConfigPath : scriptPreferencesPath) + "/System_Settings.json");
+        var dadosConfigFile = new File(runtimeConfigPath + "/Dados_Config.json");
         GNEWS_TEMPLATES_CONFIG.system = readJsonFile(systemSettingsFile);
         GNEWS_TEMPLATES_CONFIG.data = readJsonFile(dadosConfigFile);
         if (GNEWS_TEMPLATES_CONFIG.system && GNEWS_TEMPLATES_CONFIG.data) {
@@ -1478,7 +1480,7 @@ function d9TemplateDialog(thisObj) {
 
     function saveSystemConfigs() {
         if (!GNEWS_TEMPLATES_CONFIG.system) return;
-        var systemSettingsFile = new File(scriptPreferencesPath + "/System_Settings.json");
+        var systemSettingsFile = new File((typeof runtimeConfigPath !== 'undefined' ? runtimeConfigPath : scriptPreferencesPath) + "/System_Settings.json");
         try {
             systemSettingsFile.open("w");
             systemSettingsFile.encoding = "UTF-8";
@@ -1579,7 +1581,7 @@ function d9TemplateDialog(thisObj) {
     var prodLab = prodHeaderGrp.add('statictext', undefined, 'PRODUCAO:'); setFgColor(prodLab, (typeof normalColor1 !== 'undefined') ? normalColor1 : '#FFFFFF');
     var prodGrp = vGrp1.add('group'); prodGrp.spacing = 4; prodGrp.alignment = 'fill';
     prodGrp.add('group');
-    var prodDrop = prodGrp.add('dropdownlist', undefined, ['Carregando...']); prodDrop.alignment = ['fill', 'center']; prodDrop.enabled = false;
+    prodDrop = prodGrp.add('dropdownlist', undefined, ['Carregando...']); prodDrop.alignment = ['fill', 'center']; prodDrop.enabled = false;
     var statusInfoGrp = vGrp1.add('group'); statusInfoGrp.alignment = ['fill', 'top']; statusInfoGrp.spacing = 6; statusInfoGrp.margins = [0, -4, 0, 4];
     var prodStatusLab = statusInfoGrp.add('statictext', undefined, ''); prodStatusLab.alignment = ['fill', 'top']; prodStatusLab.visible = false; setFgColor(prodStatusLab, (typeof normalColor2 !== 'undefined') ? normalColor2 : '#e6e6e6ff');
     var divProd; if (typeof themeDivider === 'function') { divProd = themeDivider(vGrp1); divProd.alignment = ['fill', 'center']; }
@@ -2088,14 +2090,14 @@ function d9TemplateDialog(thisObj) {
         if (typeof text !== 'string') { return ''; }
         var normalized = text.toLowerCase();
         var replacements = {
-            '�': 'a', '�': 'a', '�': 'a', '�': 'a', '�': 'a',
-            '�': 'e', '�': 'e', '�': 'e', '�': 'e',
-            '�': 'i', '�': 'i', '�': 'i', '�': 'i',
-            '�': 'o', '�': 'o', '�': 'o', '�': 'o', '�': 'o',
-            '�': 'u', '�': 'u', '�': 'u', '�': 'u',
-            '�': 'c'
+            'á': 'a', 'à': 'a', 'â': 'a', 'ã': 'a', 'ä': 'a',
+            'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
+            'í': 'i', 'ì': 'i', 'î': 'i', 'ï': 'i',
+            'ó': 'o', 'ò': 'o', 'ô': 'o', 'õ': 'o', 'ö': 'o',
+            'ú': 'u', 'ù': 'u', 'û': 'u', 'ü': 'u',
+            'ç': 'c'
         };
-        normalized = normalized.replace(/[�����������������������]/g, function(match) {
+        normalized = normalized.replace(/[áàâãäéèêëíìîïóòôõöúùûüç]/g, function(match) {
             return replacements[match] || match;
         });
         return normalized;
@@ -3686,25 +3688,29 @@ function d9TemplateDialog(thisObj) {
     }
     
         // --- LIGACAO DOS EVENTOS ---
-    prodDrop.onChange = function () {
-        notifyUserActivity(BACKGROUND_WARMUP_IDLE_DELAY * 1.5);
-        GNEWS_TEMPLATES_CONFIG.system.TEMPLATES_Settings.gnews_templates.lastProductionIndex = this.selection.index;
-        var selectedIndex = (this.selection) ? this.selection.index : -1;
-        if (selectedIndex > -1 && productions[selectedIndex]) {
-            pendingPopulateProduction = productions[selectedIndex].name;
-            activeProductionName = productions[selectedIndex].name;
-            setProductionStatus(selectedIndex, 'loading', 'Carregando ' + productions[selectedIndex].name + '...');
-            queueProductionPreload(selectedIndex, 50);
-            rebuildPrefetchQueue(selectedIndex);
-            resumePrefetchCycle(PREFETCH_INTERVAL);
-        } else {
-            activeProductionName = null;
-        }
-        updateProductionStatusLabel(selectedIndex);
-        saveSystemConfigs(); 
-        currentPage = 0;
-        safePerformSearch(searchBox.isPlaceholderActive ? "" : searchBox.text);
-    };
+    if (prodDrop) {
+        prodDrop.onChange = function () {
+            notifyUserActivity(BACKGROUND_WARMUP_IDLE_DELAY * 1.5);
+            GNEWS_TEMPLATES_CONFIG.system.TEMPLATES_Settings.gnews_templates.lastProductionIndex = this.selection.index;
+            var selectedIndex = (this.selection) ? this.selection.index : -1;
+            if (selectedIndex > -1 && productions[selectedIndex]) {
+                pendingPopulateProduction = productions[selectedIndex].name;
+                activeProductionName = productions[selectedIndex].name;
+                setProductionStatus(selectedIndex, 'loading', 'Carregando ' + productions[selectedIndex].name + '...');
+                queueProductionPreload(selectedIndex, 50);
+                rebuildPrefetchQueue(selectedIndex);
+                resumePrefetchCycle(PREFETCH_INTERVAL);
+            } else {
+                activeProductionName = null;
+            }
+            updateProductionStatusLabel(selectedIndex);
+            saveSystemConfigs(); 
+            currentPage = 0;
+            safePerformSearch(searchBox.isPlaceholderActive ? "" : searchBox.text);
+        };
+    } else {
+        $.writeln("[GNEWS_Templates] prodDrop undefined ao ligar eventos; ignorando onChange.");
+    }
     searchBox.onActivate = function () { if (this.isPlaceholderActive) { this.text = ''; this.isPlaceholderActive = false; setFgColor(this, (typeof normalColor1 !== 'undefined') ? normalColor1 : '#FFFFFF'); } };
     searchBox.onDeactivate = function () { if (this.text === '') { this.text = placeholderText; this.isPlaceholderActive = true; setFgColor(this, (typeof monoColor0 !== 'undefined') ? monoColor0 : '#F2F2F2'); currentPage = 0; safePerformSearch(''); } };
     searchBox.onChanging = function () {
@@ -3883,22 +3889,6 @@ function d9TemplateDialog(thisObj) {
     }
     app.scheduleTask('$.global.runInitialization()', 50, false);
 
-    return D9T_TEMPLATES_w;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+} // fecha d9TemplateDialog
 
 

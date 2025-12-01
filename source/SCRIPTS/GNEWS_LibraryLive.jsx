@@ -67,7 +67,7 @@ function launchLibraryLiveUI() {
 
     // --- LÓGICA DE CONFIGURAÇÃO ---
     Logic.loadSettings = function() {
-        var settingsFile = new File(scriptMainPath + '/System_Settings.json');
+        var settingsFile = new File((typeof runtimeConfigPath !== 'undefined' ? runtimeConfigPath : scriptMainPath) + '/System_Settings.json');
         var defaultConfig = { icon_root_paths: [], image_root_paths: [] };
         var finalConfig = defaultConfig;
 

@@ -1,33 +1,33 @@
 /**********************************************************************************
  * GNEWS Renamer.jsx
  * Autor: D9
- * Versão: 15.2.0 (Restauração de Funções e Feedback)
+ * Verso: 15.2.0 (Restaurao de Funes e Feedback)
  *
- * DESCRIÇÃO:
- * - CORREÇÃO (v15.2.0): Restaurada a lógica de feedback. Mensagens de sucesso
- * agora são exibidas no painel de status/preview, em vez de alertas pop-up.
- * - CORREÇÃO (v15.2.0): Restaurada a lógica completa do botão 'Organizar Projeto'
- * que havia sido perdida. Todas as funções estão completas.
- * - UI (v15.1.0): Botão "Salvar" em vermelho, "Correção" alinhado e painel de
+ * DESCRIO:
+ * - CORREO (v15.2.0): Restaurada a lgica de feedback. Mensagens de sucesso
+ * agora so exibidas no painel de status/preview, em vez de alertas pop-up.
+ * - CORREO (v15.2.0): Restaurada a lgica completa do boto 'Organizar Projeto'
+ * que havia sido perdida. Todas as funes esto completas.
+ * - UI (v15.1.0): Boto "Salvar" em vermelho, "Correo" alinhado e painel de
  * status na parte inferior.
- * - UI (v15.0.0): Implementados os botões temáticos (themeButton).
- * - LÓGICA (v13.0.0): Refatorado para ler dados do 'Dados_Config.json'.
- * - LÓGICA (v12.2.0): Correção definitiva da prioridade do usuário.
+ * - UI (v15.0.0): Implementados os botes temticos (themeButton).
+ * - LGICA (v13.0.0): Refatorado para ler dados do 'Dados_Config.json'.
+ * - LGICA (v12.2.0): Correo definitiva da prioridade do usurio.
  *
- * MÓDULOS USADOS:
- * - globals.js: (Cores e variáveis globais)
- * - main_ui_functions.js: (Função 'themeButton' para os botões customizados)
+ * MDULOS USADOS:
+ * - globals.js: (Cores e variveis globais)
+ * - main_ui_functions.js: (Funo 'themeButton' para os botes customizados)
  * - Dados_Config.json: (Dados da equipe, programas, artes)
- * - func_getPathDayByDay.js: (Lógica de caminho de salvamento)
+ * - func_getPathDayByDay.js: (Lgica de caminho de salvamento)
  *
  **********************************************************************************/
 
-// Garante que o script seja lido com a codificação correta para acentos.
+// Garante que o script seja lido com a codificao correta para acentos.
 $.encoding = "UTF-8";
 
 function createRenamerUI(thisObj) {
     // =================================================================================
-    // --- VARIÁVEIS DE CONFIGURAÇÃO RÁPIDA DE UI ---
+    // --- VARIVEIS DE CONFIGURAO RPIDA DE UI ---
     // =================================================================================
     var SCRIPT_NAME = "GNEWS Renamer";
     var SCRIPT_VERSION = "v15.2.0";
@@ -47,6 +47,25 @@ function createRenamerUI(thisObj) {
     var ESPACAMENTO_ELEMENTOS = 5;
 
     // =================================================================================
+    // --- PATHS PADRO (GARANTE scriptMainPath) ---
+    // =================================================================================
+    if (typeof scriptMainPath === 'undefined' || !scriptMainPath) {
+        // pasta raiz do projeto (2 niveis acima de /source/SCRIPTS)
+        var __thisFile = new File($.fileName);
+        scriptMainPath = __thisFile.parent.parent.fsName;
+    }
+
+    // Logger simples
+    function logRenamer(msg) {
+        try {
+            var rt = Folder.userData.fsName + "/GND9TOOLS script/runtime";
+            var lf = new Folder(rt + "/logs"); if (!lf.exists) lf.create();
+            var logFile = new File(lf.fsName + "/renamer.log");
+            logFile.open("a"); logFile.writeln(new Date().toUTCString() + " [RENAMER] " + msg); logFile.close();
+        } catch (e) {}
+        try { $.writeln("[RENAMER] " + msg); } catch (e2) {}
+    }
+    // =================================================================================
     // --- DADOS INTERNOS DO SCRIPT ---
     // =================================================================================
     var versionsList_internal = [
@@ -55,7 +74,7 @@ function createRenamerUI(thisObj) {
     ];
 
     // =================================================================================
-    // --- FUNÇÕES AUXILIARES DE TEMA E ARQUIVOS ---
+    // --- FUNES AUXILIARES DE TEMA E ARQUIVOS ---
     // =================================================================================
     function hexToRgb(hex) { if (typeof hex !== 'string') return [0.1, 0.1, 0.1]; hex = hex.replace("#", ""); return [parseInt(hex.substring(0, 2), 16) / 255, parseInt(hex.substring(2, 4), 16) / 255, parseInt(hex.substring(4, 6), 16) / 255]; }
     function setBgColor(element, hexColor) { try { if (typeof hexColor !== 'undefined') element.graphics.backgroundColor = element.graphics.newBrush(element.graphics.BrushType.SOLID_COLOR, hexToRgb(hexColor)); } catch (e) {} }
@@ -88,8 +107,9 @@ function createRenamerUI(thisObj) {
     }
     
     function readJsonFile(filePath) {
+        logRenamer("Lendo JSON: " + filePath);
         var file = new File(filePath);
-        if (!file.exists) { throw new Error("Arquivo de configuração não encontrado em: " + filePath); }
+        if (!file.exists) { throw new Error("Arquivo de configuracao nao encontrado em: " + filePath); }
         try {
             file.open("r"); var content = file.read(); file.close();
             return JSON.parse(content);
@@ -99,22 +119,29 @@ function createRenamerUI(thisObj) {
     // =======================================================================
     // --- ETAPA 1: CARREGAMENTO DE DADOS (NOVA ARQUITETURA) ---
     // =======================================================================
-    function loadAllData() {
+        function loadAllData() {
         try {
-            if (typeof scriptMainPath === 'undefined' || scriptMainPath === null) { throw new Error("A variável global 'scriptMainPath' não foi encontrada."); }
-            var dadosConfigData = readJsonFile(scriptMainPath + "/Dados_Config.json");
-            var equipeData = dadosConfigData.EQUIPE_GNEWS; if (!equipeData || !equipeData.equipe) throw new Error("'EQUIPE_GNEWS' não encontrado em Dados_Config.json.");
+            var dadosConfigPath = (typeof runtimeDadosConfigPath !== 'undefined') ? runtimeDadosConfigPath : null;
+            if (!dadosConfigPath && typeof runtimeConfigPath !== 'undefined') {
+                dadosConfigPath = runtimeConfigPath + "/Dados_Config.json";
+            }
+            if (!dadosConfigPath) {
+                dadosConfigPath = Folder.userData.fsName + "/GND9TOOLS script/runtime/config/Dados_Config.json";
+            }
+            logRenamer("Path Dados_Config usado: " + dadosConfigPath);
+            var dadosConfigData = readJsonFile(dadosConfigPath);
+            var equipeData = dadosConfigData.EQUIPE_GNEWS; if (!equipeData || !equipeData.equipe) throw new Error("'EQUIPE_GNEWS' nao encontrado em Dados_Config.json.");
             var namesList = [], tagsMap = {};
             for (var i = 0; i < equipeData.equipe.length; i++) { namesList.push(equipeData.equipe[i].apelido); tagsMap[equipeData.equipe[i].apelido] = equipeData.equipe[i].tag; }
-            var programacaoData = dadosConfigData.PROGRAMACAO_GNEWS; if (!programacaoData || !programacaoData.programacao) throw new Error("'PROGRAMACAO_GNEWS' não encontrado em Dados_Config.json.");
+            var programacaoData = dadosConfigData.PROGRAMACAO_GNEWS; if (!programacaoData || !programacaoData.programacao) throw new Error("'PROGRAMACAO_GNEWS' nao encontrado em Dados_Config.json.");
             var productionsList = [];
             for (var i = 0; i < programacaoData.programacao.length; i++) { var p = programacaoData.programacao[i]; if (p && p.tagName) { productionsList.push(p.tagName.replace(/_/g,' ').toLowerCase().replace(/\b\w/g,function(l){return l.toUpperCase();})); } }
-            var artesData = dadosConfigData.ARTES_GNEWS; if (!artesData || !artesData.arte) throw new Error("'ARTES_GNEWS' não encontrado em Dados_Config.json.");
+            var artesData = dadosConfigData.ARTES_GNEWS; if (!artesData || !artesData.arte) throw new Error("'ARTES_GNEWS' nao encontrado em Dados_Config.json.");
             var artsList = [], tempArtes = {};
             for (var i = 0; i < artesData.arte.length; i++) { var a = artesData.arte[i], n = a.arte || a.arts; if (n && !tempArtes[n]) { artsList.push(n); tempArtes[n] = true; } }
             artsList.sort();
             return { names: namesList, tags: tagsMap, productions: productionsList, arts: artsList, versions: versionsList_internal, programacaoRaw: { programacao_globonews: programacaoData.programacao }, equipe: equipeData.equipe };
-        } catch (e) { themedAlert("Erro Crítico de Dados", e.toString(), "error"); return null; }
+        } catch (e) { logRenamer("Falha loadAllData: " + e.toString()); themedAlert("Erro Critico de Dados", e.toString(), "error"); return null; }
     }
 
     var loadedData = loadAllData();
@@ -124,7 +151,7 @@ function createRenamerUI(thisObj) {
         equipe = loadedData.equipe;
     
     // =======================================================================
-    // --- LÓGICA DO SCRIPT E FUNÇÕES AUXILIARES ---
+    // --- LGICA DO SCRIPT E FUNES AUXILIARES ---
     // =======================================================================
     function getLoggedInUserIndex() { var u=system.userName.toLowerCase(),a=null; for(var i=0;i<equipe.length;i++){var s=equipe[i].email?equipe[i].email.toLowerCase():(equipe[i].apelido?equipe[i].apelido.toLowerCase():""); if(s.indexOf(u)>-1){a=equipe[i].apelido;break;}} return a?names.indexOf(a):-1; }
     function setDefaultValuesWithTimeLogic() {
@@ -136,11 +163,11 @@ function createRenamerUI(thisObj) {
         try {
             var t=function(s){var p=s.split(":");return parseInt(p[0],10)*60+parseInt(p[1],10);}; var n=new Date(),m=["dom","seg","ter","qua","qui","sex","sab"],d=m[n.getDay()],c=n.getHours()*60+n.getMinutes();
             for (var i=0;i<programacaoData.programacao_globonews.length;i++){var p=programacaoData.programacao_globonews[i]; if(p.horario&&p.dias_exibicao){var h=p.horario.split(" - "); if(c>=t(h[0])&&c<t(h[1])&&isDayInSchedule(p.dias_exibicao,d)){var e=p.tagName.replace(/_/g,' ').toLowerCase().replace(/\b\w/g,function(l){return l.toUpperCase();}); var x=productions.indexOf(e); if(x>-1){prodDrop.selection=x;return;}}}}
-        } catch(e){ themedAlert("Aviso de Horário", "Não foi possível detectar o programa pelo horário:\n" + e.toString(), "warning"); }
+        } catch(e){ themedAlert("Aviso de Horrio", "No foi possvel detectar o programa pelo horrio:\n" + e.toString(), "warning"); }
     }
-    function isDayInSchedule(s, d) { s = s.toLowerCase(); return s.indexOf("diariamente")>-1||s.indexOf("segunda a domingo")>-1||(s.indexOf("segunda a sexta")>-1&&d!=="sab"&&d!=="dom")||(s.indexOf("sábados e domingos")>-1&&(d==="sab"||d==="dom"))||s.indexOf(d)>-1; }
+    function isDayInSchedule(s, d) { s = s.toLowerCase(); return s.indexOf("diariamente")>-1||s.indexOf("segunda a domingo")>-1||(s.indexOf("segunda a sexta")>-1&&d!=="sab"&&d!=="dom")||(s.indexOf("sbados e domingos")>-1&&(d==="sab"||d==="dom"))||s.indexOf(d)>-1; }
     function pad(n) { return n < 10 ? "0" + n : String(n); }
-    var lastSavedPath; try { if (typeof getPathDayByDay === 'function') { lastSavedPath = getPathDayByDay(); } else if (typeof scriptMainPath !== 'undefined') { var f=new File(scriptMainPath + "/source/libraries/functions/func_getPathDayByDay.js"); if(f.exists){eval(File(f).read());lastSavedPath=getPathDayByDay();}else{throw new Error("func_getPathDayByDay.js não encontrado.");} } else { throw new Error("'scriptMainPath' não encontrada."); } } catch(e) { lastSavedPath = Folder.desktop.fsName; $.writeln("AVISO: " + e.toString()); }
+    var lastSavedPath; try { if (typeof getPathDayByDay === 'function') { lastSavedPath = getPathDayByDay(); } else if (typeof scriptMainPath !== 'undefined') { var f=new File(scriptMainPath + "/source/libraries/functions/func_getPathDayByDay.js"); if(f.exists){eval(File(f).read());lastSavedPath=getPathDayByDay();}else{throw new Error("func_getPathDayByDay.js no encontrado.");} } else { throw new Error("'scriptMainPath' no encontrada."); } } catch(e) { lastSavedPath = Folder.desktop.fsName; $.writeln("AVISO: " + e.toString()); }
     function getAlterationNumber(c) { if(!c)return"01";var m=0;for(var i=1;i<=app.project.numItems;i++){var t=app.project.item(i);if(t instanceof CompItem&&t.name.toUpperCase().indexOf(c.toUpperCase())>-1){var h=t.name.match(/C(\d+)/i);if(h&&parseInt(h[1],10)>m){m=parseInt(h[1],10);}}}return pad(m+1);}
     
     function parseCompNameToUI(compName) {
@@ -170,10 +197,10 @@ function createRenamerUI(thisObj) {
     }
 
     function sanitizeInput(t) { return t.replace(/[\/\\:*?"<>|]/g, ""); }
-    function removeAccents(s){if(!s)return"";var a="áàãâäéèêëíìîïóòõôöúùûüçñÁÀÃÂÄÉÈÊËÍÌÎÏÓÒÕÔÖÚÙÛÜÇÑ",r="aaaaaeeeeiiiiooooouuuucnAAAAAEEEEIIIIOOOOOUUUUCN",n="";for(var i=0;i<s.length;i++){var t=false;for(var j=0;j<a.length;j++){if(s.substr(i,1)==a.substr(j,1)){n+=r.substr(j,1);t=true;break;}}if(!t){n+=s.substr(i,1);}}return n;}
+    function removeAccents(s){if(!s)return"";var a="",r="aaaaaeeeeiiiiooooouuuucnAAAAAEEEEIIIIOOOOOUUUUCN",n="";for(var i=0;i<s.length;i++){var t=false;for(var j=0;j<a.length;j++){if(s.substr(i,1)==a.substr(j,1)){n+=r.substr(j,1);t=true;break;}}if(!t){n+=s.substr(i,1);}}return n;}
 
     // =================================================================================
-    // --- FUNÇÕES AUXILIARES DE BOTÕES TEMÁTICOS ---
+    // --- FUNES AUXILIARES DE BOTES TEMTICOS ---
     // =================================================================================
     function applyFixedSize(target, width, height) {
         if (!target || typeof width !== 'number' || typeof height !== 'number') { return; }
@@ -231,7 +258,7 @@ function createRenamerUI(thisObj) {
             buttonObj = parent.add('button', undefined, label);
             applyFixedSize(buttonObj, LARGURA_BOTAO, ALTURA_BOTAO);
             buttonObj.helpTip = tip;
-            if(!(thisObj instanceof Panel)) { themedAlert("Erro de Módulo", "A biblioteca 'main_ui_functions.js' não foi carregada.", "error"); }
+            if(!(thisObj instanceof Panel)) { themedAlert("Erro de Mdulo", "A biblioteca 'main_ui_functions.js' no foi carregada.", "error"); }
         }
         return buttonObj;
     }
@@ -242,34 +269,39 @@ function createRenamerUI(thisObj) {
     }
 
     // =================================================================================
-    // --- CONSTRUÇÃO DA INTERFACE GRÁFICA (UI) ---
+    // --- CONSTRUO DA INTERFACE GRFICA (UI) ---
     // =================================================================================
     
     var win = (thisObj instanceof Panel) ? thisObj : new Window("palette", JANELA_TITULO, undefined, { resizeable: false });
     win.orientation = "column"; win.alignChildren = ["fill", "top"]; win.spacing = ESPACAMENTO_ELEMENTOS; win.margins = MARGENS_JANELA;
-    win.preferredSize.width = LARGURA_JANELA; setBgColor(win, bgColor1);
+    win.preferredSize.width = LARGURA_JANELA;
+    // Fundo com fallback
+    try { setBgColor(win, (typeof bgColor1 !== 'undefined') ? bgColor1 : '#282828'); }
+    catch (eBg) { try { win.graphics.backgroundColor = win.graphics.newBrush(win.graphics.BrushType.SOLID_COLOR, [0.16,0.16,0.16]); } catch (eBg2) {} }
     var headerGrp = win.add('group'); headerGrp.orientation = 'row'; headerGrp.alignChildren = ["fill", "center"];
-    var title = headerGrp.add('statictext', undefined, TITULO_UI); title.alignment = 'left'; setFgColor(title, highlightColor1);
+    var title = headerGrp.add('statictext', undefined, TITULO_UI); title.alignment = 'left';
+    try { setFgColor(title, (typeof highlightColor1 !== 'undefined') ? highlightColor1 : '#d4003c'); }
+    catch (eFg) { try { title.graphics.foregroundColor = title.graphics.newPen(title.graphics.PenType.SOLID_COLOR, [0.83,0,0.24], 1); } catch (ePen) {} }
     var helpBtnGroup = headerGrp.add('group'); helpBtnGroup.alignment = ['right', 'center'];
-    var helpBtn; var showHelpFunction = function() { if (typeof showRenamerHelp === 'function') { showRenamerHelp(); } else { themedAlert("Ajuda", "A biblioteca de ajuda (HELP lib.js) não foi encontrada.", "warning"); } };
+    var helpBtn; var showHelpFunction = function() { if (typeof showRenamerHelp === 'function') { showRenamerHelp(); } else { themedAlert("Ajuda", "A biblioteca de ajuda (HELP lib.js) no foi encontrada.", "warning"); } };
     if (typeof themeIconButton !== 'undefined' && typeof D9T_INFO_ICON !== 'undefined') { try { helpBtn = new themeIconButton(helpBtnGroup, { icon: D9T_INFO_ICON, tips: ['Ajuda sobre o GNEWS Renamer'] }); if (helpBtn.leftClick) { helpBtn.leftClick.onClick = showHelpFunction; } } catch (e) { helpBtn = helpBtnGroup.add("button", undefined, "?"); helpBtn.preferredSize = [25, 25]; helpBtn.onClick = showHelpFunction; } } else { helpBtn = helpBtnGroup.add("button", undefined, "?"); helpBtn.preferredSize = [25, 25]; helpBtn.onClick = showHelpFunction; }
     var fieldsPanel = win.add("panel"); fieldsPanel.alignChildren = ["left", "top"]; fieldsPanel.spacing = 10; fieldsPanel.margins = 12; setFgColor(fieldsPanel, monoColor1);
     
     function createDropdown(p, l, i, w) { var g=p.add("group"); g.alignChildren=['left','center']; var a=g.add("statictext",undefined,l+":"); setFgColor(a,monoColor1); a.preferredSize.width=55; var c=g.add("dropdownlist",undefined,i); if(i.length>0)c.selection=0; c.preferredSize.width=w; return c; }
     
-    var row1 = fieldsPanel.add("group"); var nameDrop = createDropdown(row1, "Nome", names, LARGURA_MENU_NOME); var prodDrop = createDropdown(row1, "Produção", productions, LARGURA_MENU_PRODUCAO);
-    var row2 = fieldsPanel.add("group"); var artDrop = createDropdown(row2, "Tipo", arts, LARGURA_MENU_TIPO); var versionDrop = createDropdown(row2, "Versão", versions, LARGURA_MENU_VERSAO);
-    var descGroup = fieldsPanel.add("group"); descGroup.alignChildren=['left','center']; var descLabel = descGroup.add("statictext",undefined,"Descrição:"); setFgColor(descLabel,monoColor1); descLabel.preferredSize.width=55; var descInput=descGroup.add("edittext",undefined,""); descInput.preferredSize.width=LARGURA_CAMPO_DESCRICAO;
+    var row1 = fieldsPanel.add("group"); var nameDrop = createDropdown(row1, "Nome", names, LARGURA_MENU_NOME); var prodDrop = createDropdown(row1, "Produo", productions, LARGURA_MENU_PRODUCAO);
+    var row2 = fieldsPanel.add("group"); var artDrop = createDropdown(row2, "Tipo", arts, LARGURA_MENU_TIPO); var versionDrop = createDropdown(row2, "Verso", versions, LARGURA_MENU_VERSAO);
+    var descGroup = fieldsPanel.add("group"); descGroup.alignChildren=['left','center']; var descLabel = descGroup.add("statictext",undefined,"Descrio:"); setFgColor(descLabel,monoColor1); descLabel.preferredSize.width=55; var descInput=descGroup.add("edittext",undefined,""); descInput.preferredSize.width=LARGURA_CAMPO_DESCRICAO;
     var editorGroup = fieldsPanel.add("group"); editorGroup.alignChildren=['left','center']; var editorLabel = editorGroup.add("statictext",undefined,"Editor:"); setFgColor(editorLabel,monoColor1); editorLabel.preferredSize.width=55; var editorInput=editorGroup.add("edittext",undefined,""); editorInput.preferredSize.width=LARGURA_CAMPO_EDITOR;
-    var alterGroup = fieldsPanel.add("group"); alterGroup.alignChildren=['left','center']; var alterLabel = alterGroup.add("statictext",undefined,"Correção:"); setFgColor(alterLabel,monoColor1); alterLabel.preferredSize.width=55; var alterCheck=alterGroup.add("checkbox");
+    var alterGroup = fieldsPanel.add("group"); alterGroup.alignChildren=['left','center']; var alterLabel = alterGroup.add("statictext",undefined,"Correo:"); setFgColor(alterLabel,monoColor1); alterLabel.preferredSize.width=55; var alterCheck=alterGroup.add("checkbox");
     
     var mainBtnPanel=win.add("group"); mainBtnPanel.alignment="center"; mainBtnPanel.spacing=5;
-    var renameBtn = createActionButton(mainBtnPanel, "Renomear", "Renomeia a(s) composição(ões) selecionada(s)");
-    var duplicarBtn = createActionButton(mainBtnPanel, "Duplicar", "Duplica a composição selecionada e sua hierarquia");
-    var captureBtn = createActionButton(mainBtnPanel, "Capturar", "Captura os dados da composição selecionada");
+    var renameBtn = createActionButton(mainBtnPanel, "Renomear", "Renomeia a(s) composio(es) selecionada(s)");
+    var duplicarBtn = createActionButton(mainBtnPanel, "Duplicar", "Duplica a composio selecionada e sua hierarquia");
+    var captureBtn = createActionButton(mainBtnPanel, "Capturar", "Captura os dados da composio selecionada");
     
     var bottomBtnRow=win.add("group"); bottomBtnRow.alignment="center"; bottomBtnRow.spacing=5; 
-    var copyBtn = createActionButton(bottomBtnRow, "Copiar", "Copia o nome da composição para a área de transferência");
+    var copyBtn = createActionButton(bottomBtnRow, "Copiar", "Copia o nome da composio para a rea de transferncia");
     var organizeBtn = createActionButton(bottomBtnRow, "Organizar", "Limpa e organiza todo o projeto");
     var saveBtn = createActionButton(bottomBtnRow, "Salvar", "Salva o arquivo .aep com o nome do preview", {
         bg: (typeof highlightColor1 !== 'undefined') ? highlightColor1 : '#D4003C', text: (typeof normalColor1 !== 'undefined') ? normalColor1 : '#FFFFFF',
@@ -280,10 +312,10 @@ function createRenamerUI(thisObj) {
     var previewText = previewPanel.add("statictext", undefined, ""); previewText.preferredSize.width = LARGURA_JANELA * 2.5; setFgColor(previewText, normalColor1);
     
     // =================================================================================
-    // --- EVENTOS E ATUALIZAÇÕES DA UI ---
+    // --- EVENTOS E ATUALIZAES DA UI ---
     // =================================================================================
     function updatePreview() {
-        setFgColor(previewText, normalColor1); // Reseta a cor do preview para a padrão
+        setFgColor(previewText, normalColor1); // Reseta a cor do preview para a padro
         var prodText=prodDrop.selection?prodDrop.selection.text.toUpperCase():""; var artText=artDrop.selection?artDrop.selection.text.toUpperCase():""; var versionText=(versionDrop.selection&&versionDrop.selection.text!=="Nenhuma")?" "+versionDrop.selection.text.toUpperCase():""; var descStr=descInput.text?" "+descInput.text.toUpperCase():""; var editorStr=editorInput.text?" - "+editorInput.text.toUpperCase():""; var alterStr=alterCheck.value?" C"+getAlterationNumber("GNEWS "+prodText+" "+artText+descStr):"";
         var finalArtText=artText; var finalString="GNEWS "+prodText+" "+finalArtText+descStr+versionText+editorStr+alterStr; var maxChars=70;
         if(finalString.length>maxChars&&artText.length>8){var overflow=finalString.length-maxChars;var newArtLength=artText.length-overflow-3;if(newArtLength<5){newArtLength=5;}finalArtText=artText.substring(0,newArtLength)+"...";}
@@ -295,11 +327,12 @@ function createRenamerUI(thisObj) {
     editorInput.onChanging=function(){this.text=sanitizeInput(this.text); updatePreview();};
     alterCheck.onClick=updatePreview;
     
-    // --- Ações dos Botões ---
+    // --- Aes dos Botes ---
     assignClick(captureBtn, function() { var a=app.project.activeItem; if(!(a instanceof CompItem)){themedAlert("Aviso","Nenhuma comp selecionada.", "warning");return;} var p=parseCompNameToUI(a.name); applyParsedDataToUI(p); updatePreview(); });
     assignClick(renameBtn, function() {
         var s=app.project.selection, c=[]; for(var i=0;i<s.length;i++){if(s[i]instanceof CompItem){c.push(s[i]);}} if(c.length===0){themedAlert("Aviso","Selecione uma comp.", "warning");return;}
-        app.beginUndoGroup("Renomear Composições"); try{
+        if (!prodDrop.selection || !artDrop.selection) { themedAlert("Erro","Dados no carregados (Dados_Config?).", "error"); return; }
+        app.beginUndoGroup("Renomear Composies"); try{
         var b="GNEWS "+(prodDrop.selection.text.toUpperCase())+" "+(artDrop.selection.text.toUpperCase())+(descInput.text?" "+descInput.text.toUpperCase():""); var e=editorInput.text?" - "+editorInput.text.toUpperCase():"";
         if(c.length>1){var v=(versionDrop.selection&&versionDrop.selection.text!=="Nenhuma")?" "+versionDrop.selection.text.toUpperCase():""; if(alterCheck.value){var n=parseInt(getAlterationNumber(b),10); for(var i=0;i<c.length;i++){c[i].name=removeAccents(b+v+e+" C"+pad(n+i));}}else{var t=(versionDrop.selection&&versionDrop.selection.text!=="Nenhuma")?(parseInt(versionDrop.selection.text.match(/(\d+)/)[1],10)||1):1; for(var i=0;i<c.length;i++){c[i].name=removeAccents(b+" ARTE "+pad(t+i)+e);}}}else{updatePreview();c[0].name=removeAccents(previewText.text);}
         showStatusMessage(c.length+" comp(s) renomeada(s)!", "success");}catch(e){themedAlert("Erro","Erro ao renomear:\n"+e.toString(), "error");}finally{app.endUndoGroup();}
@@ -381,7 +414,7 @@ function createRenamerUI(thisObj) {
     assignClick(saveBtn, function() { updatePreview(); var b=previewText.text.replace(/\sC\d+$/,""); var t=tags[nameDrop.selection.text]||""; var p=(t?t+" ":"")+removeAccents(b)+".aep"; var f=new File(lastSavedPath+"/"+p).saveDlg("Salvar Projeto Como"); if(f){app.project.save(f);lastSavedPath=f.parent.fsName;showStatusMessage("Projeto salvo: "+f.name, "success");} });
     
     // =================================================================================
-    // --- INICIALIZAÇÃO DA UI ---
+    // --- INICIALIZAO DA UI ---
     // =================================================================================
     if (win instanceof Window) { win.center(); win.show(); }
     setDefaultValuesWithTimeLogic(); 
@@ -392,3 +425,7 @@ function createRenamerUI(thisObj) {
     }
     updatePreview();
 }
+
+
+
+

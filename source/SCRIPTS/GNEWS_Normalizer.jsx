@@ -120,7 +120,7 @@ function launchNormalizerUI(thisObj) {
 	headerGroup.alignment = 'fill';
 	headerGroup.margins = [0, 0, 0, 10]; // Adiciona uma margem inferior para separar do resto do conteúdo.
 
-		// Grupo para o tA-tulo (alinhado A� esquerda).
+		// Grupo para o tA-tulo (alinhado A esquerda).
 
 	var titleGroup = headerGroup.add('group');
 	titleGroup.alignment = 'left';

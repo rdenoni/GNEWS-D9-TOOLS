@@ -1,63 +1,41 @@
 /**********************************************************************************
  *
  * GNEWS CopyLinks
- * Versão: 2.3 (Correção de Layout do Cabeçalho)
+ * Versão: 3.2 (Visual Unificado)
  *
  * DESCRIÇÃO:
- * Fornece uma interface de acesso rápido para pastas de rede, arquivos (como PDFs)
- * e links web, organizados em grupos e subgrupos.
+ * Fornece uma interface de acesso rápido para pastas de rede, arquivos e links.
  *
- * MODULOS USADOS:
- * - source/globals.js (para variáveis de tema e cores globais)
- * - source/libraries/HELP lib.js (para a janela de ajuda)
- * - source/libraries/JSON lib.js (para a função JSON.parse())
- * - source/libraries/ICON lib.js (fornece os ícones para os botões da UI)
- * - source/layout/main_ui_functions.js (para os componentes 'themeIconButton')
- * - System_Settings.json (para as configurações de layout da janela)
- * - Dados_Config.json (para os dados de grupos, subgrupos e links)
- *
- * ATUALIZAÇÃO (v2.3):
- * - CORREÇÃO DE LAYOUT: O cabeçalho foi reconstruído para usar 'orientation = stack'
- * com grupos filhos alinhados à 'left' e 'right', corrigindo o alinhamento
- * do subtítulo e do botão de ajuda para espelhar o GNEWS_Normalizer.jsx
- * e GNEWS_CropComp.jsx.
+ * MUDANÇAS v3.2:
+ * - Botão de Pin (Acesso Rápido) agora aparece para TODOS os itens no Windows
+ * (garantindo alinhamento visual em grupos como Links e Catálogos).
+ * - Adicionada validação ao clicar: se não for pasta, avisa o usuário.
  *
  **********************************************************************************/
 
 // Garante que o script seja lido com a codificação correta para acentos.
 $.encoding = "UTF-8";
 
-    function launchCopyLinks() {
+function launchCopyLinks() {
 
     // =================================================================================
-	// --- VARIÁVEIS DE CONFIGURAÇÃO RÁPIDA ---
-	// =================================================================================
+    // --- VARIÁVEIS DE CONFIGURAÇÃO ---
+    // =================================================================================
     var SCRIPT_NAME = "GNEWS CopyLinks";
-    var SCRIPT_VERSION = "2.3";
+    var SCRIPT_VERSION = "3.2";
     var SCRIPT_WINDOW_TITLE = SCRIPT_NAME + " v" + SCRIPT_VERSION;
-    var SCRIPT_SUBTITLE = "Acesso Rápido a Pastas e Links"; // Subtítulo padronizado
-    var LARGURA_BOTAO_TEMATICO = 460; // Ajuste rápido da largura padrão dos botões temáticos
-    var ALTURA_BOTAO_TEMATICO = 32;   // Ajuste rápido da altura padrão dos botões temáticos
+    var SCRIPT_SUBTITLE = "Acesso Rápido a Pastas e Links";
     
-    var prefsApi = (typeof D9T_Preferences !== 'undefined') ? D9T_Preferences : null;
-    var PREFS_KEY = "CopyLinks";
-    var defaultPrefs = { quickAccess: true };
-    var modulePrefs = prefsApi ? prefsApi.getModulePrefs(PREFS_KEY) : {};
-    if (typeof modulePrefs !== 'object' || modulePrefs === null) { modulePrefs = {}; }
-    function getPrefValue(key) {
-        return modulePrefs.hasOwnProperty(key) ? modulePrefs[key] : defaultPrefs[key];
-    }
-    function setPrefValue(key, value, persist) {
-        modulePrefs[key] = value;
-        if (prefsApi) { prefsApi.setModulePref(PREFS_KEY, key, value, !!persist); }
-    }
+    // Configurações de dimensão fixas da UI
+    var ICON_WIDTH = 30; // Largura exata dos ícones laterais
+    var SPACING = 5;     // Espaçamento entre elementos
+    var HEIGHT_ROW = 26; // Altura da linha de input
+    var BTN_HEIGHT = 32; // Altura do botão de título
 
-    var ATIVAR_ACESSO_RAPIDO = getPrefValue("quickAccess"); // Habilita/desabilita o botão "Adicionar ao Acesso Rápido"
-    // Define a pasta raiz do script principal para resolver caminhos relativos
     var GNEWS_D9_TOOLS_ROOT = new File($.fileName).parent.parent.parent;
 
     // =================================================================================
-    // --- FUNÇÕES AUXILIARES DE TEMA E ARQUIVOS (Padrão Renamer) ---
+    // --- FUNÇÕES AUXILIARES ---
     // =================================================================================
 
     function hexToRgb(hex) { if (hex == undefined) return [0,0,0]; hex = hex.replace('#', ''); var r = parseInt(hex.substring(0, 2), 16); var g = parseInt(hex.substring(2, 4), 16); var b = parseInt(hex.substring(4, 6), 16); return [r / 255, g / 255, b / 255]; }
@@ -66,37 +44,33 @@ $.encoding = "UTF-8";
 
     function applyFixedSize(target, width, height) {
         if (!target || typeof width !== 'number' || typeof height !== 'number') { return; }
-        var sizeArr = [width, height];
-        target.minimumSize = sizeArr;
-        target.maximumSize = sizeArr;
-        target.preferredSize = sizeArr;
-        target.size = sizeArr;
+        target.minimumSize = [width, height];
+        target.maximumSize = [width, height];
+        target.preferredSize = [width, height];
+        target.size = [width, height];
+    }
+
+    // Função especial para o botão que deve esticar (FILL)
+    function applyFlexibleSize(target, height) {
+        if (!target) return;
+        target.minimumSize = [50, height]; 
+        target.maximumSize = [30000, height]; 
+        target.preferredSize = [-1, height];
     }
 
     function enforceThemeButtonSize(ctrl, width, height) {
         if (!ctrl) { return; }
-        if (typeof width === 'number' && typeof height === 'number') {
-            applyFixedSize(ctrl, width, height);
-            if (ctrl.parent && ctrl.parent.type === "group") {
-                ctrl.parent.alignment = ['fill','center'];
-            }
-        }
-        ctrl.__buttonThemeOverrides = ctrl.__buttonThemeOverrides || {};
-        if (typeof width === 'number') { ctrl.__buttonThemeOverrides.width = width; }
-        if (typeof height === 'number') { ctrl.__buttonThemeOverrides.height = height; }
-        var relock = function () { applyFixedSize(ctrl, width, height); };
-        if (typeof ctrl.onDraw === 'function') {
-            var prevDraw = ctrl.onDraw;
-            ctrl.onDraw = function () { relock(); prevDraw.apply(this, arguments); };
+        
+        if (width === -1) {
+            applyFlexibleSize(ctrl, height);
         } else {
-            ctrl.onDraw = relock;
+            applyFixedSize(ctrl, width, height);
         }
-        if (typeof ctrl.addEventListener === 'function') {
-            var events = ["mouseover","mouseout","mousedown","mouseup"];
-            for (var i = 0; i < events.length; i++) {
-                try { ctrl.addEventListener(events[i], relock); } catch (evtErr) {}
-            }
-        }
+        
+        ctrl.__buttonThemeOverrides = ctrl.__buttonThemeOverrides || {};
+        if (width !== -1) ctrl.__buttonThemeOverrides.width = width;
+        ctrl.__buttonThemeOverrides.height = height;
+        
         if (typeof D9T_applyThemeToButtonControl === 'function') {
             try {
                 var baseTheme = ctrl.__buttonThemeSource;
@@ -107,62 +81,74 @@ $.encoding = "UTF-8";
     }
 
     function createThemeButtonCtrl(parent, label, width, height, tip) {
-        var targetWidth = (typeof width === 'number') ? width : LARGURA_BOTAO_TEMATICO;
-        var targetHeight = (typeof height === 'number') ? height : ALTURA_BOTAO_TEMATICO;
         var ctrl = null;
+        var wrapper = null;
         if (typeof themeButton === 'function') {
             try {
-                var cfg = { labelTxt: label, width: targetWidth, height: targetHeight };
-                var wrapper = new themeButton(parent, cfg);
+                var cfg = { labelTxt: label, width: (width === -1 ? 200 : width), height: height };
+                wrapper = new themeButton(parent, cfg);
                 ctrl = (wrapper && wrapper.label) ? wrapper.label : null;
+                
+                if (wrapper) {
+                    applyFixedSize(wrapper, width, height);
+                    try { wrapper.alignment = ["fill", "top"]; } catch (_w) {}
+                }
+                
+                if (ctrl && ctrl.parent) {
+                    ctrl.__wrapper = wrapper;
+                    try { ctrl.alignment = ["fill", "top"]; } catch (_c) {}
+                    
+                    // SEGURANÇA: Trava tamanho interno
+                    if (width !== -1) {
+                        applyFixedSize(ctrl, width, height);
+                    }
+                }
             } catch (e) { ctrl = null; }
         }
+        
         if (!ctrl) {
             ctrl = parent.add("button", undefined, label);
-            applyFixedSize(ctrl, targetWidth, targetHeight);
+            if (width !== -1) { applyFixedSize(ctrl, width, height); }
+            try { ctrl.alignment = ["fill", "top"]; } catch (_ignore) {}
         }
+        
         if (tip && ctrl) { ctrl.helpTip = tip; }
-        enforceThemeButtonSize(ctrl, targetWidth, targetHeight);
+        enforceThemeButtonSize(ctrl, width, height);
         return ctrl;
     }
+
     function themedAlert(title, message) { var d = new Window("dialog", title); d.orientation="column"; d.alignChildren=["center","center"]; d.spacing=10; d.margins=15; setBgColor(d,typeof bgColor1!='undefined'?bgColor1:'#282828'); var m=d.add('group'); m.orientation='column'; var l=message.split('\n'); for(var i=0;i<l.length;i++){var t=m.add('statictext',undefined,l[i]); setFgColor(t,typeof normalColor1!='undefined'?normalColor1:'#FFFFFF');} var b=d.add("button",undefined,"OK",{name:'ok'}); b.size=[100,25]; d.center(); d.show(); }
 
-    // Função para ler JSON, copiada do GNEWS_Renamer.jsx.
     function readJsonFile(filePath) {
         var file = new File(filePath);
-        if (!file.exists) { throw new Error("Arquivo de configuração não encontrado em: " + filePath); }
+        if (!file.exists) { throw new Error("Arquivo não encontrado: " + filePath); }
         try {
             file.open("r"); var content = file.read(); file.close();
             return JSON.parse(content);
-        } catch (e) { throw new Error("Erro ao ler ou processar o arquivo JSON: " + filePath + "\n" + e.toString()); }
+        } catch (e) { throw new Error("Erro JSON: " + filePath + "\n" + e.toString()); }
     }
 
     // =======================================================================
-    // --- ETAPA 1: CARREGAMENTO DE DADOS (Lógica Autônoma) ---
+    // --- CARREGAMENTO DE DADOS ---
     // =======================================================================
     var layoutConfig, linkData;
+    var baseFieldWidth = 0; 
     
     function loadCopyLinksData() {
         try {
             if (typeof scriptMainPath === 'undefined' || scriptMainPath === null) {
-                throw new Error("A variável global 'scriptMainPath' não foi encontrada. O script principal (GND9TOOLS.jsx) pode ter falhado ao carregar.");
+                throw new Error("Variável 'scriptMainPath' não encontrada.");
             }
-            
-            var systemSettingsData = readJsonFile(scriptMainPath + "/System_Settings.json"); //
-            var dadosConfigData = readJsonFile(scriptMainPath + "/Dados_Config.json"); //
+            var settingsPath = (typeof runtimeConfigPath !== 'undefined') ? (runtimeConfigPath + "/System_Settings.json") : (scriptMainPath + "/System_Settings.json");
+            var systemSettingsData = readJsonFile(settingsPath);
+            var dadosConfigPath = (typeof runtimeDadosConfigPath !== 'undefined') ? runtimeDadosConfigPath : (scriptMainPath + "/runtime/config/Dados_Config.json");
+            var dadosConfigData = readJsonFile(dadosConfigPath);
 
-            var layoutConfig = systemSettingsData.COPYLINKS_Settings; //
-            if (!layoutConfig) throw new Error("'COPYLINKS_Settings' não encontrado em System_Settings.json.");
-
-            var linkData = dadosConfigData.CAMINHOS_REDE.caminhos; //
-            if (!linkData || !linkData.grupos) throw new Error("'CAMINHOS_REDE.caminhos' não encontrado ou inválido em Dados_Config.json.");
-
-            return {
-                layout: layoutConfig,
-                links: linkData
-            };
+            var layoutConfig = systemSettingsData.COPYLINKS_Settings;
+            var linkData = dadosConfigData.CAMINHOS_REDE.caminhos;
+            return { layout: layoutConfig, links: linkData };
         } catch (e) {
-            themedAlert("Erro Crítico de Dados (CopyLinks)", e.toString());
+            themedAlert("Erro Crítico (CopyLinks)", e.toString());
             return null;
         }
     }
@@ -173,17 +159,22 @@ $.encoding = "UTF-8";
     layoutConfig = loadedData.layout;
     linkData = loadedData.links;
 
+    // Define a largura base única usando 'text_width_normal'
+    (function computeBaseWidth() {
+        try {
+            var lg = layoutConfig && layoutConfig.configuracao && layoutConfig.configuracao.layout_geral;
+            baseFieldWidth = (lg && lg.text_width_normal) || 460; 
+        } catch (_e) {
+            baseFieldWidth = 532;
+        }
+    })();
+
     // =================================================================================
-    // --- FUNÇÕES PRINCIPAIS DO SCRIPT ---
+    // --- FUNÇÕES DE SISTEMA ---
     // =================================================================================
     var isWindows = ($.os.indexOf("Windows") !== -1);
-
     function hasWriteAccess() { return app.preferences.getPrefAsLong("Main Pref Section", "Pref_SCRIPTING_FILE_NETWORK_SECURITY"); }
-    function toggleQuickAccess(enabled) {
-        ATIVAR_ACESSO_RAPIDO = !!enabled;
-        setPrefValue("quickAccess", ATIVAR_ACESSO_RAPIDO, true);
-    }
-
+    
     function copyText(text) {
         try {
             var tempFile = new File(Folder.temp.fsName + "/gnews_copy_temp.txt");
@@ -195,7 +186,7 @@ $.encoding = "UTF-8";
             tempFile.remove();
             return true;
         } catch (e) {
-            themedAlert("Erro ao Copiar", "Falha ao copiar para a área de transferência:\n" + e.toString());
+            themedAlert("Erro ao Copiar", e.toString());
             return false;
         }
     }
@@ -208,19 +199,13 @@ $.encoding = "UTF-8";
         if (isPdf && isRelative) {
             var cleanRelativePath = path.replace(/^[\\\/]+/, "");
             var absolutePath = new File(GNEWS_D9_TOOLS_ROOT.fsName + "/" + cleanRelativePath);
-            if (absolutePath.exists) { 
-                path = absolutePath.fsName; 
-            } else { 
-                themedAlert("Erro", "❌ PDF não encontrado:\n" + absolutePath.fsName); 
-                return; 
-            }
+            if (absolutePath.exists) path = absolutePath.fsName; 
+            else { themedAlert("Erro", "PDF não encontrado:\n" + absolutePath.fsName); return; }
         }
-
         if (path.indexOf("http") === 0) {
             isWindows ? system.callSystem('cmd.exe /c "start ' + path + '"') : system.callSystem('open "' + path + '"');
             return;
         }
-
         var file = new File(path);
         var folder = new Folder(path);
         if (file.exists) {
@@ -228,63 +213,107 @@ $.encoding = "UTF-8";
         } else if (folder.exists) {
             folder.execute();
         } else {
-            themedAlert("Erro", "❌ Arquivo/pasta não encontrado:\n" + path);
+            themedAlert("Erro", "Caminho não encontrado:\n" + path);
         }
     }
 
-    function addPin(path) {
+function addPin(path) {
         if (!isWindows) { themedAlert("Aviso", "Acesso Rápido disponível apenas no Windows."); return false; }
+        
+        // Limpeza inicial
+        path = path.replace(/^\s+|\s+$/g, '');
+        
+        // --- CORREÇÃO: Resolver caminhos relativos (igual ao openPath) ---
+        // Se o caminho não tem ':', '\\' ou 'http', assume-se que é relativo à raiz do script
+        var isRelative = path.indexOf(":") === -1 && path.indexOf("\\\\") !== 0 && path.indexOf("http") !== 0;
+        
+        if (isRelative) {
+             var cleanRelativePath = path.replace(/^[\\\/]+/, "");
+             var absolutePath = new File(GNEWS_D9_TOOLS_ROOT.fsName + "/" + cleanRelativePath);
+             // Se o arquivo relativo existe, usamos o caminho completo dele
+             if (absolutePath.exists) {
+                 path = absolutePath.fsName;
+             }
+        }
+        // -----------------------------------------------------------------
+
         var targetPath = path;
         var file = new File(path);
-        if (file.exists) { targetPath = file.parent.fsName; } 
+        
+        // Lógica inteligente: Se for um arquivo (ex: PDF), fixa a PASTA PAI dele.
+        if (file.exists) { 
+            targetPath = file.parent.fsName; 
+        }
+        
         var folder = new Folder(targetPath);
-        if (!folder.exists) { themedAlert("Erro", "Pasta não existe: " + targetPath); return false; }
+        
+        // Verificação final de existência
+        if (!folder.exists) { 
+            themedAlert("Erro", "A pasta ou arquivo não foi encontrado no disco:\n" + targetPath); 
+            return false; 
+        }
+        
         try {
-            var cmd = 'powershell.exe -Command "$s=New-Object -ComObject Shell.Application;$f=$s.Namespace(\'' + folder.fsName.replace(/\\/g, '\\\\') + '\');$f.Self.InvokeVerb(\'pintohome\')"';
-            return (system.callSystem(cmd) === 0);
-        } catch (e) { return false; }
+            // Comando PowerShell para fixar no Quick Access (retorna __OK__ em caso de sucesso)
+            var safePath = folder.fsName.replace(/\\/g, '\\\\');
+            var cmd = 'powershell.exe -NoProfile -Command "$s=New-Object -ComObject Shell.Application; $f=$s.Namespace(\\\"' + safePath + '\\\"); if($f){$f.Self.InvokeVerb(\\\"pintohome\\\"); Write-Output \\\"__OK__\\\" } else { Write-Output \\\"__FAIL__\\\" }"';
+            var out = system.callSystem(cmd) || "";
+            var low = out.toLowerCase();
+
+            // Sucesso se retornou __OK__ ou se não houve mensagem de erro
+            if (low.indexOf("__ok__") !== -1 || low.trim() === "") {
+                return true;
+            }
+            if (low.indexOf("exception") !== -1 || low.indexOf("__fail__") !== -1) {
+                throw new Error("Falha ao fixar: " + out);
+            }
+            // Fallback otimista: considerar sucesso se nao encontramos falha explícita
+            return true;
+        } catch (e) {
+            themedAlert("Erro", "Não foi possível fixar no Acesso Rápido.\n" + e.toString());
+            return false;
+        }
     }
 
     // =================================================================================
-    // --- CONSTRUÇÃO DA INTERFACE GRÁFICA (UI) ---
+    // --- UI PRINCIPAL ---
     // =================================================================================
     var win = new Window("palette", SCRIPT_WINDOW_TITLE, undefined, { resizeable: false });
     win.orientation = "column"; win.spacing = 10; win.margins = 15;
-    setBgColor(win, bgColor1); 
-
-    // --- CABEÇALHO (TÍTULO E AJUDA) ---
-    // CORRIGIDO: Usa 'stack' com grupos alinhados para 'left' e 'right'
-    var headerGrp = win.add('group');
-    headerGrp.orientation = 'stack'; // Usa 'stack' para sobrepor os grupos
-    headerGrp.alignment = 'fill'; // Faz o grupo preencher a largura
     
-    // Grupo do Título (Alinhado à Esquerda)
+    try { setBgColor(win, (typeof bgColor1 !== 'undefined') ? bgColor1 : '#282828'); }
+    catch (eBg) { try { win.graphics.backgroundColor = win.graphics.newBrush(win.graphics.BrushType.SOLID_COLOR, [0.16,0.16,0.16]); } catch (eBg2) {} }
+
+    // --- HEADER ---
+    var headerGrp = win.add('group');
+    headerGrp.orientation = 'stack';
+    headerGrp.alignment = 'fill';
+
     var titleGroup = headerGrp.add('group');
-    titleGroup.alignment = 'left'; // Alinha este grupo à esquerda do 'stack'
+    titleGroup.alignment = 'left';
     var title = titleGroup.add('statictext', undefined, SCRIPT_SUBTITLE);
-    if (typeof setFgColor === 'function' && typeof highlightColor1 !== 'undefined') {
-        setFgColor(title, highlightColor1);
+    try { setFgColor(title, (typeof highlightColor1 !== 'undefined') ? highlightColor1 : '#d4003c'); } catch (eFg) {}
+
+    var helpBtnGroup = headerGrp.add('group');
+    helpBtnGroup.alignment = 'right';
+    var helpBtn;
+    if (typeof themeIconButton !== 'undefined' && typeof D9T_INFO_ICON !== 'undefined') {
+        helpBtn = new themeIconButton(helpBtnGroup, { icon: D9T_INFO_ICON, tips: [lClick + 'Ajuda'] });
+    } else {
+        helpBtn = helpBtnGroup.add("button", undefined, "?");
+        helpBtn.preferredSize = [24, 24];
+        helpBtn.helpTip = "Ajuda";
     }
 
-    // Grupo do Botão de Ajuda (Alinhado à Direita)
-    var helpBtnGroup = headerGrp.add('group');
-    helpBtnGroup.alignment = 'right'; // Alinha este grupo à direita do 'stack'
-    var helpBtn = new themeIconButton(helpBtnGroup, { icon: D9T_INFO_ICON, tips: [lClick + 'Ajuda'] });
-
-    var quickAccessToggle = win.add("checkbox", undefined, "Habilitar 'Adicionar ao Acesso Rápido'");
-    quickAccessToggle.alignment = ['left', 'top'];
-    quickAccessToggle.value = ATIVAR_ACESSO_RAPIDO;
-    quickAccessToggle.onClick = function () { toggleQuickAccess(!!this.value); };
-    
-    // --- GRUPO DE SELEÇÃO (DROPDOWNS) ---
+    // --- SELEÇÃO ---
     var line2Grp = win.add("group");
     line2Grp.orientation = 'row'; line2Grp.alignment = 'left'; line2Grp.spacing = 10;
     var mainGroupLabel = line2Grp.add("statictext", undefined, "Grupo:");
     setFgColor(mainGroupLabel, monoColor1); 
     
-    var mainGroups = linkData.grupos; //
+    var mainGroups = linkData.grupos;
     var mainGroupNames = [];
-    for (var i = 0; i < mainGroups.length; i++) { mainGroupNames.push(mainGroups[i].titulo); } //
+    for (var i = 0; i < mainGroups.length; i++) { mainGroupNames.push(mainGroups[i].titulo); } 
     
     var mainDropdown = line2Grp.add("dropdownlist", undefined, mainGroupNames);
     mainDropdown.preferredSize.width = 150;
@@ -293,7 +322,7 @@ $.encoding = "UTF-8";
     var subgroupDropdown = line2Grp.add("dropdownlist", undefined, []);
     subgroupDropdown.preferredSize.width = 150;
     
-    // --- GRUPO DE CONTEÚDO (LINKS) ---
+    // --- ÁREA DE LINKS ---
     var content = win.add("group");
     content.orientation = "column";
     content.spacing = 15;
@@ -301,70 +330,91 @@ $.encoding = "UTF-8";
     content.alignChildren = 'left';
 
     // =================================================================================
-    // --- FUNÇÕES DE ATUALIZAÇÃO DA UI E EVENTOS ---
+    // --- RENDERIZAÇÃO ---
     // =================================================================================
 
     function updateContent(mainGroupIndex, subGroupIndex) {
         while (content.children.length > 0) { content.remove(content.children[0]); }
         if (mainGroupIndex < 0 || subGroupIndex < 0) { win.layout.layout(true); return; }
         
-        var layout = layoutConfig.configuracao.layout_geral; //
-        var NAME_BTN_HEIGHT = layout.name_btn_height || ALTURA_BOTAO_TEMATICO;
-        var NAME_BTN_WIDTH = layout.name_btn_width || LARGURA_BOTAO_TEMATICO;
-        var BOTTOM_ROW_HEIGHT = layout.bottom_row_height || 25;
-        var TEXT_WIDTH_NORMAL = layout.text_width_normal || 300;
-        var TEXT_WIDTH_CATALOGOS = layout.text_width_catalogos || 590;
-        
         var group = mainGroups[mainGroupIndex].subgrupos[subGroupIndex];
-        var isCatalogos = (group.titulo === "CATÁLOGOS" || group.titulo === "GUIAS");
+
+        // --- LARGURA UNIFICADA ---
+        var fieldWidth = baseFieldWidth; 
 
         for (var i = 0; i < group.links.length; i++) {
             (function() {
-                var link = group.links[i]; //
-                var linkGroup = content.add("group");
-                linkGroup.orientation = "column"; linkGroup.spacing = 5; linkGroup.alignChildren = "left";
+                var link = group.links[i];
+                var rowTotalWidth = ICON_WIDTH + SPACING + fieldWidth + SPACING + ICON_WIDTH;
+                var rowWidth = rowTotalWidth;
                 
-                var mainBtn = createThemeButtonCtrl(linkGroup, "  " + link.nome, NAME_BTN_WIDTH, NAME_BTN_HEIGHT, link.nome);
-                mainBtn.alignment = 'left';
+                var linkGroup = content.add("group");
+                linkGroup.orientation = "column"; 
+                linkGroup.spacing = SPACING;
+                linkGroup.alignChildren = ["fill", "top"]; 
+                linkGroup.margins = 0;
+                linkGroup.preferredSize.width = rowTotalWidth;
 
+                // BOTÃO DE TÍTULO
+                var mainBtn = createThemeButtonCtrl(linkGroup, "  " + link.nome, rowWidth, BTN_HEIGHT, link.nome);
+                mainBtn.alignment = ["fill", "top"]; 
+                if (mainBtn.__wrapper) {
+                    applyFixedSize(mainBtn.__wrapper, rowWidth, BTN_HEIGHT);
+                }
+                applyFixedSize(mainBtn, rowWidth, BTN_HEIGHT);
+
+                // CONTROLES
                 var controls = linkGroup.add("group");
-                controls.orientation = "row"; controls.spacing = 5; controls.alignment = 'left';
+                controls.orientation = "row"; 
+                controls.spacing = SPACING; 
+                controls.alignment = ["fill", "top"];
 
+                var isFolder = link.tipo === "folder" && link.caminho.indexOf("http") !== 0;
+                
+                // --- REGRA DE PIN: SEMPRE EXIBIR NO WINDOWS ---
+                // Se for Windows, o botão aparece (seja link, pasta ou arquivo).
+                // Isso garante o alinhamento visual em todos os grupos.
+                var showPin = isWindows; 
                 var pinBtnIcon = null;
-                var quickToggleIcon = null;
-                if (!isCatalogos && isWindows && link.tipo === "folder" && link.caminho.indexOf("http") !== 0) {
-                    pinBtnIcon = new themeIconButton(controls, { icon: D9T_ATALHO_ICON, tips: [lClick + 'Adicionar ao Acesso Rápido'] });
+
+                if (showPin) {
+                    // Texto do tooltip varia dependendo se é pasta ou não, para educar o usuário
+                    var pinTip = isFolder ? (lClick + 'Adicionar ao Acesso Rápido') : 'Apenas pastas podem ser fixadas';
+                    pinBtnIcon = new themeIconButton(controls, { icon: D9T_ATALHO_ICON, tips: [pinTip] });
                 } else {
-                    var spacer = controls.add('group'); spacer.preferredSize.width = 30; 
+                    var spacer = controls.add("group");
+                    applyFixedSize(spacer, ICON_WIDTH, HEIGHT_ROW);
                 }
                 
                 var field = controls.add("edittext", undefined, link.caminho);
-                field.helpTip = "Caminho editável"; field.preferredSize.height = BOTTOM_ROW_HEIGHT;
-                field.preferredSize.width = isCatalogos ? (TEXT_WIDTH_CATALOGOS + 35) : TEXT_WIDTH_NORMAL; 
+                field.helpTip = "Caminho editável"; 
+                applyFixedSize(field, fieldWidth, HEIGHT_ROW);
 
-                var copyBtnIcon = null;
-                if (!isCatalogos) { 
-                     copyBtnIcon = new themeIconButton(controls, { icon: D9T_COPY_ICON, tips: [lClick + 'Copiar caminho'] });
-                }
+                var copyBtnIcon = new themeIconButton(controls, { icon: D9T_COPY_ICON, tips: [lClick + 'Copiar caminho'] });
             
-                // --- ATRIBUIÇÃO DE EVENTOS ---
                 mainBtn.onClick = function() { openPath(field.text); };
                 
                 if (copyBtnIcon) {
                     copyBtnIcon.leftClick.onClick = function() {
-                        if (!hasWriteAccess()) { themedAlert("Permissão Negada", "Ação de copiar requer permissão de escrita."); return; }
+                        if (!hasWriteAccess()) { themedAlert("Permissão Negada", "Requer permissão de escrita."); return; }
                         if (copyText(field.text)) { 
-                            mainBtn.text = "✓ Copiado!"; 
-                            app.setTimeout(function() { mainBtn.text = "  " + link.nome; }, 1500); 
+                            mainBtn.text = "  Copiado!"; 
+                            app.setTimeout(function() { mainBtn.text = "  " + link.nome; }, 1500); 
                         }
                     };
                 }
                 
                 if (pinBtnIcon) {
                     pinBtnIcon.leftClick.onClick = function() { 
+                        // Verificação ao clicar: Se não for pasta válida, avisa e cancela.
+                        if (!isFolder) {
+                            themedAlert("Ação não disponível", "Apenas pastas locais ou de rede podem ser adicionadas ao Acesso Rápido do Windows.\n\nLinks web e arquivos não são suportados.");
+                            return;
+                        }
+                        
                         if (addPin(field.text)) { 
-                            mainBtn.text = "✓ Adicionado!"; 
-                            app.setTimeout(function() { mainBtn.text = "  " + link.nome; }, 1500); 
+                            mainBtn.text = "  Adicionado!"; 
+                            app.setTimeout(function() { mainBtn.text = "  " + link.nome; }, 1500); 
                         } 
                     };
                 }
@@ -375,16 +425,20 @@ $.encoding = "UTF-8";
         
         try {
             if (!group || group.links === undefined) { return; }
-            var calculatedHeight = 130 + (group.links.length * 80); 
-            var groupLayout = layoutConfig.configuracao.layout_grupos[group.titulo]; //
-            var maxHeight = (groupLayout && typeof groupLayout.altura === 'number') ? groupLayout.altura : 900; 
-            win.size.height = Math.min(calculatedHeight + 20, maxHeight);
+            var calculatedHeight = 130 + (group.links.length * 85);
+            var globalMaxHeight = 900;
+            try {
+                var gLayout = layoutConfig.configuracao.layout_geral;
+                if (gLayout && typeof gLayout.max_height === 'number') {
+                    globalMaxHeight = gLayout.max_height;
+                }
+            } catch (_h) {}
+            win.size.height = Math.min(calculatedHeight + 20, globalMaxHeight);
             win.layout.layout(true);
-        } catch(e) { /* Ignora erros de layout se algo der errado */ }
+        } catch(e) {}
     }
-    
-    // --- EVENTOS DOS DROPDOWNS ---
-    
+
+    // --- HANDLERS ---
     mainDropdown.onChange = function() {
         if (!this.selection) return;
         var selectedMainGroup = mainGroups[this.selection.index];
@@ -412,25 +466,21 @@ $.encoding = "UTF-8";
         }
     };
 
-    // Evento para o botão de Ajuda
     helpBtn.leftClick.onClick = function() { 
-        if (typeof showCopyLinksHelp === 'function') { 
-            showCopyLinksHelp(); 
-        } else { 
-            themedAlert("Erro de Módulo", "A biblioteca de ajuda (HELP lib.js) não foi encontrada."); 
-        } 
+        if (typeof showCopyLinksHelp === 'function') showCopyLinksHelp();
+        else themedAlert("Erro", "Ajuda indisponível.");
     };
     
-    // --- INICIALIZAÇÃO E EXIBIÇÃO DA JANELA ---
-    
+    // --- INICIO ---
     mainDropdown.onChange();
     
-    var layout = layoutConfig.configuracao.layout_geral; //
-    win.size.width = (layout.name_btn_width || LARGURA_BOTAO_TEMATICO) + 60; 
+    var layout = layoutConfig.configuracao.layout_geral;
+    var baseWinWidth = ((layout && layout.name_btn_width) ? layout.name_btn_width : 580) + 120;
+    
+    var minWinWidth = ICON_WIDTH + SPACING + baseFieldWidth + SPACING + ICON_WIDTH + 80;
+    win.size.width = Math.max(baseWinWidth, minWinWidth); 
     
     win.layout.layout(true);
     win.center();
     win.show();
 }
-
-// A função 'launchCopyLinks()' é chamada pelo script principal 'GND9TOOLS.jsx'
