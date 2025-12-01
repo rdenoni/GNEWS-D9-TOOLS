@@ -1,0 +1,943 @@
+{
+  "/t/JORNALISMO/GLOBONEWS/JORNAIS/_PECAS_GRAFICAS/Bases caracter/_BASES_TEMATICAS": [
+    {
+      "text": "AGRICULTURA", 
+      "type": "node", 
+      "children": [
+        {
+          "text": "_IMAGENS", 
+          "type": "node", 
+          "children": []
+        }, 
+        {
+          "text": "_PREVIEWS", 
+          "type": "node", 
+          "children": []
+        }
+      ]
+    }, 
+    {
+      "text": "BALANCA", 
+      "type": "node", 
+      "children": [
+        {
+          "text": "_IMAGENS", 
+          "type": "node", 
+          "children": [
+            {
+              "text": "Icones", 
+              "type": "node", 
+              "children": []
+            }, 
+            {
+              "text": "Imagens", 
+              "type": "node", 
+              "children": []
+            }
+          ]
+        }, 
+        {
+          "text": "_PREVIEWS", 
+          "type": "node", 
+          "children": []
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\BALANCA\\balanca.aet", 
+          "text": "balanca.aet", 
+          "signature": "3871cb77", 
+          "modDate": "Monday, 16 Jun 2025 11:05:06 GMT", 
+          "type": "item", 
+          "size": 2688777
+        }
+      ]
+    }, 
+    {
+      "text": "BALAO DE FALA", 
+      "type": "node", 
+      "children": [
+        {
+          "text": "_IMAGENS", 
+          "type": "node", 
+          "children": []
+        }, 
+        {
+          "text": "_PREVIEWS", 
+          "type": "node", 
+          "children": []
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\BALAO DE FALA\\baloes_de_fala.aet", 
+          "text": "baloes_de_fala.aet", 
+          "signature": "eb4eb74d", 
+          "modDate": "Monday, 22 Sep 2025 14:34:53 GMT", 
+          "type": "item", 
+          "size": 1936137
+        }
+      ]
+    }, 
+    {
+      "text": "CELULAR", 
+      "type": "node", 
+      "children": [
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\CELULAR\\Celular.aet", 
+          "text": "Celular.aet", 
+          "signature": "af6d6f5a", 
+          "modDate": "Thursday, 05 Jun 2025 18:04:50 GMT", 
+          "type": "item", 
+          "size": 566183
+        }, 
+        {
+          "text": "_IMAGENS", 
+          "type": "node", 
+          "children": []
+        }, 
+        {
+          "text": "_PREVIEWS", 
+          "type": "node", 
+          "children": []
+        }
+      ]
+    }, 
+    {
+      "text": "CLIMA TEMPO", 
+      "type": "node", 
+      "children": [
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\CLIMA TEMPO\\Grafico_Barras_Termometro.aet", 
+          "text": "Grafico_Barras_Termometro.aet", 
+          "signature": "84484202", 
+          "modDate": "Friday, 06 Jun 2025 21:33:15 GMT", 
+          "type": "item", 
+          "size": 9265708
+        }, 
+        {
+          "text": "_IMAGENS", 
+          "type": "node", 
+          "children": [
+            {
+              "text": "IMAGENS SATELITE E RADAR", 
+              "type": "node", 
+              "children": []
+            }
+          ]
+        }, 
+        {
+          "text": "_PREVIEWS", 
+          "type": "node", 
+          "children": []
+        }, 
+        {
+          "text": "_RENDERS", 
+          "type": "node", 
+          "children": []
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\CLIMA TEMPO\\radar.aet", 
+          "text": "radar.aet", 
+          "signature": "6f09fdfa", 
+          "modDate": "Tuesday, 24 Jun 2025 13:39:15 GMT", 
+          "type": "item", 
+          "size": 2222259
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\CLIMA TEMPO\\satelite.aet", 
+          "text": "satelite.aet", 
+          "signature": "d3dbf19d", 
+          "modDate": "Tuesday, 24 Jun 2025 13:43:06 GMT", 
+          "type": "item", 
+          "size": 2342661
+        }
+      ]
+    }, 
+    {
+      "text": "COMBUSTIVEL", 
+      "type": "node", 
+      "children": [
+        {
+          "text": "_IMAGENS", 
+          "type": "node", 
+          "children": [
+            {
+              "text": "bomba_petroleo", 
+              "type": "node", 
+              "children": [
+                {
+                  "text": "Footage", 
+                  "type": "node", 
+                  "children": [
+                    {
+                      "text": "ai", 
+                      "type": "node", 
+                      "children": []
+                    }, 
+                    {
+                      "text": "mov", 
+                      "type": "node", 
+                      "children": []
+                    }, 
+                    {
+                      "text": "png", 
+                      "type": "node", 
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }, 
+        {
+          "text": "_PREVIEWS", 
+          "type": "node", 
+          "children": []
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\COMBUSTIVEL\\bomba_petroleo.aet", 
+          "text": "bomba_petroleo.aet", 
+          "signature": "70eefbd3", 
+          "modDate": "Tuesday, 01 Jul 2025 12:46:58 GMT", 
+          "type": "item", 
+          "size": 861283
+        }
+      ]
+    }, 
+    {
+      "text": "COMPUTADOR", 
+      "type": "node", 
+      "children": [
+        {
+          "text": "_IMAGENS", 
+          "type": "node", 
+          "children": []
+        }, 
+        {
+          "text": "_OLD", 
+          "type": "node", 
+          "children": [
+            {
+              "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\COMPUTADOR\\_OLD\\BASE NOTEBOOK.aep", 
+              "text": "BASE NOTEBOOK.aep", 
+              "signature": "fa037c7b", 
+              "modDate": "Tuesday, 27 May 2025 20:21:15 GMT", 
+              "type": "item", 
+              "size": 1851265
+            }
+          ]
+        }, 
+        {
+          "text": "_PREVIEWS", 
+          "type": "node", 
+          "children": []
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\COMPUTADOR\\notebook_laptop.aep", 
+          "text": "notebook_laptop.aep", 
+          "signature": "41499c07", 
+          "modDate": "Thursday, 05 Jun 2025 22:43:15 GMT", 
+          "type": "item", 
+          "size": 746765
+        }
+      ]
+    }, 
+    {
+      "text": "COVID", 
+      "type": "node", 
+      "children": [
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\COVID\\Media Movel - Covid no Mundo v1.aep", 
+          "text": "Media Movel - Covid no Mundo v1.aep", 
+          "signature": "3742af95", 
+          "modDate": "Friday, 10 Jun 2022 22:07:04 GMT", 
+          "type": "item", 
+          "size": 2289003
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\COVID\\Media Movel - Graficos Exemplo v1.aep", 
+          "text": "Media Movel - Graficos Exemplo v1.aep", 
+          "signature": "5550f3e", 
+          "modDate": "Thursday, 14 Jul 2022 13:00:39 GMT", 
+          "type": "item", 
+          "size": 21952255
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\COVID\\Media Movel - Info Covid v1.aep", 
+          "text": "Media Movel - Info Covid v1.aep", 
+          "signature": "56711853", 
+          "modDate": "Friday, 10 Jun 2022 20:39:22 GMT", 
+          "type": "item", 
+          "size": 1238571
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\COVID\\Media Movel - Info Vacina Brasil v1.aep", 
+          "text": "Media Movel - Info Vacina Brasil v1.aep", 
+          "signature": "f26e03c8", 
+          "modDate": "Saturday, 11 Jun 2022 00:07:59 GMT", 
+          "type": "item", 
+          "size": 1535293
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\COVID\\Media Movel - Mapa Covid Brasil AUTO 01.aet", 
+          "text": "Media Movel - Mapa Covid Brasil AUTO 01.aet", 
+          "signature": "522f9705", 
+          "modDate": "Wednesday, 23 Nov 2022 17:14:40 GMT", 
+          "type": "item", 
+          "size": 72377108
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\COVID\\Media Movel - Mapa Vacina v1.aep", 
+          "text": "Media Movel - Mapa Vacina v1.aep", 
+          "signature": "a3c7c9ac", 
+          "modDate": "Monday, 13 Jun 2022 19:46:17 GMT", 
+          "type": "item", 
+          "size": 17983031
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\COVID\\Media Movel - Vacina Criancas v1.aep", 
+          "text": "Media Movel - Vacina Criancas v1.aep", 
+          "signature": "fb7bf69a", 
+          "modDate": "Monday, 13 Jun 2022 19:28:13 GMT", 
+          "type": "item", 
+          "size": 898849
+        }, 
+        {
+          "text": "PARA_SCRIPT", 
+          "type": "node", 
+          "children": [
+            {
+              "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\COVID\\PARA_SCRIPT\\GNEWS MEDIA MOVEL ONAIR 2022 TEMPLATE 01.aep", 
+              "text": "GNEWS MEDIA MOVEL ONAIR 2022 TEMPLATE 01.aep", 
+              "signature": "c0c86765", 
+              "modDate": "Friday, 22 Jul 2022 14:01:02 GMT", 
+              "type": "item", 
+              "size": 21960916
+            }
+          ]
+        }, 
+        {
+          "text": "_IMAGENS", 
+          "type": "node", 
+          "children": []
+        }, 
+        {
+          "text": "_PREVIEWS", 
+          "type": "node", 
+          "children": []
+        }, 
+        {
+          "text": "projetos anteriores", 
+          "type": "node", 
+          "children": [
+            {
+              "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\COVID\\projetos anteriores\\Media Movel - Mapa Mortes v1 desatualizado.aep", 
+              "text": "Media Movel - Mapa Mortes v1 desatualizado.aep", 
+              "signature": "3f076d71", 
+              "modDate": "Tuesday, 22 Nov 2022 14:20:09 GMT", 
+              "type": "item", 
+              "size": 16925539
+            }
+          ]
+        }
+      ]
+    }, 
+    {
+      "text": "DISCO", 
+      "type": "node", 
+      "children": [
+        {
+          "text": "(Footage)", 
+          "type": "node", 
+          "children": [
+            {
+              "text": "PROJETO", 
+              "type": "node", 
+              "children": [
+                {
+                  "text": "OUTROS", 
+                  "type": "node", 
+                  "children": [
+                    {
+                      "text": " Precomps", 
+                      "type": "node", 
+                      "children": [
+                        {
+                          "text": "PALETA DE CORES GNEWS", 
+                          "type": "node", 
+                          "children": []
+                        }
+                      ]
+                    }, 
+                    {
+                      "text": "Footage", 
+                      "type": "node", 
+                      "children": [
+                        {
+                          "text": "GRID GNEWS", 
+                          "type": "node", 
+                          "children": []
+                        }, 
+                        {
+                          "text": "png", 
+                          "type": "node", 
+                          "children": []
+                        }
+                      ]
+                    }, 
+                    {
+                      "text": "MARCA DAGUA GNEWS", 
+                      "type": "node", 
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\DISCO\\DISCO.aep", 
+          "text": "DISCO.aep", 
+          "signature": "46815b10", 
+          "modDate": "Monday, 07 Jul 2025 16:04:11 GMT", 
+          "type": "item", 
+          "size": 2315340
+        }, 
+        {
+          "text": "PREVIEW", 
+          "type": "node", 
+          "children": []
+        }
+      ]
+    }, 
+    {
+      "text": "DOCUMENTOS", 
+      "type": "node", 
+      "children": [
+        {
+          "text": "_IMAGENS", 
+          "type": "node", 
+          "children": [
+            {
+              "text": "album_fotos", 
+              "type": "node", 
+              "children": []
+            }, 
+            {
+              "text": "boleto_conta", 
+              "type": "node", 
+              "children": []
+            }, 
+            {
+              "text": "ficha_arquivo_pasta_documento", 
+              "type": "node", 
+              "children": [
+                {
+                  "text": "Comps", 
+                  "type": "node", 
+                  "children": [
+                    {
+                      "text": "Comps", 
+                      "type": "node", 
+                      "children": [
+                        {
+                          "text": "Fotos", 
+                          "type": "node", 
+                          "children": []
+                        }, 
+                        {
+                          "text": "Icones", 
+                          "type": "node", 
+                          "children": []
+                        }
+                      ]
+                    }, 
+                    {
+                      "text": "MARCA DAGUA GNEWS", 
+                      "type": "node", 
+                      "children": []
+                    }, 
+                    {
+                      "text": "PALETA DE CORES GNEWS", 
+                      "type": "node", 
+                      "children": []
+                    }
+                  ]
+                }, 
+                {
+                  "text": "Icones", 
+                  "type": "node", 
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }, 
+        {
+          "text": "_PREVIEWS", 
+          "type": "node", 
+          "children": []
+        }, 
+        {
+          "text": "_old", 
+          "type": "node", 
+          "children": [
+            {
+              "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\DOCUMENTOS\\_old\\ficha_arquivo_pasta_documento.aet", 
+              "text": "ficha_arquivo_pasta_documento.aet", 
+              "signature": "4252daf6", 
+              "modDate": "Thursday, 11 Sep 2025 10:34:26 GMT", 
+              "type": "item", 
+              "size": 2317195
+            }
+          ]
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\DOCUMENTOS\\album_fotos.aet", 
+          "text": "album_fotos.aet", 
+          "signature": "2579d0a4", 
+          "modDate": "Monday, 23 Jun 2025 10:52:14 GMT", 
+          "type": "item", 
+          "size": 573244
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\DOCUMENTOS\\boleto_conta.aet", 
+          "text": "boleto_conta.aet", 
+          "signature": "7abcc8e7", 
+          "modDate": "Friday, 04 Jul 2025 13:47:40 GMT", 
+          "type": "item", 
+          "size": 401784
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\DOCUMENTOS\\ficha_arquivo_pasta_documento v2.aep", 
+          "text": "ficha_arquivo_pasta_documento v2.aep", 
+          "signature": "5b8a7607", 
+          "modDate": "Thursday, 11 Sep 2025 10:40:48 GMT", 
+          "type": "item", 
+          "size": 2317195
+        }
+      ]
+    }, 
+    {
+      "text": "ECONOMIA", 
+      "type": "node", 
+      "children": [
+        {
+          "text": "_IMAGENS", 
+          "type": "node", 
+          "children": [
+            {
+              "text": "boletim_focus", 
+              "type": "node", 
+              "children": [
+                {
+                  "text": "mov", 
+                  "type": "node", 
+                  "children": []
+                }, 
+                {
+                  "text": "png", 
+                  "type": "node", 
+                  "children": []
+                }
+              ]
+            }, 
+            {
+              "text": "economia_internacional_paises_bandeiras_mundo folder", 
+              "type": "node", 
+              "children": [
+                {
+                  "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\ECONOMIA\\_IMAGENS\\economia_internacional_paises_bandeiras_mundo folder\\economia_internacional_paises_bandeiras_mundo.aep", 
+                  "text": "economia_internacional_paises_bandeiras_mundo.aep", 
+                  "signature": "cd2835b7", 
+                  "modDate": "Tuesday, 03 Jun 2025 18:08:44 GMT", 
+                  "type": "item", 
+                  "size": 5698694
+                }
+              ]
+            }, 
+            {
+              "text": "grau_risco_moodys", 
+              "type": "node", 
+              "children": []
+            }
+          ]
+        }, 
+        {
+          "text": "_PREVIEWS", 
+          "type": "node", 
+          "children": []
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\ECONOMIA\\boletim_focus.aet", 
+          "text": "boletim_focus.aet", 
+          "signature": "1b06aec1", 
+          "modDate": "Tuesday, 24 Jun 2025 11:02:33 GMT", 
+          "type": "item", 
+          "size": 6850444
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\ECONOMIA\\economia_internacional_paises_bandeiras_mundo.aet", 
+          "text": "economia_internacional_paises_bandeiras_mundo.aet", 
+          "signature": "daae76be", 
+          "modDate": "Tuesday, 03 Jun 2025 18:10:33 GMT", 
+          "type": "item", 
+          "size": 5677071
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\ECONOMIA\\grau_risco_moodys.aet", 
+          "text": "grau_risco_moodys.aet", 
+          "signature": "43a82119", 
+          "modDate": "Tuesday, 24 Jun 2025 11:11:23 GMT", 
+          "type": "item", 
+          "size": 1007772
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\ECONOMIA\\mercado_financeiro.aet", 
+          "text": "mercado_financeiro.aet", 
+          "signature": "a0943c51", 
+          "modDate": "Tuesday, 24 Jun 2025 12:49:39 GMT", 
+          "type": "item", 
+          "size": 5634586
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\ECONOMIA\\previa_inflacao.aet", 
+          "text": "previa_inflacao.aet", 
+          "signature": "349a6248", 
+          "modDate": "Friday, 25 Jul 2025 13:27:09 GMT", 
+          "type": "item", 
+          "size": 3763341
+        }
+      ]
+    }, 
+    {
+      "text": "EDUCACAO", 
+      "type": "node", 
+      "children": [
+        {
+          "text": "_IMAGENS", 
+          "type": "node", 
+          "children": []
+        }, 
+        {
+          "text": "_PREVIEWS", 
+          "type": "node", 
+          "children": []
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\EDUCACAO\\quadro_negro_educacao_escola.aet", 
+          "text": "quadro_negro_educacao_escola.aet", 
+          "signature": "bc25a7a0", 
+          "modDate": "Monday, 16 Jun 2025 13:17:34 GMT", 
+          "type": "item", 
+          "size": 1021438
+        }
+      ]
+    }, 
+    {
+      "text": "FUTEBOL", 
+      "type": "node", 
+      "children": [
+        {
+          "text": "_IMAGENS", 
+          "type": "node", 
+          "children": []
+        }, 
+        {
+          "text": "_PREVIEWS", 
+          "type": "node", 
+          "children": []
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\FUTEBOL\\convocacao_futebol_selecao_escalacao.aet", 
+          "text": "convocacao_futebol_selecao_escalacao.aet", 
+          "signature": "4bb7a90b", 
+          "modDate": "Tuesday, 03 Jun 2025 17:08:47 GMT", 
+          "type": "item", 
+          "size": 4231773
+        }
+      ]
+    }, 
+    {
+      "text": "INTELIGENCIA ARTIFICIAL", 
+      "type": "node", 
+      "children": [
+        {
+          "text": "_IMAGENS", 
+          "type": "node", 
+          "children": []
+        }, 
+        {
+          "text": "_PREVIEWS", 
+          "type": "node", 
+          "children": []
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\INTELIGENCIA ARTIFICIAL\\inteligencia_artificial_chat.aet", 
+          "text": "inteligencia_artificial_chat.aet", 
+          "signature": "f99386f7", 
+          "modDate": "Wednesday, 18 Jun 2025 11:01:06 GMT", 
+          "type": "item", 
+          "size": 3939869
+        }
+      ]
+    }, 
+    {
+      "text": "JOGOS", 
+      "type": "node", 
+      "children": [
+        {
+          "text": "_IMAGENS", 
+          "type": "node", 
+          "children": [
+            {
+              "text": "labirinto_caminho_tabuleiro", 
+              "type": "node", 
+              "children": []
+            }
+          ]
+        }, 
+        {
+          "text": "_PREVIEWS", 
+          "type": "node", 
+          "children": []
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\JOGOS\\labirinto_caminho_tabuleiro.aet", 
+          "text": "labirinto_caminho_tabuleiro.aet", 
+          "signature": "21cf24d6", 
+          "modDate": "Wednesday, 18 Jun 2025 11:12:49 GMT", 
+          "type": "item", 
+          "size": 1284123
+        }
+      ]
+    }, 
+    {
+      "text": "LAVAGEM DE DINHEIRO", 
+      "type": "node", 
+      "children": [
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\LAVAGEM DE DINHEIRO\\ILUSTRAS E TEXTO - PCC E LAVAGEM DE DINHEIRO.aet", 
+          "text": "ILUSTRAS E TEXTO - PCC E LAVAGEM DE DINHEIRO.aet", 
+          "signature": "33f24bb8", 
+          "modDate": "Friday, 24 Oct 2025 16:11:15 GMT", 
+          "type": "item", 
+          "size": 9736149
+        }, 
+        {
+          "text": "_PREVIEWS", 
+          "type": "node", 
+          "children": []
+        }
+      ]
+    }, 
+    {
+      "text": "LIVRO", 
+      "type": "node", 
+      "children": [
+        {
+          "text": "d9r GNEWS MAIS DESTAQUE CONSTITUICAO - JULIANO", 
+          "type": "node", 
+          "children": [
+            {
+              "text": "(Footage)", 
+              "type": "node", 
+              "children": []
+            }, 
+            {
+              "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\LIVRO\\d9r GNEWS MAIS DESTAQUE CONSTITUICAO - JULIANO\\d9r GNEWS MAIS DESTAQUE CONSTITUICAO - JULIANO.aep", 
+              "text": "d9r GNEWS MAIS DESTAQUE CONSTITUICAO - JULIANO.aep", 
+              "signature": "9eb2c861", 
+              "modDate": "Thursday, 18 Sep 2025 18:22:33 GMT", 
+              "type": "item", 
+              "size": 405240
+            }
+          ]
+        }
+      ]
+    }, 
+    {
+      "text": "MALAS", 
+      "type": "node", 
+      "children": [
+        {
+          "text": "_IMAGENS", 
+          "type": "node", 
+          "children": []
+        }, 
+        {
+          "text": "_PREVIEWS", 
+          "type": "node", 
+          "children": []
+        }
+      ]
+    }, 
+    {
+      "text": "OSCAR", 
+      "type": "node", 
+      "children": [
+        {
+          "text": "_IMAGENS", 
+          "type": "node", 
+          "children": []
+        }, 
+        {
+          "text": "_PREVIEWS", 
+          "type": "node", 
+          "children": []
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\OSCAR\\oscar_estatuas.aet", 
+          "text": "oscar_estatuas.aet", 
+          "signature": "1c301fa1", 
+          "modDate": "Tuesday, 24 Jun 2025 17:16:25 GMT", 
+          "type": "item", 
+          "size": 192187
+        }
+      ]
+    }, 
+    {
+      "text": "POLITICA", 
+      "type": "node", 
+      "children": [
+        {
+          "text": "_IMAGENS", 
+          "type": "node", 
+          "children": [
+            {
+              "text": "votacao_partidos_ministerios_porcentagem", 
+              "type": "node", 
+              "children": [
+                {
+                  "text": "_PROJETO", 
+                  "type": "node", 
+                  "children": [
+                    {
+                      "text": "Footage", 
+                      "type": "node", 
+                      "children": [
+                        {
+                          "text": "jpg", 
+                          "type": "node", 
+                          "children": []
+                        }, 
+                        {
+                          "text": "png", 
+                          "type": "node", 
+                          "children": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }, 
+            {
+              "text": "votacao_stf", 
+              "type": "node", 
+              "children": [
+                {
+                  "text": "MINISTROS STF", 
+                  "type": "node", 
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }, 
+        {
+          "text": "_PREVIEWS", 
+          "type": "node", 
+          "children": []
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\POLITICA\\quadro_investigacao_fios_polaroid.aep", 
+          "text": "quadro_investigacao_fios_polaroid.aep", 
+          "signature": "69577664", 
+          "modDate": "Wednesday, 23 Jul 2025 12:02:01 GMT", 
+          "type": "item", 
+          "size": 4444974
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\POLITICA\\quadro_investigacao_fios_polaroid.aet", 
+          "text": "quadro_investigacao_fios_polaroid.aet", 
+          "signature": "4455c57a", 
+          "modDate": "Wednesday, 13 Aug 2025 10:44:21 GMT", 
+          "type": "item", 
+          "size": 4444759
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\POLITICA\\votacao_partidos_ministerios_porcentagem.aet", 
+          "text": "votacao_partidos_ministerios_porcentagem.aet", 
+          "signature": "584e670b", 
+          "modDate": "Tuesday, 17 Jun 2025 11:30:26 GMT", 
+          "type": "item", 
+          "size": 4771504
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\POLITICA\\votacao_partidos_sim_nao.aet", 
+          "text": "votacao_partidos_sim_nao.aet", 
+          "signature": "6935c5c2", 
+          "modDate": "Thursday, 26 Jun 2025 12:23:57 GMT", 
+          "type": "item", 
+          "size": 2881082
+        }, 
+        {
+          "filePath": "T:\\JORNALISMO\\GLOBONEWS\\JORNAIS\\_PECAS_GRAFICAS\\Bases caracter\\_BASES_TEMATICAS\\POLITICA\\votacao_stf.aet", 
+          "text": "votacao_stf.aet", 
+          "signature": "386e2b63", 
+          "modDate": "Tuesday, 24 Jun 2025 16:51:27 GMT", 
+          "type": "item", 
+          "size": 2313462
+        }
+      ]
+    }, 
+    {
+      "text": "PRAIA", 
+      "type": "node", 
+      "children": [
+        {
+          "text": "_IMAGENS", 
+          "type": "node", 
+          "children": []
+        }, 
+        {
+          "text": "_PREVIEWS", 
+          "type": "node", 
+          "children": []
+        }
+      ]
+    }, 
+    {
+      "text": "TRABALHO", 
+      "type": "node", 
+      "children": [
+        {
+          "text": "_IMAGENS", 
+          "type": "node", 
+          "children": []
+        }, 
+        {
+          "text": "_PREVIEWS", 
+          "type": "node", 
+          "children": []
+        }
+      ]
+    }, 
+    {
+      "text": "TRANSPORTE", 
+      "type": "node", 
+      "children": [
+        {
+          "text": "_IMAGENS", 
+          "type": "node", 
+          "children": []
+        }, 
+        {
+          "text": "_PREVIEWS", 
+          "type": "node", 
+          "children": []
+        }
+      ]
+    }
+  ]
+}
