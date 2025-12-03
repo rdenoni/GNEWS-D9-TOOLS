@@ -1,0 +1,32 @@
+{
+	"PRODUCTIONS": [
+		{
+			"jornais": [
+				
+			],
+			"promo": [
+				
+			],
+			"programas": [
+				
+			],
+			"eventos": [
+				
+			],
+			"marketing": [
+				
+			],
+			"basetematica": [
+				
+			],
+			"ilustracoes": [
+				
+			],
+			"name": "Configuração GNEWS",
+			"templatesPath": ""
+		}
+	],
+	"gnews_templates": {
+		"lastProductionIndex": 1
+	}
+}
