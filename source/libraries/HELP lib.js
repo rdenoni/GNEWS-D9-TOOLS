@@ -1,9 +1,14 @@
-// ==========================================================
-// HELP lib.js - v5.6 - Layout do Subtítulo Corrigido
+﻿// ==========================================================
+// HELP lib.js - v5.7 - Correção de Escopo Global
 //
 // DESCRIÇÃO:
-// Corrigido o cálculo de largura para o texto de descrição
-// (subtítulo), garantindo que ele preencha o espaço horizontal.
+// Biblioteca central de ajuda para o GND9TOOLS.
+// Contém o construtor de janelas e os textos de todos os módulos.
+//
+// ATUALIZAÇÃO v5.7:
+// - Alterado o fechamento da IIFE para ($.global) para garantir
+//   que as funções sejam acessíveis por scripts externos.
+// - Corrigido aninhamento incorreto entre showCopyLinksHelp e SearchLayers.
 // ==========================================================
 
 $.encoding = "UTF-8";
@@ -68,7 +73,7 @@ $.encoding = "UTF-8";
             var titleText = headerPanel.add("statictext", undefined, headerTitle);
             var descText = headerPanel.add("statictext", undefined, description, { multiline: true });
             
-            // CORREÇÃO: Define a largura do subtítulo para preencher o painel
+            // Define a largura do subtítulo para preencher o painel
             descText.preferredSize.width = theme.windowWidth - (theme.margins * 4);
             descText.preferredSize.height = 40;
             
@@ -198,6 +203,39 @@ $.encoding = "UTF-8";
                     { title: "▶ ACESSO RÁPIDO (⭐):", text: "Disponível apenas no Windows. Adiciona a pasta do link ao 'Acesso Rápido' do Explorador de Arquivos para facilitar o acesso futuro. Visível apenas para links de pastas não-web." },
                     { title: "▶ COPIAR CAMINHO (📋):", text: "Copia o caminho completo (URL ou diretório) do link para a área de transferência. Necessita de permissão de 'Acesso a Rede' nas Preferências do After Effects." },
                     { title: "▶ CAMPO EDITÁVEL:", text: "O campo de texto ao lado dos botões permite visualizar e editar o caminho do link temporariamente. O ícone do botão principal se adapta à mudança de caminho para refletir o novo tipo de arquivo/pasta." },
+                ]
+            }
+        ];
+        createHelpWindow(windowTitle, headerTitle, description, topicsData);
+    };
+
+    // Ajuda para GNEWS SearchLayers
+    thisObj.showSearchLayersHelp = function() {
+        var windowTitle = "Ajuda - GNEWS SearchLayers";
+        var headerTitle = "AJUDA - BUSCA DE CAMADAS";
+        var description = "Localiza camadas de texto em comps com filtros de visibilidade, maiusculas e acentuacao.";
+        var topicsData = [
+            {
+                tabName: "USO BASICO",
+                topics: [
+                    { title: " ▶ TERMO DE BUSCA:", text: "Digite o texto e pressione Enter ou clique na lupa. A busca percorre camadas de texto das comps." },
+                    { title: " ▶ NAVEGAR RESULTADOS:", text: "Clique no nome da comp para expandir. Clique em uma camada para seleciona-la e ir ao tempo correspondente." }
+                ]
+            },
+            {
+                tabName: "OPCOES",
+                topics: [
+                    { title: " ▶ APENAS VISIVEIS (olho):", text: "Considera apenas camadas com o 'olho' ativo e nao shy ocultas." },
+                    { title: " ▶ MAIUSCULAS/minusculas (Tt):", text: "Se marcado, diferencia maiusculas/minusculas." },
+                    { title: " ▶ ACENTOS (AA):", text: "Se marcado, considera acentuacao; se desmarcado, normaliza sem acentos." },
+                    { title: " ▶ INVERTER (!=):", text: "Retorna camadas que nao contem o termo digitado." }
+                ]
+            },
+            {
+                tabName: "RESULTADOS",
+                topics: [
+                    { title: " ▶ EXPANDIR LISTA:", text: "Cada comp listada tem as camadas que casaram com o termo." },
+                    { title: " ▶ SELECIONAR CAMADA:", text: "Ao clicar, a camada e selecionada, shy e revelado e o tempo da comp e ajustado." }
                 ]
             }
         ];
@@ -425,27 +463,27 @@ $.encoding = "UTF-8";
         createHelpWindow(windowTitle, headerTitle, description, topicsData);
     };
 
-thisObj.showLayerOrderHelp = function() {
-    var windowTitle = "Ajuda - GNEWS LayerOrder";
-    var headerTitle = "AJUDA - GNEWS LAYERORDER";
-    var description = "Ferramenta para organizar, nomear e colorir camadas na timeline de forma padronizada.";
-    var topicsData = [
-        {
-            tabName: "FUNCIONALIDADES",
-            topics: [
-                { title: "▶ ORGANIZAR CAMADAS:", text: "Clique no botão principal da ferramenta para aplicar os prefixos de nome e as cores de rótulo definidas nas configurações para todas as camadas da composição ativa." },
-                { title: "▶ SELEÇÃO:", text: "Se houver camadas selecionadas, a organização será aplicada apenas a elas. Se não houver nenhuma seleção, a ferramenta processará todas as camadas da composição." }
-            ]
-        },
-        {
-            tabName: "CONFIGURAÇÕES",
-            topics: [
-                { title: "▶ ACESSO ÀS CONFIGURAÇÕES:", text: "Para definir os prefixos (ex: 'Txt_', 'Shp_') e as cores para cada tipo de camada, clique com o botão direito no ícone da ferramenta 'LayerOrder' na barra principal." }
-            ]
-        }
-    ];
-    createHelpWindow(windowTitle, headerTitle, description, topicsData);
-};
+    thisObj.showLayerOrderHelp = function() {
+        var windowTitle = "Ajuda - GNEWS LayerOrder";
+        var headerTitle = "AJUDA - GNEWS LAYERORDER";
+        var description = "Ferramenta para organizar, nomear e colorir camadas na timeline de forma padronizada.";
+        var topicsData = [
+            {
+                tabName: "FUNCIONALIDADES",
+                topics: [
+                    { title: "▶ ORGANIZAR CAMADAS:", text: "Clique no botão principal da ferramenta para aplicar os prefixos de nome e as cores de rótulo definidas nas configurações para todas as camadas da composição ativa." },
+                    { title: "▶ SELEÇÃO:", text: "Se houver camadas selecionadas, a organização será aplicada apenas a elas. Se não houver nenhuma seleção, a ferramenta processará todas as camadas da composição." }
+                ]
+            },
+            {
+                tabName: "CONFIGURAÇÕES",
+                topics: [
+                    { title: "▶ ACESSO ÀS CONFIGURAÇÕES:", text: "Para definir os prefixos (ex: 'Txt_', 'Shp_') e as cores para cada tipo de camada, clique com o botão direito no ícone da ferramenta 'LayerOrder' na barra principal." }
+                ]
+            }
+        ];
+        createHelpWindow(windowTitle, headerTitle, description, topicsData);
+    };
 
     thisObj.showCropCompHelp = function() {
         var windowTitle = "Ajuda - CropComp";
@@ -507,4 +545,4 @@ thisObj.showLayerOrderHelp = function() {
         );
     };
     
-})(this);
+})($.global);

@@ -239,6 +239,12 @@ var D9T_CLOSE32_ICON = {
   inactive: Close3x32,
 };
 
+// Complementares para SearchLayers / treeview
+var D9T_COMP_ICON = (typeof compTogIcon !== 'undefined' && compTogIcon.light) ? compTogIcon.light : undefined;
+var D9T_SOL_ICON  = (typeof solTogIcon  !== 'undefined' && solTogIcon.light)  ? solTogIcon.light  : undefined;
+var D9T_EYE_ICON  = (typeof eyeOpenIcon !== 'undefined') ? eyeOpenIcon : undefined;
+var D9T_EYE_LABEL_ICON = (typeof eyeOpenLabelIcon !== 'undefined') ? eyeOpenLabelIcon : undefined;
+
 /*
 
 ---------------------------------------------------------------

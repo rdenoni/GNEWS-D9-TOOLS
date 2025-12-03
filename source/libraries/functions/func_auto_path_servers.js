@@ -32,7 +32,9 @@
         }
         
         // CORREÇÃO: Adicionada a "/" antes do nome do arquivo.
-        var dadosConfigData = readJsonFile(scriptMainPath + "/Dados_Config.json");
+    var dadosConfigData = readJsonFile(
+        (typeof runtimeConfigPath !== 'undefined' ? runtimeConfigPath : Folder.userData.fsName + "/GND9TOOLS script/runtime/config") + "/Dados_Config.json"
+    );
 
         if (!dadosConfigData.CAMIMHOS_REDE) throw new Error("Objeto 'CAMIMHOS_REDE' não encontrado em Dados_Config.json.");
         if (!dadosConfigData.PROGRAMACAO_GNEWS || !dadosConfigData.PROGRAMACAO_GNEWS.programacao) throw new Error("Objeto 'PROGRAMACAO_GNEWS' não encontrado ou malformado em Dados_Config.json.");
@@ -46,24 +48,67 @@
     
     function getTags(programacaoData) {
         var allGnewsProgramTags = [], gnewsJornalTags = [];
+        var list = [];
         if (programacaoData && programacaoData.programacao_globonews) {
-            for (var i = 0; i < programacaoData.programacao_globonews.length; i++) {
-                var program = programacaoData.programacao_globonews[i];
-                allGnewsProgramTags.push(program.tagName);
-                if (program.tipo === "Jornal") { gnewsJornalTags.push(program.tagName); }
-            }
+            list = programacaoData.programacao_globonews;
+        } else if (programacaoData && programacaoData.programacao) {
+            list = programacaoData.programacao;
+        }
+        for (var i = 0; i < list.length; i++) {
+            var program = list[i];
+            if (!program || !program.tagName) { continue; }
+            allGnewsProgramTags.push(program.tagName);
+            if (program.tipo === "Jornal") { gnewsJornalTags.push(program.tagName); }
         }
         return {
             programas: allGnewsProgramTags,
             jornais: gnewsJornalTags,
             artes: ["CREDITO", "CREDITOS", "LETTERING", "LEGENDAS", "LOCALIZADORES", "INSERT", "ALPHA"],
             pesquisa: ["PESQUISA", "DATAFOLHA", "QUAEST", "IPSOS", "IPEC", "IBGE", "AP", "NORC", "GENIAL"],
-            vizGnews: ["QR CODE", "VIRTUAL", "TOTEM"],
-            artesFant: ["TARJACONFRONTO", "CONFRONTOCAVALINHOS", "CORRIDA"],
-            espFant: ["VINHETACORRIDA", "VINHETACORRIDACAVALINHOS", "CAVALINHOSPATROCINADOS", "FIGURINHAS", "MOLDURASFOGUETE", "MOLDURASSKYPE"],
-            vizFant: ["TELAOBAR", "SELOS", "CONFRONTOSESCUDOS"],
-            touchFant: "TELAOTRANSPARENTE"
+            vizGnews: ["VIZ", "VIZRT", "VIZ|GNEWS", "VIZ|GNEWS", "GFX"],
+            espFant: ["ESPORTE", "ESP", "ESPORTES"],
+            vizFant: ["VIZ|FANT", "VIZ FANT", "VIZ|FANTASTICO", "VIZ|FANT\u00c1STICO"],
+            artesFant: ["ARTE", "ARTES", "LETTERING", "LEGENDAS"],
+            touchFant: "TOUCHSCREEN"
         };
+    }
+
+    // Normaliza estrutura de caminhos (aceita formato antigo - array ou novo - grupos/subgrupos).
+    function extractPaths(caminhosData) {
+        var list = [];
+        if (!caminhosData) { return list; }
+
+        // Formato novo: { caminhos: { grupos: [ { subgrupos: [ { links: [...] } ] } ] } }
+        if (caminhosData.caminhos && caminhosData.caminhos.grupos instanceof Array) {
+            var grupos = caminhosData.caminhos.grupos;
+            for (var g = 0; g < grupos.length; g++) {
+                var subgrupos = grupos[g].subgrupos || [];
+                for (var s = 0; s < subgrupos.length; s++) {
+                    var links = subgrupos[s].links || [];
+                    for (var l = 0; l < links.length; l++) {
+                        var link = links[l];
+                        if (!link || !link.nome) { continue; }
+                        list.push({ nome: link.nome, caminho: link.caminho });
+                    }
+                }
+            }
+        }
+
+        // Formato antigo: { CHAVE: [ {nome, caminho}, ... ] }
+        if (list.length === 0) {
+            for (var serverKey in caminhosData) {
+                if (!caminhosData.hasOwnProperty(serverKey)) { continue; }
+                var serverItems = caminhosData[serverKey];
+                if (serverItems instanceof Array) {
+                    for (var i2 = 0; i2 < serverItems.length; i2++) {
+                        var item = serverItems[i2];
+                        if (item && item.nome) { list.push({ nome: item.nome, caminho: item.caminho }); }
+                    }
+                }
+            }
+        }
+
+        return list;
     }
 
     function findTag(tagArray, compNameUpper) {
@@ -78,7 +123,11 @@
         var trace = []; function logTrace(msg) { if(debugMode) trace.push(msg); }
         var compNameUpper = compName.toUpperCase(); var targetObject = null; var tags = getTags(programacaoData);
         var pamMagazineInfo=null, pamHardnewsInfo=null, ilhaHardnewsInfo=null, ilhaMagazineInfo=null, ftpVizInfo=null, mxfArteInfo=null;
-        for (var serverKey in caminhosData) { if (caminhosData.hasOwnProperty(serverKey)) { var serverItems=caminhosData[serverKey]; for (var i=0;i<serverItems.length;i++){ var item=serverItems[i]; if(item.nome==="PAM MAGAZINE"){pamMagazineInfo=item;}else if(item.nome==="PAM HARDNEWS"){pamHardnewsInfo=item;}else if(item.nome==="PARA ILHA HARDNEWS"){ilhaHardnewsInfo=item;}else if(item.nome==="PARA ILHA MAGAZINE"){ilhaMagazineInfo=item;}else if(item.nome==="FTP VIZ"){ftpVizInfo=item;}else if(item.nome==="MXF ARTE"){mxfArteInfo=item;} } } }
+        var pathList = extractPaths(caminhosData);
+        for (var i=0;i<pathList.length;i++){
+            var item=pathList[i];
+            if(item.nome==="PAM MAGAZINE"){pamMagazineInfo=item;}else if(item.nome==="PAM HARDNEWS"){pamHardnewsInfo=item;}else if(item.nome==="PARA ILHA HARDNEWS"){ilhaHardnewsInfo=item;}else if(item.nome==="PARA ILHA MAGAZINE"){ilhaMagazineInfo=item;}else if(item.nome==="FTP VIZ"){ftpVizInfo=item;}else if(item.nome==="MXF ARTE"){mxfArteInfo=item;}
+        }
         var foundProgramOrJornalTag = findTag(tags.programas, compNameUpper); var isJornal = findTag(tags.jornais, compNameUpper) !== null; var isArte = findTag(tags.artes, compNameUpper) !== null; var isPesquisa = findTag(tags.pesquisa, compNameUpper) !== null; var isVizGnews = findTag(tags.vizGnews, compNameUpper) !== null; var isPrograma = foundProgramOrJornalTag !== null; var isCabecalho = compNameUpper.indexOf("CABECALHO") > -1; var isPromo = compNameUpper.indexOf("PROMO") > -1;
         var subfolderForIlha = (foundProgramOrJornalTag) ? "\\" + foundProgramOrJornalTag : "";
         logTrace("--- Avaliando Regras GNEWS ---");
@@ -102,7 +151,14 @@
         logTrace("--- Avaliando Regras FANT ---");
         if (compNameUpper.indexOf("FANT") === -1) { if(debugMode) return {result:null,trace:trace}; return null; }
         var ilhaMagazineInfo=null, ftpEsporteInfo=null, ftpVizInfo=null, ftpCooluxInfo=null;
-        for (var serverKey in caminhosData) { if (caminhosData.hasOwnProperty(serverKey)) { var serverItems=caminhosData[serverKey]; for (var i=0;i<serverItems.length;i++){ var item=serverItems[i]; if(item.nome==="ILHA MAGAZINE"){ilhaMagazineInfo=item;}else if(item.nome==="FTP ESPORTE"){ftpEsporteInfo=item;}else if(item.nome==="FTP VIZ"){ftpVizInfo=item;}else if(item.nome==="FTP COLUX"){ftpCooluxInfo=item;} } } }
+        var pathList = extractPaths(caminhosData);
+        for (var i=0;i<pathList.length;i++){
+            var item=pathList[i];
+            if(item.nome==="ILHA MAGAZINE"){ilhaMagazineInfo=item;}
+            else if(item.nome==="FTP ESPORTE"){ftpEsporteInfo=item;}
+            else if(item.nome==="FTP VIZ"){ftpVizInfo=item;}
+            else if(item.nome==="FTP COLUX"){ftpCooluxInfo=item;}
+        }
         var foundArtesFtIlhaTag = findTag(tags.artesFant, compNameUpper); var foundFantEspTag = findTag(tags.espFant, compNameUpper); var foundFantVizTag = findTag(tags.vizFant, compNameUpper);
         var foundTvTouchScreenTag = compNameUpper.replace(/[\s_-]/g, "").indexOf(tags.touchFant) > -1;
         if (foundTvTouchScreenTag) { targetObject = { nome: "TV TouchScreen", caminho: "Não aplicável - verificar com produção" }; }
@@ -132,6 +188,12 @@
         }
     }
 
+    // Exporta utilidades para outros módulos (ex: MailMaker) sem depender do singleton autoGetPath.
     $.global.autoGetPath = autoGetPath;
+    $.global.MailMakerAutoPath = {
+        regrasGNews: regrasGNews,
+        regrasFant: regrasFant,
+        getTags: getTags
+    };
 
 })(this);

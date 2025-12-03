@@ -24,6 +24,18 @@
         return (typeof path === 'string') ? path.split('.') : [];
     }
 
+    function safeKeys(obj) {
+        if (!obj || typeof obj !== 'object') { return []; }
+        if (typeof Object !== 'undefined' && typeof Object.keys === 'function') {
+            return Object.keys(obj);
+        }
+        var arr = [];
+        for (var k in obj) {
+            if (obj.hasOwnProperty(k)) { arr.push(k); }
+        }
+        return arr;
+    }
+
     function get(path, fallback) {
         ensureLoaded();
         if (!path) { return scriptPreferencesObj; }
@@ -58,13 +70,20 @@
     function save() {
         ensureLoaded();
         if (typeof saveScriptPreferences === 'function') {
-            try { saveScriptPreferences(); } catch (e) {}
+            try {
+                if (typeof D9T_PREF_LOG === 'function') { D9T_PREF_LOG('prefs_manager.save -> saveScriptPreferences'); }
+                else { try { $.writeln('[D9T_PREFS_TRACE] prefs_manager.save -> saveScriptPreferences'); } catch (e0) {} }
+                saveScriptPreferences();
+            } catch (e) {
+                if (typeof D9T_PREF_LOG === 'function') { D9T_PREF_LOG('prefs_manager.save FAIL', e); }
+                else { try { $.writeln('[D9T_PREFS_TRACE] prefs_manager.save FAIL :: ' + e); } catch (e1) {} }
+            }
         }
     }
 
     function deepMerge(target, source) {
         if (!source || typeof source !== 'object') { return target; }
-        var keys = Object.keys(source);
+        var keys = safeKeys(source);
         for (var i = 0; i < keys.length; i++) {
             var key = keys[i];
             var value = source[key];
