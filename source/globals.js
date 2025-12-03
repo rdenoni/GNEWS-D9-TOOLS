@@ -19,6 +19,25 @@ var appOs = $.os.indexOf('Win') >= 0 ? 'Win' : 'Mac';
 var appV = parseInt(app.buildName.substring(0, 2));
 var appFullV = app.buildName.split(/x/i)[0];
 
+// Agendador seguro (para hosts sem scheduleTask)
+(function () {
+    function D9T_safeSchedule(code, delay, repeat) {
+        try {
+            if (typeof app !== "undefined" && app && typeof app.scheduleTask === "function") {
+                return app.scheduleTask(code, delay || 10, repeat === true);
+            }
+        } catch (schedErr) {}
+        try { $.eval(code); } catch (evalErr) {}
+        return null;
+    }
+    $.global.D9T_safeSchedule = D9T_safeSchedule;
+    try {
+        if (typeof app !== "undefined" && app && typeof app.scheduleTask !== "function") {
+            app.scheduleTask = D9T_safeSchedule;
+        }
+    } catch (patchErr) {}
+})();
+
 // Cores do Style Guide GNEWS
 var bgColor1 = '#161616ff';
 var bgColor2 = '#1b1b1bff';
@@ -51,13 +70,84 @@ var scriptPreferencesPath = Folder.userData.fullName + '/GND9TOOLS script';
 var scriptPreferencesFolder = new Folder(scriptPreferencesPath);
 if (!scriptPreferencesFolder.exists) scriptPreferencesFolder.create();
 
+// Pasta de runtime (manifestos, prefs e caches leves)
+var runtimePath = scriptPreferencesPath + '/runtime';
+var runtimeFolder = new Folder(runtimePath);
+if (!runtimeFolder.exists) runtimeFolder.create();
+
+var runtimePrefsPath = runtimePath + '/prefs';
+var runtimePrefsFolder = new Folder(runtimePrefsPath);
+if (!runtimePrefsFolder.exists) runtimePrefsFolder.create();
+
+var runtimeConfigPath = runtimePath + '/config';
+var runtimeConfigFolder = new Folder(runtimeConfigPath);
+if (!runtimeConfigFolder.exists) runtimeConfigFolder.create();
+
+var runtimeIconsPath = runtimePath + '/icons';
+var runtimeIconsFolder = new Folder(runtimeIconsPath);
+if (!runtimeIconsFolder.exists) runtimeIconsFolder.create();
+
+var runtimeCachePath = runtimePath + '/cache';
+var runtimeCacheFolder = new Folder(runtimeCachePath);
+if (!runtimeCacheFolder.exists) runtimeCacheFolder.create();
+
+// Caminho do arquivo principal de prefer ncias
+var userPrefsFilePath = runtimePrefsFolder.fsName + '/User_Preferences.json';
+
+// Manifesto leve de runtime
+var runtimeManifestPath = runtimePath + '/manifest.json';
+
+// Configura  es auxiliares e caches globais
+var runtimeLogsPath = runtimePath + '/logs';
+var runtimeLogsFolder = new Folder(runtimeLogsPath);
+if (!runtimeLogsFolder.exists) runtimeLogsFolder.create();
+
+var runtimeTempPath = runtimePath + '/temp';
+var runtimeTempFolder = new Folder(runtimeTempPath);
+if (!runtimeTempFolder.exists) runtimeTempFolder.create();
+
+var runtimeConfigMainPath = runtimeConfigPath + '/config.json';
+var runtimeDadosConfigPath = runtimeConfigPath + '/Dados_Config.json';
+
+// Wrappers p/ API pública de preferências
+function D9T_loadUserPrefs() {
+    try { return (typeof D9T_Preferences !== 'undefined') ? D9T_Preferences.getAll() : null; } catch (e) { return null; }
+}
+function D9T_saveUserPrefs(obj) {
+    try { if (typeof D9T_Preferences !== 'undefined' && obj) { D9T_Preferences.setAll(obj); return true; } } catch (e) {}
+    return false;
+}
+function D9T_getModulePrefs(key, defVal) {
+    try {
+        if (typeof D9T_Preferences !== 'undefined') {
+            var v = D9T_Preferences.getModulePrefs(key);
+            return (v === undefined || v === null) ? defVal : v;
+        }
+    } catch (e) {}
+    return defVal;
+}
+function D9T_setModulePrefs(key, val, persist) {
+    try {
+        if (typeof D9T_Preferences !== 'undefined') {
+            D9T_Preferences.setModulePrefs(key, val, !!persist);
+            return true;
+        }
+    } catch (e) {}
+    return false;
+}
+
 var tempPath = scriptPreferencesPath + '/temp';
 var tempFolder = new Folder(tempPath);
 if (!tempFolder.exists) tempFolder.create();
 
-var scriptLogsPath = scriptPreferencesPath + '/logs';
-var scriptLogsFolder = new Folder(scriptLogsPath);
+var scriptLogsPath = runtimeLogsPath;
+var scriptLogsFolder = new Folder(runtimeLogsPath);
 if (!scriptLogsFolder.exists) scriptLogsFolder.create();
+
+// Evita ReferenceError caso os ícones base (ICON lib) ainda não tenham sido carregados
+if (typeof localPc === 'undefined') {
+	localPc = (typeof LOGO_IMG !== 'undefined') ? LOGO_IMG : "";
+}
 
 var templatesLocalPath = scriptPreferencesPath + '/templates';
 var templatesLocalFolder = new Folder(templatesLocalPath);
@@ -90,12 +180,12 @@ var templatesFolder = new Folder(D9T_prodArray[0].templatesPath);
 // --------------------- Strings e Mensagens ---------------------
 
 // Emojis e mensagens (opcional)
-var lol = 'Σ(っ °Д °;)っ        ';
-var relax = 'ヽ(✿ﾟ▽ﾟ)ノ        ';
+var lol = '🤯  ';
+var relax = '😌  ';
 
-var lClick = '◖  →  ';
-var rClick = '   →  ';
-var dClick = '◖◖ →  ';
+var lClick = '👈 ';
+var rClick = '👉 ';
+var dClick = '🖱️🖱️ ';
 
 
 
@@ -108,6 +198,47 @@ var D9T_ui = {
 	sectionGrpArray: [],
 	divArray: []
 };
+
+// Manifesto de runtime: armazena um snapshot leve das prefer ncias para o bin rio ler
+// mesmo quando outros arquivos estiverem empacotados.
+function D9T_UPDATE_RUNTIME_MANIFEST(snapshot) {
+	try {
+		if (!runtimeFolder || !runtimeFolder.exists) {
+			runtimeFolder = new Folder(runtimePath);
+			if (!runtimeFolder.exists) runtimeFolder.create();
+		}
+
+		var manifestFile = new File(runtimeManifestPath);
+		var payload = snapshot || {};
+
+		// Informa  es sobre o arquivo de prefer ncias principal
+		var prefsFile = new File(userPrefsFilePath);
+		if (prefsFile.exists) {
+			payload.userPrefs = {
+				path: prefsFile.fsName,
+				size: prefsFile.length,
+				modified: prefsFile.modified
+			};
+		} else {
+			payload.userPrefs = { path: prefsFile.fsName, missing: true };
+		}
+
+		// Snapshot r pido das configura  es atuais carregadas em mem ria
+		if (typeof scriptPreferencesObj !== 'undefined' && scriptPreferencesObj) {
+			payload.uiSettings = scriptPreferencesObj.uiSettings || {};
+			payload.color = scriptPreferencesObj.color || {};
+		}
+
+		manifestFile.encoding = "UTF-8";
+		manifestFile.open('w');
+		manifestFile.write(JSON.stringify(payload, null, 2));
+		manifestFile.close();
+	} catch (manifestErr) {
+		// Falha silenciosa para n o quebrar o bin rio; logamos se o logger existir
+		try { if (typeof D9T_logError === 'function') D9T_logError('runtime manifest fail: ' + manifestErr); } catch (e) {}
+	}
+}
+$.global.D9T_UPDATE_RUNTIME_MANIFEST = D9T_UPDATE_RUNTIME_MANIFEST;
 
 // Objeto para armazenar as preferências carregadas do arquivo JSON
 var scriptPreferencesObj = {};
@@ -316,7 +447,12 @@ function logPreferenceIssue(message, error) {
 
 // Carrega as preferências do usuário a partir do arquivo 'User_Preferences.json' ou usa os valores padrão.
 function loadScriptPreferences() {
-	var tempFile = new File(scriptPreferencesPath + '/User_Preferences.json');
+	// Novo caminho (runtime/prefs); fallback para legado no diretório raiz
+	var tempFile = new File(userPrefsFilePath);
+	if (!tempFile.exists) {
+		var legacy = new File((new Folder(scriptPreferencesPath)).fsName + '/User_Preferences.json');
+		if (legacy.exists) { tempFile = legacy; }
+	}
 	var loadedPrefs = {};
 
 	if (tempFile.exists) {
@@ -360,6 +496,13 @@ function loadScriptPreferences() {
 	if (typeof scriptPreferencesObj.uiSettings.compactIconSpacing !== 'number') {
 		scriptPreferencesObj.uiSettings.compactIconSpacing = defaultScriptPreferencesObj.uiSettings.compactIconSpacing;
 	}
+	// Garantia de integridade dos temas de botões
+	if (!(scriptPreferencesObj.uiSettings.buttonThemes instanceof Array) || !scriptPreferencesObj.uiSettings.buttonThemes.length) {
+		scriptPreferencesObj.uiSettings.buttonThemes = JSON.parse(JSON.stringify(defaultScriptPreferencesObj.uiSettings.buttonThemes));
+	}
+	if (!scriptPreferencesObj.uiSettings.activeButtonTheme) {
+		scriptPreferencesObj.uiSettings.activeButtonTheme = defaultScriptPreferencesObj.uiSettings.activeButtonTheme;
+	}
 	if (!(scriptPreferencesObj.uiSettings.buttonThemes instanceof Array) || !scriptPreferencesObj.uiSettings.buttonThemes.length) {
 		scriptPreferencesObj.uiSettings.buttonThemes = JSON.parse(JSON.stringify(defaultScriptPreferencesObj.uiSettings.buttonThemes));
 	}
@@ -371,6 +514,15 @@ function loadScriptPreferences() {
 	} else if (!(scriptPreferencesObj.moduleSettings.hiddenKeys instanceof Array)) {
 		scriptPreferencesObj.moduleSettings.hiddenKeys = [];
 	}
+	// Trace de estado carregado
+	try {
+		var uiSt = scriptPreferencesObj.uiSettings || {};
+		var cThemes = (uiSt.buttonThemes && uiSt.buttonThemes.length) ? uiSt.buttonThemes.length : 0;
+		var activeId = uiSt.activeButtonTheme || "none";
+		if (typeof D9T_PREF_LOG === "function") {
+			D9T_PREF_LOG("loadScriptPreferences done | themes=" + cThemes + " | active=" + activeId + " | file=" + tempFile.fsName);
+		}
+	} catch (traceErr) {}
 
 	for (var s in defaultScriptPreferencesObj.selection) {
 		if (defaultScriptPreferencesObj.selection.hasOwnProperty(s) && !scriptPreferencesObj.selection.hasOwnProperty(s)) {
@@ -387,6 +539,20 @@ function loadScriptPreferences() {
 	homeOffice = scriptPreferencesObj.homeOffice;
 	devMode = scriptPreferencesObj.devMode;
 
+	// Atualiza manifesto de runtime com snapshot carregado
+	try {
+		if (typeof D9T_UPDATE_RUNTIME_MANIFEST === "function") {
+			D9T_UPDATE_RUNTIME_MANIFEST({
+				loadedAt: new Date(),
+				source: tempFile.fsName,
+				uiSettings: scriptPreferencesObj.uiSettings || {},
+				color: scriptPreferencesObj.color || {}
+			});
+		}
+	} catch (manifestLoadErr) {
+		try { $.writeln("[D9T_PREFS_TRACE] runtime manifest load update fail :: " + manifestLoadErr); } catch (loadLogErr) {}
+	}
+
 	return scriptPreferencesObj;
 }
 
@@ -400,9 +566,10 @@ function D9T_sanitizeLogName(name) {
 function D9T_appendLogEntry(moduleName, level, message) {
 	var logFile = null;
 	try {
-		if (!scriptLogsPath) { return; }
+		var logBase = (runtimeLogsPath && runtimeLogsPath.length) ? runtimeLogsPath : scriptLogsPath;
+		if (!logBase) { return; }
 		var safeName = D9T_sanitizeLogName(moduleName);
-		logFile = new File(scriptLogsPath + '/' + safeName + '.log');
+		logFile = new File(logBase + '/' + safeName + '.log');
 		var stamp = new Date().toUTCString();
 		var line = '[' + stamp + '][' + (level || 'INFO') + '] ' + (message || '');
 		if (logFile.open('a')) {
@@ -470,74 +637,20 @@ var defaultTemplateConfigObj = {
 
 // Define um objeto com as cores e nomes dos rótulos do After Effects (codificados).
 var labelsObj = {
-	l1: {
-		color: 'ÿñ=;', // FF F44336 (Vermelho)
-		name: 'red'
-	},
-	l2: {
-		color: 'ÿç\u0013c', // FF E81D62 (Rosa)
-		name: 'pink'
-	},
-	l3: {
-		color: 'ÿš(®', // FF 9B26AF (Roxo)
-		name: 'purple'
-	},
-	l4: {
-		color: 'ÿd<³', // FF 6639B6 (Roxo Escuro)
-		name: 'deep purple'
-	},
-	l5: {
-		color: 'ÿ?Q³', // FF 3E50B4 (Indigo)
-		name: 'indigo'
-	},
-	l6: {
-		color: 'ÿ)–ï', // FF 02A8F3 (Azul)
-		name: 'blue'
-	},
-	l7: {
-		color: 'ÿ\u001b©ñ', // FF 00BBD3 (Azul Claro)
-		name: 'light blue'
-	},
-	l8: {
-		color: 'ÿ\u001e¼Ó', // FF 009587 (Ciano)
-		name: 'cyan'
-	},
-	l9: {
-		color: 'ÿ\u0016–ˆ', // FF 8AC249 (Verde Azulado)
-		name: 'teal'
-	},
-	l10: {
-		color: 'ÿO¯T', // FF CCDB38 (Verde)
-		name: 'green'
-	},
-	l11: {
-		color: 'ÿŒÃQ', // FF FEEA3A (Verde Claro)
-		name: 'light green'
-	},
-	l12: {
-		color: 'ÿÌÚG', // FF FE9700 (Lima)
-		name: 'lime'
-	},
-	l13: {
-		color: 'ÿýéL', // FF FF5722 (Amarelo)
-		name: 'yellow'
-	},
-	l14: {
-		color: 'ÿû¿+', // FF 785447 (Âmbar)
-		name: 'amber'
-	},
-	l15: {
-		color: 'ÿý–#', // FF 9D9D9D (Laranja)
-		name: 'orange'
-	},
-	l16: {
-		color: 'ÿûS-', // FF 5F7C8A (Laranja Escuro)
-		name: 'deep orange'
-	}
+	l1:  { color: '#F44336FF', name: 'red' },
+	l2:  { color: '#E81D62FF', name: 'pink' },
+	l3:  { color: '#9B26AFFF', name: 'purple' },
+	l4:  { color: '#6639B6FF', name: 'deep purple' },
+	l5:  { color: '#3E50B4FF', name: 'indigo' },
+	l6:  { color: '#02A8F3FF', name: 'blue' },
+	l7:  { color: '#00BBD3FF', name: 'light blue' },
+	l8:  { color: '#009587FF', name: 'cyan' },
+	l9:  { color: '#8AC249FF', name: 'teal' },
+	l10: { color: '#CCDB38FF', name: 'green' },
+	l11: { color: '#FEEA3AFF', name: 'light green' },
+	l12: { color: '#FE9700FF', name: 'lime' },
+	l13: { color: '#FF5722FF', name: 'yellow' },
+	l14: { color: '#785447FF', name: 'amber' },
+	l15: { color: '#9D9D9DFF', name: 'orange' },
+	l16: { color: '#5F7C8AFF', name: 'deep orange' }
 };
-
-$.writeln("=== GLOBALS.JS CARREGADO ===");
-$.writeln("normalColor1: " + (typeof normalColor1) + " = " + normalColor1);
-$.writeln("bgColor1: " + (typeof bgColor1) + " = " + bgColor1);
-$.writeln("setFgColor: " + (typeof setFgColor));
-$.writeln("setBgColor: " + (typeof setBgColor));
