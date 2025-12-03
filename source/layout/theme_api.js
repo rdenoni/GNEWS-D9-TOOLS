@@ -322,11 +322,13 @@ function D9T_OPEN_THEME_DIALOG(uiObj) {
             }
             D9T_REFRESH_THEME_COLORS();
             if (persist) {
-                if (typeof D9T_Preferences !== "undefined" && typeof D9T_Preferences.save === "function") {
+                // Prefer salvamento direto do JSON de usuário
+                if (typeof saveScriptPreferences === "function") {
+                    try { saveScriptPreferences(); }
+                    catch (prefsErr2) { $.writeln('[theme_api] Falha ao salvar via saveScriptPreferences: ' + prefsErr2); }
+                } else if (typeof D9T_Preferences !== "undefined" && typeof D9T_Preferences.save === "function") {
                     try { D9T_Preferences.save(); }
-                    catch (prefsErr2) { $.writeln('[theme_api] Falha ao salvar via D9T_Preferences: ' + prefsErr2); }
-                } else if (typeof saveScriptPreferences === "function") {
-                    saveScriptPreferences();
+                    catch (prefsErr3) { $.writeln('[theme_api] Falha ao salvar via D9T_Preferences: ' + prefsErr3); }
                 }
             }
         }

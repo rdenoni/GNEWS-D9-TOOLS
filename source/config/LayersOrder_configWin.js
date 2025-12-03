@@ -16,7 +16,7 @@ function launchLayerOrderConfigWinUI() {
 
     // Função para carregar a configuração de um arquivo JSON.
     function loadConfig() {
-        var configFile = new File(Folder.userData.fsName + "/organizer_config.json");
+        var configFile = new File(runtimeConfigPath + "/organizer_config.json");
         var defaultConfig = {
             language: "PT",
             prefixes: {
@@ -46,7 +46,7 @@ function launchLayerOrderConfigWinUI() {
 
     // Função para salvar a configuração em um arquivo JSON.
     function saveConfig(configObject) {
-        var configFile = new File(Folder.userData.fsName + "/organizer_config.json");
+        var configFile = new File(runtimeConfigPath + "/organizer_config.json");
         try {
             configFile.open("w");
             configFile.write(JSON.stringify(configObject, null, 2));

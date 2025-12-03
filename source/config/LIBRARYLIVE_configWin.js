@@ -16,6 +16,8 @@ function launchLibraryLiveConfigWinUI() {
     var TEXTO_BOTAO_CACHE = "Gerar Cache";
     var TEXTO_BOTAO_CANCEL = "Cancelar";
     var TEXTO_BOTAO_SAVE = "Salvar";
+    var BUTTON_WIDTH = 120;
+    var BUTTON_HEIGHT = 28;
 
     // =================================================================================
     // --- FUNÇÕES AUXILIARES DE TEMA E UI ---
@@ -31,6 +33,38 @@ function launchLibraryLiveConfigWinUI() {
     var COLORS = { success: hexToRgb(successColor), error: hexToRgb(highlightColor1), warning: hexToRgb(warningColor), info: [0.2, 0.6, 0.9], neutral: hexToRgb(normalColor1) };
     var isCancelled = false;
     var ui = {};
+
+    function createThemedButton(parent, label, opts) {
+        opts = opts || {};
+        var w = opts.width || BUTTON_WIDTH;
+        var h = opts.height || BUTTON_HEIGHT;
+        var btn;
+        // Usa os componentes temáticos se estiverem disponíveis
+        if (typeof themeButton === 'function') {
+            try {
+                btn = new themeButton(parent, { labelTxt: label, width: w, height: h });
+                if (btn && btn.label) {
+                    btn.label.__buttonThemeOverrides = { width: w, height: h };
+                    try { D9T_applyThemeToButtonControl(btn.label, D9T_getActiveButtonTheme()); } catch (themeErr) {}
+                }
+                return btn;
+            } catch (e) {}
+        }
+        if (typeof themeAltButton === 'function') {
+            try {
+                btn = new themeAltButton(parent, { labelTxt: label, width: w, height: h });
+                if (btn && btn.label) {
+                    btn.label.__buttonThemeOverrides = { width: w, height: h };
+                    try { D9T_applyThemeToButtonControl(btn.label, D9T_getActiveButtonTheme()); } catch (themeErr2) {}
+                }
+                return btn;
+            } catch (e2) {}
+        }
+        // Fallback nativo
+        btn = parent.add("button", undefined, label);
+        btn.preferredSize = [w, h];
+        return btn;
+    }
 
     function updateStatus(message, type) {
         if (!ui.statusText) return;
@@ -109,7 +143,8 @@ function launchLibraryLiveConfigWinUI() {
         ui.cancelBtn.visible = true;
         try {
             var paths = collectPathsFromUI();
-            var cacheFolder = new Folder(scriptMainPath + "/cache/");
+            // Usa o runtime/cache como destino padrão (alinhado aos demais módulos)
+            var cacheFolder = new Folder(runtimeCachePath);
             if (!cacheFolder.exists) cacheFolder.create();
             var iconCacheFile = new File(cacheFolder.fsName + "/libraryLive_Icons_Cache.json");
             var imageCacheFile = new File(cacheFolder.fsName + "/libraryLive_Images_Cache.json");
@@ -135,7 +170,10 @@ function launchLibraryLiveConfigWinUI() {
     // =================================================================================
     // --- LÓGICA DE CONFIGURAÇÃO CENTRALIZADA ---
     // =================================================================================
-    var SYSTEM_SETTINGS_FILE = new File(scriptMainPath + '/System_Settings.json');
+    var SYSTEM_SETTINGS_FILE = new File(
+        (typeof runtimeConfigPath !== 'undefined') ? (runtimeConfigPath + '/System_Settings.json')
+            : (scriptPreferencesPath + '/System_Settings.json')
+    );
 
     function loadSystemSettings() {
         if (SYSTEM_SETTINGS_FILE.exists) {
@@ -206,7 +244,7 @@ function launchLibraryLiveConfigWinUI() {
     var iconListGroup = iconsPanel.add("group");
     iconListGroup.orientation = "column";
     iconListGroup.spacing = 5;
-    var addIconBtn = iconsPanel.add("button", undefined, TEXTO_BOTAO_ADD);
+    var addIconBtn = createThemedButton(iconsPanel, TEXTO_BOTAO_ADD, { width: 160, height: BUTTON_HEIGHT });
     addIconBtn.alignment = "right";
     addIconBtn.onClick = function() { addPathLine(iconListGroup, ""); win.layout.layout(true); };
     for (var i = 0; i < libraryLiveSettings.icon_root_paths.length; i++) {
@@ -219,7 +257,7 @@ function launchLibraryLiveConfigWinUI() {
     var imageListGroup = imagesPanel.add("group");
     imageListGroup.orientation = "column";
     imageListGroup.spacing = 5;
-    var addImageBtn = imagesPanel.add("button", undefined, TEXTO_BOTAO_ADD);
+    var addImageBtn = createThemedButton(imagesPanel, TEXTO_BOTAO_ADD, { width: 160, height: BUTTON_HEIGHT });
     addImageBtn.alignment = "right";
     addImageBtn.onClick = function() { addPathLine(imageListGroup, ""); win.layout.layout(true); };
     for (var j = 0; j < libraryLiveSettings.image_root_paths.length; j++) {
@@ -229,10 +267,10 @@ function launchLibraryLiveConfigWinUI() {
     var actionBtnGroup = win.add("group");
     actionBtnGroup.orientation = "row";
     actionBtnGroup.alignment = "right";
-    ui.generateCacheBtn = actionBtnGroup.add("button", undefined, TEXTO_BOTAO_CACHE);
-    ui.cancelBtn = actionBtnGroup.add("button", undefined, TEXTO_BOTAO_CANCEL);
+    ui.generateCacheBtn = createThemedButton(actionBtnGroup, TEXTO_BOTAO_CACHE, { width: 110, height: BUTTON_HEIGHT });
+    ui.cancelBtn = createThemedButton(actionBtnGroup, TEXTO_BOTAO_CANCEL, { width: 90, height: BUTTON_HEIGHT });
     ui.cancelBtn.visible = false;
-    ui.okBtn = actionBtnGroup.add("button", undefined, TEXTO_BOTAO_SAVE);
+    ui.okBtn = createThemedButton(actionBtnGroup, TEXTO_BOTAO_SAVE, { width: 100, height: BUTTON_HEIGHT });
     
     var statusPanel = win.add("panel", undefined, "Status");
     statusPanel.alignment = 'fill';
