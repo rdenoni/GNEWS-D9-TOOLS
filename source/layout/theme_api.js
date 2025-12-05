@@ -72,6 +72,112 @@ function D9T_REFRESH_THEME_COLORS() {
 }
 D9T_REFRESH_THEME_COLORS();
 
+function D9T_getThemeRootRegistry() {
+  if (!$.global.__D9T_THEME_ROOTS) { $.global.__D9T_THEME_ROOTS = []; }
+  return $.global.__D9T_THEME_ROOTS;
+}
+
+function D9T_registerThemeRoot(uiObj) {
+  if (!uiObj) { return; }
+  // permite registrar tanto um objeto de UI (com window) quanto uma Window direta
+  var refWin = uiObj.window ? uiObj.window : uiObj;
+  if (!refWin) { return; }
+  var registry = D9T_getThemeRootRegistry();
+  for (var i = 0; i < registry.length; i++) {
+    var entry = registry[i];
+    try {
+      if (!entry || typeof entry !== "object") { registry.splice(i,1); i--; continue; }
+      var entryWin = entry.window ? entry.window : entry;
+      if (!entryWin) { registry.splice(i,1); i--; continue; }
+      // Objetos ScriptUI descartados podem lançar "Object is invalid" ao acessar props; descarta-los
+      if (entryWin.visible !== undefined) { /* touch to ensure valid */ }
+      if (entry === uiObj || entry === refWin || entryWin === refWin) { return; }
+    } catch (errEntry) {
+      registry.splice(i,1);
+      i--;
+    }
+  }
+  registry.push(uiObj);
+}
+
+function D9T_touchThemeWindow(win) {
+  if (!win) { return; }
+  try { D9T_applyThemeFallback(win); } catch (e) {}
+  try {
+    if (win.layout && typeof win.layout.layout === "function") { win.layout.layout(true); }
+    if (typeof win.update === "function") { win.update(); }
+  } catch (refreshErr) {}
+}
+
+function D9T_registerWindowForTheme(win) {
+  if (!win) { return; }
+  D9T_registerThemeRoot(win);
+  D9T_touchThemeWindow(win);
+}
+$.global.D9T_registerWindowForTheme = D9T_registerWindowForTheme;
+
+function D9T_applyThemeFallback(win) {
+  if (!win) { return; }
+  function applyCtrl(ctrl) {
+    if (!ctrl) { return; }
+    try {
+      if (ctrl.type === "panel" || ctrl.type === "group" || ctrl.type === "window") {
+        setBgColor(ctrl, bgColor1);
+      } else if (ctrl.type === "button" || ctrl.type === "dropdownlist" || ctrl.type === "listbox" || ctrl.type === "edittext") {
+        setBgColor(ctrl, bgColor2);
+      }
+    } catch (e0) {}
+    try {
+      if (ctrl.graphics) {
+        setFgColor(ctrl, D9T_Theme.colors.textNormal);
+        // Foco em textos de selecao/checkbox/radio
+        if (ctrl.type === "checkbox" || ctrl.type === "radiobutton" || ctrl.type === "statictext") {
+          setFgColor(ctrl, D9T_Theme.colors.textNormal);
+        }
+      }
+    } catch (e1) {}
+    if (ctrl.children && ctrl.children.length) {
+      for (var j = 0; j < ctrl.children.length; j++) {
+        applyCtrl(ctrl.children[j]);
+      }
+    }
+  }
+  applyCtrl(win);
+}
+
+function D9T_refreshAllThemeRoots(targetUI) {
+  var registry = D9T_getThemeRootRegistry();
+  if (targetUI) { D9T_registerThemeRoot(targetUI); }
+  // Autoregistra qualquer janela ScriptUI aberta para garantir que paineis auxiliares tambem recebam o tema
+  try {
+    if (typeof ScriptUI !== "undefined" && ScriptUI.windows && ScriptUI.windows.length) {
+      for (var w = 0; w < ScriptUI.windows.length; w++) {
+        var winObj = ScriptUI.windows[w];
+        if (winObj) { D9T_registerWindowForTheme(winObj); }
+      }
+    }
+  } catch (scanErr) {}
+  for (var i = registry.length - 1; i >= 0; i--) {
+    var root = registry[i];
+    if (!root) { registry.splice(i, 1); continue; }
+    var refWin = null;
+    try { refWin = root.window ? root.window : root; }
+    catch (errRef) { registry.splice(i, 1); continue; }
+    if (!refWin) { registry.splice(i, 1); continue; }
+    try {
+      if (root.window) {
+        D9T_APPLY_THEME_TO_ROOT(root);
+      } else {
+        D9T_applyThemeFallback(refWin);
+      }
+      D9T_touchThemeWindow(refWin); // garante repaint imediato
+    } catch (applyErr) {}
+    if (typeof D9T_LAYOUT === "function" && root.window) {
+      try { D9T_LAYOUT(root); } catch (layoutErr) {}
+    }
+  }
+}
+
 var D9T_TOOLTIP_DEFAULT_DELAY = 1500;
 function D9T_getTooltipRegistry() {
     if (!$.global.__D9T_tooltips) {
@@ -140,16 +246,50 @@ function D9T_OPEN_COLOR_GLOBALS() {
 
 function D9T_APPLY_THEME_TO_ROOT(uiObj) {
   uiObj = uiObj || D9T_ui;
-  if (!uiObj || !uiObj.window) { return; }
-  try { setBgColor(uiObj.window, bgColor1); } catch (e) {}
-  if (uiObj.headerGrp) {
-    try { setBgColor(uiObj.headerGrp, bgColor1); } catch (headerErr) {}
+  if (!uiObj) { return; }
+
+  var win = uiObj.window ? uiObj.window : uiObj;
+  if (!win) { return; }
+
+  if (typeof D9T_registerThemeRoot === "function") { D9T_registerThemeRoot(uiObj); }
+
+  // Primeiro aplica um tema generico no root (funciona para janelas de modulos)
+  D9T_applyThemeFallback(win);
+
+  // Ajustes especificos para o painel principal (quando tivermos referencia do objeto completo)
+  var isMainLayout = !!(uiObj.window && (uiObj.headerGrp || uiObj.mainGrp || uiObj.divArray));
+  if (isMainLayout) {
+    try { setBgColor(uiObj.window, bgColor1); } catch (eMainBg) {}
+    if (uiObj.headerGrp) {
+      try { setBgColor(uiObj.headerGrp, bgColor2); } catch (headerErr) {}
+    }
+    if (uiObj.searchGrp) {
+      try { setBgColor(uiObj.searchGrp, bgColor2); } catch (searchErr) {}
+    }
+    if (uiObj.infoGrp && D9T_Theme.layout) {
+      D9T_APPLY_GROUP_MARGINS(uiObj.infoGrp, D9T_Theme.layout.infoMargins);
+    }
+    if (uiObj.mainGrp && D9T_Theme.layout) {
+      D9T_APPLY_GROUP_MARGINS(uiObj.mainGrp, D9T_Theme.layout.mainMargins);
+    }
+    if (uiObj.searchLabel) { setFgColor(uiObj.searchLabel, D9T_Theme.colors.textNormal); }
+    if (uiObj.searchVersionLab) { setFgColor(uiObj.searchVersionLab, D9T_Theme.colors.textNormal); }
+    if (uiObj.vLab) { setFgColor(uiObj.vLab, D9T_Theme.colors.textNormal); }
+    if (uiObj.divArray && uiObj.divArray.length) {
+      for (var d = 0; d < uiObj.divArray.length; d++) {
+        var divider = uiObj.divArray[d];
+        try {
+          setUiCtrlColor(divider, D9T_Theme.colors.divider);
+          if (divider.notify) { divider.notify("onDraw"); }
+        } catch (divErr) {}
+      }
+    }
   }
-  if (uiObj.searchGrp) {
-    try { setBgColor(uiObj.searchGrp, bgColor1); } catch (searchErr) {}
+
+  // Atualiza botoes tematicos registrados (utilizado por varios modulos)
+  if (typeof D9T_refreshRegisteredThemeButtons === "function") {
+    try { D9T_refreshRegisteredThemeButtons(); } catch (btnErr) {}
   }
-  if (uiObj.searchLabel) { setFgColor(uiObj.searchLabel, D9T_Theme.colors.textNormal); }
-  if (uiObj.vLab) { setFgColor(uiObj.vLab, D9T_Theme.colors.textNormal); }
 }
 
 function D9T_LOCK_WINDOW(win) {
@@ -270,11 +410,12 @@ function D9T_OPEN_THEME_DIALOG(uiObj) {
                 if (hex) {
                     refField.text = hex;
                     updateSwatch(refField);
+                    applyLiveTheme();
                 }
             }
             swatch.addEventListener("click", openPicker);
-            refField.onChanging = function () { updateSwatch(refField); };
-            refField.onChange = function () { updateSwatch(refField); };
+            refField.onChanging = function () { updateSwatch(refField); applyLiveTheme(); };
+            refField.onChange = function () { updateSwatch(refField); applyLiveTheme(); };
             refField.addEventListener("keydown", function (evt) {
                 if (evt.keyName === "Enter") { openPicker(); }
             });
@@ -294,6 +435,23 @@ function D9T_OPEN_THEME_DIALOG(uiObj) {
             data[entry.key] = parsed;
         }
         return data;
+    }
+
+    function applyLiveTheme() {
+        // Build a non-destructive palette using current (or default) values as base,
+        // then override only the fields que estao com valor valido.
+        var liveValues = {};
+        for (var iLive = 0; iLive < colorEntries.length; iLive++) {
+            var cEntry = colorEntries[iLive];
+            var base = (scriptPreferencesObj && scriptPreferencesObj.themeColors && scriptPreferencesObj.themeColors[cEntry.key]) ||
+                       current[cEntry.key] || defaults[cEntry.key];
+            liveValues[cEntry.key] = base;
+            var parsedLive = tryParseHex(fieldMap[cEntry.key].text);
+            if (parsedLive) {
+                liveValues[cEntry.key] = parsedLive;
+            }
+        }
+        applyTheme(liveValues, false);
     }
 
     function applyTheme(values, persist) {
@@ -332,16 +490,7 @@ function D9T_OPEN_THEME_DIALOG(uiObj) {
                 }
             }
         }
-        if (typeof D9T_APPLY_THEME_TO_ROOT === "function") {
-            try { D9T_APPLY_THEME_TO_ROOT(uiObj); } catch (applyErr) {
-                $.writeln('[theme_api] Falha ao aplicar tema na UI: ' + applyErr);
-            }
-        }
-        if (uiObj && uiObj.window && typeof D9T_LAYOUT === "function") {
-            try { D9T_LAYOUT(uiObj); } catch (layoutErr) {
-                $.writeln('[theme_api] Falha ao redesenhar UI: ' + layoutErr);
-            }
-        }
+        if (typeof D9T_refreshAllThemeRoots === "function") { D9T_refreshAllThemeRoots(uiObj); }
     }
 
     var btnGrp = win.add("group");
