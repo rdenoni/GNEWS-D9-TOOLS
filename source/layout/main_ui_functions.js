@@ -1913,8 +1913,8 @@ function D9T_PULL_FROM_GITHUB() {
         return;
     }
 
-    // Monta a URL do ZIP
-    var zipUrl = "https://github.com/" + githubUser + "/" + repoName + "/archive/refs/heads/" + branch + ".zip";
+    // Monta a URL do ZIP via API (suporta token corretamente)
+    var zipUrl = "https://api.github.com/repos/" + githubUser + "/" + repoName + "/zipball/" + branch;
     
     // Define caminhos locais
     var installPath = new Folder(scriptMainPath).fsName; 
@@ -1925,11 +1925,12 @@ function D9T_PULL_FROM_GITHUB() {
     // O GitHub extrai numa pasta com nome "Repo-Branch", ex: "GND9TOOLS-main"
     var sourceFolder = extractFolder + "\\" + repoName + "-" + branch;
 
-    // LA3gica de AutenticaAo para o PowerShell
-    // Se houver token, cria o parAmetro de cabeAalho para o Invoke-WebRequest
+    // LA3gica de AutenticaAo para o PowerShell (sempre User-Agent; token se houver)
     var headerCmd = "";
     if (token && token.length > 5) {
-        headerCmd = " -Headers @{Authorization='token " + token + "'}";
+        headerCmd = " -Headers @{Authorization='token " + token + "'; 'User-Agent'='GND9TOOLS-Updater'}";
+    } else {
+        headerCmd = " -Headers @{'User-Agent'='GND9TOOLS-Updater'}";
     }
 
     // ConfirmaAo de seguranAa para o usuArio
@@ -1941,25 +1942,29 @@ function D9T_PULL_FROM_GITHUB() {
     // 2. COMANDO POWERSHELL (corrigido com aspas escapadas)
     // ==========================================================
     var psParts = [];
+    psParts.push("$ErrorActionPreference = 'Stop'");
     psParts.push("$ProgressPreference = 'SilentlyContinue'");
     psParts.push("[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12");
     psParts.push("$zipUrl = '" + zipUrl + "'");
     psParts.push("$zipFile = '" + zipFile + "'");
     psParts.push("$extractFolder = '" + extractFolder + "'");
     psParts.push("$installPath = '" + installPath + "'");
-    psParts.push("$sourceFolder = '" + sourceFolder + "'");
-    psParts.push("Write-Host 'Baixando...'");
-    psParts.push("Invoke-WebRequest -Uri $zipUrl" + headerCmd + " -OutFile $zipFile -ErrorAction Stop");
-    psParts.push("Write-Host 'Extraindo...'");
+    psParts.push("try {");
+    psParts.push("Write-Output '[D9T] Baixando...'");
+    psParts.push("Invoke-WebRequest -Uri $zipUrl" + headerCmd + " -OutFile $zipFile");
+    psParts.push("Write-Output '[D9T] Extraindo...'");
     psParts.push("if (Test-Path $extractFolder) { Remove-Item $extractFolder -Recurse -Force }");
     psParts.push("Expand-Archive -Path $zipFile -DestinationPath $extractFolder -Force");
-    psParts.push("Write-Host 'Instalando...'");
-    psParts.push("Copy-Item -Path ($sourceFolder + '\\*') -Destination $installPath -Recurse -Force");
+    psParts.push("Write-Output '[D9T] Instalando...'");
+    psParts.push("$rootFolder = Get-ChildItem -Path $extractFolder -Directory | Select-Object -First 1");
+    psParts.push("if (!$rootFolder) { throw ('Pasta extraida nao encontrada em ' + $extractFolder) }");
+    psParts.push("Copy-Item -Path ($rootFolder.FullName + '\\\\*') -Destination $installPath -Recurse -Force");
     psParts.push("Remove-Item $zipFile -Force");
     psParts.push("Remove-Item $extractFolder -Recurse -Force");
-    psParts.push("Write-Host 'SUCESSO'");
+    psParts.push("Write-Output 'SUCESSO'");
+    psParts.push("} catch { Write-Output ('ERRO: ' + $_.Exception.Message) }");
     var psScript = psParts.join("; ");
-    var cmdCall = 'powershell -NoLogo -NoProfile -Command "' + psScript.replace(/\"/g, '\\\"') + '"';
+    var cmdCall = 'powershell -NoLogo -NoProfile -NonInteractive -Command "' + psScript.replace(/\"/g, '\\\"') + '"';
     
     // Janela visual de "Aguarde" (ScriptUI)
     var w = new Window("palette", "Atualizando...", undefined, {closeButton: false});
