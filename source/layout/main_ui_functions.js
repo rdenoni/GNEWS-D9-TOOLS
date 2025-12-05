@@ -1,25 +1,25 @@
-/*
+﻿/*
 ---------------------------------------------------------------
 > ARQUIVO: main_ui_functions.js
-> DESCRIÇÃO: Constrói a interface principal (UI) do GND9TOOLS,
+> DESCRIÃ‡ÃƒO: ConstrÃ³i a interface principal (UI) do GND9TOOLS,
 >            gerencia o layout responsivo e os eventos de clique.
-> VERSÃO: 3.4 (Correção de Layout - Logo como Menu)
+> VERSÃƒO: 3.4 (CorreÃ§Ã£o de Layout - Logo como Menu)
 > DATA: 2025
 >
-> MÓDULOS USADOS:
-> - globals.js (para variáveis de tema e preferências)
-> - theme_api.js (para funções de cor e utilitários de tema)
-> - ICON lib.js (para as variáveis de ícone, ex: LOGO_IMG)
-> - Vários scripts de ferramentas (ex: GNEWS_Templates.jsx)
+> MÃ“DULOS USADOS:
+> - globals.js (para variÃ¡veis de tema e preferÃªncias)
+> - theme_api.js (para funÃ§Ãµes de cor e utilitÃ¡rios de tema)
+> - ICON lib.js (para as variÃ¡veis de Ã­cone, ex: LOGO_IMG)
+> - VÃ¡rios scripts de ferramentas (ex: GNEWS_Templates.jsx)
 ---------------------------------------------------------------
 */
 
 
 // ============================================
-// INICIALIZAÇÃO E CARREGAMENTO DE DADOS
+// INICIALIZAÃ‡ÃƒO E CARREGAMENTO DE DADOS
 // ============================================
 
-// Define caminhos essenciais e carrega dados de produção.
+// Define caminhos essenciais e carrega dados de produÃ§Ã£o.
 function initializeGlobalVariables() {
   // Tenta definir o 'scriptMainPath' (caminho raiz do script)
   if (typeof scriptMainPath === 'undefined' || !scriptMainPath) {
@@ -29,27 +29,27 @@ function initializeGlobalVariables() {
         var currentFile = new File($.fileName);
         scriptMainPath = currentFile.parent.parent.fullName + '/';
       } else {
-        throw new Error("Caminho do script não encontrado");
+        throw new Error("Caminho do script nÃ£o encontrado");
       }
     } catch (e) {
-      // Fallback para a pasta de dados do usuário (ex: em .jsxbin)
+      // Fallback para a pasta de dados do usuÃ¡rio (ex: em .jsxbin)
       scriptMainPath = Folder.userData.fullName + '/GND9TOOLS script/';
       var scriptFolder = new Folder(scriptMainPath);
       if (!scriptFolder.exists) scriptFolder.create();
     }
   }
   
-  // Carrega os dados de produção (lista de templates) se ainda não foram carregados
+  // Carrega os dados de produÃ§Ã£o (lista de templates) se ainda nÃ£o foram carregados
   if (typeof D9T_prodArray === 'undefined') {
     D9T_prodArray = [];
     loadProductionData();
   }
   
-  // Garante que os arquivos de configuração JSON básicos existam
+  // Garante que os arquivos de configuraÃ§Ã£o JSON bÃ¡sicos existam
   D9T_ENSURE_BASE_CONFIG_FILES();
 }
 
-// Carrega a lista de produções (templates) do arquivo JSON.
+// Carrega a lista de produÃ§Ãµes (templates) do arquivo JSON.
 function loadProductionData() {
   try {
     var configFile = new File(scriptMainPath + '/source/config/TEMPLATES_config.json');
@@ -60,7 +60,7 @@ function loadProductionData() {
       var data = JSON.parse(content);
       D9T_prodArray = data.PRODUCTIONS || [];
     } else {
-      // Fallback se o arquivo não existir
+      // Fallback se o arquivo nÃ£o existir
       D9T_prodArray = [{ name: "GNEWS", paths: ["T:/JORNALISMO/GLOBONEWS/TEMPLATES"], icon: "GNEWS_ICON" }];
     }
   } catch (e) {
@@ -69,17 +69,17 @@ function loadProductionData() {
   }
 }
 
-// Verifica se os arquivos JSON de configuração existem na pasta de preferências do usuário.
-// Se não existirem, cria-os usando um arquivo base ou um objeto padrão.
+// Verifica se os arquivos JSON de configuraÃ§Ã£o existem na pasta de preferÃªncias do usuÃ¡rio.
+// Se nÃ£o existirem, cria-os usando um arquivo base ou um objeto padrÃ£o.
 function D9T_ENSURE_BASE_CONFIG_FILES() {
   
-  // Função auxiliar para criar um arquivo JSON se ele não existir
+  // FunÃ§Ã£o auxiliar para criar um arquivo JSON se ele nÃ£o existir
   function ensureJsonFile(targetPath, basePath, defaultObj) {
     try {
       var file = new File(targetPath);
-      if (file.exists) { return; } // Já existe, não faz nada
+      if (file.exists) { return; } // JÃ¡ existe, nÃ£o faz nada
       
-      // Cria a pasta pai se necessário
+      // Cria a pasta pai se necessÃ¡rio
       var parentFolder = file.parent;
       if (parentFolder && !parentFolder.exists) { parentFolder.create(); }
       
@@ -98,7 +98,7 @@ function D9T_ENSURE_BASE_CONFIG_FILES() {
         }
       }
       
-      // Se não houver arquivo base, usa o objeto padrão
+      // Se nÃ£o houver arquivo base, usa o objeto padrÃ£o
       if (payload === null && defaultObj) {
         try {
           payload = JSON.stringify(defaultObj, null, 2);
@@ -119,7 +119,7 @@ function D9T_ENSURE_BASE_CONFIG_FILES() {
     }
   }
 
-  // Objeto padrão para as preferências do usuário
+  // Objeto padrÃ£o para as preferÃªncias do usuÃ¡rio
   var defaultUserPrefs = (typeof defaultScriptPreferencesObj !== 'undefined')
     ? JSON.parse(JSON.stringify(defaultScriptPreferencesObj))
     : {
@@ -146,7 +146,7 @@ function D9T_ENSURE_BASE_CONFIG_FILES() {
         }
       };
 
-  // Objeto padrão para configurações do sistema (específicas de cada módulo)
+  // Objeto padrÃ£o para configuraÃ§Ãµes do sistema (especÃ­ficas de cada mÃ³dulo)
   var defaultSystemSettings = {
     COPYLINKS_Settings: {
       configuracao: {
@@ -172,7 +172,7 @@ function D9T_ENSURE_BASE_CONFIG_FILES() {
     }
   };
 
-  // Objeto padrão para a biblioteca de dados (listas, etc.)
+  // Objeto padrÃ£o para a biblioteca de dados (listas, etc.)
   var defaultDadosConfig = {
     ARTES_GNEWS: { arte: [] },
     PROGRAMACAO_GNEWS: { programacao: [] },
@@ -181,7 +181,7 @@ function D9T_ENSURE_BASE_CONFIG_FILES() {
     COPYLINKS: { grupos: [] }
   };
 
-  // Caminhos dos arquivos de configuração
+  // Caminhos dos arquivos de configuraÃ§Ã£o
   var userPrefsPath = runtimePrefsPath + '/User_Preferences.json';
   var systemSettingsPath = runtimeConfigPath + '/System_Settings.json';
   var dadosConfigUserPath = runtimeConfigPath + '/Dados_Config.json';
@@ -193,10 +193,10 @@ function D9T_ENSURE_BASE_CONFIG_FILES() {
   ensureJsonFile(dadosConfigUserPath, dadosConfigUserPath, defaultDadosConfig);
 }
 
-// Inicializa as variáveis globais e configurações
+// Inicializa as variÃ¡veis globais e configuraÃ§Ãµes
 initializeGlobalVariables();
 
-// Logger global de erros para capturar origem (arquivo/linha) em execuções parciais
+// Logger global de erros para capturar origem (arquivo/linha) em execuÃ§Ãµes parciais
 if (!$.global.D9T_trapErrors) {
     $.global.D9T_trapErrors = true;
     $.global.__old_on_error__ = $.global.onError;
@@ -233,23 +233,23 @@ function D9T_COMMIT_PREFERENCES() {
 
 
 // ============================================
-// CONSTRUÇÃO DA INTERFACE (UI)
+// CONSTRUÃ‡ÃƒO DA INTERFACE (UI)
 // ============================================
 
 /**
- * Constrói a interface gráfica principal.
- * @param {Object} structureObj - Objeto que define a estrutura dos módulos (pinGrp, mainGrp).
- * @param {Object} uiObj - O objeto D9T_ui que armazenará os elementos da UI.
+ * ConstrÃ³i a interface grÃ¡fica principal.
+ * @param {Object} structureObj - Objeto que define a estrutura dos mÃ³dulos (pinGrp, mainGrp).
+ * @param {Object} uiObj - O objeto D9T_ui que armazenarÃ¡ os elementos da UI.
  */
 function D9T_BUILD_UI(structureObj, uiObj) {
-  // Carrega as preferências do usuário (se ainda não carregadas)
+  // Carrega as preferÃªncias do usuÃ¡rio (se ainda nÃ£o carregadas)
   if (typeof loadScriptPreferences === "function" && !scriptPreferencesObj.__uiLoaded) {
     loadScriptPreferences();
     scriptPreferencesObj.__uiLoaded = true;
   }
-  // Atualiza as cores do tema com base nas preferências
+  // Atualiza as cores do tema com base nas preferÃªncias
   D9T_REFRESH_THEME_COLORS();
-  // Aplica as configurações de tamanho/espaçamento de ícones
+  // Aplica as configuraÃ§Ãµes de tamanho/espaÃ§amento de Ã­cones
   D9T_APPLY_ICON_SETTINGS(D9T_GET_ICON_SETTINGS(), { refresh: false, deferLayout: true });
   if (typeof D9T_applyActiveButtonTheme === "function") {
     D9T_applyActiveButtonTheme(false);
@@ -260,30 +260,30 @@ function D9T_BUILD_UI(structureObj, uiObj) {
     D9T_LOCK_WINDOW_RESIZE(uiObj.window);
   }
 
-  // --- 1. Definições da Janela Principal ---
+  // --- 1. DefiniÃ§Ãµes da Janela Principal ---
   uiObj.window.margins = 4;
-  uiObj.window.orientation = "stack"; // Orientação "stack" para sobrepor o modo de busca
+  uiObj.window.orientation = "stack"; // OrientaÃ§Ã£o "stack" para sobrepor o modo de busca
   uiObj.window.spacing = 0;
 
-  // --- NOVO: Grupo de Conteúdo Principal ---
-  // Este grupo conterá o cabeçalho E os ícones.
+  // --- NOVO: Grupo de ConteÃºdo Principal ---
+  // Este grupo conterÃ¡ o cabeÃ§alho E os Ã­cones.
   // Fica na camada inferior do "stack".
   uiObj.contentGrp = uiObj.window.add("group");
-  uiObj.contentGrp.orientation = "column"; // Começa como coluna
+  uiObj.contentGrp.orientation = "column"; // ComeÃ§a como coluna
   uiObj.contentGrp.alignment = ["fill", "fill"];
   uiObj.contentGrp.spacing = 0;
   uiObj.contentGrp.margins = 0;
 
-  // --- 2. Grupo do Cabeçalho (Header) ---
+  // --- 2. Grupo do CabeÃ§alho (Header) ---
   // Adicionado ao 'contentGrp'
   uiObj.headerGrp = uiObj.contentGrp.add("group");
   uiObj.headerGrp.orientation = "row";
   uiObj.headerGrp.alignment = ["fill", "top"];
-  uiObj.headerGrp.alignChildren = ["left", "center"]; // Corrigido para alinhar menu à direita
+  uiObj.headerGrp.alignChildren = ["left", "center"]; // Corrigido para alinhar menu Ã  direita
   uiObj.headerGrp.spacing = 8;
   uiObj.headerGrp.margins = [10, 6, 10, 4];
 
-  // --- 2a. Grupo de Informação (Logo + Versão) ---
+  // --- 2a. Grupo de InformaÃ§Ã£o (Logo + VersÃ£o) ---
   uiObj.infoGrp = uiObj.headerGrp.add("group");
   uiObj.infoGrp.orientation = "row"; 
   uiObj.infoGrp.alignChildren = ["left", "center"]; 
@@ -292,7 +292,7 @@ function D9T_BUILD_UI(structureObj, uiObj) {
   uiObj.mainLogo = uiObj.infoGrp.add("image", undefined, LOGO_IMG.light);
   uiObj.mainLogo.maximumSize = [70, 24];
   uiObj.mainLogo.minimumSize = [50, 24];
-  uiObj.mainLogo.helpTip = "Abrir Ações e Configurações"; // Dica
+  uiObj.mainLogo.helpTip = "Abrir AÃ§Ãµes e ConfiguraÃ§Ãµes"; // Dica
 
   
   // Trocado .onClick por .addEventListener("click", ...)
@@ -305,25 +305,25 @@ function D9T_BUILD_UI(structureObj, uiObj) {
     truncate: "end",
   });
   uiObj.vLab.justify = "center";
-  uiObj.vLab.helpTip = [scriptName, scriptVersion, "| D9"].join(" "); // Dica de versão
+  uiObj.vLab.helpTip = [scriptName, scriptVersion, "| D9"].join(" "); // Dica de versÃ£o
 
-  // --- 2b. Espaçador (Empurra o menu para a direita) ---
+  // --- 2b. EspaÃ§ador (Empurra o menu para a direita) ---
   uiObj.headerSpacer = uiObj.headerGrp.add("group");
   uiObj.headerSpacer.alignment = ["fill", "center"];
 
-  // --- 2c. Grupo do Menu (Botão Hamburger) ---
+  // --- 2c. Grupo do Menu (BotÃ£o Hamburger) ---
   uiObj.menuBtnGrp = uiObj.headerGrp.add("group");
   uiObj.menuBtnGrp.orientation = "row";
   uiObj.menuBtnGrp.alignChildren = ["right", "center"];
   uiObj.menuBtnGrp.alignment = ["right", "center"];
   uiObj.menuBtnGrp.margins = [0, 0, 8, 0];
-  uiObj.menuBtnGrp.visible = false; // Botão de menu removido
+  uiObj.menuBtnGrp.visible = false; // BotÃ£o de menu removido
   
   uiObj.hamburgerBtn = uiObj.menuBtnGrp.add("button", undefined, "\u2630"); 
   uiObj.hamburgerBtn.preferredSize = [32, 24];
-  uiObj.hamburgerBtn.helpTip = "Ações e configurações";
+  uiObj.hamburgerBtn.helpTip = "AÃ§Ãµes e configuraÃ§Ãµes";
 
-  // --- 3. Grupo Principal de Módulos (mainGrp) ---
+  // --- 3. Grupo Principal de MÃ³dulos (mainGrp) ---
   // Adicionado ao 'contentGrp'
   uiObj.mainGrp = uiObj.contentGrp.add("group");
   uiObj.mainGrp.alignment = ["fill", "top"];
@@ -337,7 +337,7 @@ function D9T_BUILD_UI(structureObj, uiObj) {
   uiObj.moduleIndex = []; 
 
   // --- 5. Grupo de Busca (searchGrp) ---
-  // Adicionado à 'window' (camada superior do "stack")
+  // Adicionado Ã  'window' (camada superior do "stack")
   uiObj.searchGrp = uiObj.window.add("group");
   uiObj.searchGrp.orientation = "row";
   uiObj.searchGrp.alignment = ["fill", "top"];
@@ -401,11 +401,11 @@ function D9T_BUILD_UI(structureObj, uiObj) {
   uiObj.searchButton.preferredSize = [40, 22];
   uiObj.searchButton.helpTip = "Executa o modulo selecionado ou a busca ativa";
   
-  // --- 7. Loop de Construção dos Módulos ---
+  // --- 7. Loop de ConstruÃ§Ã£o dos MÃ³dulos ---
   var sectionCounter = 0;
   var ctrlCounter = 0;
   
-  // Loop para módulos fixados (pinGrp)
+  // Loop para mÃ³dulos fixados (pinGrp)
   for (var pinSec in structureObj.pinGrp) {
     var pinSection = structureObj["pinGrp"][pinSec];
     if (sectionCounter > 0)
@@ -430,7 +430,7 @@ function D9T_BUILD_UI(structureObj, uiObj) {
     sectionCounter++;
   }
   
-  // Loop para módulos principais (mainGrp)
+  // Loop para mÃ³dulos principais (mainGrp)
   sectionCounter = 0;
   for (var sec in structureObj.mainGrp) {
     var section = structureObj["mainGrp"][sec];
@@ -455,7 +455,7 @@ function D9T_BUILD_UI(structureObj, uiObj) {
     sectionCounter++;
   }
   
-  // --- 8. Finalização e Eventos ---
+  // --- 8. FinalizaÃ§Ã£o e Eventos ---
   uiObj.window.layout.layout(true);
   setCtrlHighlight(uiObj.vLab, monoColor0, highlightColor1); 
   setBgColor(uiObj.window, bgColor1); 
@@ -478,7 +478,7 @@ function D9T_BUILD_UI(structureObj, uiObj) {
 }
 
 /**
- * Aplica as cores de fundo principais à janela e cabeçalho.
+ * Aplica as cores de fundo principais Ã  janela e cabeÃ§alho.
  * @param {Object} uiObj - O objeto D9T_ui.
  */
 function D9T_APPLY_THEME_TO_ROOT(uiObj) {
@@ -488,7 +488,7 @@ function D9T_APPLY_THEME_TO_ROOT(uiObj) {
   // Cor de fundo da janela
   try { setBgColor(uiObj.window, bgColor1); } catch (e) {}
   
-  // ALTERADO: A cor de fundo do cabeçalho é necessária novamente
+  // ALTERADO: A cor de fundo do cabeÃ§alho Ã© necessÃ¡ria novamente
   if (uiObj.headerGrp) {
     try { setBgColor(uiObj.headerGrp, bgColor2); } catch (headerErr) {}
   }
@@ -524,12 +524,12 @@ function D9T_APPLY_THEME_TO_ROOT(uiObj) {
 
 
 /**
- * Função principal de layout responsivo.
- * Chamada sempre que a janela é redimensionada ou exibida.
+ * FunÃ§Ã£o principal de layout responsivo.
+ * Chamada sempre que a janela Ã© redimensionada ou exibida.
  * @param {Object} uiObj - O objeto D9T_ui.
  */
 function D9T_LAYOUT(uiObj) {
-  // Atalhos para o tema e dimensões da janela
+  // Atalhos para o tema e dimensÃµes da janela
   var theme = D9T_Theme.layout;
   var winSize = uiObj.window.size || [];
   var w = (typeof winSize.width === "number") ? winSize.width : (winSize.length > 0 ? winSize[0] : null);
@@ -542,19 +542,19 @@ function D9T_LAYOUT(uiObj) {
   w = (typeof w === "number" && !isNaN(w)) ? w : 0;
   h = (typeof h === "number" && !isNaN(h)) ? h : 0;
 
-  // --- 1. Determinar Orientação (Row vs Column) ---
+  // --- 1. Determinar OrientaÃ§Ã£o (Row vs Column) ---
   var isRow;
   if (h <= theme.verticalBreakpoint) {
-      isRow = true; // Forçar horizontal (row) se for muito baixo
+      isRow = true; // ForÃ§ar horizontal (row) se for muito baixo
   } else if (w <= theme.horizontalBreakpoint) {
-      isRow = false; // Forçar vertical (column) se for muito estreito
+      isRow = false; // ForÃ§ar vertical (column) se for muito estreito
   } else {
-      isRow = (w > h); // Lógica padrão para painéis maiores
+      isRow = (w > h); // LÃ³gica padrÃ£o para painÃ©is maiores
   }
 
-  // Orientação dos grupos de seção (dentro do mainGrp)
+  // OrientaÃ§Ã£o dos grupos de seÃ§Ã£o (dentro do mainGrp)
   var grpOrientation = isRow ? "row" : "column";
-  // Orientação do botão (ícone + texto)
+  // OrientaÃ§Ã£o do botÃ£o (Ã­cone + texto)
   var btnOrientation = isRow ? "column" : "row"; 
   var iconOrientation = w < 70 ? "column" : "row"; 
   
@@ -578,7 +578,7 @@ function D9T_LAYOUT(uiObj) {
   var compactByWidth = isRow ? (w <= widthThreshold) : (w <= verticalCompactLimit);
   var useCompactMode = !useSearchMode && (compactByWidth || h <= compactModeHeight);
   
-  // --- 3. Definir Espaçamentos e Tamanhos Ativos ---
+  // --- 3. Definir EspaÃ§amentos e Tamanhos Ativos ---
   var activeSpacing = useCompactMode ? compactSpacing : (isRow ? normalSpacing : verticalSpacingPref);
   var labelSpacing = (typeof theme.labelSpacing === "number") ? theme.labelSpacing : 8;
   var showLabelsPref = theme.showLabels !== false; 
@@ -600,7 +600,7 @@ function D9T_LAYOUT(uiObj) {
     uiObj.contentGrp.visible = !useSearchMode;
   }
 
-  // --- 5. Lógica de Entrada/Saída do Modo Busca ---
+  // --- 5. LÃ³gica de Entrada/SaÃ­da do Modo Busca ---
   if (uiObj.__searchModeActive !== useSearchMode) {
     uiObj.__searchModeActive = useSearchMode;
     if (useSearchMode) {
@@ -620,16 +620,16 @@ function D9T_LAYOUT(uiObj) {
   var rightSpacing = halfSpacing;
   
   try {
-    // *** NOVA LÓGICA DE LAYOUT PRINCIPAL ***
+    // *** NOVA LÃ“GICA DE LAYOUT PRINCIPAL ***
     if (uiObj.contentGrp) {
       if (isRow) {
-        // MODO HORIZONTAL: Cabeçalho e Ícones lado a lado
+        // MODO HORIZONTAL: CabeÃ§alho e Ãcones lado a lado
         uiObj.contentGrp.orientation = "row";
         uiObj.contentGrp.alignChildren = ["left", "center"];
         uiObj.headerGrp.alignment = ["left", "center"];
         uiObj.mainGrp.alignment = ["fill", "center"];
       } else {
-        // MODO VERTICAL: Cabeçalho acima dos Ícones
+        // MODO VERTICAL: CabeÃ§alho acima dos Ãcones
         uiObj.contentGrp.orientation = "column";
         uiObj.contentGrp.alignChildren = ["fill", "top"];
         uiObj.headerGrp.alignment = ["fill", "top"];
@@ -648,29 +648,29 @@ function D9T_LAYOUT(uiObj) {
     }
     // ***************************************
 
-    // Aplica orientação aos grupos de seção (dentro do mainGrp)
+    // Aplica orientaÃ§Ã£o aos grupos de seÃ§Ã£o (dentro do mainGrp)
     for (var s = 0; s < uiObj.sectionGrpArray.length; s++) {
       var sectionGrp = uiObj.sectionGrpArray[s];
-      // 'grpOrientation' define se as seções (section1, section2)
+      // 'grpOrientation' define se as seÃ§Ãµes (section1, section2)
       // ficam lado a lado (row) ou uma sobre a outra (column)
       sectionGrp.orientation = grpOrientation; 
       var minSectionSpacing = useSearchMode ? 8 : 0;
       sectionGrp.spacing = Math.max(minSectionSpacing, halfSpacing);
     }
     
-    // Aplica orientação aos divisores
+    // Aplica orientaÃ§Ã£o aos divisores
     for (var d = 0; d < uiObj.divArray.length; d++) {
       var div = uiObj.divArray[d];
       div.size = [1, 1];
       div.alignment = grpOrientation === "row" ? ["center", "fill"] : ["fill", "center"];
     }
     
-    // Loop principal: aplica layout a cada botão de módulo
+    // Loop principal: aplica layout a cada botÃ£o de mÃ³dulo
     for (var b = 0; b < uiObj.imageButtonArray.length; b++) {
       var btn = uiObj.imageButtonArray[b];
       if (btn && btn.btnGroup) { btn.btnGroup.alignment = ["center", "top"]; }
       
-      // 'btnOrientation' define se o ícone fica acima (column) ou ao lado (row) do texto
+      // 'btnOrientation' define se o Ã­cone fica acima (column) ou ao lado (row) do texto
       btn.btnGroup.orientation = btnOrientation; 
       
       if (useSearchMode || !labelsVisible) {
@@ -695,15 +695,15 @@ function D9T_LAYOUT(uiObj) {
       }
     }
     
-    // Aplica margens e espaçamento ao grupo principal de módulos
+    // Aplica margens e espaÃ§amento ao grupo principal de mÃ³dulos
     if (!useSearchMode && uiObj.mainGrp.visible) {
-      // REMOVIDO: Margem superior 'headerHeight' não é mais necessária
+      // REMOVIDO: Margem superior 'headerHeight' nÃ£o Ã© mais necessÃ¡ria
       if (isRow) {
-          // Se for linha, os ícones ficam ao lado do cabeçalho
+          // Se for linha, os Ã­cones ficam ao lado do cabeÃ§alho
           uiObj.mainGrp.margins = [leftSpacing, 0, leftSpacing, 0];
           uiObj.mainGrp.alignment = ["fill", "center"];
       } else {
-          // Se for coluna, os ícones ficam abaixo do cabeçalho
+          // Se for coluna, os Ã­cones ficam abaixo do cabeÃ§alho
           uiObj.mainGrp.margins = [4, 0, 4, infoGap]; 
           uiObj.mainGrp.alignment = ["fill", "top"];
       }
@@ -719,8 +719,8 @@ function D9T_LAYOUT(uiObj) {
       uiObj.mainGrp.spacing = baseModuleSpacing;
     }
     
-    // (A lógica de 'pinGrp' e 'iconBtnMainGrp' é mantida,
-    // embora 'pinGrp' pareça não ser usado para adicionar módulos)
+    // (A lÃ³gica de 'pinGrp' e 'iconBtnMainGrp' Ã© mantida,
+    // embora 'pinGrp' pareÃ§a nÃ£o ser usado para adicionar mÃ³dulos)
     if (uiObj.pinGrp) {
       uiObj.pinGrp.alignment = ["center", "top"];
       uiObj.pinGrp.spacing = Math.max(0, spacingBaseline);
@@ -747,25 +747,25 @@ function D9T_LAYOUT(uiObj) {
 // ============================================
 
 /**
- * Anexa as funções de clique (vindas dos arquivos de script) aos botões da UI.
+ * Anexa as funÃ§Ãµes de clique (vindas dos arquivos de script) aos botÃµes da UI.
  * @param {Object} uiObj - O objeto D9T_ui.
  */
 function D9T_UI_EVENTS(uiObj) {
     
-    // Função auxiliar segura para executar funções, tratando erros.
+    // FunÃ§Ã£o auxiliar segura para executar funÃ§Ãµes, tratando erros.
     function safeExecute(functionName, func) {
       var logName = functionName || 'modulo';
       if (typeof D9T_logInfo === 'function') {
-        try { D9T_logInfo(logName, 'Execução iniciada'); } catch (logErrStart) {}
+        try { D9T_logInfo(logName, 'ExecuÃ§Ã£o iniciada'); } catch (logErrStart) {}
       }
       try {
         if (typeof func === 'function') {
           func();
           if (typeof D9T_logInfo === 'function') {
-            try { D9T_logInfo(logName, 'Execução concluída'); } catch (logErrDone) {}
+            try { D9T_logInfo(logName, 'ExecuÃ§Ã£o concluÃ­da'); } catch (logErrDone) {}
           }
         } else {
-          var missingMsg = 'A função "' + functionName + '" não está disponível.';
+          var missingMsg = 'A funÃ§Ã£o "' + functionName + '" nÃ£o estÃ¡ disponÃ­vel.';
           if (typeof D9T_logWarn === 'function') {
             try { D9T_logWarn(logName, missingMsg); } catch (logWarnErr) {}
           }
@@ -782,8 +782,8 @@ function D9T_UI_EVENTS(uiObj) {
       }
     }
   
-    // Anexa eventos para cada módulo
-    // (O objeto uiObj[nomeDoModulo] é criado em D9T_BUILD_UI)
+    // Anexa eventos para cada mÃ³dulo
+    // (O objeto uiObj[nomeDoModulo] Ã© criado em D9T_BUILD_UI)
     
     if (uiObj.templates) {
       if (uiObj.templates.leftClick) uiObj.templates.leftClick.onClick = function () { safeExecute('d9TemplateDialog', d9TemplateDialog); };
@@ -829,31 +829,31 @@ function D9T_UI_EVENTS(uiObj) {
 
 
 // ============================================
-// COMPONENTES DE INTERFACE (FÁBRICAS)
+// COMPONENTES DE INTERFACE (FÃBRICAS)
 // ============================================
 
 /**
- * Cria um divisor gráfico (linha).
- * @param {Group} sectionGrp - O grupo pai onde o divisor será adicionado.
+ * Cria um divisor grÃ¡fico (linha).
+ * @param {Group} sectionGrp - O grupo pai onde o divisor serÃ¡ adicionado.
  * @returns {Button} - Um customButton usado como divisor.
  */
 function themeDivider(sectionGrp) {
-    var newDiv = sectionGrp.add("customButton", [0, 0, 1, 1]); // Tamanho mínimo
+    var newDiv = sectionGrp.add("customButton", [0, 0, 1, 1]); // Tamanho mÃ­nimo
     setUiCtrlColor(newDiv, D9T_Theme.colors.divider); // Define a cor
-    newDiv.onDraw = customDraw; // Função de desenho customizada
+    newDiv.onDraw = customDraw; // FunÃ§Ã£o de desenho customizada
     return newDiv;
 }
 
 /**
- * Cria um botão de ícone (sem texto).
+ * Cria um botÃ£o de Ã­cone (sem texto).
  * @param {Group} sectionGrp - O grupo pai.
- * @param {Object} ctrlProperties - Propriedades (ícone, tips).
+ * @param {Object} ctrlProperties - Propriedades (Ã­cone, tips).
  * @returns {Object} - Objeto contendo leftClick e rightClick.
  */
 function themeIconButton(sectionGrp, ctrlProperties) {
     var newUiCtrlObj = {};
     var tipTxt = D9T_BUILD_TIP_TEXT(ctrlProperties);
-    if (ctrlProperties.icon.hover == undefined) ctrlProperties.icon.hover = ctrlProperties.icon.normal; // Fallback de ícone hover
+    if (ctrlProperties.icon.hover == undefined) ctrlProperties.icon.hover = ctrlProperties.icon.normal; // Fallback de Ã­cone hover
 
     function logIcon(msg) {
         try {
@@ -864,16 +864,16 @@ function themeIconButton(sectionGrp, ctrlProperties) {
         } catch (e) {}
     }
 
-    // Grupo principal do botão
+    // Grupo principal do botÃ£o
     var btnGroup = sectionGrp.add("group");
     btnGroup.helpTip = tipTxt;
     
-    // Grupo de ícone (empilhado)
+    // Grupo de Ã­cone (empilhado)
     var iconGroup = btnGroup.add("group");
     iconGroup.helpTip = tipTxt;
     iconGroup.orientation = "stack";
     
-    // Botões invisíveis para capturar cliques (hack do ScriptUI)
+    // BotÃµes invisÃ­veis para capturar cliques (hack do ScriptUI)
     newUiCtrlObj.leftClick = iconGroup.add("button", undefined, "");
     newUiCtrlObj.leftClick.size = [0, 0];
     newUiCtrlObj.leftClick.visible = false;
@@ -888,7 +888,7 @@ function themeIconButton(sectionGrp, ctrlProperties) {
     try {
         hoverImg = iconGroup.add("image", undefined, ctrlProperties.icon.hover);
         hoverImg.helpTip = tipTxt;
-        hoverImg.visible = false; // começa invisível
+        hoverImg.visible = false; // comeÃ§a invisÃ­vel
         normalImg = iconGroup.add("image", undefined, ctrlProperties.icon.normal);
         normalImg.helpTip = tipTxt;
     } catch (iconErr) {
@@ -910,44 +910,44 @@ function themeIconButton(sectionGrp, ctrlProperties) {
     
     // Eventos de Mouseover/Mouseout para trocar as imagens
     btnGroup.addEventListener("mouseover", function () {
-        this.children[0].children[3].visible = false; // Esconde normalImg (Índice 3)
-        this.children[0].children[2].visible = true;  // Mostra hoverImg (Índice 2)
+        this.children[0].children[3].visible = false; // Esconde normalImg (Ãndice 3)
+        this.children[0].children[2].visible = true;  // Mostra hoverImg (Ãndice 2)
     });
     btnGroup.addEventListener("mouseout", function () {
         this.children[0].children[2].visible = false; // Esconde hoverImg
         this.children[0].children[3].visible = true;  // Mostra normalImg
     });
     
-    // Evento de clique na imagem (que notifica os botões invisíveis)
+    // Evento de clique na imagem (que notifica os botÃµes invisÃ­veis)
     hoverImg.addEventListener("click", function (c) {
-        if (c.button == 0) this.parent.children[0].notify(); // Notifica leftClick (Índice 0)
-        if (c.button == 2) this.parent.children[1].notify(); // Notifica rightClick (Índice 1)
+        if (c.button == 0) this.parent.children[0].notify(); // Notifica leftClick (Ãndice 0)
+        if (c.button == 2) this.parent.children[1].notify(); // Notifica rightClick (Ãndice 1)
     });
     
     return newUiCtrlObj;
 }
 /**
- * Cria um botão de módulo (ícone + texto).
+ * Cria um botÃ£o de mÃ³dulo (Ã­cone + texto).
  * @param {Group} sectionGrp - O grupo pai.
- * @param {Object} ctrlProperties - Propriedades (ícone, labelTxt, tips).
- * @returns {Object} - Objeto contendo o botão (btnGroup, iconGroup, etc.).
+ * @param {Object} ctrlProperties - Propriedades (Ã­cone, labelTxt, tips).
+ * @returns {Object} - Objeto contendo o botÃ£o (btnGroup, iconGroup, etc.).
  */
 function themeImageButton(sectionGrp, ctrlProperties) {
     var newUiCtrlObj = {};
-    var newBtn = (newUiCtrlObj[ctrlProperties.key] = {}); // Armazena o botão no objeto
+    var newBtn = (newUiCtrlObj[ctrlProperties.key] = {}); // Armazena o botÃ£o no objeto
     var tipTxt = D9T_BUILD_TIP_TEXT(ctrlProperties);
     if (ctrlProperties.icon.hover == undefined) ctrlProperties.icon.hover = ctrlProperties.icon.normal; // Fallback
 
-    // Grupo principal (botão + texto)
+    // Grupo principal (botÃ£o + texto)
     newBtn.btnGroup = sectionGrp.add("group");
     newBtn.btnGroup.helpTip = tipTxt;
     
-    // Grupo do Ícone (empilhado)
+    // Grupo do Ãcone (empilhado)
     newBtn.iconGroup = newBtn.btnGroup.add("group");
     newBtn.iconGroup.helpTip = tipTxt;
     newBtn.iconGroup.orientation = "stack";
     
-    // Botões invisíveis de clique
+    // BotÃµes invisÃ­veis de clique
     newBtn.leftClick = newBtn.iconGroup.add("button", undefined, "");
     newBtn.leftClick.size = [0, 0];
     newBtn.leftClick.visible = false;
@@ -972,9 +972,9 @@ function themeImageButton(sectionGrp, ctrlProperties) {
     
     // Eventos de Mouseover/Mouseout (troca imagem E cor do texto)
     newBtn.btnGroup.addEventListener("mouseover", function () {
-        setFgColor(this.children[1], D9T_Theme.colors.textHighlight); // Texto (índice 1)
-        this.children[0].children[3].visible = false; // Imagem normal (índice 0, 3)
-        this.children[0].children[2].visible = true;  // Imagem hover (índice 0, 2)
+        setFgColor(this.children[1], D9T_Theme.colors.textHighlight); // Texto (Ã­ndice 1)
+        this.children[0].children[3].visible = false; // Imagem normal (Ã­ndice 0, 3)
+        this.children[0].children[2].visible = true;  // Imagem hover (Ã­ndice 0, 2)
     });
     newBtn.btnGroup.addEventListener("mouseout", function () {
         setFgColor(this.children[1], D9T_Theme.colors.textNormal); // Restaura cor do texto
@@ -997,15 +997,15 @@ function themeImageButton(sectionGrp, ctrlProperties) {
 
 
 // ============================================
-// FUNÇÕES DE TOOLTIP (HELPTIP)
+// FUNÃ‡Ã•ES DE TOOLTIP (HELPTIP)
 // ============================================
 
-// Obtém o label de exibição de um módulo.
+// ObtÃ©m o label de exibiÃ§Ã£o de um mÃ³dulo.
 function D9T_GET_CTRL_LABEL(ctrlProperties) {
     if (!ctrlProperties) { return ""; }
     if (ctrlProperties.labelTxt) { return ctrlProperties.labelTxt; } // Usa o label definido
     if (ctrlProperties.key) {
-        // Se não, formata o nome da chave (ex: "Finders")
+        // Se nÃ£o, formata o nome da chave (ex: "Finders")
         var friendly = ctrlProperties.key.replace(/_/g, " ");
         if (typeof friendly.toTitleCase === "function") {
             return friendly.toTitleCase();
@@ -1032,7 +1032,7 @@ function D9T_NORMALIZE_TIPS(tips) {
             continue;
         }
         
-        // Se for objeto (formato avançado)
+        // Se for objeto (formato avanÃ§ado)
         if (typeof entry === "object") {
             var actionKey = "";
             if (entry.action) { actionKey = entry.action.toLowerCase(); }
@@ -1067,32 +1067,32 @@ function D9T_NORMALIZE_TIPS(tips) {
     return list;
 }
 
-// Constrói as linhas do helpTip (usando fallbacks se 'tips' não for definido).
+// ConstrÃ³i as linhas do helpTip (usando fallbacks se 'tips' nÃ£o for definido).
 function D9T_BUILD_TIP_LINES(ctrlProperties) {
     var lines = D9T_NORMALIZE_TIPS(ctrlProperties ? ctrlProperties.tips : null);
     
-    // Se nenhuma dica foi definida, cria dicas padrão
+    // Se nenhuma dica foi definida, cria dicas padrÃ£o
     if (!lines.length) {
         var autoLabel = D9T_GET_CTRL_LABEL(ctrlProperties);
         if (autoLabel) { lines.push(autoLabel); } // "Finders"
         var leftMsg = (typeof lClick === "string" && lClick.length) ? lClick : "Clique esquerdo";
         lines.push(leftMsg + " para executar."); // "Clique esquerdo para executar."
         if (typeof rClick === "string" && rClick.length) {
-            lines.push(rClick + " para ver opções adicionais."); // "Clique direito para..."
+            lines.push(rClick + " para ver opÃ§Ãµes adicionais."); // "Clique direito para..."
         }
     }
     return lines;
 }
 
-// Constrói o texto final do helpTip, juntando as linhas com quebra de linha dupla.
+// ConstrÃ³i o texto final do helpTip, juntando as linhas com quebra de linha dupla.
 function D9T_BUILD_TIP_TEXT(ctrlProperties) {
     var lines = D9T_BUILD_TIP_LINES(ctrlProperties);
-    return lines.join("\n\n"); // Duas quebras de linha para espaçamento
+    return lines.join("\n\n"); // Duas quebras de linha para espaÃ§amento
 }
 
 
 // ============================================
-// LÓGICA DE BUSCA
+// LÃ“GICA DE BUSCA
 // ============================================
 
 var D9T_DEFAULT_SEARCH_CONTEXT = "modules";
@@ -1156,11 +1156,11 @@ function D9T_SET_SEARCH_CONTEXT(uiObj, contextKey, preserveInput) {
 }
 
 /**
- * Registra um módulo no índice de busca.
+ * Registra um mÃ³dulo no Ã­ndice de busca.
  * @param {Object} uiObj - O objeto D9T_ui.
  * @param {String} ctrlKey - A chave do controle (ex: "Finders").
- * @param {Object} ctrlProperties - O objeto de propriedades do módulo.
- * @param {String} sectionKey - A chave da seção (ex: "section1").
+ * @param {Object} ctrlProperties - O objeto de propriedades do mÃ³dulo.
+ * @param {String} sectionKey - A chave da seÃ§Ã£o (ex: "section1").
  */
 
 function D9T_REGISTER_MODULE(uiObj, ctrlKey, ctrlProperties, sectionKey) {
@@ -1243,7 +1243,7 @@ function D9T_SETUP_SEARCH(uiObj) {
     // Evento: Ao digitar
     uiObj.searchField.onChanging = function () {
         if (this.__placeholder) {
-            // Se começar a digitar sem clicar, limpa o placeholder
+            // Se comeÃ§ar a digitar sem clicar, limpa o placeholder
             this.__placeholder = false;
             this.text = "";
             setFgColor(this, D9T_Theme.colors.textNormal);
@@ -1259,7 +1259,7 @@ function D9T_SETUP_SEARCH(uiObj) {
             this.text = uiObj.searchPlaceholderText || "";
             setFgColor(this, D9T_Theme.colors.mono2);
             if (!uiObj.__searchModeActive && uiObj.searchDropdown) {
-                uiObj.searchDropdown.removeAll(); // Limpa resultados se não estiver no modo busca
+                uiObj.searchDropdown.removeAll(); // Limpa resultados se nÃ£o estiver no modo busca
             }
         }
     };
@@ -1267,7 +1267,7 @@ function D9T_SETUP_SEARCH(uiObj) {
     // Eventos de teclado no campo de busca
     uiObj.searchField.addEventListener("keydown", function (evt) {
         if (evt.keyName === "Enter") {
-            D9T_TRIGGER_SEARCH_ACTION(uiObj); // Executa a busca/módulo
+            D9T_TRIGGER_SEARCH_ACTION(uiObj); // Executa a busca/mÃ³dulo
         } else if (evt.keyName === "Down") {
             // Seta para baixo foca no dropdown
             if (uiObj.searchDropdown.items.length) {
@@ -1277,13 +1277,13 @@ function D9T_SETUP_SEARCH(uiObj) {
         }
     });
 
-    // Evento de clique no botão OK da busca
+    // Evento de clique no botÃ£o OK da busca
     if (uiObj.searchButton) {
         uiObj.searchButton.onClick = function () {
             if (uiObj.searchDropdown && uiObj.searchDropdown.selection) {
-                D9T_LAUNCH_SEARCH_SELECTION(uiObj); // Lança o item selecionado
+                D9T_LAUNCH_SEARCH_SELECTION(uiObj); // LanÃ§a o item selecionado
             } else {
-                D9T_TRIGGER_SEARCH_ACTION(uiObj); // Lança o primeiro item
+                D9T_TRIGGER_SEARCH_ACTION(uiObj); // LanÃ§a o primeiro item
             }
         };
     }
@@ -1291,13 +1291,13 @@ function D9T_SETUP_SEARCH(uiObj) {
     // Evento de teclado no dropdown
     uiObj.searchDropdown.addEventListener("keydown", function (evt) {
         if (evt.keyName === "Enter") {
-            D9T_LAUNCH_SEARCH_SELECTION(uiObj); // Lança o item selecionado
+            D9T_LAUNCH_SEARCH_SELECTION(uiObj); // LanÃ§a o item selecionado
         }
     });
 }
 
 /**
- * Filtra e pontua os módulos com base no termo de busca e atualiza o dropdown.
+ * Filtra e pontua os mÃ³dulos com base no termo de busca e atualiza o dropdown.
  * @param {Object} uiObj - O objeto D9T_ui.
  * @param {String} term - O termo de busca.
  */
@@ -1374,7 +1374,7 @@ function D9T_SCORE_ENTRY_TOKEN(entry, token) {
     return null;
 }
 
-// Executa o módulo selecionado no dropdown.
+// Executa o mÃ³dulo selecionado no dropdown.
 function D9T_LAUNCH_SEARCH_SELECTION(uiObj) {
     if (!uiObj.searchDropdown || !uiObj.searchDropdown.items.length) { return; }
     var selection = uiObj.searchDropdown.selection;
@@ -1384,7 +1384,7 @@ function D9T_LAUNCH_SEARCH_SELECTION(uiObj) {
     }
 }
 
-// Dispara o evento de clique no módulo.
+// Dispara o evento de clique no mÃ³dulo.
 function D9T_EXECUTE_MODULE(entry) {
     if (!entry || !entry.ctrlRef) { return; }
     try {
@@ -1412,12 +1412,12 @@ function D9T_CLEAR_SEARCH(uiObj, keepDropdown) {
     setFgColor(uiObj.searchField, D9T_Theme.colors.mono2);
 }
 
-// Usado para executar a ação (Enter)
+// Usado para executar a aÃ§Ã£o (Enter)
 function D9T_TRIGGER_SEARCH_ACTION(uiObj) {
     if (!uiObj || !uiObj.searchField) { return; }
-    // Atualiza os resultados (caso o usuário tenha digitado e apertado Enter sem esperar)
+    // Atualiza os resultados (caso o usuÃ¡rio tenha digitado e apertado Enter sem esperar)
     D9T_UPDATE_SEARCH_RESULTS(uiObj, uiObj.searchField.__placeholder ? "" : uiObj.searchField.text);
-    // Lança o primeiro resultado
+    // LanÃ§a o primeiro resultado
     D9T_LAUNCH_SEARCH_SELECTION(uiObj);
 }
 
@@ -1432,7 +1432,7 @@ function D9T_ENTER_SEARCH_MODE(uiObj) {
         }
         try { uiObj.searchField.active = true; } catch (e) {} // Foca no campo
     }
-    D9T_UPDATE_SEARCH_RESULTS(uiObj, ""); // Popula a lista com todos os módulos
+    D9T_UPDATE_SEARCH_RESULTS(uiObj, ""); // Popula a lista com todos os mÃ³dulos
 }
 
 // Chamado ao sair do modo busca (limpa o campo)
@@ -1442,28 +1442,28 @@ function D9T_EXIT_SEARCH_MODE(uiObj) {
 }
 
 // ============================================
-// JANELA DE AÇÕES E CONFIGURAÇÕES (MENU)
+// JANELA DE AÃ‡Ã•ES E CONFIGURAÃ‡Ã•ES (MENU)
 // ============================================
 
 /**
- * Constrói e exibe a janela do menu "hamburger".
+ * ConstrÃ³i e exibe a janela do menu "hamburger".
  * @param {Object} uiObj - O objeto D9T_ui.
  */
 function D9T_SHOW_ACTION_MENU(uiObj) {
     uiObj = uiObj || D9T_ui;
-    var menuWin = new Window("palette", "Configurações");
+    var menuWin = new Window("palette", "ConfiguraÃ§Ãµes");
     menuWin.orientation = "column";
     menuWin.alignChildren = "fill";
     menuWin.margins = 18;
     menuWin.spacing = 10;
     try { setBgColor(menuWin, bgColor1); } catch (e) {}
 
-    // --- 1. Cabeçalho do Menu ---
+    // --- 1. CabeÃ§alho do Menu ---
     var headerGrp = menuWin.add("group");
     headerGrp.alignment = ["fill", "top"];
     headerGrp.alignChildren = ["left", "center"];
     headerGrp.spacing = 8;
-    var title = headerGrp.add("statictext", undefined, "Ferramentas e configurações");
+    var title = headerGrp.add("statictext", undefined, "Ferramentas e configuraÃ§Ãµes");
     title.justify = "left";
     setFgColor(title, D9T_Theme.colors.textHighlight);
     var headerSpacer = headerGrp.add("group");
@@ -1472,7 +1472,7 @@ function D9T_SHOW_ACTION_MENU(uiObj) {
     helpBtnGrp.alignment = ["right", "center"];
     var helpBtn;
     
-    // Botão de Ajuda (?)
+    // BotÃ£o de Ajuda (?)
     if (typeof themeIconButton === "function" && typeof D9T_INFO_ICON !== "undefined") {
         try {
             helpBtn = new themeIconButton(helpBtnGrp, { icon: D9T_INFO_ICON, tips: ["Ajuda sobre este painel"] });
@@ -1482,43 +1482,43 @@ function D9T_SHOW_ACTION_MENU(uiObj) {
         helpBtn = helpBtnGrp.add("button", undefined, "?");
         helpBtn.preferredSize = [24, 24];
     }
-    // Anexa o evento ao botão de ajuda
+    // Anexa o evento ao botÃ£o de ajuda
     var attachHelp = function(btn) {
         if (!btn) { return; }
         var handler = function() {
-            D9T_SHOW_ACTION_MENU_HELP(); // Chama a janela de ajuda específica
+            D9T_SHOW_ACTION_MENU_HELP(); // Chama a janela de ajuda especÃ­fica
         };
         if (btn.leftClick) { btn.leftClick.onClick = handler; }
         else { btn.onClick = handler; }
     };
     attachHelp(helpBtn);
 
-    // --- 2. Definição da Estrutura do Menu ---
+    // --- 2. DefiniÃ§Ã£o da Estrutura do Menu ---
     var sections = [
         {
             title: "Ferramentas",
-            description: "Configurações para manutenção e layout.",
+            description: "ConfiguraÃ§Ãµes para manutenÃ§Ã£o e layout.",
             column: 0, // Coluna da esquerda
             items: [
                 { label: "Alterar cores globais", desc: "Abre o painel ColorChange para redefinir o tema.", action: D9T_OPEN_COLOR_GLOBALS },
-                { label: "Atualizar script (GitHub)", desc: "Executa git pull no diretório do script.", action: D9T_PULL_FROM_GITHUB },
-                { label: "Configurar ícones", desc: "Abre a janela para ajustar tamanho e espaçamentos.", action: function () { D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj); } },
-                { label: "Tema dos botões", desc: "Define largura, cores e arredondamento dos presets reutilizáveis.", action: function () { D9T_OPEN_BUTTON_THEME_WINDOW(uiObj); } }
+                { label: "Atualizar script (GitHub)", desc: "Executa git pull no diretÃ³rio do script.", action: D9T_PULL_FROM_GITHUB },
+                { label: "Configurar Ã­cones", desc: "Abre a janela para ajustar tamanho e espaÃ§amentos.", action: function () { D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj); } },
+                { label: "Tema dos botÃµes", desc: "Define largura, cores e arredondamento dos presets reutilizÃ¡veis.", action: function () { D9T_OPEN_BUTTON_THEME_WINDOW(uiObj); } }
             ]
         },
         {
-            title: "Configurações",
+            title: "ConfiguraÃ§Ãµes",
             description: "Arquivos principais e ajustes que afetam todo o GND9TOOLS.",
             column: 1, // Coluna da direita
             items: [
-                { label: "Configuração de usuários", desc: "Edita runtime/config/User_Preferences.json.", action: function () { D9T_OPEN_JSON_CONFIG(runtimePrefsPath + "/User_Preferences.json"); } },
-                { label: "Configuração de sistema", desc: "Gerencia runtime/config/System_Settings.json.", action: function () { D9T_OPEN_JSON_CONFIG(runtimeConfigPath + "/System_Settings.json"); } },
+                { label: "ConfiguraÃ§Ã£o de usuÃ¡rios", desc: "Edita runtime/config/User_Preferences.json.", action: function () { D9T_OPEN_JSON_CONFIG(runtimePrefsPath + "/User_Preferences.json"); } },
+                { label: "ConfiguraÃ§Ã£o de sistema", desc: "Gerencia runtime/config/System_Settings.json.", action: function () { D9T_OPEN_JSON_CONFIG(runtimeConfigPath + "/System_Settings.json"); } },
                 { label: "Biblioteca de dados", desc: "Acessa runtime/config/Dados_Config.json.", action: function () { D9T_OPEN_JSON_CONFIG(runtimeConfigPath + "/Dados_Config.json"); } }
             ]
         }
     ];
 
-    // --- 3. Construção do Corpo (Colunas) ---
+    // --- 3. ConstruÃ§Ã£o do Corpo (Colunas) ---
     var bodyGrp = menuWin.add("group");
     bodyGrp.orientation = "row";
     bodyGrp.alignChildren = ["fill", "top"];
@@ -1533,7 +1533,7 @@ function D9T_SHOW_ACTION_MENU(uiObj) {
     colRight.spacing = 10;
     var columns = [colLeft, colRight]; // Array de colunas
 
-    // Função auxiliar para criar uma seção (card)
+    // FunÃ§Ã£o auxiliar para criar uma seÃ§Ã£o (card)
     function createSection(section) {
         var card = columns[Math.min(section.column || 0, columns.length - 1)].add("panel", undefined, section.title.toUpperCase());
         card.alignment = ["fill", "top"];
@@ -1541,12 +1541,12 @@ function D9T_SHOW_ACTION_MENU(uiObj) {
         card.spacing = 10;
         try { setBgColor(card, bgColor2); } catch (cardErr) {} // Cor de fundo do painel
         
-        // Descrição da seção
+        // DescriÃ§Ã£o da seÃ§Ã£o
         var desc = card.add("statictext", undefined, section.description || "", { multiline: true });
         desc.maximumSize.width = 240;
         setFgColor(desc, D9T_Theme.colors.textNormal);
 
-        // Loop pelos itens (botões) da seção
+        // Loop pelos itens (botÃµes) da seÃ§Ã£o
         for (var i = 0; i < section.items.length; i++) {
             (function(entry) {
                 var entryGrp = card.add("group");
@@ -1585,7 +1585,7 @@ function D9T_SHOW_ACTION_MENU(uiObj) {
                     btn.helpTip = entry.desc || entry.label;
                     btn.onClick = triggerAction;
                 }
-                // Descrição do botão (hint)
+                // DescriÃ§Ã£o do botÃ£o (hint)
                 if (entry.desc) {
                     var hint = entryGrp.add("statictext", undefined, entry.desc, { multiline: true });
                     hint.maximumSize.width = 260;
@@ -1595,15 +1595,15 @@ function D9T_SHOW_ACTION_MENU(uiObj) {
         }
     }
 
-    // Cria as seções definidas no array 'sections'
+    // Cria as seÃ§Ãµes definidas no array 'sections'
     for (var s = 0; s < sections.length; s++) {
         createSection(sections[s]);
     }
 
-    // --- 4. Rodapé ---
+    // --- 4. RodapÃ© ---
     var footerGrp = menuWin.add("group");
     footerGrp.alignment = ["fill", "top"];
-    var tipTxt = footerGrp.add("statictext", undefined, "Use o ícone ? para consultar a ajuda completa deste menu.");
+    var tipTxt = footerGrp.add("statictext", undefined, "Use o Ã­cone ? para consultar a ajuda completa deste menu.");
     setFgColor(tipTxt, D9T_Theme.colors.mono2);
 
     menuWin.show(); // Exibe a janela de menu
@@ -1630,68 +1630,68 @@ function D9T_PICK_COLOR(baseValue) {
 
 // Exibe a janela de ajuda do menu (usando HELP lib.js)
 function D9T_SHOW_ACTION_MENU_HELP() {
-    // Tenta usar a função específica
+    // Tenta usar a funÃ§Ã£o especÃ­fica
     if (typeof showActionMenuHelp === "function") {
         showActionMenuHelp();
         return;
     }
-    // Fallback se a função de ajuda não for encontrada
+    // Fallback se a funÃ§Ã£o de ajuda nÃ£o for encontrada
     if (typeof createHelpWindow !== "function") {
-        alert("Ajuda indisponível (createHelpWindow não encontrado).");
+        alert("Ajuda indisponÃ­vel (createHelpWindow nÃ£o encontrado).");
         return;
     }
-    // Dados de ajuda padrão
+    // Dados de ajuda padrÃ£o
     var fallbackData = [
         {
-            tabName: "Configurações",
+            tabName: "ConfiguraÃ§Ãµes",
             topics: [
-                { title: "Alterar cores globais", text: "Abre o módulo de alteração de tema (ColorChange)." },
-                { title: "Configuração de usuários", text: "Abre runtime/config/User_Preferences.json." },
-                { title: "Configuração de sistema", text: "Abre runtime/config/System_Settings.json." },
+                { title: "Alterar cores globais", text: "Abre o mÃ³dulo de alteraÃ§Ã£o de tema (ColorChange)." },
+                { title: "ConfiguraÃ§Ã£o de usuÃ¡rios", text: "Abre runtime/config/User_Preferences.json." },
+                { title: "ConfiguraÃ§Ã£o de sistema", text: "Abre runtime/config/System_Settings.json." },
                 { title: "Biblioteca de dados", text: "Abre runtime/config/Dados_Config.json." }
             ]
         },
         {
             tabName: "Ferramentas",
             topics: [
-                { title: "Atualizar script (GitHub)", text: "Executa git pull no diretório atual." },
-                { title: "Configurar ícones", text: "Abre o painel de ajuste de ícones." }
+                { title: "Atualizar script (GitHub)", text: "Executa git pull no diretÃ³rio atual." },
+                { title: "Configurar Ã­cones", text: "Abre o painel de ajuste de Ã­cones." }
             ]
         }
     ];
     createHelpWindow(
-        "Configurações - Ajuda",
-        "Painel de Configurações",
-        "Visão geral das ações disponíveis para ajustes globais e manutenção do GND9TOOLS.",
+        "ConfiguraÃ§Ãµes - Ajuda",
+        "Painel de ConfiguraÃ§Ãµes",
+        "VisÃ£o geral das aÃ§Ãµes disponÃ­veis para ajustes globais e manutenÃ§Ã£o do GND9TOOLS.",
         fallbackData
     );
 }
 
 /**
- * Constrói e exibe a janela de personalização de cores.
+ * ConstrÃ³i e exibe a janela de personalizaÃ§Ã£o de cores.
  * @param {Object} uiObj - O objeto D9T_ui (para aplicar o tema ao vivo).
  */
 function D9T_OPEN_THEME_DIALOG(uiObj) {
   uiObj = uiObj || D9T_ui;
-  // Carrega as cores padrão e as atuais
+  // Carrega as cores padrÃ£o e as atuais
   var defaults = (defaultScriptPreferencesObj && defaultScriptPreferencesObj.themeColors) ? defaultScriptPreferencesObj.themeColors : {};
   var current = (scriptPreferencesObj && scriptPreferencesObj.themeColors) ? scriptPreferencesObj.themeColors : defaults;
   
-  // Lista de cores editáveis
+  // Lista de cores editÃ¡veis
   var colorEntries = [
     { label: "Fundo principal (bgColor1)", key: "bgColor1" },
-    { label: "Fundo secundário (bgColor2)", key: "bgColor2" },
+    { label: "Fundo secundÃ¡rio (bgColor2)", key: "bgColor2" },
     { label: "Divisores (divColor1)", key: "divColor1" },
     { label: "Mono claro (monoColor0)", key: "monoColor0" },
     { label: "Mono texto (monoColor1)", key: "monoColor1" },
     { label: "Mono destaque (monoColor2)", key: "monoColor2" },
     { label: "Mono escuro (monoColor3)", key: "monoColor3" },
     { label: "Texto claro (normalColor1)", key: "normalColor1" },
-    { label: "Texto padrão (normalColor2)", key: "normalColor2" },
+    { label: "Texto padrÃ£o (normalColor2)", key: "normalColor2" },
     { label: "Highlight (highlightColor1)", key: "highlightColor1" }
   ];
 
-  // --- 1. Criação da Janela ---
+  // --- 1. CriaÃ§Ã£o da Janela ---
   var win = new Window("dialog", "Cores globais");
   win.orientation = "column";
   win.alignChildren = "fill";
@@ -1708,7 +1708,7 @@ function D9T_OPEN_THEME_DIALOG(uiObj) {
 
   var fieldMap = {}; // Armazena os campos de texto por chave
 
-  // --- 2. Funções Auxiliares de Cor ---
+  // --- 2. FunÃ§Ãµes Auxiliares de Cor ---
   
   // Valida e formata um string HEX
   function tryParseHex(value) {
@@ -1736,7 +1736,7 @@ function D9T_OPEN_THEME_DIALOG(uiObj) {
     updateSwatch(field);
   }
 
-  // --- 3. Loop de Criação dos Campos ---
+  // --- 3. Loop de CriaÃ§Ã£o dos Campos ---
   for (var i = 0; i < colorEntries.length; i++) {
     var entry = colorEntries[i];
     var row = win.add("group");
@@ -1757,14 +1757,14 @@ function D9T_OPEN_THEME_DIALOG(uiObj) {
     swatch.helpTip = "Clique para abrir o seletor de cores.";
     
     field.__swatch = swatch; // Associa a amostra ao campo
-    fieldMap[entry.key] = field; // Salva a referência do campo
+    fieldMap[entry.key] = field; // Salva a referÃªncia do campo
     
     // Eventos para este campo e amostra
     (function(refField, refSwatch) {
       var refresh = function () { updateSwatch(refField); };
       refField.onChanging = refresh; // Atualiza amostra ao digitar
       refField.onChange = refresh;
-      refresh(); // Atualiza na criação
+      refresh(); // Atualiza na criaÃ§Ã£o
       
       var launchPicker = function () {
         var choice = D9T_PICK_COLOR(refField.text); // Abre o seletor
@@ -1775,16 +1775,16 @@ function D9T_OPEN_THEME_DIALOG(uiObj) {
         // Aplica preview ao vivo
         var previewValues = collectValues();
         if (previewValues) {
-          applyTheme(previewValues, false); // false = não salvar
+          applyTheme(previewValues, false); // false = nÃ£o salvar
         }
       };
       refSwatch.addEventListener("click", launchPicker); // Clique na amostra
     })(field, swatch);
   }
 
-  // --- 4. Funções de Ação (Aplicar, Coletar) ---
+  // --- 4. FunÃ§Ãµes de AÃ§Ã£o (Aplicar, Coletar) ---
   
-  // Lê todos os campos e valida
+  // LÃª todos os campos e valida
   function collectValues() {
     var data = {};
     for (var j = 0; j < colorEntries.length; j++) {
@@ -1839,14 +1839,14 @@ function D9T_OPEN_THEME_DIALOG(uiObj) {
     }
   }
 
-  // --- 5. Botões de Ação (Resetar, Aplicar) ---
+  // --- 5. BotÃµes de AÃ§Ã£o (Resetar, Aplicar) ---
   var btnGrp = win.add("group");
   btnGrp.alignment = ["fill", "top"];
   btnGrp.spacing = 8;
   var resetBtn = btnGrp.add("button", undefined, "Resetar");
   var saveBtn = btnGrp.add("button", undefined, "Aplicar");
 
-  // Restaura os padrões
+  // Restaura os padrÃµes
   resetBtn.onClick = function () {
     for (var r = 0; r < colorEntries.length; r++) {
       var entry = colorEntries[r];
@@ -1858,7 +1858,7 @@ function D9T_OPEN_THEME_DIALOG(uiObj) {
   // Salva os valores atuais
   saveBtn.onClick = function () {
     var values = collectValues();
-    if (!values) { return; } // Aborta se houver valor inválido
+    if (!values) { return; } // Aborta se houver valor invÃ¡lido
     applyTheme(values, true); // true = salvar
   };
 
@@ -1866,7 +1866,7 @@ function D9T_OPEN_THEME_DIALOG(uiObj) {
 }
 
 /**
- * Abre um arquivo de configuração JSON no editor padrão do sistema.
+ * Abre um arquivo de configuraÃ§Ã£o JSON no editor padrÃ£o do sistema.
  * @param {String} fileName - O nome do arquivo (ex: "User_Preferences.json").
  */
 function D9T_OPEN_JSON_CONFIG(fileName) {
@@ -1887,7 +1887,7 @@ function D9T_OPEN_JSON_CONFIG(fileName) {
     for (var i = 0; i < basePaths.length; i++) {
         var target = new File(basePaths[i] + "/" + fileName);
         if (target.exists) {
-            target.execute(); // Abre no editor padrão (ex: VS Code, Bloco de Notas)
+            target.execute(); // Abre no editor padrÃ£o (ex: VS Code, Bloco de Notas)
             return;
         }
     }
@@ -1896,10 +1896,10 @@ function D9T_OPEN_JSON_CONFIG(fileName) {
 
 function D9T_PULL_FROM_GITHUB() {
     // ==========================================================
-    // 1. CONFIGURAÇÃO (PREENCHA SEUS DADOS AQUI)
+    // 1. CONFIGURAAØAŸO (PREENCHA SEUS DADOS AQUI)
     // ==========================================================
     var githubUser = "rdenoni";  // Ex: rdenoni
-    var repoName   = "GNEWS-D9-TOOLS";    // O nome exato do repositório
+    var repoName   = "GNEWS-D9-TOOLS";    // O nome exato do repositA3rio
     var branch     = "main";         // Geralmente 'main' ou 'master'
     
     // Cole seu Token abaixo, DENTRO das aspas.
@@ -1909,7 +1909,7 @@ function D9T_PULL_FROM_GITHUB() {
 
     var isWin = ($.os.indexOf("Win") !== -1);
     if (!isWin) {
-        alert("O update automático sem Git foi configurado apenas para Windows.");
+        alert("O update automA­tico sem Git foi configurado apenas para Windows.");
         return;
     }
 
@@ -1925,120 +1925,126 @@ function D9T_PULL_FROM_GITHUB() {
     // O GitHub extrai numa pasta com nome "Repo-Branch", ex: "GND9TOOLS-main"
     var sourceFolder = extractFolder + "\\" + repoName + "-" + branch;
 
-    // Lógica de Autenticação para o PowerShell
-    // Se houver token, cria o parâmetro de cabeçalho para o Invoke-WebRequest
+    // LA3gica de AutenticaAo para o PowerShell
+    // Se houver token, cria o parAmetro de cabeAalho para o Invoke-WebRequest
     var headerCmd = "";
     if (token && token.length > 5) {
-        headerCmd = " -Headers @{Authorization = 'token " + token + "'}";
+        headerCmd = " -Headers @{Authorization='token " + token + "'}";
     }
 
-    // Confirmação de segurança para o usuário
-    if (!confirm("Isso vai baixar a versão mais recente do GitHub e substituir os arquivos locais.\n\nDeseja continuar?")) {
+    // ConfirmaAo de seguranAa para o usuArio
+    if (!confirm("Isso vai baixar a versAo mais recente do GitHub e substituir os arquivos locais.\n\nDeseja continuar?")) {
         return;
     }
 
     // ==========================================================
-    // 2. COMANDO POWERSHELL
+    // 2. COMANDO POWERSHELL (corrigido com aspas escapadas)
     // ==========================================================
-    // Este comando roda em uma linha só (encapsulado) para evitar problemas de sessão
-    var psCommand = 'powershell -Command "& { ' +
-        '$ProgressPreference = \'SilentlyContinue\'; ' + // Esconde barra de progresso do terminal
-        'try { ' +
-            // A. Permite conexão segura (TLS 1.2) exigida pelo GitHub
-            '[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; ' +
-            
-            // B. Baixa o arquivo ZIP (Com autenticação se tiver token)
-            'Write-Host \'Baixando...\'; ' +
-            'Invoke-WebRequest -Uri \'' + zipUrl + '\'' + headerCmd + ' -OutFile \'' + zipFile + '\'; ' +
-            
-            // C. Extrai o ZIP
-            'Write-Host \'Extraindo...\'; ' +
-            'if (Test-Path \'' + extractFolder + '\') { Remove-Item \'' + extractFolder + '\' -Recurse -Force }; ' +
-            'Expand-Archive -Path \'' + zipFile + '\' -DestinationPath \'' + extractFolder + '\' -Force; ' +
-            
-            // D. Copia os arquivos novos para a pasta do script (Sobrescrevendo tudo)
-            'Write-Host \'Instalando...\'; ' +
-            'Copy-Item -Path \'' + sourceFolder + '\\*\' -Destination \'' + installPath + '\' -Recurse -Force; ' +
-            
-            // E. Limpeza dos arquivos temporários
-            'Remove-Item \'' + zipFile + '\' -Force; ' +
-            'Remove-Item \'' + extractFolder + '\' -Recurse -Force; ' +
-            
-            'Write-Host \'SUCESSO\'; ' +
-        '} catch { ' +
-            'Write-Host \'ERRO: \' $_.Exception.Message; ' +
-        '}' +
-    '}"';
-
-    // Prepara o comando para o CMD do Windows
-    var cmdCall = 'cmd /c "' + psCommand + '"';
+    var psParts = [];
+    psParts.push("$ProgressPreference = 'SilentlyContinue'");
+    psParts.push("[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12");
+    psParts.push("$zipUrl = '" + zipUrl + "'");
+    psParts.push("$zipFile = '" + zipFile + "'");
+    psParts.push("$extractFolder = '" + extractFolder + "'");
+    psParts.push("$installPath = '" + installPath + "'");
+    psParts.push("$sourceFolder = '" + sourceFolder + "'");
+    psParts.push("Write-Host 'Baixando...'");
+    psParts.push("Invoke-WebRequest -Uri $zipUrl" + headerCmd + " -OutFile $zipFile -ErrorAction Stop");
+    psParts.push("Write-Host 'Extraindo...'");
+    psParts.push("if (Test-Path $extractFolder) { Remove-Item $extractFolder -Recurse -Force }");
+    psParts.push("Expand-Archive -Path $zipFile -DestinationPath $extractFolder -Force");
+    psParts.push("Write-Host 'Instalando...'");
+    psParts.push("Copy-Item -Path ($sourceFolder + '\\*') -Destination $installPath -Recurse -Force");
+    psParts.push("Remove-Item $zipFile -Force");
+    psParts.push("Remove-Item $extractFolder -Recurse -Force");
+    psParts.push("Write-Host 'SUCESSO'");
+    var psScript = psParts.join("; ");
+    var cmdCall = 'powershell -NoLogo -NoProfile -Command "' + psScript.replace(/\"/g, '\\\"') + '"';
     
     // Janela visual de "Aguarde" (ScriptUI)
     var w = new Window("palette", "Atualizando...", undefined, {closeButton: false});
-    w.add("statictext", undefined, "Baixando atualizações do GitHub...");
+    w.add("statictext", undefined, "Baixando atualizaAes do GitHub...");
     w.add("statictext", undefined, "O After Effects pode travar por alguns segundos.");
     w.show();
-    w.update(); // Força o desenho da janela antes de travar o processo
+    w.update(); // ForAa o desenho da janela antes de travar o processo
 
     var result = "";
+    var logFile = null;
+    try {
+        if (typeof runtimeLogsPath === "string" && runtimeLogsPath.length) {
+            logFile = new File(runtimeLogsPath + "/update.log");
+        }
+    } catch (logPrepErr) {}
     try {
         // Tenta executar o comando
         if (system && system.callSystem) {
             result = system.callSystem(cmdCall);
         } else {
-            // Fallback para versões antigas do AE
+            // Fallback para versAes antigas do AE
             app.system(cmdCall);
             result = "SUCESSO (Modo compatibilidade)"; 
         }
         
         w.close(); // Fecha a janelinha
 
+        // Loga resultado bruto para diagnA3stico
+        try {
+            if (logFile) {
+                logFile.encoding = "UTF-8";
+                if (logFile.open("a")) {
+                    logFile.writeln(new Date().toUTCString() + " cmd: " + cmdCall);
+                    logFile.writeln(new Date().toUTCString() + " result: " + result);
+                    logFile.close();
+                }
+            }
+        } catch (logErr) {}
+
         // Verifica o resultado do texto retornado pelo PowerShell
         if (result.indexOf("SUCESSO") !== -1) {
-            alert("✅ Script Atualizado com Sucesso!\n\nPor favor, feche e abra o painel novamente para ver as mudanças.");
+            alert("ƒo. Script Atualizado com Sucesso!\n\nPor favor, feche e abra o painel novamente para ver as mudanAas.");
         } else {
             // Tratamento de erros comuns
             if (result.indexOf("404") !== -1) {
-                alert("❌ Erro 404: Repositório não encontrado.\nVerifique se o nome do usuário e do repositório estão corretos no script.");
+                alert("ƒ?O Erro 404: RepositA3rio nA26o encontrado.\nVerifique se o nome do usuArio e do repositA3rio estA26o corretos no script.");
             } else if (result.indexOf("403") !== -1) {
-                alert("❌ Erro 403: Acesso Negado.\nVerifique se o seu TOKEN está correto e tem permissão de leitura ('repo').");
+                alert("ƒ?O Erro 403: Acesso Negado.\nVerifique se o seu TOKEN estA26 correto e tem permissA26o de leitura ('repo').");
             } else {
-                alert("❌ Erro na atualização:\n" + result);
+                alert("ƒ?O Erro na atualizaAo:\n" + result);
             }
         }
 
     } catch (e) {
         w.close();
-        alert("Erro crítico ao tentar executar o sistema: " + e.toString());
+        alert("Erro crA-tico ao tentar executar o sistema: " + e.toString());
     }
 }
 function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
     uiObj = uiObj || D9T_ui;
-    var current = D9T_GET_ICON_SETTINGS(); // Configurações atuais
-    var defaults = D9T_GET_DEFAULT_ICON_SETTINGS(); // Padrões
+    var current = D9T_GET_ICON_SETTINGS(); // ConfiguraÃ§Ãµes atuais
+    var defaults = D9T_GET_DEFAULT_ICON_SETTINGS(); // PadrÃµes
 
-    // --- 1. Criação da Janela ---
-    var win = new Window("palette", "Configuração de ícones");
+    // --- 1. CriaÃ§Ã£o da Janela ---
+    var win = new Window("palette", "ConfiguraÃ§Ã£o de Ã­cones");
     win.orientation = "column";
     win.alignChildren = "fill";
     win.margins = 20;
     win.spacing = 12;
     try { setBgColor(win, bgColor1); } catch (e) {}
 
-    var title = win.add("statictext", undefined, "Tamanho e espaçamento dos módulos");
+    var title = win.add("statictext", undefined, "Tamanho e espaÃ§amento dos mÃ³dulos");
     setFgColor(title, D9T_Theme.colors.textNormal);
 
     var modeSelectorGrp = win.add("group");
     modeSelectorGrp.alignment = ["fill", "top"];
     modeSelectorGrp.spacing = 8;
-    var modeLabel = modeSelectorGrp.add("statictext", undefined, "Editar versão:");
-    modeLabel.helpTip = "Escolha se deseja ajustar os parâmetros do layout horizontal ou vertical.";
+    var modeLabel = modeSelectorGrp.add("statictext", undefined, "Editar versÃ£o:");
+    modeLabel.helpTip = "Escolha se deseja ajustar os parÃ¢metros do layout horizontal ou vertical.";
     try { setFgColor(modeLabel, D9T_Theme.colors.textNormal); } catch (modeErr) {}
     var modeDropdown = modeSelectorGrp.add("dropdownlist", undefined, ["Horizontal", "Vertical"]);
     modeDropdown.alignment = ["left", "top"];
     modeDropdown.minimumSize = [160, 22];
     modeDropdown.selection = 0;
-    modeDropdown.helpTip = "Alterne entre as configurações exibidas para cada orientação.";
+    modeDropdown.helpTip = "Alterne entre as configuraÃ§Ãµes exibidas para cada orientaÃ§Ã£o.";
 
     var suppressModeEvent = false;
     var activeModeKey = "horizontal";
@@ -2050,7 +2056,7 @@ function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
     modeStack.orientation = "stack";
     modeStack.alignChildren = ["fill", "top"];
 
-// O containerWrapper foi removido. Os painéis são adicionados diretamente ao 'modeStack'.
+// O containerWrapper foi removido. Os painÃ©is sÃ£o adicionados diretamente ao 'modeStack'.
     var horizontalContainer = modeStack.add("group");
     horizontalContainer.orientation = "column";
     horizontalContainer.alignChildren = ["fill", "top"];
@@ -2081,66 +2087,66 @@ function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
         } catch (layoutErr) {}
     }
 
-    // --- 2. Campos de Configuração (Modo Normal) ---
+    // --- 2. Campos de ConfiguraÃ§Ã£o (Modo Normal) ---
     
-    // Tamanho (Largura, Altura) - visível apenas no modo horizontal
+    // Tamanho (Largura, Altura) - visÃ­vel apenas no modo horizontal
     var sizeGrp = horizontalContainer.add("group");
     sizeGrp.alignment = ["fill", "top"];
     sizeGrp.spacing = 8;
-    sizeGrp.add("statictext", undefined, "Largura:").helpTip = "Define a largura do ícone padrão exibido nos módulos.";
+    sizeGrp.add("statictext", undefined, "Largura:").helpTip = "Define a largura do Ã­cone padrÃ£o exibido nos mÃ³dulos.";
     var widthField = sizeGrp.add("edittext", undefined, current.iconSize[0]);
     widthField.characters = 4;
-    widthField.helpTip = "Informe a largura (em pixels) dos ícones principais.";
-    sizeGrp.add("statictext", undefined, "Altura:").helpTip = "Define a altura do ícone padrão exibido nos módulos.";
+    widthField.helpTip = "Informe a largura (em pixels) dos Ã­cones principais.";
+    sizeGrp.add("statictext", undefined, "Altura:").helpTip = "Define a altura do Ã­cone padrÃ£o exibido nos mÃ³dulos.";
     var heightField = sizeGrp.add("edittext", undefined, current.iconSize[1]);
     heightField.characters = 4;
-    heightField.helpTip = "Informe a altura (em pixels) dos ícones principais.";
+    heightField.helpTip = "Informe a altura (em pixels) dos Ã­cones principais.";
     var verticalSizeGrp = verticalContainer.add("group");
     verticalSizeGrp.alignment = ["fill", "top"];
     verticalSizeGrp.spacing = 8;
-    verticalSizeGrp.add("statictext", undefined, "Largura (vertical):").helpTip = "Largura dos ícones quando o layout muda para coluna.";
+    verticalSizeGrp.add("statictext", undefined, "Largura (vertical):").helpTip = "Largura dos Ã­cones quando o layout muda para coluna.";
     var verticalWidthField = verticalSizeGrp.add("edittext", undefined, current.verticalIconSize ? current.verticalIconSize[0] : current.iconSize[0]);
     verticalWidthField.characters = 4;
     verticalWidthField.helpTip = "Informe a largura usada no layout vertical.";
-    verticalSizeGrp.add("statictext", undefined, "Altura (vertical):").helpTip = "Altura dos ícones na versão vertical.";
+    verticalSizeGrp.add("statictext", undefined, "Altura (vertical):").helpTip = "Altura dos Ã­cones na versÃ£o vertical.";
     var verticalHeightField = verticalSizeGrp.add("edittext", undefined, current.verticalIconSize ? current.verticalIconSize[1] : current.iconSize[1]);
     verticalHeightField.characters = 4;
     verticalHeightField.helpTip = "Informe a altura usada no layout vertical.";
 
-    // Espaçamento (Entre ícones)
+    // EspaÃ§amento (Entre Ã­cones)
     var iconSpacingGrp = horizontalContainer.add("group");
     iconSpacingGrp.alignment = ["fill", "top"];
     iconSpacingGrp.spacing = 8;
-    iconSpacingGrp.add("statictext", undefined, "Espaçamento dos ícones (px):").helpTip = "Controle a distância horizontal/vertical padrão entre os módulos.";
+    iconSpacingGrp.add("statictext", undefined, "EspaÃ§amento dos Ã­cones (px):").helpTip = "Controle a distÃ¢ncia horizontal/vertical padrÃ£o entre os mÃ³dulos.";
     var iconSpacingField = iconSpacingGrp.add("edittext", undefined, current.iconSpacing);
     iconSpacingField.characters = 4;
-    iconSpacingField.helpTip = "Distância, em pixels, entre os ícones em layout normal.";
+    iconSpacingField.helpTip = "DistÃ¢ncia, em pixels, entre os Ã­cones em layout normal.";
     var iconSpacingSlider = horizontalContainer.add("slider", undefined, current.iconSpacing, 0, 60);
     iconSpacingSlider.alignment = ["fill", "top"];
-    iconSpacingSlider.helpTip = "Arraste para ajustar rapidamente o espaçamento entre ícones.";
+    iconSpacingSlider.helpTip = "Arraste para ajustar rapidamente o espaÃ§amento entre Ã­cones.";
 
     var verticalSpacingGrp = verticalContainer.add("group");
     verticalSpacingGrp.alignment = ["fill", "top"];
     verticalSpacingGrp.spacing = 8;
-    verticalSpacingGrp.add("statictext", undefined, "Espaçamento vertical (px):").helpTip = "Controle específico para o layout em coluna.";
+    verticalSpacingGrp.add("statictext", undefined, "EspaÃ§amento vertical (px):").helpTip = "Controle especÃ­fico para o layout em coluna.";
     var verticalSpacingField = verticalSpacingGrp.add("edittext", undefined, current.verticalIconSpacing);
     verticalSpacingField.characters = 4;
-    verticalSpacingField.helpTip = "Distância entre módulos quando o painel está em modo vertical.";
+    verticalSpacingField.helpTip = "DistÃ¢ncia entre mÃ³dulos quando o painel estÃ¡ em modo vertical.";
     var verticalSpacingSlider = verticalContainer.add("slider", undefined, current.verticalIconSpacing, 0, 60);
     verticalSpacingSlider.alignment = ["fill", "top"];
-    verticalSpacingSlider.helpTip = "Arraste para ajustar o espaçamento da versão vertical.";
+    verticalSpacingSlider.helpTip = "Arraste para ajustar o espaÃ§amento da versÃ£o vertical.";
 
-    // Espaçamento (Ícone para Label)
+    // EspaÃ§amento (Ãcone para Label)
     var labelSpacingGrp = horizontalContainer.add("group");
     labelSpacingGrp.alignment = ["fill", "top"];
     labelSpacingGrp.spacing = 8;
-    labelSpacingGrp.add("statictext", undefined, "Espaçamento do label (px):").helpTip = "Define a folga entre o ícone e o texto do módulo.";
+    labelSpacingGrp.add("statictext", undefined, "EspaÃ§amento do label (px):").helpTip = "Define a folga entre o Ã­cone e o texto do mÃ³dulo.";
     var labelSpacingField = labelSpacingGrp.add("edittext", undefined, current.labelSpacing);
     labelSpacingField.characters = 4;
-    labelSpacingField.helpTip = "Distância, em pixels, entre ícone e legenda.";
+    labelSpacingField.helpTip = "DistÃ¢ncia, em pixels, entre Ã­cone e legenda.";
     var labelSpacingSlider = horizontalContainer.add("slider", undefined, current.labelSpacing, 0, 40);
     labelSpacingSlider.alignment = ["fill", "top"];
-    labelSpacingSlider.helpTip = "Ajuste visual do respiro entre ícones e labels.";
+    labelSpacingSlider.helpTip = "Ajuste visual do respiro entre Ã­cones e labels.";
 
     // Tamanho da fonte do label
 
@@ -2149,22 +2155,22 @@ function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
     showLabelsGrp.alignment = ["fill", "top"];
     showLabelsGrp.alignChildren = ["left", "center"];
     showLabelsGrp.spacing = 6;
-    var showLabelsCheckbox = showLabelsGrp.add("checkbox", undefined, "Exibir textos nos módulos");
+    var showLabelsCheckbox = showLabelsGrp.add("checkbox", undefined, "Exibir textos nos mÃ³dulos");
     showLabelsCheckbox.value = current.showLabels !== false;
-    showLabelsCheckbox.helpTip = "Alterna a exibição dos nomes abaixo dos ícones quando houver espaço disponível.";
+    showLabelsCheckbox.helpTip = "Alterna a exibiÃ§Ã£o dos nomes abaixo dos Ã­cones quando houver espaÃ§o disponÃ­vel.";
     try { setFgColor(showLabelsCheckbox, D9T_Theme.colors.textNormal); } catch (fgErr) {}
 
-    // Espaçamento (Modo "Icon Only")
+    // EspaÃ§amento (Modo "Icon Only")
     var iconOnlySpacingGrp = horizontalContainer.add("group");
     iconOnlySpacingGrp.alignment = ["fill", "top"];
     iconOnlySpacingGrp.spacing = 8;
-    iconOnlySpacingGrp.add("statictext", undefined, "Espaçamento só ícones (px):").helpTip = "Define o espaçamento utilizado quando os labels estão ocultos.";
+    iconOnlySpacingGrp.add("statictext", undefined, "EspaÃ§amento sÃ³ Ã­cones (px):").helpTip = "Define o espaÃ§amento utilizado quando os labels estÃ£o ocultos.";
     var iconOnlySpacingField = iconOnlySpacingGrp.add("edittext", undefined, current.iconOnlySpacing);
     iconOnlySpacingField.characters = 4;
     iconOnlySpacingField.helpTip = "Valor em pixels para o layout compacto sem labels.";
     var iconOnlySpacingSlider = horizontalContainer.add("slider", undefined, current.iconOnlySpacing, 0, 60);
     iconOnlySpacingSlider.alignment = ["fill", "top"];
-    iconOnlySpacingSlider.helpTip = "Arraste para definir a distância entre ícones quando não há texto.";
+    iconOnlySpacingSlider.helpTip = "Arraste para definir a distÃ¢ncia entre Ã­cones quando nÃ£o hÃ¡ texto.";
 
     setModeView("horizontal");
     win.onShow = function () {
@@ -2176,39 +2182,39 @@ function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
         setModeView(key);
     };
 
-    // --- 3. Painel de Configuração (Modo Compacto) ---
+    // --- 3. Painel de ConfiguraÃ§Ã£o (Modo Compacto) ---
     var compactGrp = win.add("panel", undefined, "Modo compacto");
     compactGrp.alignment = ["fill", "top"];
     compactGrp.margins = [12, 16, 12, 12];
     compactGrp.orientation = "column";
     compactGrp.spacing = 6;
-    compactGrp.helpTip = "Configurações aplicadas quando o painel entra em modo compacto.";
+    compactGrp.helpTip = "ConfiguraÃ§Ãµes aplicadas quando o painel entra em modo compacto.";
     
     // Tamanho Compacto
     var compactSizeGrp = compactGrp.add("group");
     compactSizeGrp.alignment = ["fill", "top"];
     compactSizeGrp.spacing = 8;
-    compactSizeGrp.add("statictext", undefined, "Ícones compactos (LxA):").helpTip = "Dimensões usadas quando o layout entra no modo compacto.";
+    compactSizeGrp.add("statictext", undefined, "Ãcones compactos (LxA):").helpTip = "DimensÃµes usadas quando o layout entra no modo compacto.";
     var compactWidthField = compactSizeGrp.add("edittext", undefined, current.compactIconSize[0]);
     compactWidthField.characters = 4;
-    compactWidthField.helpTip = "Largura dos ícones no modo compacto.";
+    compactWidthField.helpTip = "Largura dos Ã­cones no modo compacto.";
     var compactHeightField = compactSizeGrp.add("edittext", undefined, current.compactIconSize[1]);
     compactHeightField.characters = 4;
-    compactHeightField.helpTip = "Altura dos ícones no modo compacto.";
+    compactHeightField.helpTip = "Altura dos Ã­cones no modo compacto.";
     
-    // Espaçamento Compacto
+    // EspaÃ§amento Compacto
     var compactSpacingGrp = compactGrp.add("group");
     compactSpacingGrp.alignment = ["fill", "top"];
     compactSpacingGrp.spacing = 8;
-    compactSpacingGrp.add("statictext", undefined, "Espaçamento compacto (px):").helpTip = "Folga entre os módulos quando o modo compacto está ativo.";
+    compactSpacingGrp.add("statictext", undefined, "EspaÃ§amento compacto (px):").helpTip = "Folga entre os mÃ³dulos quando o modo compacto estÃ¡ ativo.";
     var compactSpacingField = compactSpacingGrp.add("edittext", undefined, current.compactIconSpacing);
     compactSpacingField.characters = 4;
-    compactSpacingField.helpTip = "Distância, em pixels, entre módulos no modo compacto.";
+    compactSpacingField.helpTip = "DistÃ¢ncia, em pixels, entre mÃ³dulos no modo compacto.";
     var compactSpacingSlider = compactGrp.add("slider", undefined, current.compactIconSpacing, 0, Math.max(60, current.compactIconSpacing));
     compactSpacingSlider.alignment = ["fill", "top"];
-    compactSpacingSlider.helpTip = "Arraste para ajustar rapidamente o espaçamento do modo compacto.";
+    compactSpacingSlider.helpTip = "Arraste para ajustar rapidamente o espaÃ§amento do modo compacto.";
 
-    // --- 4. Presets e Botões de Ação ---
+    // --- 4. Presets e BotÃµes de AÃ§Ã£o ---
     
     // Presets (HD, 4K)
     var presetGrp = win.add("group");
@@ -2220,20 +2226,20 @@ function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
     kBtn.helpTip = "Aplica um conjunto de valores ideal para telas 4K.";
 
     // Texto de ajuda
-    var infoText = win.add("statictext", undefined, "Os valores são aplicados como preview automático.\nUse Aplicar para testar e Salvar para gravar nas preferências.", { multiline: true });
+    var infoText = win.add("statictext", undefined, "Os valores sÃ£o aplicados como preview automÃ¡tico.\nUse Aplicar para testar e Salvar para gravar nas preferÃªncias.", { multiline: true });
     infoText.maximumSize.width = 280;
     setFgColor(infoText, D9T_Theme.colors.textNormal);
 
-    // Botões (Resetar, Aplicar)
+    // BotÃµes (Resetar, Aplicar)
     var buttonsGrp = win.add("group");
     buttonsGrp.alignment = ["right", "top"];
     buttonsGrp.spacing = 10;
     var resetBtn = buttonsGrp.add("button", undefined, "Resetar");
     var applyBtn = buttonsGrp.add("button", undefined, "Aplicar");
-    resetBtn.helpTip = "Restaura todos os parâmetros para os valores padrão.";
-    applyBtn.helpTip = "Aplica as alterações e salva nas preferências.";
+    resetBtn.helpTip = "Restaura todos os parÃ¢metros para os valores padrÃ£o.";
+    applyBtn.helpTip = "Aplica as alteraÃ§Ãµes e salva nas preferÃªncias.";
 
-    // Estiliza os botões
+    // Estiliza os botÃµes
     function styleBtn(btn) {
         if (!btn) { return; }
         try { setBgColor(btn, D9T_Theme.colors.divider); } catch (err) {}
@@ -2247,7 +2253,7 @@ function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
     styleBtn(resetBtn);
     styleBtn(applyBtn);
 
-    // --- 5. Funções Auxiliares e Eventos da Janela ---
+    // --- 5. FunÃ§Ãµes Auxiliares e Eventos da Janela ---
     
     // Garante que o valor esteja dentro de um range
     function clamp(value, min, max, fallback) {
@@ -2256,7 +2262,7 @@ function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
         return Math.min(max, Math.max(min, parsed));
     }
 
-    // Sincroniza um slider com um valor (ajustando o max se necessário)
+    // Sincroniza um slider com um valor (ajustando o max se necessÃ¡rio)
     function syncSliderValue(slider, value) {
         if (slider.maxvalue < value) {
             slider.maxvalue = value;
@@ -2287,7 +2293,7 @@ function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
         };
     }
 
-    // Lê todos os campos da janela e retorna um objeto de configurações
+    // LÃª todos os campos da janela e retorna um objeto de configuraÃ§Ãµes
     function readSettingsFromFields() {
         var width = clamp(widthField.text, 24, 96, current.iconSize[0]);
         var height = clamp(heightField.text, 24, 96, current.iconSize[1]);
@@ -2301,7 +2307,7 @@ function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
         var compactSpacing = clamp(compactSpacingField.text, 0, 80, current.compactIconSpacing);
         var iconOnlySpacing = setIconOnlySpacingUI(iconOnlySpacingField.text, current.iconOnlySpacing);
         
-        // Atualiza os campos (caso o usuário tenha digitado valor fora do range)
+        // Atualiza os campos (caso o usuÃ¡rio tenha digitado valor fora do range)
         widthField.text = width;
         heightField.text = height;
         iconSpacingField.text = iconSpacing;
@@ -2332,7 +2338,7 @@ function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
         };
     }
 
-    // Aplica as configurações lidas (sem salvar)
+    // Aplica as configuraÃ§Ãµes lidas (sem salvar)
     function applyPreview() {
         var settings = readSettingsFromFields();
         if (!settings) { return; }
@@ -2377,7 +2383,7 @@ function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
         applyPreview();
     };
 
-    // Eventos dos botões de Preset
+    // Eventos dos botÃµes de Preset
     hdBtn.onClick = function () {
         widthField.text = 30;
         heightField.text = 30;
@@ -2413,7 +2419,7 @@ function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
         applyPreview();
     };
 
-    // Evento: Resetar (Restaura e Salva os padrões)
+    // Evento: Resetar (Restaura e Salva os padrÃµes)
     resetBtn.onClick = function () {
         widthField.text = defaults.iconSize[0];
         heightField.text = defaults.iconSize[1];
@@ -2441,7 +2447,7 @@ function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
     applyBtn.onClick = function () {
         var settings = readSettingsFromFields();
         if (!settings) {
-            alert("Valores inválidos.");
+            alert("Valores invÃ¡lidos.");
             return;
         }
         D9T_APPLY_ICON_SETTINGS(settings, { uiObj: uiObj });
@@ -2463,16 +2469,16 @@ function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
 }
 
 /**
- * Obtém as configurações de ícone PADRÃO (do objeto defaultScriptPreferencesObj).
+ * ObtÃ©m as configuraÃ§Ãµes de Ã­cone PADRÃƒO (do objeto defaultScriptPreferencesObj).
  * @returns {Object}
  */
 function D9T_GET_DEFAULT_ICON_SETTINGS() {
     var defaults = (defaultScriptPreferencesObj && defaultScriptPreferencesObj.uiSettings) ? defaultScriptPreferencesObj.uiSettings : null;
     if (!defaults) { 
-        // Fallback rígido
+        // Fallback rÃ­gido
         return { iconSize: [36, 36], iconSpacing: 20, verticalIconSize: [36, 36], verticalIconSpacing: 20, labelSpacing: 8, compactIconSize: [28, 28], compactIconSpacing: 12, showLabels: true, iconOnlySpacing: 18 }; 
     }
-    // Retorna uma cópia dos padrões
+    // Retorna uma cÃ³pia dos padrÃµes
     return {
         iconSize: defaults.iconSize ? defaults.iconSize.slice(0) : [36, 36],
         iconSpacing: typeof defaults.iconSpacing === "number" ? defaults.iconSpacing : 20,
@@ -2487,16 +2493,16 @@ function D9T_GET_DEFAULT_ICON_SETTINGS() {
 }
 
 /**
- * Obtém as configurações de ícone ATUAIS (do scriptPreferencesObj) e as valida/limpa.
+ * ObtÃ©m as configuraÃ§Ãµes de Ã­cone ATUAIS (do scriptPreferencesObj) e as valida/limpa.
  * @returns {Object}
  */
 function D9T_GET_ICON_SETTINGS() {
     var defaultsObj = (defaultScriptPreferencesObj && defaultScriptPreferencesObj.uiSettings) ? defaultScriptPreferencesObj.uiSettings : {};
     if (!scriptPreferencesObj.uiSettings) {
-        // Se não houver, clona o objeto completo de uiSettings padrão (preserva temas de botão/tema ativo)
+        // Se nÃ£o houver, clona o objeto completo de uiSettings padrÃ£o (preserva temas de botÃ£o/tema ativo)
         scriptPreferencesObj.uiSettings = (defaultsObj && typeof defaultsObj === "object") ? JSON.parse(JSON.stringify(defaultsObj)) : D9T_GET_DEFAULT_ICON_SETTINGS();
     } else {
-        // Garante que temas de botão e tema ativo existam
+        // Garante que temas de botÃ£o e tema ativo existam
         if (!(scriptPreferencesObj.uiSettings.buttonThemes instanceof Array) || !scriptPreferencesObj.uiSettings.buttonThemes.length) {
             if (defaultsObj.buttonThemes) {
                 scriptPreferencesObj.uiSettings.buttonThemes = JSON.parse(JSON.stringify(defaultsObj.buttonThemes));
@@ -2507,9 +2513,9 @@ function D9T_GET_ICON_SETTINGS() {
         }
     }
     var current = scriptPreferencesObj.uiSettings || {};
-    var defaults = D9T_GET_DEFAULT_ICON_SETTINGS(); // Pega os padrões para usar como fallback
+    var defaults = D9T_GET_DEFAULT_ICON_SETTINGS(); // Pega os padrÃµes para usar como fallback
     
-    // Validação e limpeza de cada propriedade
+    // ValidaÃ§Ã£o e limpeza de cada propriedade
     var size = current.iconSize ? current.iconSize.slice(0) : defaults.iconSize.slice(0);
     if (size.length < 2) { size = defaults.iconSize.slice(0); }
     size[0] = Math.min(96, Math.max(24, parseInt(size[0], 10) || defaults.iconSize[0]));
@@ -2564,7 +2570,7 @@ function D9T_GET_ICON_SETTINGS() {
 }
 
 /**
- * Constrói e exibe a janela de personalização de botões (CORRIGIDA).
+ * ConstrÃ³i e exibe a janela de personalizaÃ§Ã£o de botÃµes (CORRIGIDA).
  * @param {Object} uiObj - O objeto D9T_ui.
  */
 function D9T_OPEN_BUTTON_THEME_WINDOW(uiObj) {
@@ -2573,22 +2579,22 @@ function D9T_OPEN_BUTTON_THEME_WINDOW(uiObj) {
     var uiSettings = D9T_getUiSettingsSafe(); // Assegura estruturas
     D9T_PREF_STATE("open_button_theme_window", scriptPreferencesObj && scriptPreferencesObj.uiSettings);
 
-    var win = new Window("palette", "Tema dos botões");
+    var win = new Window("palette", "Tema dos botÃµes");
     win.orientation = "column";
     win.alignChildren = "fill";
     win.margins = 18;
     win.spacing = 10;
     try { setBgColor(win, bgColor1); } catch (bgErr) {}
 
-    var desc = win.add("statictext", undefined, "Ajuste largura, altura, cores e arredondamento dos presets reutilizáveis.");
+    var desc = win.add("statictext", undefined, "Ajuste largura, altura, cores e arredondamento dos presets reutilizÃ¡veis.");
     desc.maximumSize.width = 320;
     setFgColor(desc, D9T_Theme.colors.textNormal);
 
-    // --- Dropdown de Seleção ---
+    // --- Dropdown de SeleÃ§Ã£o ---
     var dropdownRow = win.add("group");
     dropdownRow.alignment = ["fill", "top"];
     dropdownRow.spacing = 8;
-    var dropdownLabel = dropdownRow.add("statictext", undefined, "Preset disponível:");
+    var dropdownLabel = dropdownRow.add("statictext", undefined, "Preset disponÃ­vel:");
     try { setFgColor(dropdownLabel, D9T_Theme.colors.textNormal); } catch (presetErr) {}
     
     var dropdown = dropdownRow.add("dropdownlist", undefined, []);
@@ -2597,7 +2603,7 @@ function D9T_OPEN_BUTTON_THEME_WINDOW(uiObj) {
     var activeInfo = win.add("statictext", undefined, "");
     setFgColor(activeInfo, D9T_Theme.colors.mono1);
 
-    // --- Formulário ---
+    // --- FormulÃ¡rio ---
     var formGrp = win.add("group");
     formGrp.orientation = "column";
     formGrp.alignChildren = ["fill", "top"];
@@ -2605,7 +2611,7 @@ function D9T_OPEN_BUTTON_THEME_WINDOW(uiObj) {
 
     var fieldMap = {};
     
-    // --- Funções Auxiliares de UI ---
+    // --- FunÃ§Ãµes Auxiliares de UI ---
     
     function updateDropdownSelectionLabel(nameText) {
         if (!dropdown || !dropdown.selection) { return; }
@@ -2615,9 +2621,9 @@ function D9T_OPEN_BUTTON_THEME_WINDOW(uiObj) {
 
     function requestPreviewRefresh() {
         var snapshot = collectThemeFromFields();
-        // Se a leitura falhar (ex: inicialização), tenta usar o tema do dropdown como fallback
+        // Se a leitura falhar (ex: inicializaÃ§Ã£o), tenta usar o tema do dropdown como fallback
         if (!snapshot) {
-            // ForA�a seleAA�o inicial se o ScriptUI ainda nA�o tiver aplicado
+            // ForAï¿½a seleAAï¿½o inicial se o ScriptUI ainda nAï¿½o tiver aplicado
             if (dropdown && !dropdown.selection && dropdown.items && dropdown.items.length) {
                 dropdown.selection = dropdown.items[0];
             }
@@ -2640,7 +2646,7 @@ function D9T_OPEN_BUTTON_THEME_WINDOW(uiObj) {
 
         slider.onChanging = function () {
             var val = Math.round(this.value);
-            // Atualiza texto e força refresh
+            // Atualiza texto e forÃ§a refresh
             field.text = String(val); 
             requestPreviewRefresh();
         };
@@ -2745,7 +2751,7 @@ function D9T_OPEN_BUTTON_THEME_WINDOW(uiObj) {
         var lab = row.add("statictext", undefined, label);
         lab.preferredSize = [150, 20];
         try { setFgColor(lab, D9T_Theme.colors.textNormal); } catch (fgErr) {}
-        var dd = row.add("dropdownlist", undefined, ["Manter texto original", "Forçar MAIÚSCULAS", "Forçar minúsculas"]);
+        var dd = row.add("dropdownlist", undefined, ["Manter texto original", "ForÃ§ar MAIÃšSCULAS", "ForÃ§ar minÃºsculas"]);
         dd.alignment = ["fill", "center"];
         dd.__values = ["none", "uppercase", "lowercase"];
         dd.selection = 0;
@@ -2769,20 +2775,20 @@ function D9T_OPEN_BUTTON_THEME_WINDOW(uiObj) {
         return panel;
     }
 
-    // --- Construção dos Campos ---
-    var identityPanel = createSectionPanel("Identificação", "Escolha um nome amigável para localizar o preset rapidamente.");
+    // --- ConstruÃ§Ã£o dos Campos ---
+    var identityPanel = createSectionPanel("IdentificaÃ§Ã£o", "Escolha um nome amigÃ¡vel para localizar o preset rapidamente.");
     createTextField("name", "Nome do preset", 18, identityPanel);
 
-    var sizePanel = createSectionPanel("Dimensões e alinhamento", "Ajuste o tamanho geral e os offsets finos do texto.");
+    var sizePanel = createSectionPanel("DimensÃµes e alinhamento", "Ajuste o tamanho geral e os offsets finos do texto.");
     createNumericField("width", "Largura (px)", 40, 250, sizePanel);
     createNumericField("height", "Altura (px)", 24, 120, sizePanel);
     createNumericField("cornerRadius", "Arredondamento", 0, 120, sizePanel);
     createNumericField("labelOffset", "Ajuste vertical (px)", -40, 40, sizePanel);
     createNumericField("labelOffsetX", "Ajuste horizontal (px)", -80, 80, sizePanel);
 
-    var textPanel = createSectionPanel("Tipografia", "Controle tamanho da fonte e transformação automática.");
+    var textPanel = createSectionPanel("Tipografia", "Controle tamanho da fonte e transformaÃ§Ã£o automÃ¡tica.");
     createNumericField("labelFontSize", "Fonte (px)", 8, 48, textPanel);
-    createTransformField("textTransform", "Texto (formatação)", textPanel);
+    createTransformField("textTransform", "Texto (formataÃ§Ã£o)", textPanel);
 
     var colorPanel = createSectionPanel("Cores", "Defina as tonalidades para os estados normal e hover.");
     createColorField("background", "Cor base (#HEX)", colorPanel);
@@ -2790,8 +2796,8 @@ function D9T_OPEN_BUTTON_THEME_WINDOW(uiObj) {
     createColorField("textColor", "Texto base (#HEX)", colorPanel);
     createColorField("hoverTextColor", "Texto hover (#HEX)", colorPanel);
 
-    // --- Área de Preview ---
-    var previewPanel = win.add("panel", undefined, "Pré-visualização");
+    // --- Ãrea de Preview ---
+    var previewPanel = win.add("panel", undefined, "PrÃ©-visualizaÃ§Ã£o");
     previewPanel.alignChildren = ["fill", "top"];
     previewPanel.spacing = 6;
     
@@ -2800,7 +2806,7 @@ function D9T_OPEN_BUTTON_THEME_WINDOW(uiObj) {
     previewButtonsGrp.alignChildren = ["center", "center"];
     previewButtonsGrp.spacing = 10;
     
-    // Botões de exemplo
+    // BotÃµes de exemplo
     var previewNormalWrapper = null;
     var previewHoverWrapper = null;
     if (typeof themeButton === "function") {
@@ -2810,14 +2816,14 @@ function D9T_OPEN_BUTTON_THEME_WINDOW(uiObj) {
         previewHoverWrapper = new themeButton(previewButtonsGrp, { labelTxt: "Hover ativo" });
         if(previewHoverWrapper.label) previewHoverWrapper.label.enabled = false;
     } else {
-        previewButtonsGrp.add("statictext", undefined, "Preview indisponível (falta themeButton)");
+        previewButtonsGrp.add("statictext", undefined, "Preview indisponÃ­vel (falta themeButton)");
     }
 
     var previewInfo = previewPanel.add("statictext", undefined, "", { multiline: true });
     previewInfo.alignment = ["fill", "top"];
     try { setFgColor(previewInfo, D9T_Theme.colors.mono1); } catch (infoErr) {}
 
-    // --- Botões de Ação ---
+    // --- BotÃµes de AÃ§Ã£o ---
     var buttonRow = win.add("group");
     buttonRow.alignment = ["fill", "top"];
     buttonRow.spacing = 8;
@@ -2831,7 +2837,7 @@ function D9T_OPEN_BUTTON_THEME_WINDOW(uiObj) {
     var closeBtn = buttonRow.add("button", undefined, "Fechar");
     closeBtn.alignment = ["right", "center"];
 
-    // --- Lógica Interna ---
+    // --- LÃ³gica Interna ---
     function getThemeById(id) {
         var list = D9T_getButtonThemeList();
         var idx = D9T_findButtonThemeIndex(id);
@@ -2853,7 +2859,7 @@ function D9T_OPEN_BUTTON_THEME_WINDOW(uiObj) {
 
         var clean = D9T_sanitizeButtonTheme(theme);
         
-        // Atualização segura dos campos (bypass para eventos)
+        // AtualizaÃ§Ã£o segura dos campos (bypass para eventos)
         fieldMap.name.text = clean.name || "";
         updateDropdownSelectionLabel(clean.name);
 
@@ -2889,12 +2895,12 @@ function D9T_OPEN_BUTTON_THEME_WINDOW(uiObj) {
             if(dd.__values[i] === tVal) { dd.selection = i; break; }
         }
 
-        // Aplica preview diretamente com os dados limpos (não depende da UI)
+        // Aplica preview diretamente com os dados limpos (nÃ£o depende da UI)
         applyPreviewTheme(clean);
     }
 
     function collectThemeFromFields() {
-        // CORREÇÃO CRÍTICA: Fallback se dropdown.selection for nulo
+        // CORREÃ‡ÃƒO CRÃTICA: Fallback se dropdown.selection for nulo
         var sel = dropdown.selection;
         if (!sel && dropdown.items.length > 0) sel = dropdown.items[0];
         if (!sel) return null;
@@ -2943,8 +2949,8 @@ function D9T_OPEN_BUTTON_THEME_WINDOW(uiObj) {
             D9T_applyThemeToButtonControl(hCtrl, clean);
         }
 
-        var tLabel = (clean.textTransform === "uppercase") ? "MAIÚSCULAS" : 
-                     (clean.textTransform === "lowercase" ? "minúsculas" : "original");
+        var tLabel = (clean.textTransform === "uppercase") ? "MAIÃšSCULAS" : 
+                     (clean.textTransform === "lowercase" ? "minÃºsculas" : "original");
                      
         previewInfo.text = "Info: " + clean.width + "x" + clean.height + "px | Canto: " + clean.cornerRadius + 
                            " | Fonte: " + clean.labelFontSize + "px (" + tLabel + ")";
@@ -3006,7 +3012,7 @@ function D9T_OPEN_BUTTON_THEME_WINDOW(uiObj) {
     useBtn.onClick = function() {
         var data = collectThemeFromFields();
         if(data) {
-            // Salva alterações antes de aplicar
+            // Salva alteraÃ§Ãµes antes de aplicar
             var list = uiSettings.buttonThemes;
             var idx = D9T_findButtonThemeIndex(data.id);
             if(idx > -1) list[idx] = data;
@@ -3015,20 +3021,20 @@ function D9T_OPEN_BUTTON_THEME_WINDOW(uiObj) {
             D9T_applyActiveButtonTheme(true);
             D9T_saveButtonThemesState(list, data.id);
             updateActiveInfo();
-            // Re-popula para garantir consistência visual do dropdown
+            // Re-popula para garantir consistÃªncia visual do dropdown
             populateDropdown(data.id);
         }
     };
 
     closeBtn.onClick = function() { win.close(); };
 
-    // Inicialização
+    // InicializaÃ§Ã£o
     populateDropdown(uiSettings.activeButtonTheme);
     
-    // Força layout e exibição
+    // ForÃ§a layout e exibiÃ§Ã£o
     win.onShow = function() {
         win.layout.layout(true);
-        // Garante que o load aconteça visualmente
+        // Garante que o load aconteÃ§a visualmente
         loadThemeFromSelection(); 
     };
 
@@ -3040,7 +3046,7 @@ function D9T_APPLY_ICON_SETTINGS(settings, options) {
     settings = settings || D9T_GET_ICON_SETTINGS();
     options = options || {};
     
-    // Sanitiza os valores (mesmo já tendo sido limpos, é uma segurança)
+    // Sanitiza os valores (mesmo jÃ¡ tendo sido limpos, Ã© uma seguranÃ§a)
     var size = settings.iconSize ? settings.iconSize.slice(0) : [36, 36];
     var spacing = typeof settings.iconSpacing === "number" ? settings.iconSpacing : 20;
     var compactSize = settings.compactIconSize ? settings.compactIconSize.slice(0) : [28, 28];
@@ -3062,11 +3068,11 @@ function D9T_APPLY_ICON_SETTINGS(settings, options) {
     D9T_Theme.layout.showLabels = showLabels;
     D9T_Theme.layout.iconOnlySpacing = Math.max(0, iconOnlySpacing);
     
-    if (options.deferLayout) { return; } // Usado na inicialização (D9T_BUILD_UI)
+    if (options.deferLayout) { return; } // Usado na inicializaÃ§Ã£o (D9T_BUILD_UI)
     
     var targetUI = options.uiObj || D9T_ui;
     
-    // Aplica o tamanho do ícone diretamente às imagens (preview ao vivo)
+    // Aplica o tamanho do Ã­cone diretamente Ã s imagens (preview ao vivo)
     if (targetUI && targetUI.imageButtonArray && targetUI.imageButtonArray.length) {
         for (var i = 0; i < targetUI.imageButtonArray.length; i++) {
             var ctrl = targetUI.imageButtonArray[i];
@@ -3083,14 +3089,14 @@ function D9T_APPLY_ICON_SETTINGS(settings, options) {
             targetUI.window.layout.layout(true);
         }
         if (options.forceLayout !== false && typeof D9T_LAYOUT === "function") {
-            D9T_LAYOUT(targetUI); // Força o recalculo do layout responsivo
+            D9T_LAYOUT(targetUI); // ForÃ§a o recalculo do layout responsivo
         }
     }
 }
 
 /**
- * Salva as configurações de ícone no objeto scriptPreferencesObj e chama saveScriptPreferences().
- * @param {Object} settings - O objeto de configurações validado.
+ * Salva as configuraÃ§Ãµes de Ã­cone no objeto scriptPreferencesObj e chama saveScriptPreferences().
+ * @param {Object} settings - O objeto de configuraÃ§Ãµes validado.
  */
 function D9T_SAVE_ICON_SETTINGS(settings) {
     // Garante que apenas dados limpos sejam salvos
@@ -3107,7 +3113,7 @@ function D9T_SAVE_ICON_SETTINGS(settings) {
     };
     try { D9T_PREF_LOG("icon_settings begin " + JSON.stringify(safe)); } catch (logErr0) {}
 
-    // Preserve outras entradas (ex: temas de botão) sem sobrescrever temas customizados.
+    // Preserve outras entradas (ex: temas de botÃ£o) sem sobrescrever temas customizados.
     var currentUiSettings = D9T_getUiSettingsSafe();
     var merged = JSON.parse(JSON.stringify(currentUiSettings || {}));
     var defaultUiSettings = (defaultScriptPreferencesObj && defaultScriptPreferencesObj.uiSettings) ? defaultScriptPreferencesObj.uiSettings : {};
@@ -3120,14 +3126,14 @@ function D9T_SAVE_ICON_SETTINGS(settings) {
     }
     try { D9T_PREF_STATE("icon_settings merged", merged); } catch (logErr1) {}
 
-    // Sobrescreve apenas as chaves relacionadas a ícones
+    // Sobrescreve apenas as chaves relacionadas a Ã­cones
     for (var safeKey in safe) {
         merged[safeKey] = safe[safeKey];
     }
 
     scriptPreferencesObj.uiSettings = merged;
 
-    // Salva direto no JSON (garante persistência mesmo se D9T_Preferences falhar)
+    // Salva direto no JSON (garante persistÃªncia mesmo se D9T_Preferences falhar)
     try {
         D9T_PREF_LOG("icon_settings commit -> saveScriptPreferences");
         if (typeof saveScriptPreferences === "function") {
@@ -3148,7 +3154,7 @@ function D9T_ADJUST_ICON_SCALE(uiObj) {
     D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj);
 }
 
-// Atalho para definir o tamanho do ícone (não usado)
+// Atalho para definir o tamanho do Ã­cone (nÃ£o usado)
 function D9T_SET_ICON_SCALE(uiObj, size) {
     var current = D9T_GET_ICON_SETTINGS();
     current.iconSize = size.slice(0);
@@ -3223,7 +3229,7 @@ function D9T_getUiSettingsSafe() {
         return uiSettings;
     } catch (err) {
         D9T_PREF_LOG("D9T_getUiSettingsSafe FAIL", err);
-        // fallback mínimo
+        // fallback mÃ­nimo
         return { buttonThemes: [], activeButtonTheme: "classic" };
     }
 }
@@ -3244,7 +3250,7 @@ function D9T_saveButtonThemesState(buttonThemes, activeId) {
                 D9T_PREF_LOG("activeTheme snapshot " + activeThemeObj.id + " " + JSON.stringify(activeThemeObj));
             }
         } catch (snapErr) {}
-        // Salva diretamente o objeto completo para evitar dependência de Object.keys
+        // Salva diretamente o objeto completo para evitar dependÃªncia de Object.keys
         try {
             if (typeof saveScriptPreferences === "function") {
                 saveScriptPreferences();
@@ -3525,9 +3531,9 @@ function D9T_previewThemeOnTargets(themeData) {
   }
 
 // ============================================
-// COMPONENTES DE BOTÃO LEGADOS (themeButton)
+// COMPONENTES DE BOTÃƒO LEGADOS (themeButton)
 // ============================================
-// Estas funções parecem ser de uma versão anterior do tema.
+// Estas funÃ§Ãµes parecem ser de uma versÃ£o anterior do tema.
 
 function themeButton(sectionGrp, ctrlProperties) {
     try {
@@ -3538,7 +3544,7 @@ function themeButton(sectionGrp, ctrlProperties) {
         var newBtnGrp = sectionGrp.add("group");
         newBtnGrp.orientation = "stack";
         
-        // Botões de clique invisíveis
+        // BotÃµes de clique invisÃ­veis
         newUiCtrlObj.leftClick = newBtnGrp.add("button", undefined, "");
         newUiCtrlObj.leftClick.size = [0, 0];
         newUiCtrlObj.leftClick.visible = false;
@@ -3546,7 +3552,7 @@ function themeButton(sectionGrp, ctrlProperties) {
         newUiCtrlObj.rightClick.size = [0, 0];
         newUiCtrlObj.rightClick.visible = false;
         
-        // O botão visível (customButton)
+        // O botÃ£o visÃ­vel (customButton)
         newUiCtrlObj.label = newBtnGrp.add("customButton");
         newUiCtrlObj.label.text = ctrlProperties.labelTxt || "";
         newUiCtrlObj.label.__buttonBaseText = newUiCtrlObj.label.text;
@@ -3640,7 +3646,7 @@ function themeAltButton(sectionGrp, ctrlProperties) {
         newUiCtrlObj.rightClick.visible = false;
         
         newUiCtrlObj.label = newBtnGrp.add("customButton");
-        newUiCtrlObj.label.text = ctrlProperties.labelTxt || "Botão";
+        newUiCtrlObj.label.text = ctrlProperties.labelTxt || "BotÃ£o";
         newUiCtrlObj.label.__buttonBaseText = newUiCtrlObj.label.text;
         newUiCtrlObj.label.__buttonDisplayedText = newUiCtrlObj.label.text;
         newUiCtrlObj.label.helpTip = tipTxt;
@@ -3754,7 +3760,7 @@ function drawThemeButton(button) {
         };
     }
   
-  // Função de desenho para themeAltButton (parece idêntica a drawThemeButton)
+  // FunÃ§Ã£o de desenho para themeAltButton (parece idÃªntica a drawThemeButton)
   function drawThemeAltButton(button) {
       drawThemeButton(button);
   }
@@ -3780,7 +3786,7 @@ function drawRoundedRect(g, brush, width, height, radius, x, y) {
 
 
 // ============================================
-// FUNÇÕES AUXILIARES DE COR E ESTILO
+// FUNÃ‡Ã•ES AUXILIARES DE COR E ESTILO
 // ============================================
 
 /**
@@ -3835,17 +3841,17 @@ function setCtrlHighlight(ctrl, normalColor, highlightColor) {
     });
 }
 
-// Função de desenho customizada para 'customButton' (usada por themeDivider).
+// FunÃ§Ã£o de desenho customizada para 'customButton' (usada por themeDivider).
 function customDraw() {
     with(this) {
-        graphics.drawOSControl(); // Desenha o fundo padrão
-        graphics.rectPath(0, 0, size[0], size[1]); // Desenha um retângulo
+        graphics.drawOSControl(); // Desenha o fundo padrÃ£o
+        graphics.rectPath(0, 0, size[0], size[1]); // Desenha um retÃ¢ngulo
         graphics.fillPath(fillBrush); // Preenche com a cor definida (fillBrush)
     }
 }
 
 // ============================================
-// FUNÇÕES AUXILIARES (DIVERSAS)
+// FUNÃ‡Ã•ES AUXILIARES (DIVERSAS)
 // ============================================
 
 function D9T_NORMALIZE_MARGINS(margins) {
@@ -3872,14 +3878,14 @@ function D9T_APPLY_GROUP_MARGINS(group, margins) {
     group.margins = D9T_NORMALIZE_MARGINS(margins);
 }
 
-// Troca o ícone visível em um grupo de imagens (stack)
+// Troca o Ã­cone visÃ­vel em um grupo de imagens (stack)
 function changeIcon(imageIndex, imagesGrp) {
     for (var i = 0; i < imagesGrp.children.length; i++) {
         imagesGrp.children[i].visible = (i == imageIndex);
     }
 }
 
-// Popula os ícones de produção (ex: GNEWS) (usado pelo GNEWS_Templates)
+// Popula os Ã­cones de produÃ§Ã£o (ex: GNEWS) (usado pelo GNEWS_Templates)
 function populateMainIcons(imagesGrp, prodArray, dropdownList) {
     while (imagesGrp.children.length > 0) {
         imagesGrp.remove(imagesGrp.children[0]);
@@ -3889,14 +3895,14 @@ function populateMainIcons(imagesGrp, prodArray, dropdownList) {
     for (var i = 0; i < prodArray.length; i++) {
         var newIcon = imagesGrp.add("image", undefined, undefined);
         try {
-            newIcon.image = eval(prodArray[i].icon); // 'eval' para converter string (ex: "GNEWS_ICON") na variável
+            newIcon.image = eval(prodArray[i].icon); // 'eval' para converter string (ex: "GNEWS_ICON") na variÃ¡vel
         } catch (err) {}
         
-        newIcon.helpTip = prodArray[i].name + "\n\n" + D9T_Theme.text.doubleClick + " para editar a lista de produções";
+        newIcon.helpTip = prodArray[i].name + "\n\n" + D9T_Theme.text.doubleClick + " para editar a lista de produÃ§Ãµes";
         newIcon.preferredSize = [24, 24];
-        newIcon.visible = (i == 0); // Só o primeiro é visível
+        newIcon.visible = (i == 0); // SÃ³ o primeiro Ã© visÃ­vel
         
-        // Evento de duplo clique para abrir a configuração
+        // Evento de duplo clique para abrir a configuraÃ§Ã£o
         newIcon.addEventListener("click", function (c) {
             if (c.detail == 2) { // Duplo clique
                 if (typeof d9ProdFoldersDialog === 'function') {
@@ -3913,7 +3919,7 @@ function populateMainIcons(imagesGrp, prodArray, dropdownList) {
                         if (dropdownList.onChange) dropdownList.onChange();
                     }
                     
-                    // Recarrega os ícones
+                    // Recarrega os Ã­cones
                     populateMainIcons(imagesGrp, D9T_prodArray, dropdownList);
                     imagesGrp.layout.layout(true);
                 }
@@ -3922,7 +3928,7 @@ function populateMainIcons(imagesGrp, prodArray, dropdownList) {
     }
 }
 
-// Trava o redimensionamento da janela, botões de maximizar/minimizar.
+// Trava o redimensionamento da janela, botÃµes de maximizar/minimizar.
 function D9T_LOCK_WINDOW_RESIZE(win) {
     if (!win) { return; }
     try {
@@ -3931,3 +3937,4 @@ function D9T_LOCK_WINDOW_RESIZE(win) {
         if (typeof win.minimizeButton !== "undefined") { win.minimizeButton = false; }
     } catch (e) {} // Ignora erros (ex: se for painel dockado)
 }
+
