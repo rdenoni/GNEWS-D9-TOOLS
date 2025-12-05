@@ -1893,27 +1893,66 @@ function D9T_OPEN_JSON_CONFIG(fileName) {
     }
     alert("Arquivo nao encontrado em nenhum caminho conhecido:\n" + fileName);
 }
+// Alerta tematico para mensagens do updater
+function D9T_showUpdateAlert(title, message, type) {
+    var dlg = new Window("dialog", title || "Aviso");
+    dlg.orientation = "column";
+    dlg.alignChildren = "fill";
+    dlg.spacing = 12;
+    dlg.margins = 18;
+    try { setBgColor(dlg, bgColor1); } catch (e) {}
+
+    var headerGrp = dlg.add("group");
+    headerGrp.orientation = "row";
+    headerGrp.alignChildren = ["fill", "center"];
+    headerGrp.spacing = 10;
+
+    var strip = headerGrp.add("panel");
+    strip.margins = 0;
+    strip.preferredSize = [6, 40];
+    var stripColor = (type === "success" && typeof successColor !== "undefined") ? successColor
+                   : (type === "warning" && typeof warningColor !== "undefined") ? warningColor
+                   : highlightColor1;
+    try { setBgColor(strip, stripColor); } catch (e1) {}
+
+    var titleGrp = headerGrp.add("group");
+    titleGrp.orientation = "column";
+    titleGrp.alignChildren = ["left", "center"];
+    var tLab = titleGrp.add("statictext", undefined, title || "Aviso");
+    var txtColor = (D9T_Theme && D9T_Theme.colors && D9T_Theme.colors.textNormal) ? D9T_Theme.colors.textNormal : normalColor1;
+    try { setFgColor(tLab, txtColor); } catch (e2) {}
+
+    var body = dlg.add("statictext", undefined, message || "", { multiline: true });
+    body.preferredSize.width = 360;
+    try { setFgColor(body, txtColor); } catch (e3) {}
+
+    var btnGrp = dlg.add("group");
+    btnGrp.alignment = ["right", "center"];
+    var ok = btnGrp.add("button", undefined, "OK");
+    ok.onClick = function () { dlg.close(); };
+    try { dlg.center(); } catch (e4) {}
+    dlg.show();
+}
 
 function D9T_PULL_FROM_GITHUB() {
     // ==========================================================
-    // 1. CONFIGURAAØAŸO (PREENCHA SEUS DADOS AQUI)
+    // 1. CONFIGURAÇÃO
     // ==========================================================
-    var githubUser = "rdenoni";  // Ex: rdenoni
-    var repoName   = "GNEWS-D9-TOOLS";    // O nome exato do repositA3rio
-    var branch     = "main";         // Geralmente 'main' ou 'master'
+    var githubUser = "rdenoni";
+    var repoName   = "GNEWS-D9-TOOLS";
+    var branch     = "main"; 
     
-    // Cole seu Token abaixo, DENTRO das aspas.
-    // Ex: "ghp_xxXYyy..."
+    // Token fornecido
     var token      = "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"; 
     // ==========================================================
 
     var isWin = ($.os.indexOf("Win") !== -1);
     if (!isWin) {
-        alert("O update automA­tico sem Git foi configurado apenas para Windows.");
+        alert("O update automático sem Git foi configurado apenas para Windows.");
         return;
     }
 
-    // Monta a URL do ZIP via API (suporta token corretamente)
+    // ALTERAÇÃO: Usando a API do GitHub para o download (mais seguro e compatível com Token)
     var zipUrl = "https://api.github.com/repos/" + githubUser + "/" + repoName + "/zipball/" + branch;
     
     // Define caminhos locais
@@ -1922,105 +1961,110 @@ function D9T_PULL_FROM_GITHUB() {
     var zipFile = tempPath + "\\update_temp.zip";
     var extractFolder = tempPath + "\\update_extracted";
     
-    // O GitHub extrai numa pasta com nome "Repo-Branch", ex: "GND9TOOLS-main"
-    var sourceFolder = extractFolder + "\\" + repoName + "-" + branch;
-
-    // LA3gica de AutenticaAo para o PowerShell (sempre User-Agent; token se houver)
+    // Lógica de Autenticação para o PowerShell
     var headerCmd = "";
     if (token && token.length > 5) {
-        headerCmd = " -Headers @{Authorization='token " + token + "'; 'User-Agent'='GND9TOOLS-Updater'}";
-    } else {
-        headerCmd = " -Headers @{'User-Agent'='GND9TOOLS-Updater'}";
+        // Adiciona User-Agent (obrigatório na API do GitHub) e Authorization
+        headerCmd = " -Headers @{Authorization = 'token " + token + "'; 'User-Agent' = 'GND9TOOLS-Updater'}";
     }
 
-    // ConfirmaAo de seguranAa para o usuArio
-    if (!confirm("Isso vai baixar a versAo mais recente do GitHub e substituir os arquivos locais.\n\nDeseja continuar?")) {
+    // Confirmação de segurança para o usuário
+    if (!confirm("Isso vai baixar a versão mais recente do GitHub (" + branch + ") e substituir os arquivos locais.\n\nDeseja continuar?")) {
         return;
     }
 
     // ==========================================================
-    // 2. COMANDO POWERSHELL (corrigido com aspas escapadas)
+    // 2. COMANDO POWERSHELL
     // ==========================================================
-    var psParts = [];
-    psParts.push("$ErrorActionPreference = 'Stop'");
-    psParts.push("$ProgressPreference = 'SilentlyContinue'");
-    psParts.push("[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12");
-    psParts.push("$zipUrl = '" + zipUrl + "'");
-    psParts.push("$zipFile = '" + zipFile + "'");
-    psParts.push("$extractFolder = '" + extractFolder + "'");
-    psParts.push("$installPath = '" + installPath + "'");
-    psParts.push("try {");
-    psParts.push("Write-Output '[D9T] Baixando...'");
-    psParts.push("Invoke-WebRequest -Uri $zipUrl" + headerCmd + " -OutFile $zipFile");
-    psParts.push("Write-Output '[D9T] Extraindo...'");
-    psParts.push("if (Test-Path $extractFolder) { Remove-Item $extractFolder -Recurse -Force }");
-    psParts.push("Expand-Archive -Path $zipFile -DestinationPath $extractFolder -Force");
-    psParts.push("Write-Output '[D9T] Instalando...'");
-    psParts.push("$rootFolder = Get-ChildItem -Path $extractFolder -Directory | Select-Object -First 1");
-    psParts.push("if (!$rootFolder) { throw ('Pasta extraida nao encontrada em ' + $extractFolder) }");
-    psParts.push("Copy-Item -Path ($rootFolder.FullName + '\\\\*') -Destination $installPath -Recurse -Force");
-    psParts.push("Remove-Item $zipFile -Force");
-    psParts.push("Remove-Item $extractFolder -Recurse -Force");
-    psParts.push("Write-Output 'SUCESSO'");
-    psParts.push("} catch { Write-Output ('ERRO: ' + $_.Exception.Message) }");
-    var psScript = psParts.join("; ");
-    var cmdCall = 'powershell -NoLogo -NoProfile -NonInteractive -Command "' + psScript.replace(/\"/g, '\\\"') + '"';
+    var psCommand = 'powershell -Command "& { ' +
+        '$ProgressPreference = \'SilentlyContinue\'; ' +
+        'try { ' +
+            // A. Permite conexão segura (TLS 1.2)
+            '[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; ' +
+            
+            // B. Baixa o arquivo ZIP via API
+            'Write-Host \'Baixando...\'; ' +
+            'Invoke-WebRequest -Uri \'' + zipUrl + '\'' + headerCmd + ' -OutFile \'' + zipFile + '\'; ' +
+            
+            // C. Verifica se o arquivo baixou (tamanho > 0)
+            'if ((Get-Item \'' + zipFile + '\').Length -lt 100) { throw \'Arquivo baixado parece invalido ou vazio (erro de token?)\' }; ' +
+
+            // D. Limpa pasta de extração anterior se existir
+            'if (Test-Path \'' + extractFolder + '\') { Remove-Item \'' + extractFolder + '\' -Recurse -Force }; ' +
+            
+            // E. Extrai o ZIP
+            'Write-Host \'Extraindo...\'; ' +
+            'Expand-Archive -Path \'' + zipFile + '\' -DestinationPath \'' + extractFolder + '\' -Force; ' +
+            
+            // F. Identifica a pasta interna (o GitHub cria uma pasta com hash no nome, ex: rdenoni-repo-12345)
+            '$subFolder = Get-ChildItem -Path \'' + extractFolder + '\' -Directory | Select-Object -First 1; ' +
+            'if (-not $subFolder) { throw \'Pasta extraida nao encontrada\' }; ' +
+            '$sourceDir = $subFolder.FullName; ' +
+
+            // G. Copia os arquivos novos para a pasta do script (Sobrescrevendo tudo)
+            'Write-Host \'Instalando...\'; ' +
+            'Copy-Item -Path \"$sourceDir\\*\" -Destination \'' + installPath + '\' -Recurse -Force; ' +
+            
+            // H. Limpeza dos arquivos temporários
+            'Remove-Item \'' + zipFile + '\' -Force; ' +
+            'Remove-Item \'' + extractFolder + '\' -Recurse -Force; ' +
+            
+            'Write-Host \'SUCESSO\'; ' +
+        '} catch { ' +
+            'Write-Host \'ERRO: \' $_.Exception.Message; ' +
+        '}' +
+    '}"';
+
+    // Prepara o comando para o CMD do Windows
+    var cmdCall = 'cmd /c "' + psCommand + '"';
     
-    // Janela visual de "Aguarde" (ScriptUI)
+    // Janela visual de "Aguarde"
     var w = new Window("palette", "Atualizando...", undefined, {closeButton: false});
-    w.add("statictext", undefined, "Baixando atualizaAes do GitHub...");
-    w.add("statictext", undefined, "O After Effects pode travar por alguns segundos.");
+    w.add("statictext", undefined, "Baixando atualizações do GitHub...");
+    w.add("statictext", undefined, "Conectando em: " + repoName);
     w.show();
-    w.update(); // ForAa o desenho da janela antes de travar o processo
+    w.update(); 
 
     var result = "";
-    var logFile = null;
     try {
-        if (typeof runtimeLogsPath === "string" && runtimeLogsPath.length) {
-            logFile = new File(runtimeLogsPath + "/update.log");
-        }
-    } catch (logPrepErr) {}
-    try {
-        // Tenta executar o comando
         if (system && system.callSystem) {
             result = system.callSystem(cmdCall);
         } else {
-            // Fallback para versAes antigas do AE
             app.system(cmdCall);
             result = "SUCESSO (Modo compatibilidade)"; 
         }
         
-        w.close(); // Fecha a janelinha
+        w.close(); 
 
-        // Loga resultado bruto para diagnA3stico
-        try {
-            if (logFile) {
-                logFile.encoding = "UTF-8";
-                if (logFile.open("a")) {
-                    logFile.writeln(new Date().toUTCString() + " cmd: " + cmdCall);
-                    logFile.writeln(new Date().toUTCString() + " result: " + result);
-                    logFile.close();
-                }
-            }
-        } catch (logErr) {}
-
-        // Verifica o resultado do texto retornado pelo PowerShell
-        if (result.indexOf("SUCESSO") !== -1) {
-            alert("ƒo. Script Atualizado com Sucesso!\n\nPor favor, feche e abra o painel novamente para ver as mudanAas.");
+        var msgTitle, msgBody, msgType;
+        var normalized = (result || "").toString();
+        if (normalized.indexOf("SUCESSO") !== -1) {
+            msgTitle = "Atualizado";
+            msgBody = "Script atualizado com sucesso.\nFeche e abra o painel novamente para aplicar as mudancas.";
+            msgType = "success";
         } else {
-            // Tratamento de erros comuns
-            if (result.indexOf("404") !== -1) {
-                alert("ƒ?O Erro 404: RepositA3rio nA26o encontrado.\nVerifique se o nome do usuArio e do repositA3rio estA26o corretos no script.");
-            } else if (result.indexOf("403") !== -1) {
-                alert("ƒ?O Erro 403: Acesso Negado.\nVerifique se o seu TOKEN estA26 correto e tem permissA26o de leitura ('repo').");
+            msgTitle = "Erro na atualizacao";
+            msgType = "error";
+            if (normalized.indexOf("404") !== -1) {
+                msgBody = "Erro 404: repositorio/branch nao encontrados.\nConfira usuario/repo/branch.";
+            } else if (normalized.indexOf("401") !== -1 || normalized.indexOf("403") !== -1) {
+                msgBody = "Erro de permissao (401/403).\nRevise o token e a permissao de leitura 'repo'.";
+            } else if (/ERRO:/i.test(normalized)) {
+                msgBody = normalized.replace(/^[^E]*ERRO:\s*/i, "");
+            } else if (!normalized.length) {
+                msgBody = "PowerShell nao retornou detalhes. Verifique conexao, token ou permissao de rede.";
             } else {
-                alert("ƒ?O Erro na atualizaAo:\n" + result);
+                msgBody = normalized;
             }
         }
-
+        try {
+            D9T_showUpdateAlert(msgTitle, msgBody, msgType);
+        } catch (alertErr) {
+            alert(msgTitle + "\n\n" + msgBody);
+        }
     } catch (e) {
         w.close();
-        alert("Erro crA-tico ao tentar executar o sistema: " + e.toString());
+        alert("Erro crítico ao tentar executar o sistema: " + e.toString());
     }
 }
 function D9T_OPEN_ICON_SETTINGS_WINDOW(uiObj) {
@@ -3842,7 +3886,7 @@ function setCtrlHighlight(ctrl, normalColor, highlightColor) {
         setFgColor(ctrl, highlightColor); // Cor de hover
     });
     ctrl.addEventListener("mouseout", function () {
-        setFgSColor(ctrl, normalColor); // Restaura cor normal
+        setFgColor(ctrl, normalColor); // Restaura cor normal
     });
 }
 
