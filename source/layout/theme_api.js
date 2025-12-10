@@ -1,76 +1,107 @@
-/*
----------------------------------------------------------------
-> ARQUIVO: theme_api.js
-> DESCRIÇÃO: API central de tema, aplica cores e ajustes de layout.
-> VERSÃO: 1.0 (Atualizado em 2025)
-> MÓDULOS USADOS:
->   - globals.js (fonte das cores e strings)
->   - ScriptUI (API nativa utilizada para manipular controles)
----------------------------------------------------------------
-*/
+
+// Logger de configuracoes (para diagnostico de UI/tema)
+function D9T_WRITE_CONFIG_TRACE(msg) {
+    try {
+        var basePath = (typeof runtimeLogsPath === "string" && runtimeLogsPath.length) ? runtimeLogsPath : null;
+        if (!basePath) { return; }
+        var logFile = new File(basePath + "/config_debug.log");
+        if (!logFile.exists && logFile.parent && !logFile.parent.exists) {
+            try { logFile.parent.create(); } catch (mkdirErr) {}
+        }
+        var stamp = new Date().toUTCString();
+        if (logFile.open("a")) {
+            logFile.encoding = "UTF-8";
+            logFile.write("[" + stamp + "] " + (msg || "") + "\n");
+            logFile.close();
+        }
+    } catch (e) {
+        try { $.writeln("[CONFIG_LOG_FAIL] " + e); } catch (ignoreErr) {}
+    }
+}
 
 // ============================================
-// MOTOR DE TEMA - MAPEAMENTO DE VARIÁVEIS GLOBAIS
+// 1. MOTOR DE TEMA - DEFINIÇÕES
 // ============================================
 
-var D9T_Theme = {
-  // Mapeia qual variável do globals.js será usada para cada elemento.
-  colors: {
-    background: bgColor1,
-    textNormal: monoColor1,
-    textHighlight: highlightColor1,
-    divider: divColor1,
-    mono0: monoColor0,
-    mono1: monoColor1,
-    mono2: monoColor2,
-    mono3: monoColor3,
-    white: normalColor1
-  },
-  // Layout e Espaçamento (valores diretos)
-  layout: {
-    iconSize: [36, 36],
-    iconSizeCompact: [28, 28],          // Tamanho dos ícones no modo compacto
-    logoSize: [70, 24],                 // Tamanho padrão da logo no cabeçalho
-    logoSizeCompact: [52, 18],          // Tamanho reduzido para cabeçalho vertical
-    iconSpacingCompact: 15,
-    textSpacingNormal: 5,
-    iconSpacingNormal: 20,
-    labelSpacing: 0,
-    sectionSpacing: 30,
-    sectionSpacingCompact: 10,          // Espaçamento entre seções no modo compacto
-    mainMargins: [15, 15, 15, 15],
-    infoMargins: [15, 0, 0, 15],        // Margens do grupo de logo/versão
-    breakpointSafetyMargin: 150,        // breakpoint do grupo de logo/versão
-    verticalBreakpoint: 80,             // Força layout HORIZONTAL se altura for MENOR que este valor
-    horizontalBreakpoint: 200,          // Força layout VERTICAL se largura for MENOR que este valor
-    compactModeWidth: 100,              // Largura para ativar o modo compacto
-    compactModeHeight: 80,              // Altura para ativar o modo compacto
-    verticalCompactWidth: 120,          // Largura alvo para modo compacto quando a barra esta vertical
-    searchModeHeight: 44                // Altura limite para o modo busca
-  },
-  buttonTheme: null,
-  // Texto e Strings
-  text: {
-    lineBreak: lol,
-    click: lClick,
-    rightClick: rClick,
-    doubleClick: dClick
-  }
-};
+// Objeto Global de Tema (Inicialização segura)
+if (typeof D9T_Theme === 'undefined') {
+    D9T_Theme = {
+        colors: {},
+        layout: {
+            iconSize: [36, 36],
+            iconSizeCompact: [28, 28],
+            logoSize: [70, 24],
+            logoSizeCompact: [52, 18],
+            iconSpacingCompact: 15,
+            iconSpacingNormal: 20,
+            labelSpacing: 8,
+            sectionSpacing: 30,
+            sectionSpacingCompact: 10,
+            mainMargins: [15, 15, 15, 15],
+            infoMargins: [15, 0, 0, 15],
+            verticalBreakpoint: 80,
+            horizontalBreakpoint: 200,
+            compactModeWidth: 100,
+            compactModeHeight: 80,
+            verticalCompactWidth: 120,
+            searchModeHeight: 44,
+            showLabels: true,
+            iconOnlySpacing: 18
+        },
+        buttonTheme: null,
+        text: {
+            doubleClick: "Clique duplo"
+        }
+    };
+}
 
+// Atualiza as cores globais com base nas preferências carregadas
 function D9T_REFRESH_THEME_COLORS() {
-  if (!D9T_Theme || !D9T_Theme.colors) { return; }
-  D9T_Theme.colors.background = bgColor1;
-  D9T_Theme.colors.textNormal = monoColor1;
-  D9T_Theme.colors.textHighlight = highlightColor1;
-  D9T_Theme.colors.divider = divColor1;
-  D9T_Theme.colors.mono0 = monoColor0;
-  D9T_Theme.colors.mono1 = monoColor1;
-  D9T_Theme.colors.mono2 = monoColor2;
-  D9T_Theme.colors.mono3 = monoColor3;
-  D9T_Theme.colors.white = normalColor1;
+    // Carrega preferências se necessário
+    if (typeof loadScriptPreferences === "function" && (typeof scriptPreferencesObj === "undefined" || !scriptPreferencesObj.themeColors)) {
+        try { loadScriptPreferences(); } catch(e) {}
+    }
+
+    var defaults = {
+        bgColor1: "#161616", bgColor2: "#1B1B1B", divColor1: "#1D1D1F",
+        monoColor0: "#F2F2F2", monoColor1: "#C7C8CA", monoColor2: "#302B2B", monoColor3: "#1A1919",
+        normalColor1: "#FFFFFF", normalColor2: "#E6E6E6", highlightColor1: "#FF0046"
+    };
+
+    // Pega do objeto de preferência ou do default
+    var userColors = (typeof scriptPreferencesObj !== "undefined" && scriptPreferencesObj.themeColors) ? scriptPreferencesObj.themeColors : {};
+    
+    function getC(k) { return (userColors[k] && userColors[k].length > 4) ? userColors[k] : defaults[k]; }
+
+    // Atualiza objeto D9T_Theme
+    D9T_Theme.colors = {
+        background: getC("bgColor1"),
+        textNormal: getC("monoColor1"),
+        textHighlight: getC("highlightColor1"),
+        divider: getC("divColor1"),
+        mono0: getC("monoColor0"), mono1: getC("monoColor1"), mono2: getC("monoColor2"), mono3: getC("monoColor3"),
+        white: getC("normalColor1"),
+        bgMain: getC("bgColor1"), bgSec: getC("bgColor2"),
+        textLight: getC("normalColor1")
+    };
+
+    // Atualiza variáveis globais (Legacy Support)
+    $.global.bgColor1 = D9T_Theme.colors.background;
+    $.global.bgColor2 = getC("bgColor2");
+    $.global.divColor1 = D9T_Theme.colors.divider;
+    $.global.normalColor1 = D9T_Theme.colors.white;
+    $.global.normalColor2 = getC("normalColor2");
+    $.global.highlightColor1 = D9T_Theme.colors.textHighlight;
+    $.global.monoColor0 = D9T_Theme.colors.mono0;
+    $.global.monoColor1 = D9T_Theme.colors.mono1;
+    $.global.monoColor2 = D9T_Theme.colors.mono2;
+    $.global.monoColor3 = D9T_Theme.colors.mono3;
 }
 D9T_REFRESH_THEME_COLORS();
+
+// ============================================
+// 2. SISTEMA DE REGISTRO DE JANELAS
+// ============================================
 
 function D9T_getThemeRootRegistry() {
   if (!$.global.__D9T_THEME_ROOTS) { $.global.__D9T_THEME_ROOTS = []; }
@@ -79,7 +110,6 @@ function D9T_getThemeRootRegistry() {
 
 function D9T_registerThemeRoot(uiObj) {
   if (!uiObj) { return; }
-  // permite registrar tanto um objeto de UI (com window) quanto uma Window direta
   var refWin = uiObj.window ? uiObj.window : uiObj;
   if (!refWin) { return; }
   var registry = D9T_getThemeRootRegistry();
@@ -89,13 +119,9 @@ function D9T_registerThemeRoot(uiObj) {
       if (!entry || typeof entry !== "object") { registry.splice(i,1); i--; continue; }
       var entryWin = entry.window ? entry.window : entry;
       if (!entryWin) { registry.splice(i,1); i--; continue; }
-      // Objetos ScriptUI descartados podem lançar "Object is invalid" ao acessar props; descarta-los
-      if (entryWin.visible !== undefined) { /* touch to ensure valid */ }
+      if (entryWin.visible !== undefined) { /* touch check */ }
       if (entry === uiObj || entry === refWin || entryWin === refWin) { return; }
-    } catch (errEntry) {
-      registry.splice(i,1);
-      i--;
-    }
+    } catch (errEntry) { registry.splice(i,1); i--; }
   }
   registry.push(uiObj);
 }
@@ -116,6 +142,7 @@ function D9T_registerWindowForTheme(win) {
 }
 $.global.D9T_registerWindowForTheme = D9T_registerWindowForTheme;
 
+// Aplica cores recursivamente em elementos padrão (fallback)
 function D9T_applyThemeFallback(win) {
   if (!win) { return; }
   function applyCtrl(ctrl) {
@@ -130,7 +157,6 @@ function D9T_applyThemeFallback(win) {
     try {
       if (ctrl.graphics) {
         setFgColor(ctrl, D9T_Theme.colors.textNormal);
-        // Foco em textos de selecao/checkbox/radio
         if (ctrl.type === "checkbox" || ctrl.type === "radiobutton" || ctrl.type === "statictext") {
           setFgColor(ctrl, D9T_Theme.colors.textNormal);
         }
@@ -148,7 +174,8 @@ function D9T_applyThemeFallback(win) {
 function D9T_refreshAllThemeRoots(targetUI) {
   var registry = D9T_getThemeRootRegistry();
   if (targetUI) { D9T_registerThemeRoot(targetUI); }
-  // Autoregistra qualquer janela ScriptUI aberta para garantir que paineis auxiliares tambem recebam o tema
+  
+  // Auto-registra janelas ScriptUI soltas
   try {
     if (typeof ScriptUI !== "undefined" && ScriptUI.windows && ScriptUI.windows.length) {
       for (var w = 0; w < ScriptUI.windows.length; w++) {
@@ -157,32 +184,37 @@ function D9T_refreshAllThemeRoots(targetUI) {
       }
     }
   } catch (scanErr) {}
+
   for (var i = registry.length - 1; i >= 0; i--) {
     var root = registry[i];
     if (!root) { registry.splice(i, 1); continue; }
     var refWin = null;
-    try { refWin = root.window ? root.window : root; }
-    catch (errRef) { registry.splice(i, 1); continue; }
+    try { refWin = root.window ? root.window : root; } catch (errRef) { registry.splice(i, 1); continue; }
     if (!refWin) { registry.splice(i, 1); continue; }
+    
     try {
-      if (root.window) {
-        D9T_APPLY_THEME_TO_ROOT(root);
+      if (root.window && typeof D9T_APPLY_THEME_TO_ROOT === "function") {
+        D9T_APPLY_THEME_TO_ROOT(root); // Usa a funcao principal se disponivel
       } else {
         D9T_applyThemeFallback(refWin);
       }
-      D9T_touchThemeWindow(refWin); // garante repaint imediato
+      D9T_touchThemeWindow(refWin);
     } catch (applyErr) {}
+    
     if (typeof D9T_LAYOUT === "function" && root.window) {
       try { D9T_LAYOUT(root); } catch (layoutErr) {}
     }
   }
 }
 
+
+// ============================================
+// 3. SISTEMA DE TOOLTIPS
+// ============================================
+
 var D9T_TOOLTIP_DEFAULT_DELAY = 1500;
 function D9T_getTooltipRegistry() {
-    if (!$.global.__D9T_tooltips) {
-        $.global.__D9T_tooltips = { list: {}, counter: 0 };
-    }
+    if (!$.global.__D9T_tooltips) { $.global.__D9T_tooltips = { list: {}, counter: 0 }; }
     return $.global.__D9T_tooltips;
 }
 
@@ -212,10 +244,7 @@ function D9T_activateHelpTip(id) {
     ctrl.helpTip = ctrl.__d9tTipText || "";
 }
 
-// Alias mantido por compatibilidade com scripts antigos.
-function D9T_activeHelpTip(id) {
-    D9T_activateHelpTip(id);
-}
+function D9T_activeHelpTip(id) { D9T_activateHelpTip(id); } // Alias legacy
 
 function D9T_setDelayedHelpTip(ctrl, text, delayMs) {
     if (!ctrl) { return; }
@@ -236,45 +265,30 @@ function D9T_setDelayedHelpTip(ctrl, text, delayMs) {
         target.helpTip = "";
     });
 }
-
 $.global.D9T_activateHelpTip = D9T_activateHelpTip;
 $.global.D9T_activeHelpTip = D9T_activateHelpTip;
 
-function D9T_OPEN_COLOR_GLOBALS() {
-    D9T_OPEN_THEME_DIALOG(D9T_ui);
-}
+// ============================================
+// 4. FUNÇÕES DE SUPORTE À UI (BRIDGE)
+// ============================================
 
 function D9T_APPLY_THEME_TO_ROOT(uiObj) {
   uiObj = uiObj || D9T_ui;
   if (!uiObj) { return; }
-
   var win = uiObj.window ? uiObj.window : uiObj;
   if (!win) { return; }
 
-  if (typeof D9T_registerThemeRoot === "function") { D9T_registerThemeRoot(uiObj); }
+  D9T_registerThemeRoot(uiObj);
+  D9T_applyThemeFallback(win); // Aplica base
 
-  // Primeiro aplica um tema generico no root (funciona para janelas de modulos)
-  D9T_applyThemeFallback(win);
-
-  // Ajustes especificos para o painel principal (quando tivermos referencia do objeto completo)
-  var isMainLayout = !!(uiObj.window && (uiObj.headerGrp || uiObj.mainGrp || uiObj.divArray));
+  // Se for o layout principal, aplica cores específicas
+  var isMainLayout = !!(uiObj.window && (uiObj.headerGrp || uiObj.mainGrp));
   if (isMainLayout) {
-    try { setBgColor(uiObj.window, bgColor1); } catch (eMainBg) {}
-    if (uiObj.headerGrp) {
-      try { setBgColor(uiObj.headerGrp, bgColor2); } catch (headerErr) {}
-    }
-    if (uiObj.searchGrp) {
-      try { setBgColor(uiObj.searchGrp, bgColor2); } catch (searchErr) {}
-    }
-    if (uiObj.infoGrp && D9T_Theme.layout) {
-      D9T_APPLY_GROUP_MARGINS(uiObj.infoGrp, D9T_Theme.layout.infoMargins);
-    }
-    if (uiObj.mainGrp && D9T_Theme.layout) {
-      D9T_APPLY_GROUP_MARGINS(uiObj.mainGrp, D9T_Theme.layout.mainMargins);
-    }
-    if (uiObj.searchLabel) { setFgColor(uiObj.searchLabel, D9T_Theme.colors.textNormal); }
-    if (uiObj.searchVersionLab) { setFgColor(uiObj.searchVersionLab, D9T_Theme.colors.textNormal); }
-    if (uiObj.vLab) { setFgColor(uiObj.vLab, D9T_Theme.colors.textNormal); }
+    try { setBgColor(uiObj.window, bgColor1); } catch (e) {}
+    if (uiObj.headerGrp) { try { setBgColor(uiObj.headerGrp, bgColor2); } catch (e) {} }
+    if (uiObj.searchGrp) { try { setBgColor(uiObj.searchGrp, bgColor2); } catch (e) {} }
+    
+    // Atualiza divisores
     if (uiObj.divArray && uiObj.divArray.length) {
       for (var d = 0; d < uiObj.divArray.length; d++) {
         var divider = uiObj.divArray[d];
@@ -285,8 +299,8 @@ function D9T_APPLY_THEME_TO_ROOT(uiObj) {
       }
     }
   }
-
-  // Atualiza botoes tematicos registrados (utilizado por varios modulos)
+  
+  // Atualiza botões temáticos registrados
   if (typeof D9T_refreshRegisteredThemeButtons === "function") {
     try { D9T_refreshRegisteredThemeButtons(); } catch (btnErr) {}
   }
@@ -299,238 +313,19 @@ function D9T_LOCK_WINDOW(win) {
     win.minimumSize = fixedSize;
     win.maximumSize = fixedSize;
     win.onResizing = win.onResize = function () {
-      try { this.size = this.minimumSize; } catch (resizeErr) {}
+      try { this.size = this.minimumSize; } catch (e) {}
     };
   } catch (err) {}
 }
 
-function D9T_OPEN_COLOR_GLOBALS() {
-    D9T_OPEN_THEME_DIALOG(D9T_ui);
-}
-
-function D9T_OPEN_THEME_DIALOG(uiObj) {
-    uiObj = uiObj || D9T_ui;
-    var defaults = (defaultScriptPreferencesObj && defaultScriptPreferencesObj.themeColors) ? defaultScriptPreferencesObj.themeColors : {};
-    var current = (scriptPreferencesObj && scriptPreferencesObj.themeColors) ? scriptPreferencesObj.themeColors : defaults;
-    var colorEntries = [
-        { label: "Fundo principal (bgColor1)", key: "bgColor1" },
-        { label: "Fundo secundario (bgColor2)", key: "bgColor2" },
-        { label: "Divisores (divColor1)", key: "divColor1" },
-        { label: "Mono claro (monoColor0)", key: "monoColor0" },
-        { label: "Mono texto (monoColor1)", key: "monoColor1" },
-        { label: "Mono destaque (monoColor2)", key: "monoColor2" },
-        { label: "Mono escuro (monoColor3)", key: "monoColor3" },
-        { label: "Texto claro (normalColor1)", key: "normalColor1" },
-        { label: "Texto padrao (normalColor2)", key: "normalColor2" },
-        { label: "Highlight (highlightColor1)", key: "highlightColor1" }
-    ];
-
-    var win = new Window("palette", "Cores globais");
-    win.orientation = "column";
-    win.alignChildren = "fill";
-    win.margins = 18;
-    win.spacing = 10;
-    try { setBgColor(win, bgColor1); } catch (e) {}
-
-    var title = win.add("statictext", undefined, "Personalize o tema do GND9TOOLS");
-    title.justify = "left";
-    setFgColor(title, D9T_Theme.colors.textNormal);
-    var info = win.add("statictext", undefined, "Use valores HEX (#RRGGBB ou #RRGGBBAA).", { multiline: true });
-    info.maximumSize.width = 280;
-    setFgColor(info, D9T_Theme.colors.textNormal);
-
-    var fieldMap = {};
-
-    function tryParseHex(value) {
-        if (typeof value !== "string") { return null; }
-        var clean = value.replace(/[^0-9a-fA-F]/g, "");
-        if (clean.length === 6 || clean.length === 8) {
-            return ("#" + clean).toUpperCase();
-        }
-        return null;
-    }
-
-    function updateSwatch(field) {
-        if (!field || !field.__swatch) { return; }
-        var parsed = tryParseHex(field.text);
-        if (parsed) {
-            try { setBgColor(field.__swatch, parsed); } catch (e) {}
-        }
-    }
-
-    function decimalToHex(dec) {
-        if (typeof dec !== "number" || dec < 0) { return null; }
-        var hex = dec.toString(16);
-        while (hex.length < 6) { hex = "0" + hex; }
-        return ("#" + hex).toUpperCase();
-    }
-
-    function setFieldValue(field, value) {
-        if (!field) { return; }
-        field.text = value || "";
-        updateSwatch(field);
-    }
-
-    for (var i = 0; i < colorEntries.length; i++) {
-        var entry = colorEntries[i];
-        var row = win.add("group");
-        row.alignment = ["fill", "top"];
-        row.spacing = 6;
-        var label = row.add("statictext", undefined, entry.label + ":");
-        label.preferredSize.width = 190;
-        setFgColor(label, D9T_Theme.colors.textNormal);
-        var field = row.add("edittext", undefined, current[entry.key] || defaults[entry.key] || "#000000");
-        field.characters = 10;
-        field.helpTip = "Valor HEX para " + entry.label;
-        var swatch = row.add("panel");
-        swatch.preferredSize = [26, 16];
-        swatch.margins = 0;
-        swatch.helpTip = "Clique para escolher " + entry.label;
-        field.__swatch = swatch;
-        fieldMap[entry.key] = field;
-        (function(refField) {
-            function hexToDecimal(hexValue) {
-                var clean = (hexValue || "").replace('#', '');
-                if (clean.length !== 6 && clean.length !== 8) { return null; }
-                clean = clean.length === 8 ? clean.substring(0, 6) : clean;
-                var dec = parseInt(clean, 16);
-                if (isNaN(dec)) { return null; }
-                return dec;
-            }
-            function openPicker() {
-                if (typeof $.colorPicker !== "function") {
-                    alert("Color picker nao disponivel neste host.");
-                    return;
-                }
-                var parsedHex = tryParseHex(refField.text);
-                var initialDec = hexToDecimal(parsedHex);
-                var result = (initialDec !== null) ? $.colorPicker(initialDec) : $.colorPicker();
-                if (result < 0) { return; }
-                var hex = decimalToHex(result);
-                if (hex) {
-                    refField.text = hex;
-                    updateSwatch(refField);
-                    applyLiveTheme();
-                }
-            }
-            swatch.addEventListener("click", openPicker);
-            refField.onChanging = function () { updateSwatch(refField); applyLiveTheme(); };
-            refField.onChange = function () { updateSwatch(refField); applyLiveTheme(); };
-            refField.addEventListener("keydown", function (evt) {
-                if (evt.keyName === "Enter") { openPicker(); }
-            });
-            updateSwatch(refField);
-        })(field);
-    }
-
-    function collectValues() {
-        var data = {};
-        for (var j = 0; j < colorEntries.length; j++) {
-            var entry = colorEntries[j];
-            var parsed = tryParseHex(fieldMap[entry.key].text);
-            if (!parsed) {
-                alert("Valor invalido para " + entry.label + ". Use formato #RRGGBB ou #RRGGBBAA.");
-                return null;
-            }
-            data[entry.key] = parsed;
-        }
-        return data;
-    }
-
-    function applyLiveTheme() {
-        // Build a non-destructive palette using current (or default) values as base,
-        // then override only the fields que estao com valor valido.
-        var liveValues = {};
-        for (var iLive = 0; iLive < colorEntries.length; iLive++) {
-            var cEntry = colorEntries[iLive];
-            var base = (scriptPreferencesObj && scriptPreferencesObj.themeColors && scriptPreferencesObj.themeColors[cEntry.key]) ||
-                       current[cEntry.key] || defaults[cEntry.key];
-            liveValues[cEntry.key] = base;
-            var parsedLive = tryParseHex(fieldMap[cEntry.key].text);
-            if (parsedLive) {
-                liveValues[cEntry.key] = parsedLive;
-            }
-        }
-        applyTheme(liveValues, false);
-    }
-
-    function applyTheme(values, persist) {
-        if (!values) { return; }
-        var usedCentralHelper = (typeof D9T_Preferences !== "undefined" && typeof D9T_Preferences.updateThemeSettings === "function");
-        if (usedCentralHelper) {
-            try {
-                D9T_Preferences.updateThemeSettings(values, persist);
-                if (typeof D9T_Preferences.get === "function") {
-                    scriptPreferencesObj.themeColors = D9T_Preferences.get('themeColors', scriptPreferencesObj.themeColors || {});
-                }
-            } catch (prefsErr) {
-                $.writeln('[theme_api] Falha ao atualizar tema via D9T_Preferences: ' + prefsErr);
-                usedCentralHelper = false;
-            }
-        }
-        if (!usedCentralHelper) {
-            scriptPreferencesObj.themeColors = {};
-            for (var key in values) {
-                if (values.hasOwnProperty(key)) {
-                    scriptPreferencesObj.themeColors[key] = values[key];
-                }
-            }
-            if (typeof applyThemeColorOverrides === "function") {
-                applyThemeColorOverrides(scriptPreferencesObj.themeColors);
-            }
-            D9T_REFRESH_THEME_COLORS();
-            if (persist) {
-                // Prefer salvamento direto do JSON de usuário
-                if (typeof saveScriptPreferences === "function") {
-                    try { saveScriptPreferences(); }
-                    catch (prefsErr2) { $.writeln('[theme_api] Falha ao salvar via saveScriptPreferences: ' + prefsErr2); }
-                } else if (typeof D9T_Preferences !== "undefined" && typeof D9T_Preferences.save === "function") {
-                    try { D9T_Preferences.save(); }
-                    catch (prefsErr3) { $.writeln('[theme_api] Falha ao salvar via D9T_Preferences: ' + prefsErr3); }
-                }
-            }
-        }
-        if (typeof D9T_refreshAllThemeRoots === "function") { D9T_refreshAllThemeRoots(uiObj); }
-    }
-
-    var btnGrp = win.add("group");
-    btnGrp.alignment = ["right", "top"];
-    btnGrp.orientation = "row";
-    btnGrp.spacing = 8;
-
-    var resetBtn = btnGrp.add("button", undefined, "Resetar");
-    resetBtn.helpTip = "Restaura os valores padrão de tema";
-    var saveBtn = btnGrp.add("button", undefined, "Aplicar");
-    saveBtn.helpTip = "Aplica e salva as cores escolhidas";
-
-    resetBtn.onClick = function () {
-        for (var r = 0; r < colorEntries.length; r++) {
-            var entry = colorEntries[r];
-            setFieldValue(fieldMap[entry.key], defaults[entry.key]);
-        }
-        applyTheme(defaults, true);
-    };
-
-    saveBtn.onClick = function () {
-        var values = collectValues();
-        if (!values) { return; }
-        applyTheme(values, true);
-    };
-
-    try { win.layout.layout(true); } catch (layoutErrColor) {}
-    try { win.center(); } catch (centerErr) {}
-    D9T_LOCK_WINDOW(win);
-    win.show();
-}
-
 // ============================================
-// FUNÇÕES DE ESTILO
+// 5. HELPERS DE COR E DESENHO (BAIXO NÍVEL)
 // ============================================
 
 function hexToRgb(hex) {
-    if (typeof hex !== 'string') return [1, 1, 1];
-    hex = hex.replace('#', '');
-    if (hex.length > 6) hex = hex.substring(0, 6);
+    if (typeof hex !== 'string') return [0.5, 0.5, 0.5];
+    hex = hex.replace('#', '').trim();
+    if (hex.length < 6) return [0, 0, 0]; 
     var r = parseInt(hex.substring(0, 2), 16) / 255;
     var g = parseInt(hex.substring(2, 4), 16) / 255;
     var b = parseInt(hex.substring(4, 6), 16) / 255;
@@ -557,18 +352,81 @@ function setFgColor(ctrl, hex) {
 
 function setCtrlHighlight(ctrl, normalColor, highlightColor) {
     setFgColor(ctrl, normalColor);
-    ctrl.addEventListener("mouseover", function () {
-        setFgColor(ctrl, highlightColor);
-    });
-    ctrl.addEventListener("mouseout", function () {
-        setFgColor(ctrl, normalColor);
-    });
+    ctrl.addEventListener("mouseover", function () { setFgColor(ctrl, highlightColor); });
+    ctrl.addEventListener("mouseout", function () { setFgColor(ctrl, normalColor); });
 }
 
 function customDraw() {
-    with(this) {
-        graphics.drawOSControl();
-        graphics.rectPath(0, 0, size[0], size[1]);
-        graphics.fillPath(fillBrush);
+    if (typeof D9T_drawThemedButton === "function") {
+        try { D9T_drawThemedButton(this); return; } catch (_useLocal) {}
+    }
+    try {
+        var g = this.graphics;
+        var w = this.size ? this.size[0] : 0;
+        var h = this.size ? this.size[1] : 0;
+
+        var radius = (typeof this.__buttonCornerRadius === "number") ? this.__buttonCornerRadius : Math.round(h / 2);
+        var maxR = Math.min(w, h) / 2;
+        radius = Math.max(0, Math.min(maxR, radius));
+
+        var fill = this.fillBrush ? this.fillBrush : g.newBrush(g.BrushType.SOLID_COLOR, this.buttonColor || [0.2, 0.2, 0.2]);
+        g.newPath();
+        if (radius <= 0) {
+            g.rectPath(0, 0, w, h);
+        } else {
+            var d = radius * 2;
+            g.ellipsePath(0, 0, d, d);
+            g.ellipsePath(w - d, 0, d, d);
+            g.ellipsePath(0, h - d, d, d);
+            g.ellipsePath(w - d, h - d, d, d);
+            g.rectPath(radius, 0, w - d, h);
+            g.rectPath(0, radius, w, h - d);
+        }
+        g.fillPath(fill);
+
+        var txt = (typeof this.__buttonDisplayedText !== "undefined") ? this.__buttonDisplayedText : ((typeof this.text !== "undefined") ? this.text : "");
+        if (this.__buttonTextTransform === "uppercase") txt = txt.toUpperCase();
+        else if (this.__buttonTextTransform === "lowercase") txt = txt.toLowerCase();
+        txt = (txt || "").toString();
+
+        if (txt.length) {
+            var fSize = (typeof this.__buttonLabelFontSize === "number" && !isNaN(this.__buttonLabelFontSize)) ? this.__buttonLabelFontSize : Math.max(10, Math.min(16, Math.round(h * 0.45)));
+            try { g.font = ScriptUI.newFont("Arial", "Bold", fSize); } catch (eFont) {}
+            var lines = txt.split("\n");
+            var lineSpacing = Math.max(2, Math.round(fSize * 0.25));
+            var metrics = [];
+            var totalHeight = 0;
+            for (var i = 0; i < lines.length; i++) {
+                var tLine = lines[i] || "";
+                var m = g.measureString(tLine);
+                var mH = Math.max(fSize, (m && m.height) ? m.height : fSize);
+                metrics.push({ text: tLine, size: m, height: mH });
+                totalHeight += mH;
+                if (i < lines.length - 1) totalHeight += lineSpacing;
+            }
+            var offX = (typeof this.__buttonLabelOffsetX === "number") ? this.__buttonLabelOffsetX : 0;
+            var offY = (typeof this.__buttonLabelOffset === "number") ? this.__buttonLabelOffset : 0;
+            var startY = (h - totalHeight) / 2 + offY;
+            var cursorY = startY;
+            var textPen = g.newPen(g.PenType.SOLID_COLOR, this.textColor || [1, 1, 1], 1);
+            for (var l = 0; l < metrics.length; l++) {
+                var data = metrics[l];
+                var mSize = data.size;
+                var baseW = mSize ? (mSize.width || mSize[0] || 0) : 0;
+                var px = ((w - baseW) / 2) + offX;
+                var ascent = (mSize && typeof mSize.ascent === "number") ? mSize.ascent : Math.max(1, data.height * 0.75);
+                var baseline = cursorY + ascent;
+                g.drawString(data.text, textPen, px, baseline);
+                cursorY += data.height + lineSpacing;
+            }
+        }
+    } catch (err) {
+        try {
+            with (this) {
+                graphics.drawOSControl();
+                graphics.rectPath(0, 0, size[0], size[1]);
+                if (fillBrush) graphics.fillPath(fillBrush);
+            }
+        } catch (_fallback) {}
     }
 }
